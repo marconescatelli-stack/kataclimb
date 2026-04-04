@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scalare l'Impossibile — Marco Nescatelli · KataClimb</title>
+<meta name="description" content="Scalare l'Impossibile: scopri il rivoluzionario metodo KataClimb per trasformare la paura in un super potere. Di Marco Nescatelli.">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<link rel="icon" href="/favicon-192x192.png" type="image/png" sizes="192x192">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="canonical" href="https://kataclimb.com/libro.html">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://kataclimb.com/libro.html">
+<meta property="og:title" content="Scalare l'Impossibile — Marco Nescatelli · KataClimb">
+<meta property="og:description" content="Scalare l'Impossibile: scopri il rivoluzionario metodo KataClimb per trasformare la paura in un super potere. Di Marco Nescatelli.">
+<meta property="og:image" content="https://kataclimb.com/book-cover.jpg">
+<meta property="og:locale" content="it_IT">
+<meta property="og:site_name" content="KataClimb">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Scalare l'Impossibile — Marco Nescatelli">
+<meta name="twitter:description" content="Scopri il rivoluzionario metodo KataClimb per trasformare la paura in un super potere.">
+<meta name="twitter:image" content="https://kataclimb.com/book-cover.jpg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Book",
+  "name": "Scalare l'Impossibile",
+  "author": {
+    "@type": "Person",
+    "name": "Marco Nescatelli"
+  },
+  "url": "https://amzn.to/3NmlLM8",
+  "image": "https://kataclimb.com/book-cover.jpg",
+  "inLanguage": "it",
+  "publisher": {
+    "@type": "Organization",
+    "name": "KataClimb"
+  },
+  "datePublished": "2024"
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --chalk: #F5F0E8;
+    --rope: #D4A03C;
+    --rope-light: #E8C97A;
+    --sky: #4AADE0;
+    --sky-dark: #14537A;
+    --void: #0E3B54;
+    --deep: #0B2E42;
+    --rock: #8B7D6B;
+    --rock-light: #A89B8C;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--chalk);
+    color: var(--void);
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  a { color: var(--rope); text-decoration: none; }
+
+  /* === NAV === */
+  nav {
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--void);
+  }
+
+  .nav-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--chalk);
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--sky); }
+
+  .nav-back {
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.7);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: color 0.3s;
+  }
+
+  .nav-back:hover { color: var(--rope); }
+  .nav-back svg { width: 16px; height: 16px; }
+
+  /* === HERO === */
+  .book-hero {
+    background: var(--void);
+    color: var(--chalk);
+    padding: 3rem 2rem 4rem;
+    text-align: center;
+  }
+
+  .book-hero .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--rope);
+    margin-bottom: 1rem;
+  }
+
+  .book-hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  .book-hero h1 em {
+    color: var(--rope);
+    font-style: italic;
+  }
+
+  .book-hero .author {
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: var(--rock-light);
+  }
+
+  /* === COVER === */
+  .cover-section {
+    background: var(--chalk);
+    padding: 3rem 2rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .cover-img {
+    max-width: 850px;
+    width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  }
+
+  .cover-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* === CTA === */
+  .book-cta {
+    background: var(--chalk);
+    padding: 0 2rem 4rem;
+    text-align: center;
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1.1rem 3rem;
+    background: var(--void);
+    color: var(--rope);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .cta-btn:hover {
+    background: var(--sky-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+
+  .cta-btn svg { width: 18px; height: 18px; }
+
+  .cta-note {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--rock);
+    font-weight: 300;
+  }
+
+  /* === FOOTER === */
+  footer {
+    background: var(--deep);
+    color: var(--rock-light);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 300;
+  }
+
+  footer a { color: var(--rope); text-decoration: none; }
+
+  .footer-links {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    font-size: 0.78rem;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Kata<span>Climb</span></a>
+  <a href="index.html" class="nav-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    Torna al sito
+  </a>
+</nav>
+
+<section class="book-hero">
+  <div class="label">Il Libro</div>
+  <h1>Scalare <em>l'Impossibile</em></h1>
+  <p class="author">Marco Nescatelli</p>
+</section>
+
+<section class="cover-section">
+  <div class="cover-img">
+    <img src="book-cover.jpg" alt="Scalare l'Impossibile — Copertina fronte e retro">
+  </div>
+</section>
+
+<section class="book-cta">
+  <a href="https://amzn.to/3NmlLM8" target="_blank" rel="noopener" class="cta-btn">
+    Acquista su Amazon
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l10-10"/><path d="M7 7h10v10"/></svg>
+  </a>
+  <p class="cta-note">Disponibile in formato cartaceo e Kindle</p>
+</section>
+
+<footer>
+  <p>KataClimb® è un brand di <a href="https://syncrolink.co/" target="_blank" style="color:var(--rock-light); text-decoration:none;">Syncrolink Ltd</a> · London, UK · Company N. 15702722</p>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="https://www.instagram.com/marco_nescatelli/" target="_blank">Instagram</a>
+    <a href="portale.html">Portale</a>
+    <a href="https://syncrolink.co/" target="_blank">Syncrolink</a>
+  </div>
+</footer>
+
+</body>
+</html>
