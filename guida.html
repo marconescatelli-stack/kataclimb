@@ -123,6 +123,13 @@ body{font-size:22px}
 .hero-spiral{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;height:280px;opacity:.3;pointer-events:none;z-index:0;border-radius:50%}
 @media(min-width:600px){.hero-spiral{width:390px;height:390px}}
 .footer{text-align:center;padding:32px 0 14px;font-size:8.5px;color:rgba(255,255,255,.1);letter-spacing:.7px}
+
+/* Photo strip dividers */
+.photo-strip{width:100vw;height:180px;overflow:hidden;position:relative;margin-left:calc(-50vw + 50%);margin-bottom:20px}
+.photo-strip img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;filter:brightness(.65)}
+.photo-strip::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--bg) 0%,transparent 18%,transparent 82%,var(--bg) 100%)}
+@media(min-width:768px){.photo-strip{height:240px}}
+@media(min-width:1024px){.photo-strip{height:300px}}
 .guide-nav{position:sticky;top:0;z-index:10;background:rgba(9,14,19,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(58,171,240,.15);padding:0 20px}
 .guide-nav-inner{max-width:680px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:10px 0}
 .guide-nav-inner::-webkit-scrollbar{display:none}
@@ -218,6 +225,7 @@ body{font-size:22px}
 </div>
 
 <!-- 3. I 33 KATA -->
+<div class="photo-strip"><img src="Il_3_tiro_Gaeta_Marco_Nescatelli.JPG" alt="Multipitch a Gaeta"></div>
 <div id="s-kata"></div>
 <div class="section">
   <div class="section-num">3</div>
@@ -291,6 +299,7 @@ body{font-size:22px}
 </div>
 
 <!-- 6. VIDEO PRESENTAZIONE -->
+<div class="photo-strip"><img src="dall_alto_primo_di_cordata_.jpg" alt="Primo di cordata"></div>
 <div id="s-presentazione"></div>
 <div class="section">
   <div class="section-num">6</div>
@@ -352,6 +361,7 @@ body{font-size:22px}
 </div>
 
 <!-- 8. PROGRESSIONE -->
+<div class="photo-strip"><img src="Roma_Center_Climb_est_Marco_Nescatelli_arrampicata_.jpg" alt="KataClimb in palestra"></div>
 <div class="section">
   <div class="section-num">8</div>
   <h2>La <em>Linea</em> di Progressione</h2>
@@ -449,6 +459,7 @@ body{font-size:22px}
 </div>
 
 <!-- 10. COMUNITÀ -->
+<div class="photo-strip"><img src="UZU_015.jpg" alt="Arrampicata in falesia"></div>
 <div id="s-comunita"></div>
 <div class="section">
   <div class="section-num">10</div>
