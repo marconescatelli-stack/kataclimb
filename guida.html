@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Come Funziona — Portale KataClimb®</title>
+<meta name="description" content="Guida visiva al Portale KataClimb: profilo, Kata, video, certificazioni, salvadanaio, logbook roccia.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F1EB;--bg2:#EDE8E0;--bg3:#E4DFD6;--card:rgba(0,0,0,.025);--border:rgba(0,0,0,.07);--text:#2C2418;--text2:rgba(44,36,24,.55);--text3:rgba(44,36,24,.35);--blue:#3AABF0;--green:#5B8C5A;--gold:#B45309;--purple:#7B2D8E;--orange:#EA580C;--advance:#3A7D44;--font:'DM Sans',sans-serif;--serif:'Cormorant Garamond',serif}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.top-bar{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.top-bar a{font-size:10px;color:var(--text3);text-decoration:none;letter-spacing:.5px;transition:color .3s}
+.top-bar a:hover{color:var(--blue)}
+.hero{text-align:center;padding:60px 24px 40px;max-width:600px;margin:0 auto;position:relative;overflow:hidden}
+.landing-spiral{display:block;position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:min(900px,100%);height:auto;opacity:.07;pointer-events:none;z-index:0;mix-blend-mode:multiply}
+.landing-spiral path{fill:#0ea5e9}
+@media(min-width:1024px){.landing-spiral{top:38%;width:min(1150px,95%);opacity:.06}}
+@media(min-width:1024px){.hero{max-width:1100px;padding:100px 48px 60px}}
+.hero h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:300;line-height:1.2;margin-bottom:12px}
+.hero h1 em{color:var(--blue);font-style:italic}
+.hero p{font-size:13px;color:var(--text2);line-height:1.7;max-width:480px;margin:0 auto}
+.sections{max-width:680px;margin:0 auto;padding:0 20px 60px}
+@media(min-width:768px){.sections{max-width:800px;padding:0 28px 60px}.hero h1{font-size:42px}.hero p{font-size:16px;line-height:1.8}.section h2{font-size:26px}.section .lead{font-size:15px;line-height:1.8}.rule-box h4{font-size:14px}.rule-box p{font-size:13px;line-height:1.6}.card-title{font-size:12px}.callout{font-size:14px}.step-pill{font-size:13px}.example-box p{font-size:14px}.tag{font-size:12px}.price-card p{font-size:13px}}
+@media(min-width:1024px){
+body{font-size:22px}
+.sections{max-width:1100px;padding:40px 56px 100px}
+.hero{max-width:1100px;padding:120px 56px 70px}
+.hero h1{font-size:72px!important}
+.hero p{font-size:26px!important;max-width:740px;line-height:1.7!important;color:rgba(44,36,24,.75)!important}
+.section{margin-bottom:100px}
+.section:first-child{margin-top:48px}
+.section h2{font-size:36px!important;margin-bottom:12px}
+.section .lead{font-size:18px!important;line-height:1.7!important;margin-bottom:28px;color:rgba(44,36,24,.75)!important}
+.rule-grid{grid-template-columns:1fr 1fr;gap:20px}
+.rule-box{padding:28px 30px}
+.rule-box .icon{font-size:36px;margin-bottom:12px}
+.rule-box h4{font-size:24px!important;margin-bottom:10px}
+.rule-box p{font-size:22px!important;line-height:1.7!important;color:rgba(44,36,24,.7)!important}
+.card{padding:36px;margin-bottom:26px;border-radius:18px}
+.card-title{font-size:18px!important;letter-spacing:2px;margin-bottom:22px}
+.step-pill{font-size:20px!important;padding:16px 30px}
+.step-arrow{font-size:24px}
+.callout{font-size:22px!important;padding:28px 32px;line-height:1.7!important;color:rgba(44,36,24,.75)!important}
+.callout strong{font-size:22px!important}
+.example-box{padding:28px}
+.example-box h4{font-size:20px!important;margin-bottom:12px}
+.example-box p{font-size:22px!important;line-height:1.7!important;color:rgba(44,36,24,.7)!important}
+.corso-chip{padding:24px 26px;border-radius:14px}
+.corso-chip h4{font-size:22px!important;margin-bottom:6px}
+.corso-chip p{font-size:18px!important}
+.tag{font-size:20px!important;padding:8px 22px;border-radius:16px}
+.price-card{padding:32px;border-radius:14px}
+.price-card h4{font-size:24px!important;margin-bottom:10px}
+.price-card .amount{font-size:44px!important;margin:10px 0}
+.price-card .amount span{font-size:20px!important}
+.price-card p{font-size:20px!important;line-height:1.6!important;color:rgba(44,36,24,.7)!important}
+.slot{width:86px;height:86px;font-size:16px!important;border-radius:12px}
+.slot-row{gap:12px;margin:26px 0}
+.section-num{width:48px;height:48px;font-size:22px;margin-bottom:20px}
+.footer{font-size:18px;padding:56px 0 28px;color:rgba(44,36,24,.25)!important}
+.top-bar{padding:24px 36px}
+.top-bar a{font-size:18px!important}
+.guide-nav{padding:0 20px}
+.guide-nav-inner{max-width:100%;gap:5px;justify-content:center!important;padding:12px 0;flex-wrap:nowrap}
+.guide-nav a{font-size:12px!important;padding:7px 12px;border-radius:14px;flex-shrink:0}
+.step-flow{gap:12px;margin:26px 0}
+.section p[style]{font-size:22px!important;line-height:1.7!important;color:rgba(44,36,24,.7)!important}
+.section div[style]{font-size:20px!important}
+.section span[style*="font-size"]{font-size:20px!important}
+.price-row{gap:18px;margin:22px 0}
+.corso-row{gap:14px;margin:22px 0}
+}
+.section{margin-bottom:52px}
+.section-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--blue);color:var(--bg);font-size:11px;font-weight:700;margin-bottom:12px}
+.section h2{font-family:var(--serif);font-size:22px;font-weight:400;margin-bottom:6px}
+.section h2 em{color:var(--blue);font-style:italic}
+.section .lead{font-size:12.5px;color:var(--text2);line-height:1.7;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px}
+.card-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}
+.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+@media(max-width:480px){.rule-grid{grid-template-columns:1fr}}
+.rule-box{background:rgba(44,36,24,.02);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.rule-box .icon{font-size:20px;margin-bottom:6px}
+.rule-box h4{font-size:12px;font-weight:600;margin-bottom:4px}
+.rule-box p{font-size:11px;color:var(--text2);line-height:1.5}
+.step-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;margin:18px 0}
+.step-pill{background:rgba(44,36,24,.04);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:11px;font-weight:500;white-space:nowrap}
+.step-pill.active{background:rgba(58,171,240,.12);border-color:rgba(58,171,240,.25);color:var(--blue)}
+.step-pill.gold{background:rgba(255,200,87,.1);border-color:rgba(255,200,87,.2);color:var(--gold)}
+.step-arrow{color:var(--text3);font-size:14px}
+.slot-row{display:flex;gap:6px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.slot{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;text-align:center;line-height:1.2}
+.slot.archive{background:rgba(44,36,24,.03);border:1.5px solid rgba(44,36,24,.1);color:var(--text3)}
+.slot.cert{background:rgba(255,200,87,.08);border:1.5px solid rgba(255,200,87,.2);color:var(--gold)}
+.tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600;margin:2px}
+.tag.pub{background:rgba(91,140,90,.15);color:var(--green)}
+.tag.priv{background:rgba(44,36,24,.05);color:var(--text2)}
+.tag.ris{background:rgba(58,171,240,.12);color:var(--blue)}
+.example-box{background:rgba(255,200,87,.04);border:1px solid rgba(255,200,87,.1);border-radius:10px;padding:16px;margin:14px 0}
+.example-box h4{font-size:11px;color:var(--gold);font-weight:600;margin-bottom:6px}
+.example-box p{font-size:11.5px;color:var(--text2);line-height:1.6}
+.corso-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.corso-chip{flex:1;min-width:120px;border-radius:10px;padding:12px 14px;text-align:center}
+.corso-chip h4{font-size:12px;font-weight:600;margin-bottom:2px}
+.corso-chip p{font-size:10px;opacity:.7}
+.corso-chip.c1{background:rgba(91,140,90,.12);border:1px solid rgba(91,140,90,.2);color:var(--green)}
+.corso-chip.c2{background:rgba(58,125,68,.12);border:1px solid rgba(58,125,68,.2);color:var(--advance)}
+.corso-chip.c3{background:rgba(46,134,171,.12);border:1px solid rgba(46,134,171,.2);color:var(--blue)}
+.corso-chip.c4{background:rgba(123,45,142,.12);border:1px solid rgba(123,45,142,.2);color:var(--purple)}
+.callout{background:rgba(58,171,240,.06);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0;font-size:12px;color:var(--text2);line-height:1.6}
+.callout strong{color:var(--text);font-weight:600}
+.price-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.price-card{flex:1;min-width:180px;background:rgba(44,36,24,.02);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}
+.price-card h4{font-size:13px;font-weight:600;margin-bottom:4px}
+.price-card .amount{font-family:var(--serif);font-size:28px;font-weight:400;color:var(--gold);margin:6px 0}
+.price-card .amount span{font-size:14px;color:var(--text2)}
+.price-card p{font-size:10.5px;color:var(--text2);line-height:1.5}
+.price-card.featured{border-color:rgba(58,171,240,.2);background:rgba(58,171,240,.04)}
+.hero-spiral{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;height:280px;opacity:.3;pointer-events:none;z-index:0;border-radius:50%}
+@media(min-width:600px){.hero-spiral{width:390px;height:390px}}
+.footer{text-align:center;padding:32px 0 14px;font-size:8.5px;color:rgba(44,36,24,.1);letter-spacing:.7px}
+
+/* Photo strip dividers */
+.photo-strip{width:100%;max-width:100%;height:200px;overflow:hidden;position:relative;margin-bottom:20px;border-radius:14px}
+.photo-strip img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;filter:brightness(.65)}
+.photo-strip::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--bg) 0%,transparent 18%,transparent 82%,var(--bg) 100%)}
+@media(min-width:768px){.photo-strip{height:240px;border-radius:16px}}
+@media(min-width:1024px){.photo-strip{height:280px;border-radius:18px}}
+.guide-nav{position:sticky;top:0;z-index:10;background:rgba(9,14,19,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(58,171,240,.15);padding:0 20px}
+.guide-nav-inner{margin:0 auto;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:10px 0;justify-content:flex-start}
+.guide-nav-inner::-webkit-scrollbar{display:none}
+.guide-nav a{font-size:10.5px;font-weight:600;color:var(--blue);text-decoration:none;padding:6px 12px;border-radius:16px;white-space:nowrap;transition:all .2s;background:rgba(58,171,240,.06);border:1px solid rgba(58,171,240,.1)}
+.guide-nav a:hover{color:#2C2418;background:rgba(58,171,240,.2);border-color:rgba(58,171,240,.3)}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <a href="/portale">← Torna al Portale</a>
+  <a href="/">kataclimb.com</a>
+</div>
+
+<div style="position:relative;overflow:hidden">
+  <img class="hero-spiral" src="spiral-bg.png" alt="">
+  <div class="hero" style="position:relative;z-index:1;overflow:hidden">
+  <svg class="landing-spiral" version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="2000.000000pt" height="740.000000pt" viewBox="0 0 2000.000000 740.000000"
+ preserveAspectRatio="xMidYMid meet">
+
+<g transform="translate(0.000000,740.000000) scale(0.100000,-0.100000)"
+fill="#1d4ed8" stroke="none">
+<path d="M19970 7365 c0 -24 5 -35 15 -35 10 0 15 11 15 35 0 24 -5 35 -15 35
+-10 0 -15 -11 -15 -35z"/>
+<path d="M11080 6388 c-645 -13 -1235 -30 -1345 -38 -60 -4 -141 -15 -180 -24
+-38 -9 -135 -21 -215 -26 -80 -6 -203 -14 -275 -20 -71 -6 -193 -15 -270 -20
+-194 -13 -348 -27 -425 -39 -110 -17 -233 -31 -277 -31 -24 0 -62 -4 -85 -10
+-24 -5 -86 -14 -138 -20 -52 -6 -122 -16 -155 -21 -33 -5 -96 -14 -140 -19
+-141 -15 -300 -38 -317 -45 -15 -6 -108 -22 -268 -45 -36 -5 -87 -15 -115 -21
+-45 -10 -101 -20 -275 -48 -30 -5 -77 -15 -105 -21 -77 -17 -193 -39 -265 -50
+-36 -5 -85 -14 -110 -20 -25 -6 -71 -15 -103 -21 -33 -5 -63 -11 -68 -14 -4
+-3 -36 -10 -71 -15 -35 -4 -81 -14 -103 -20 -22 -7 -65 -16 -95 -20 -77 -11
+-208 -37 -255 -50 -22 -6 -65 -15 -95 -20 -79 -14 -188 -37 -240 -50 -25 -6
+-65 -15 -90 -20 -110 -21 -311 -70 -332 -81 -10 -5 -25 -9 -33 -9 -8 0 -48
+-11 -87 -25 -39 -14 -82 -25 -94 -25 -13 0 -26 -4 -29 -10 -3 -5 -16 -10 -28
+-10 -12 -1 -40 -8 -62 -16 -22 -9 -58 -20 -80 -26 -22 -5 -49 -13 -60 -18 -39
+-16 -234 -80 -244 -80 -6 0 -30 -8 -54 -18 -23 -11 -69 -27 -102 -37 -33 -10
+-78 -26 -100 -36 -22 -9 -68 -26 -101 -38 -34 -11 -77 -26 -95 -34 -19 -8 -52
+-20 -74 -27 -22 -7 -53 -18 -70 -26 -58 -26 -231 -95 -285 -114 -30 -10 -68
+-25 -85 -33 -31 -16 -58 -27 -165 -71 -88 -37 -98 -41 -150 -64 -25 -10 -106
+-45 -180 -77 -74 -31 -145 -63 -157 -71 -12 -8 -27 -14 -33 -14 -6 0 -58 -22
+-116 -50 -58 -27 -108 -50 -111 -50 -4 0 -34 -13 -67 -29 -138 -65 -258 -117
+-371 -161 -47 -18 -168 -43 -270 -55 -60 -7 -126 -16 -145 -20 -32 -7 -125
+-60 -160 -92 -8 -8 -40 -33 -72 -57 -31 -23 -63 -49 -71 -57 -8 -8 -28 -24
+-44 -36 -40 -30 -203 -189 -203 -197 0 -4 -13 -21 -28 -37 -16 -17 -42 -56
+-58 -87 -16 -32 -32 -59 -36 -62 -16 -12 -27 -154 -15 -204 6 -28 13 -53 16
+-56 4 -3 14 -21 23 -40 24 -47 41 -74 53 -82 6 -3 24 -18 40 -32 110 -95 216
+-165 365 -243 47 -25 90 -49 95 -53 6 -4 57 -26 115 -49 58 -22 113 -45 122
+-51 10 -5 23 -10 29 -10 6 0 37 -11 68 -24 31 -13 76 -29 101 -36 25 -6 74
+-20 110 -31 96 -28 168 -46 235 -59 33 -7 71 -16 85 -20 14 -5 70 -16 125 -25
+55 -9 129 -24 165 -32 77 -18 78 -18 250 -43 74 -11 160 -25 190 -30 30 -6 89
+-15 130 -20 41 -6 125 -17 185 -25 61 -7 139 -19 175 -25 36 -6 97 -15 135
+-20 130 -17 280 -40 320 -50 22 -5 78 -12 125 -15 47 -4 108 -10 135 -15 28
+-5 158 -14 290 -20 335 -16 741 -53 1070 -99 83 -12 218 -28 300 -36 83 -8
+191 -19 240 -25 50 -6 242 -14 428 -20 186 -5 341 -11 345 -14 19 -11 1831
+-17 2292 -7 446 10 872 31 925 45 11 3 99 13 195 21 252 22 472 44 492 51 18
+5 243 26 478 44 194 15 389 35 480 51 30 5 90 14 132 19 42 6 89 15 105 21 29
+11 149 35 243 49 30 4 75 13 100 20 25 6 70 15 100 20 101 14 238 44 275 59
+11 5 47 14 80 21 33 7 87 22 120 34 33 13 85 31 115 40 50 16 84 29 190 74
+178 75 347 174 455 267 62 54 145 170 145 203 0 11 5 24 10 27 14 9 12 58 -3
+88 -12 23 -68 76 -132 124 -89 66 -123 91 -155 108 -19 11 -37 23 -40 26 -7
+10 -101 59 -112 59 -5 0 -21 8 -35 18 -68 44 -268 100 -484 136 -244 41 -270
+45 -349 51 -41 3 -124 13 -185 20 -129 17 -302 32 -506 45 -80 5 -235 16 -343
+25 -205 18 -573 16 -791 -4 -55 -5 -178 -14 -273 -20 -95 -6 -177 -13 -181
+-15 -4 -3 -112 -7 -241 -11 -311 -7 -328 -9 -560 -56 -52 -11 -191 -52 -235
+-69 -11 -5 -29 -11 -40 -13 -91 -23 -206 -82 -223 -114 -46 -87 2 -202 103
+-248 65 -30 222 -93 255 -103 114 -36 184 -51 255 -57 89 -7 116 2 143 46 13
+23 13 31 2 59 -10 25 -27 38 -69 57 -99 43 -122 58 -139 84 -23 40 -2 84 52
+108 153 67 321 100 571 110 341 13 1125 2 1315 -19 47 -5 130 -14 185 -20 255
+-28 418 -65 605 -140 204 -81 267 -122 301 -197 81 -177 -114 -336 -601 -491
+-105 -34 -194 -58 -285 -78 -33 -7 -103 -22 -155 -34 -111 -25 -229 -47 -320
+-60 -36 -5 -86 -14 -110 -20 -44 -11 -188 -33 -325 -49 -38 -5 -115 -16 -170
+-25 -238 -38 -592 -60 -1355 -86 -162 -5 -347 -14 -410 -19 -150 -13 -531 -13
+-740 -1 -91 6 -244 15 -340 20 -96 6 -224 15 -285 20 -60 5 -196 14 -301 19
+-326 17 -537 31 -584 41 -65 13 -260 40 -400 56 -30 3 -71 10 -90 14 -37 10
+-209 33 -405 55 -66 7 -127 16 -135 19 -8 3 -76 13 -150 22 -74 8 -166 19
+-205 24 -38 4 -108 17 -155 28 -47 11 -112 26 -145 32 -97 19 -149 32 -159 41
+-6 5 -21 9 -35 9 -15 0 -66 12 -116 26 -49 13 -141 38 -204 55 -63 16 -128 36
+-144 44 -17 8 -37 15 -45 15 -16 0 -167 51 -312 107 -97 37 -277 121 -364 170
+-68 39 -147 120 -170 173 -19 45 -23 56 -47 120 -8 21 -14 74 -14 130 0 81 3
+101 22 133 13 21 23 44 23 50 0 12 29 48 90 114 27 29 221 173 233 173 3 0 18
+11 33 25 15 14 33 25 40 25 8 0 14 4 14 8 0 5 19 18 42 31 24 12 79 45 123 72
+94 60 241 139 490 262 99 49 191 95 205 102 29 14 206 89 265 112 22 9 58 23
+80 33 22 9 63 25 90 35 28 9 68 25 90 36 22 10 74 30 115 44 41 14 111 39 155
+55 104 37 160 55 215 70 25 7 77 22 115 35 39 12 90 28 115 34 25 7 65 19 90
+27 25 8 79 24 120 35 41 11 102 28 135 39 33 10 94 26 135 35 41 10 84 21 95
+26 11 5 92 27 180 50 169 44 191 49 295 73 36 8 79 20 95 26 17 7 50 15 75 20
+25 4 81 18 125 30 97 27 177 46 268 65 37 8 72 17 77 20 10 6 121 29 221 45
+31 5 79 15 105 21 27 6 87 17 134 25 47 7 128 20 180 28 52 9 111 20 130 26
+32 9 67 14 275 41 39 5 93 13 120 18 45 8 119 19 340 52 39 5 93 14 120 20 28
+5 82 13 120 18 162 20 256 34 355 52 58 10 125 19 150 19 25 0 61 4 80 9 19 6
+80 14 135 20 55 6 136 17 180 26 44 8 110 15 146 15 36 0 79 4 95 9 16 6 106
+15 199 21 94 6 215 15 270 20 55 5 208 14 340 20 132 6 258 13 280 15 107 11
+1527 37 1745 31 336 -9 884 -44 1025 -66 73 -12 419 -38 615 -46 206 -9 672
+-67 750 -94 62 -21 144 -39 177 -40 26 0 36 6 48 30 18 35 20 96 3 107 -53 34
+-466 133 -635 153 -46 5 -109 14 -140 20 -52 10 -124 18 -448 50 -55 5 -131
+14 -170 19 -73 10 -271 34 -435 52 -52 6 -126 15 -165 20 -104 14 -293 27
+-545 39 -243 11 -1352 10 -1910 -2z"/>
+<path d="M19973 5718 c2 -303 5 -392 15 -396 9 -3 12 80 12 392 0 334 -2 396
+-14 396 -12 0 -14 -61 -13 -392z"/>
+<path d="M11485 4719 c-242 -4 -532 -12 -645 -18 -113 -5 -340 -14 -505 -20
+-310 -11 -738 -35 -905 -51 -52 -5 -129 -11 -170 -15 -188 -14 -402 -38 -480
+-52 -47 -9 -110 -19 -140 -23 -122 -17 -198 -31 -260 -46 -36 -9 -87 -20 -115
+-25 -50 -8 -111 -21 -285 -59 -52 -12 -115 -25 -139 -30 -23 -6 -62 -15 -85
+-21 -22 -7 -68 -18 -101 -25 -121 -25 -196 -43 -204 -48 -5 -3 -37 -12 -72
+-20 -108 -25 -193 -46 -219 -55 -14 -5 -57 -19 -96 -31 -39 -11 -80 -27 -90
+-35 -11 -8 -25 -15 -32 -15 -7 0 -45 -15 -85 -34 -39 -19 -92 -44 -117 -55
+-25 -11 -79 -39 -120 -62 -41 -22 -102 -55 -135 -73 -206 -111 -289 -176 -320
+-249 -20 -48 -19 -133 3 -177 50 -104 189 -211 382 -293 32 -13 60 -23 160
+-55 19 -6 89 -26 155 -43 66 -17 136 -35 155 -41 19 -5 55 -13 80 -18 65 -11
+186 -37 255 -54 33 -9 81 -15 108 -16 26 0 55 -4 65 -9 24 -13 406 -64 572
+-77 527 -40 847 -43 1265 -13 480 34 528 38 620 49 50 6 185 18 300 26 265 18
+355 28 383 43 12 7 57 25 100 41 76 28 202 76 316 120 76 29 96 50 96 100 0
+54 -29 79 -165 145 -202 98 -252 112 -563 156 -80 11 -85 11 -105 -9 -21 -22
+-21 -22 3 -47 13 -14 65 -49 116 -77 80 -45 96 -59 109 -92 15 -36 14 -41 -2
+-73 -32 -62 -136 -88 -533 -132 -41 -5 -194 -9 -340 -11 -146 -1 -326 -4 -400
+-5 -148 -4 -523 10 -665 25 -49 5 -135 13 -190 19 -184 18 -383 60 -580 120
+-33 10 -80 25 -105 32 -141 41 -258 126 -280 204 -21 74 0 132 77 211 59 62
+114 100 218 151 93 46 217 92 435 159 47 15 94 30 105 34 21 8 125 34 215 55
+30 7 98 23 150 35 154 36 221 50 290 59 36 5 101 16 145 25 69 13 168 26 375
+51 153 18 386 36 585 45 552 26 2359 45 2805 30 594 -20 1004 -41 1155 -59
+234 -27 333 -42 470 -71 50 -10 128 -26 175 -35 47 -9 123 -25 170 -35 47 -11
+123 -27 170 -35 47 -9 121 -24 165 -35 44 -10 107 -24 140 -30 61 -12 83 -17
+215 -50 41 -10 95 -24 120 -29 61 -15 234 -69 290 -91 25 -10 65 -26 90 -35
+25 -9 63 -25 85 -35 22 -11 65 -30 95 -44 30 -14 64 -31 75 -38 11 -7 56 -35
+100 -62 44 -27 82 -52 85 -55 3 -3 23 -19 45 -35 22 -17 85 -75 140 -131 113
+-115 135 -157 135 -267 0 -65 -30 -150 -66 -185 -8 -8 -14 -18 -14 -23 0 -16
+-190 -197 -271 -258 -46 -35 -91 -69 -99 -75 -8 -7 -37 -25 -65 -41 -27 -16
+-52 -32 -55 -36 -3 -3 -12 -10 -20 -13 -8 -4 -28 -16 -45 -27 -16 -11 -46 -28
+-65 -39 -19 -11 -51 -29 -70 -40 -43 -25 -383 -194 -465 -231 -130 -60 -225
+-100 -234 -100 -6 0 -34 -11 -63 -24 -29 -13 -84 -33 -123 -46 -38 -12 -74
+-25 -80 -30 -5 -4 -39 -16 -75 -25 -36 -10 -77 -24 -92 -32 -28 -14 -149 -56
+-283 -100 -44 -14 -94 -32 -112 -39 -17 -8 -35 -14 -40 -14 -13 0 -136 -37
+-198 -60 -27 -10 -77 -25 -110 -35 -33 -9 -71 -21 -84 -26 -37 -15 -307 -88
+-441 -118 -19 -5 -55 -15 -80 -24 -41 -14 -145 -40 -210 -53 -14 -3 -47 -11
+-75 -19 -27 -8 -88 -21 -135 -30 -47 -8 -121 -24 -165 -34 -189 -45 -216 -51
+-243 -51 -16 0 -42 -4 -58 -10 -16 -5 -42 -11 -59 -14 -26 -4 -197 -33 -290
+-50 -16 -2 -50 -10 -75 -15 -25 -6 -79 -15 -120 -20 -122 -15 -300 -40 -370
+-51 -63 -11 -111 -16 -325 -39 -55 -6 -152 -18 -215 -27 -114 -15 -153 -19
+-514 -48 -103 -8 -197 -18 -209 -22 -23 -7 -322 -27 -757 -49 -168 -8 -359
+-19 -425 -24 -180 -12 -923 -13 -1145 -1 -611 34 -1048 64 -1085 75 -11 3 -99
+12 -195 21 -96 8 -247 21 -335 29 -88 8 -187 19 -220 24 -56 10 -166 22 -365
+41 -47 5 -116 13 -155 20 -74 11 -246 36 -355 49 -36 5 -96 16 -135 24 -38 9
+-112 25 -163 36 -51 12 -108 27 -125 35 -74 33 -99 37 -124 21 -12 -9 -23 -20
+-23 -25 0 -18 86 -70 165 -101 34 -13 123 -28 285 -49 166 -20 303 -43 354
+-59 17 -5 54 -12 81 -16 28 -3 70 -10 95 -16 170 -36 306 -63 410 -79 36 -6
+92 -17 125 -25 33 -8 105 -21 160 -30 100 -15 114 -18 190 -35 22 -5 99 -18
+170 -30 164 -27 231 -39 276 -51 20 -5 64 -9 98 -9 34 0 103 -4 154 -10 51 -5
+166 -14 257 -20 91 -6 203 -15 250 -20 47 -6 162 -14 255 -20 94 -6 271 -17
+395 -25 427 -30 516 -34 825 -44 376 -13 954 -6 1280 15 132 8 308 19 390 24
+83 5 170 12 195 15 25 3 104 10 175 15 72 6 166 14 210 20 44 5 125 14 180 19
+113 11 330 37 420 51 33 4 112 16 175 25 217 31 245 35 295 46 28 6 77 14 110
+19 136 19 252 39 290 49 22 6 72 16 110 21 82 12 217 34 295 50 30 6 82 15
+115 20 206 32 361 59 605 105 47 9 117 21 155 27 39 6 74 14 79 19 6 5 24 9
+40 9 17 1 60 8 96 16 36 8 88 19 115 24 28 5 66 13 85 19 19 5 62 15 95 21 33
+6 69 15 80 19 19 8 99 25 195 42 25 4 65 14 90 22 25 8 83 22 130 32 47 9 94
+21 105 25 11 4 40 13 65 20 25 7 56 16 70 21 14 4 41 11 60 14 19 4 62 15 95
+26 89 29 116 37 155 44 19 4 40 10 45 14 18 11 80 31 98 31 9 0 25 4 35 9 9 5
+58 21 107 36 50 15 99 31 110 35 30 12 204 70 255 85 83 24 205 67 248 86 23
+10 50 19 58 19 9 0 30 6 47 14 18 8 41 16 52 19 11 3 79 26 150 52 72 25 157
+55 190 66 33 12 78 29 100 39 22 10 63 25 90 34 28 9 68 25 90 36 22 10 58 26
+80 35 22 10 58 25 80 35 22 9 58 25 80 35 48 21 155 74 285 142 152 80 180 96
+180 105 0 4 8 8 19 8 10 0 24 7 31 15 7 8 16 15 21 15 7 0 79 46 187 120 50
+34 121 86 157 115 17 13 68 55 115 92 47 37 91 72 97 78 7 5 50 46 95 90 158
+153 198 219 206 339 4 62 1 87 -13 115 -9 20 -24 52 -33 71 -16 33 -46 75 -96
+130 -28 32 -135 124 -150 129 -6 2 -13 7 -16 11 -6 9 -105 71 -140 88 -14 7
+-45 23 -69 37 -24 14 -48 25 -54 25 -5 0 -21 8 -35 19 -30 20 -203 96 -267
+117 -22 7 -71 24 -110 39 -38 14 -88 30 -110 35 -22 5 -62 16 -90 25 -27 9
+-75 23 -105 32 -30 9 -73 22 -95 30 -22 8 -60 19 -85 23 -46 9 -122 27 -220
+53 -30 8 -100 24 -155 37 -55 12 -113 26 -130 30 -16 5 -52 12 -80 15 -27 3
+-68 10 -90 15 -22 5 -69 14 -105 20 -36 7 -78 16 -95 21 -16 4 -75 13 -130 20
+-203 23 -231 27 -290 38 -70 14 -328 38 -530 51 -77 4 -167 11 -200 14 -180
+17 -670 44 -1030 57 -137 4 -374 15 -525 23 -333 18 -2084 28 -2755 15z"/>
+<path d="M19976 4392 c-3 -5 -5 -160 -4 -345 1 -275 4 -337 15 -337 11 0 13
+63 13 345 0 314 -4 369 -24 337z"/>
+<path d="M19972 3653 c4 -66 28 -70 28 -4 0 39 -4 51 -16 51 -12 0 -14 -10
+-12 -47z"/>
+<path d="M19976 3573 c-12 -30 -5 -234 8 -230 15 5 17 110 2 119 -8 6 -8 8 2
+8 8 0 12 19 12 60 0 58 -11 78 -24 43z"/>
+<path d="M19985 3170 c-3 -5 -1 -10 4 -10 6 0 11 5 11 10 0 6 -2 10 -4 10 -3
+0 -8 -4 -11 -10z"/>
+<path d="M19986 3104 c-4 -9 -4 -19 -1 -22 2 -3 7 3 11 12 4 9 4 19 1 22 -2 3
+-7 -3 -11 -12z"/>
+<path d="M19985 3058 c-11 -27 -10 -121 1 -125 7 -2 11 20 12 67 2 67 -3 85
+-13 58z"/>
+<path d="M19987 2836 c-4 -10 -5 -21 -2 -24 9 -9 17 6 13 25 -3 17 -4 17 -11
+-1z"/>
+<path d="M19980 2679 c0 -5 5 -7 10 -4 6 3 10 8 10 11 0 2 -4 4 -10 4 -5 0
+-10 -5 -10 -11z"/>
+<path d="M19976 2472 c-10 -17 -2 -567 8 -574 7 -5 7 -8 -1 -8 -10 0 -13 -28
+-13 -105 0 -86 3 -105 15 -105 12 0 15 54 15 400 0 366 -4 425 -24 392z"/>
+<path d="M19972 258 c1 -135 6 -216 13 -220 6 -5 6 -8 -2 -8 -7 0 -13 -7 -13
+-15 0 -8 7 -15 15 -15 13 0 15 33 15 235 0 201 -2 235 -15 235 -13 0 -14 -31
+-13 -212z"/>
+</g>
+</svg>
+  <h1 style="position:relative;z-index:1">Come funziona il <em>Portale</em></h1>
+  <p style="position:relative;z-index:1">Il Portale KataClimb è il tuo spazio: segui il percorso, carica i tuoi video, trova compagni di cordata del tuo livello. Ecco come funziona, passo per passo.</p>
+</div>
+</div>
+
+<nav class="guide-nav" id="guide-nav">
+  <div class="guide-nav-inner">
+    <a href="#s-portale">Portale</a>
+    <a href="#s-profilo">Profilo</a>
+    <a href="#s-kata">Kata</a>
+    <a href="#s-validazione">Validazione</a>
+    <a href="#s-pubblico">Pubblico</a>
+    <a href="#s-presentazione">Presentazione</a>
+    <a href="#s-logbook">Logbook</a>
+    <a href="#s-contenuti">Contenuti</a>
+    <a href="#s-comunita">Comunità</a>
+    <a href="#s-messaggi">Messaggi</a>
+  </div>
+</nav>
+
+<div class="sections">
+
+<!-- 1. A COSA SERVE -->
+<div id="s-portale"></div>
+<div class="section">
+  <div class="section-num">1</div>
+  <h2>A cosa serve il <em>Portale</em></h2>
+  <p class="lead">Il Portale è il punto d'incontro della comunità KataClimb. Serve a tre cose:</p>
+  <div class="rule-grid" style="grid-template-columns:1fr 1fr">
+    <div class="rule-box"><div class="icon">🧗</div><h4>Il tuo percorso</h4><p>Segui i 33 Kata, carica i video, ricevi la validazione del maestro e ottieni le certificazioni.</p></div>
+    <div class="rule-box"><div class="icon">🤝</div><h4>Trova compagni</h4><p>Cerca altri allievi del tuo livello per arrampicare insieme. Vedi chi è iscritto, a che punto è.</p></div>
+    <div class="rule-box"><div class="icon">🎬</div><h4>Video corsi</h4><p>Accedi ai 4 video corsi del maestro: Open, Advance, Intro Corda, Evo Corda. Studia i Kata al tuo ritmo.</p></div>
+    <div class="rule-box"><div class="icon">📖</div><h4>Logbook roccia</h4><p>Registra ogni uscita in falesia: vie, salite, stile. Il tuo diario verticale.</p></div>
+  </div>
+  <div class="callout"><strong>Due schermate diverse</strong><br>Chi arriva al portale senza essere registrato vede la <strong>demo</strong> — il profilo di un allievo di esempio per capire come funziona tutto. Dopo la registrazione, entri nella tua <strong>home</strong>: la lista di tutti gli iscritti, dal più recente, con filtro per livello. Da lì accedi al tuo profilo, ai tuoi Kata, ai video corsi e al logbook.</div>
+</div>
+
+<!-- 2. PROFILO -->
+<div id="s-profilo"></div>
+<div class="section">
+  <div class="section-num">2</div>
+  <h2>Il tuo <em>Profilo</em></h2>
+  <p class="lead">Quando ti registri, il portale crea il tuo profilo. Foto, bio, livello, video di presentazione — è il tuo biglietto da visita nella comunità.</p>
+  <div class="card">
+    <div class="card-title">Cosa contiene</div>
+    <svg viewBox="0 0 600 280" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+      <circle cx="80" cy="60" r="32" fill="rgba(58,171,240,.12)" stroke="rgba(58,171,240,.3)" stroke-width="1"/>
+      <text x="80" y="64" text-anchor="middle" fill="#3AABF0" font-size="11" font-weight="600" font-family="DM Sans">FOTO</text>
+      <text x="140" y="50" fill="#2C2418" font-size="12" font-weight="600" font-family="DM Sans">La tua foto</text>
+      <text x="140" y="66" fill="rgba(44,36,24,.45)" font-size="10" font-family="DM Sans">Facoltativa. Aiuta gli altri a riconoscerti.</text>
+      <rect x="40" y="95" width="520" height="36" rx="8" fill="rgba(44,36,24,.02)" stroke="rgba(44,36,24,.06)" stroke-width="1"/>
+      <text x="56" y="117" fill="rgba(44,36,24,.45)" font-size="10" font-family="DM Sans">Nome, cognome, codice allievo, bio, struttura di appartenenza, livello raggiunto</text>
+      <rect x="40" y="145" width="168" height="90" rx="8" fill="rgba(123,45,142,.08)" stroke="rgba(123,45,142,.2)" stroke-width="1"/>
+      <text x="124" y="182" text-anchor="middle" fill="#7B2D8E" font-size="10" font-weight="600" font-family="DM Sans">VIDEO 1</text>
+      <text x="124" y="198" text-anchor="middle" fill="rgba(44,36,24,.3)" font-size="8" font-family="DM Sans">in evidenza</text>
+      <rect x="216" y="145" width="80" height="90" rx="8" fill="rgba(44,36,24,.015)" stroke="rgba(44,36,24,.05)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="256" y="195" text-anchor="middle" fill="rgba(44,36,24,.2)" font-size="9" font-family="DM Sans">2</text>
+      <rect x="304" y="145" width="80" height="90" rx="8" fill="rgba(44,36,24,.015)" stroke="rgba(44,36,24,.05)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="344" y="195" text-anchor="middle" fill="rgba(44,36,24,.2)" font-size="9" font-family="DM Sans">3</text>
+      <rect x="392" y="145" width="80" height="90" rx="8" fill="rgba(44,36,24,.015)" stroke="rgba(44,36,24,.05)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="432" y="195" text-anchor="middle" fill="rgba(44,36,24,.2)" font-size="9" font-family="DM Sans">4</text>
+      <rect x="480" y="145" width="80" height="90" rx="8" fill="rgba(44,36,24,.015)" stroke="rgba(44,36,24,.05)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="520" y="195" text-anchor="middle" fill="rgba(44,36,24,.2)" font-size="9" font-family="DM Sans">5</text>
+      <text x="40" y="255" fill="#2C2418" font-size="11" font-weight="600" font-family="DM Sans">5 video di presentazione</text>
+      <text x="40" y="272" fill="rgba(44,36,24,.45)" font-size="10" font-family="DM Sans">Carica un video tuo o embedda da Instagram/YouTube. Scegli quale mettere in evidenza.</text>
+    </svg>
+  </div>
+  <div class="card">
+    <div class="card-title">Visibilità del profilo</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">Decidi tu chi può vedere il tuo profilo. Puoi cambiare in qualsiasi momento.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:flex-start;gap:10px"><span class="tag pub" style="flex-shrink:0">Pubblico</span><span style="font-size:11px;color:var(--text2)">Tutti ti vedono nella comunità, anche chi non è iscritto.</span></div>
+      <div style="display:flex;align-items:flex-start;gap:10px"><span class="tag ris" style="flex-shrink:0">Riservato</span><span style="font-size:11px;color:var(--text2)">Solo gli allievi autenticati possono vedere il tuo profilo.</span></div>
+      <div style="display:flex;align-items:flex-start;gap:10px"><span class="tag priv" style="flex-shrink:0">Privato</span><span style="font-size:11px;color:var(--text2)">Solo tu e gli istruttori. Serve a loro per sapere a che livello sei e guidarti nel percorso.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. I 33 KATA -->
+<div class="photo-strip"><img src="Il_3_tiro_Gaeta_Marco_Nescatelli.JPG" alt="Multipitch a Gaeta"></div>
+<div id="s-kata"></div>
+<div class="section">
+  <div class="section-num">3</div>
+  <h2>I 33 <em>Kata</em></h2>
+  <p class="lead">Il percorso KataClimb è fatto di 33 Kata — 33 gesti fondamentali che impari con il corpo. Sono divisi in 4 corsi.</p>
+  <div class="corso-row">
+    <div class="corso-chip c1"><h4>Open</h4><p>Kata 1–14</p></div>
+    <div class="corso-chip c2"><h4>Advance</h4><p>Kata 7–9 + prep</p></div>
+    <div class="corso-chip c3"><h4>Intro Corda</h4><p>Kata 15–26</p></div>
+    <div class="corso-chip c4"><h4>Evo Corda</h4><p>Kata 27–33</p></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Ogni Kata ha 5 slot video</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">Per ogni Kata carichi fino a 5 video (massimo 12 secondi ciascuno). Ogni slot ha un ruolo preciso:</p>
+    <div class="slot-row">
+      <div class="slot archive">Slot 1<br>archivio</div>
+      <div class="slot archive">Slot 2<br>archivio</div>
+      <div class="slot archive">Slot 3<br>archivio</div>
+      <div class="slot cert">Slot 4<br>valida</div>
+      <div class="slot cert">Slot 5<br>valida</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="width:10px;height:10px;border-radius:3px;background:rgba(44,36,24,.15);flex-shrink:0;margin-top:3px"></div>
+        <span style="font-size:11px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Slot 1, 2, 3 — Archivio.</strong> Sono la tua storia. Non si cancellano e non vengono validati. Il primo video che carichi, per quanto imperfetto, racconta dove sei partito.</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="width:10px;height:10px;border-radius:3px;background:rgba(255,200,87,.4);flex-shrink:0;margin-top:3px"></div>
+        <span style="font-size:11px;color:var(--text2);line-height:1.5"><strong style="color:var(--gold)">Slot 4 e 5 — Validazione.</strong> Questi sono gli slot che il maestro guarda e certifica. Puoi sostituirli finché vuoi, fino a quando il maestro valida. Dopo, diventano permanenti.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. VALIDAZIONE -->
+<div id="s-validazione"></div>
+<div class="section">
+  <div class="section-num">4</div>
+  <h2><em>Validazione</em> e Certificazione</h2>
+  <p class="lead">Non ti certifichi da solo. Il maestro guarda i tuoi video negli slot 4 e 5 e decide quando il Kata è acquisito.</p>
+  <div class="card">
+    <div class="card-title">Il viaggio di un video (slot 4 o 5)</div>
+    <div class="step-flow">
+      <span class="step-pill">Carichi il video</span>
+      <span class="step-arrow">→</span>
+      <span class="step-pill active">In attesa</span>
+      <span class="step-arrow">→</span>
+      <span class="step-pill gold">Certificato ✓</span>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);text-align:center;margin-top:8px;line-height:1.6">Quando il maestro valida, il Kata è completato. Tutti i Kata di un corso completati = corso certificato → si sblocca il successivo.</p>
+  </div>
+</div>
+
+<!-- 5. RENDERE PUBBLICO -->
+<div id="s-pubblico"></div>
+<div class="section">
+  <div class="section-num">5</div>
+  <h2>Rendere <em>pubblico</em> e Salvadanaio</h2>
+  <p class="lead">Quando un video è certificato, puoi decidere di renderlo visibile a tutti. Ogni video pubblico ti premia.</p>
+  <div class="card">
+    <div class="step-flow">
+      <span class="step-pill gold">Video certificato</span>
+      <span class="step-arrow">→</span>
+      <span class="step-pill active">Lo rendi pubblico</span>
+      <span class="step-arrow">→</span>
+      <span class="step-pill" style="background:rgba(91,140,90,.1);border-color:rgba(91,140,90,.25);color:var(--green)">€5 di sconto</span>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);text-align:center;margin-top:10px;line-height:1.6">Lo sconto vale sulle attività KataClimb e sull'abbonamento della piattaforma.<br>Conta solo dal momento in cui rendi pubblico — non è retroattivo.</p>
+  </div>
+  <div class="example-box"><h4>Esempio</h4><p>Giulia ha certificato 10 Kata e ha reso pubblici 6 video + la sua presentazione = <strong style="color:var(--gold)">€35 di sconto</strong> (7 × €5) sul prossimo corso o sull'abbonamento annuale.</p></div>
+</div>
+
+<!-- 6. VIDEO PRESENTAZIONE -->
+<div class="photo-strip"><img src="dall_alto_primo_di_cordata_.jpg" alt="Primo di cordata"></div>
+<div id="s-presentazione"></div>
+<div class="section">
+  <div class="section-num">6</div>
+  <h2>Video di <em>Presentazione</em></h2>
+  <p class="lead">Oltre ai video dei Kata, hai 5 slot per i tuoi video di presentazione. Racconta chi sei, perché arrampichi.</p>
+  <div class="card">
+    <div class="rule-grid">
+      <div class="rule-box"><div class="icon">🎬</div><h4>5 slot disponibili</h4><p>Carica fino a 5 video di presentazione.</p></div>
+      <div class="rule-box"><div class="icon">📱</div><h4>Embed da social</h4><p>Puoi embeddare da Instagram, YouTube o altri social al posto del caricamento diretto.</p></div>
+      <div class="rule-box"><div class="icon">⭐</div><h4>Uno in evidenza</h4><p>Scegli quale mettere in evidenza. È quello che vedranno tutti nel tuo profilo.</p></div>
+      <div class="rule-box"><div class="icon">🪙</div><h4>Vale per il salvadanaio</h4><p>Anche la presentazione resa pubblica vale €5 di sconto, come i Kata.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. LOGBOOK -->
+<div id="s-logbook"></div>
+<div class="section">
+  <div class="section-num">7</div>
+  <h2><em>Logbook</em> Roccia</h2>
+  <p class="lead">Il tuo diario di arrampicata in roccia. Registra ogni uscita, ogni via, ogni salita.</p>
+  <div class="card">
+    <div class="card-title">Struttura</div>
+    <svg viewBox="0 0 600 210" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+      <rect x="20" y="10" width="560" height="44" rx="10" fill="rgba(58,171,240,.06)" stroke="rgba(58,171,240,.15)" stroke-width="1"/>
+      <text x="40" y="30" fill="#3AABF0" font-size="11" font-weight="600" font-family="DM Sans">Uscita</text>
+      <text x="40" y="44" fill="rgba(44,36,24,.35)" font-size="9" font-family="DM Sans">Data + Falesia + Note</text>
+      <text x="540" y="36" text-anchor="end" fill="rgba(44,36,24,.2)" font-size="9" font-family="DM Sans">es: 28 marzo · Sperlonga</text>
+      <line x1="80" y1="54" x2="80" y2="68" stroke="rgba(44,36,24,.1)" stroke-width="1"/>
+      <rect x="50" y="70" width="240" height="44" rx="8" fill="rgba(91,140,90,.06)" stroke="rgba(91,140,90,.12)" stroke-width="1"/>
+      <text x="68" y="90" fill="#5B8C5A" font-size="10" font-weight="600" font-family="DM Sans">Via — "Diedro Magico" 6a</text>
+      <text x="68" y="106" fill="rgba(44,36,24,.3)" font-size="8.5" font-family="DM Sans">Tag stile + numero di salite</text>
+      <rect x="310" y="70" width="240" height="44" rx="8" fill="rgba(91,140,90,.06)" stroke="rgba(91,140,90,.12)" stroke-width="1"/>
+      <text x="328" y="90" fill="#5B8C5A" font-size="10" font-weight="600" font-family="DM Sans">Via 2, 3, 4...</text>
+      <text x="328" y="106" fill="rgba(44,36,24,.3)" font-size="8.5" font-family="DM Sans">Fino a 4 vie per uscita</text>
+      <line x1="100" y1="114" x2="100" y2="130" stroke="rgba(44,36,24,.1)" stroke-width="1"/>
+      <rect x="60" y="132" width="120" height="30" rx="6" fill="rgba(255,200,87,.05)" stroke="rgba(255,200,87,.1)" stroke-width="1"/>
+      <text x="120" y="151" text-anchor="middle" fill="#B45309" font-size="9" font-weight="500" font-family="DM Sans">Salita 1</text>
+      <rect x="188" y="132" width="120" height="30" rx="6" fill="rgba(255,200,87,.05)" stroke="rgba(255,200,87,.1)" stroke-width="1"/>
+      <text x="248" y="151" text-anchor="middle" fill="#B45309" font-size="9" font-weight="500" font-family="DM Sans">Salita 2</text>
+      <rect x="316" y="132" width="120" height="30" rx="6" fill="rgba(255,200,87,.05)" stroke="rgba(255,200,87,.1)" stroke-width="1"/>
+      <text x="376" y="151" text-anchor="middle" fill="#B45309" font-size="9" font-weight="500" font-family="DM Sans">Salita 3</text>
+      <rect x="444" y="132" width="80" height="30" rx="6" fill="rgba(44,36,24,.02)" stroke="rgba(44,36,24,.06)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="484" y="151" text-anchor="middle" fill="rgba(44,36,24,.2)" font-size="9" font-family="DM Sans">4</text>
+      <text x="300" y="190" text-anchor="middle" fill="rgba(44,36,24,.3)" font-size="9.5" font-family="DM Sans">Max 4 salite/studio per via — descrivi cosa è successo in ciascuna</text>
+    </svg>
+  </div>
+  <div class="card">
+    <div class="card-title">Tag stile</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">Per ogni via scegli i tag che descrivono come l'hai salita.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="tag" style="background:rgba(155,93,229,.12);color:#9B5DE5">✦ Mai provata prima</span>
+      <span class="tag" style="background:rgba(255,200,87,.12);color:#B45309">👁 A vista</span>
+      <span class="tag" style="background:rgba(255,107,107,.12);color:#FF6B6B">⚡ Flash</span>
+      <span class="tag pub">🟢 In libera</span>
+      <span class="tag ris">🔄 Lavorata</span>
+    </div>
+  </div>
+</div>
+
+<!-- 8. PROGRESSIONE -->
+<div class="photo-strip"><img src="Roma_Center_Climb_est_Marco_Nescatelli_arrampicata_.jpg" alt="KataClimb in palestra"></div>
+<div class="section">
+  <div class="section-num">8</div>
+  <h2>La <em>Linea</em> di Progressione</h2>
+  <p class="lead">In cima al tuo profilo c'è una barra visiva che mostra dove sei nel percorso.</p>
+  <div class="card">
+    <svg viewBox="0 0 600 70" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+      <line x1="30" y1="25" x2="570" y2="25" stroke="rgba(44,36,24,.25)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="30" y1="25" x2="200" y2="25" stroke="#EA580C" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="30" cy="25" r="5" fill="#A0A0A0"/><text x="30" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">1ª Lez.</text>
+      <circle cx="98" cy="25" r="5" fill="#EAB308"/><text x="98" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">Open</text>
+      <circle cx="166" cy="25" r="6" fill="#EA580C" stroke="#2C2418" stroke-width="1.5"/><text x="166" y="46" text-anchor="middle" fill="#EA580C" font-size="10" font-weight="600" font-family="DM Sans">Advance</text>
+      <line x1="200" y1="14" x2="200" y2="25" stroke="#3AABF0" stroke-width="1.5"/><text x="200" y="11" text-anchor="middle" fill="#3AABF0" font-size="9" font-family="DM Sans">iscritto</text>
+      <circle cx="234" cy="25" r="5" fill="rgba(44,36,24,.35)" stroke="rgba(44,36,24,.55)" stroke-width="1"/><text x="234" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">Intro</text>
+      <circle cx="302" cy="25" r="5" fill="rgba(44,36,24,.35)" stroke="rgba(44,36,24,.55)" stroke-width="1"/><text x="302" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">Evo</text>
+      <circle cx="370" cy="25" r="5" fill="rgba(44,36,24,.35)" stroke="rgba(44,36,24,.55)" stroke-width="1"/><text x="370" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">Lavorato</text>
+      <circle cx="438" cy="25" r="5" fill="rgba(44,36,24,.35)" stroke="rgba(44,36,24,.55)" stroke-width="1"/><text x="438" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">Monitor</text>
+      <circle cx="506" cy="25" r="5" fill="rgba(44,36,24,.35)" stroke="rgba(44,36,24,.55)" stroke-width="1"/><text x="506" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">Assist.</text>
+      <circle cx="570" cy="25" r="5" fill="rgba(44,36,24,.35)" stroke="rgba(44,36,24,.55)" stroke-width="1"/><text x="570" y="46" text-anchor="middle" fill="#2C2418" font-size="10" font-family="DM Sans">Istrutt.</text>
+    </svg>
+    <p style="font-size:11px;color:var(--text2);text-align:center;margin-top:8px">La tacca "iscritto" appare quando ti iscrivi al corso successivo.</p>
+  </div>
+</div>
+
+<!-- 9. CONTENUTI -->
+<div id="s-contenuti"></div>
+<div class="section">
+  <div class="section-num">9</div>
+  <h2>I <em>Contenuti</em> del Maestro</h2>
+  <p class="lead">Dal portale accedi ai contenuti di Marco Nescatelli — 33 anni di esperienza e migliaia di persone avviate alla verticalità. Tre livelli di approfondimento, dal gratuito al corso completo. Anche gli istruttori certificati li usano come riferimento per insegnare.</p>
+
+  <div class="card" style="border-color:rgba(58,171,240,.15)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div class="card-title" style="margin-bottom:4px;color:var(--blue)">Principi e Intenzione dei Kata</div>
+      <p style="font-size:11px;color:var(--text2)">I principi e l'intenzione che smuove ogni gesto — non una descrizione tecnica</p></div>
+      <div style="text-align:right;flex-shrink:0;min-width:90px"><span style="font-family:var(--serif);font-size:26px;color:var(--green)">Gratuita</span></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);line-height:1.6">Una pagina per ogni blocco di Kata. Per accedere basta registrarsi al portale con nome, telefono e email.</p>
+    <div style="display:inline-block;padding:6px 16px;border-radius:20px;background:rgba(58,171,240,.08);border:1px solid rgba(58,171,240,.15);font-size:11px;font-weight:600;color:var(--blue);margin-top:10px">Coming soon</div>
+  </div>
+
+  <div class="card" style="border-color:rgba(255,200,87,.15)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div class="card-title" style="margin-bottom:4px;color:var(--gold)">Video Esecuzione Magistrale dei Kata</div>
+      <p style="font-size:11px;color:var(--text2)">L'esecuzione pura dei Kata da parte di Marco Nescatelli, senza spiegazione</p></div>
+      <div style="text-align:right;flex-shrink:0;min-width:110px"><span style="font-family:var(--serif);font-size:26px;color:var(--gold)">50€</span><span style="font-size:13px;color:var(--text2)"> /corso</span></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);line-height:1.6">4 corsi, ognuno acquistabile separatamente a 50€: Open, Advance, Intro Corda, Evo Corda. Per chi vuole vedere il gesto puro, studiarlo e riprodurlo.</p>
+    <div style="display:inline-block;padding:6px 16px;border-radius:20px;background:rgba(255,200,87,.08);border:1px solid rgba(255,200,87,.15);font-size:11px;font-weight:600;color:var(--gold);margin-top:10px">Coming soon</div>
+  </div>
+
+  <div style="margin-top:28px;margin-bottom:16px">
+    <div class="card-title" style="color:var(--text3)">Video Corsi Completi del Maestro</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6">I corsi completi con spiegazione di ogni Kata: come va eseguito, perché, e cosa succede nel corpo quando lo fai. Questi prezzi sono per i video corsi online — non sono i corsi in Accademia e non sono gli intensivi Syncrolink.</p>
+  </div>
+
+  <div class="card" style="border-color:rgba(91,140,90,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div class="card-title" style="margin-bottom:4px;color:var(--green)">1. Il Corso Fondamentale</div>
+      <p style="font-size:12px;color:var(--text);font-weight:500">"La Rivoluzione" — Open Online KataClimb</p>
+      <p style="font-size:11px;color:var(--text2)">I Kata e la Percezione · 6 ore</p></div>
+      <div style="text-align:right;flex-shrink:0;min-width:90px"><span style="font-family:var(--serif);font-size:26px;color:var(--gold)">369€</span></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);line-height:1.6">È il cuore del metodo KataClimb. Se qui "dai tutto", vibrerai di completamento e potenza. Manifesta l'unione tra mente, corpo e spirito. "Qui c'è la chiave di tutto".</p>
+  </div>
+
+  <div class="card" style="border-color:rgba(58,125,68,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div class="card-title" style="margin-bottom:4px;color:var(--advance)">2. Il Corso Strategico</div>
+      <p style="font-size:12px;color:var(--text);font-weight:500">"L'Impresa e la Visualizzazione" — Advance KataClimb</p>
+      <p style="font-size:11px;color:var(--text2)">Il progetto di salita · 2 ore</p></div>
+      <div style="text-align:right;flex-shrink:0;min-width:90px"><span style="font-family:var(--serif);font-size:26px;color:var(--gold)">147€</span></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);line-height:1.6">Questo è il ponte tra il pensiero e l'azione. La sequenza del metodo: l'idea, il piano/la struttura, la visione interiore. Aiuta a dare concretezza alla visualizzazione.</p>
+  </div>
+
+  <div class="card" style="border-color:rgba(58,171,240,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div class="card-title" style="margin-bottom:4px;color:var(--blue)">3. Il Corso Tecnico</div>
+      <p style="font-size:12px;color:var(--text);font-weight:500">"Procedure e Corda" — Intro KataClimb</p>
+      <p style="font-size:11px;color:var(--text2)">Sicurezza e materia · 4 ore</p></div>
+      <div style="text-align:right;flex-shrink:0;min-width:90px"><span style="font-family:var(--serif);font-size:26px;color:var(--gold)">258€</span></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);line-height:1.6">Qui entriamo nel mondo della sicurezza e della materia. La sequenza dell'equilibrio dinamico: la relazione con la corda/compagno, il movimento, la forza e la stabilità. È "solido".</p>
+  </div>
+
+  <div class="card" style="border-color:rgba(123,45,142,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div class="card-title" style="margin-bottom:4px;color:var(--purple)">4. Il Corso Maestro</div>
+      <p style="font-size:12px;color:var(--text);font-weight:500">"Il Volo e la Sicura Magistrale" — Evo KataClimb</p>
+      <p style="font-size:11px;color:var(--text2)">Fiducia e amore · 4 ore</p></div>
+      <div style="text-align:right;flex-shrink:0;min-width:90px"><span style="font-family:var(--serif);font-size:26px;color:var(--gold)">528€</span></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--text2);line-height:1.6">Questo è l'apice della fiducia e dell'amore — smorzare il volo del compagno è un atto di responsabilità suprema. La frequenza del miracolo. Volare e assicurare con amore richiede una riparazione profonda delle paure. È la chiave per l'armonia totale tra due persone sulla roccia.</p>
+  </div>
+</div>
+
+<!-- 10. COMUNITÀ -->
+<div class="photo-strip"><img src="UZU_015.jpg" alt="Arrampicata in falesia"></div>
+<div id="s-comunita"></div>
+<div class="section">
+  <div class="section-num">10</div>
+  <h2>La <em>Comunità</em></h2>
+  <p class="lead">Il cuore del portale. Non è un social — è uno strumento per trovarsi, capire con chi si ha a che fare, e trovare compagni di cordata del proprio livello.</p>
+  <div class="card">
+    <div class="rule-grid">
+      <div class="rule-box"><div class="icon">🔍</div><h4>Cerca per livello</h4><p>Filtra gli iscritti per livello raggiunto. Trova chi è al tuo stesso punto o chi può insegnarti qualcosa.</p></div>
+      <div class="rule-box"><div class="icon">🤝</div><h4>Compagni di cordata</h4><p>Vedi chi arrampica vicino a te, a che livello è. Per organizzare uscite in falesia insieme.</p></div>
+      <div class="rule-box"><div class="icon">🧗</div><h4>Guarda i Kata degli altri</h4><p>I video certificati e resi pubblici sono visibili. Impara guardando come gli altri eseguono i Kata.</p></div>
+      <div class="rule-box"><div class="icon">📋</div><h4>Home = lista iscritti</h4><p>Quando entri nel portale vedi subito tutti gli iscritti, dal più recente. Filtro per livello sempre disponibile.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 11. MESSAGGI E COMPAGNI -->
+<div id="s-messaggi"></div>
+<div class="section">
+  <div class="section-num">11</div>
+  <h2><em>Messaggi</em> e Compagni di Cordata</h2>
+  <p class="lead">Hai trovato qualcuno del tuo livello? Contattalo direttamente dal portale e proponiti come compagno di cordata.</p>
+  <div class="card">
+    <div class="rule-grid">
+      <div class="rule-box"><div class="icon">✉️</div><h4>Scrivi a un allievo</h4><p>Dal profilo di un altro iscritto puoi inviargli un messaggio. Presentati, proponi un'uscita, chiedi info su una falesia.</p></div>
+      <div class="rule-box"><div class="icon">🔗</div><h4>Richiesta di cordata</h4><p>Manda una richiesta "Compagno di cordata". Se l'altro accetta, siete collegati e vi trovate facilmente.</p></div>
+      <div class="rule-box"><div class="icon">🔔</div><h4>Notifiche</h4><p>Ricevi una notifica quando qualcuno ti scrive o ti chiede di essere compagno di cordata. Accetti o declini.</p></div>
+      <div class="rule-box"><div class="icon">🧗</div><h4>I tuoi compagni</h4><p>Nella sezione "I miei compagni" vedi chi ha accettato. Organizzate uscite, crescete insieme.</p></div>
+    </div>
+  </div>
+  <div class="callout"><strong>Non è un social, è una cordata.</strong><br>I messaggi servono a organizzarsi per arrampicare insieme — non a chattare. Trovi qualcuno del tuo livello, ti presenti, e se funziona diventate compagni di cordata.</div>
+</div>
+
+</div>
+<div class="footer">KataClimb® è un brand di Syncrolink Ltd · London, UK · Company N. 15702722</div>
+</body>
+</html>
