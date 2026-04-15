@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>KataClimb · Agenda Prime Lezioni v3.1</title>
+<style>
+  :root { --bg:#F5F1EB; --card:#fff; --ink:#2C2418; --gold:#C49520; --muted:#5E5548; --muted2:#8A7F6F; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:2rem; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); font-size:17px; line-height:1.45; }
+  .wrap { max-width:1100px; margin:0 auto; }
+  h1 { margin:0 0 .3rem; font-size:2rem; font-weight:700; }
+  .sub { color:var(--muted); margin-bottom:2rem; font-size:1rem; font-weight:600; }
+  .bar { display:flex; justify-content:space-between; align-items:center; background:var(--card); padding:1.2rem 1.5rem; border-radius:12px; margin-bottom:1.2rem; box-shadow:0 2px 8px rgba(44,36,24,.05); }
+  .bar button { padding:.6rem 1.2rem; border:1px solid var(--gold); background:transparent; color:var(--gold); border-radius:8px; cursor:pointer; font-weight:700; font-size:15px; }
+  .bar button:hover { background:var(--gold); color:#fff; }
+  .range { font-weight:700; font-size:17px; color:var(--ink); }
+  .grid { display:grid; gap:1rem; }
+  .slot { background:var(--card); padding:1.2rem 1.4rem; border-radius:12px; border-left:5px solid var(--gold); display:grid; grid-template-columns:220px 1fr auto auto; gap:1.2rem; align-items:center; box-shadow:0 1px 4px rgba(44,36,24,.04); }
+  .slot.passato { opacity:.55; border-left-color:#bbb; }
+  .slot strong { display:block; margin-bottom:.25rem; font-size:17px; color:var(--ink); }
+  .ora { color:var(--gold); font-weight:700; font-size:1.2rem; }
+  .ist { color:var(--muted); font-size:1rem; font-weight:600; }
+  .prenot { font-size:1rem; color:var(--ink); line-height:1.55; }
+  .prenot em { color:var(--muted); font-style:normal; font-size:.9em; font-weight:600; }
+  .posti { font-size:1.25rem; font-weight:700; padding:.5rem 1rem; border-radius:8px; background:var(--bg); color:var(--ink); }
+  .posti.pieno { color:#c00; }
+  .btn-prenota { padding:.7rem 1.3rem; background:var(--gold); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:15px; }
+  .btn-prenota:hover { filter:brightness(1.05); }
+  .empty,.err { background:var(--card); padding:2.5rem; text-align:center; border-radius:12px; color:var(--muted); font-size:16px; font-weight:600; }
+  .err { color:#c00; border:1px solid #c00; }
+  .login-box { background:var(--card); padding:3rem 2rem; text-align:center; border-radius:14px; max-width:460px; margin:3rem auto; }
+  .login-box h2 { margin-top:0; font-size:1.6rem; }
+  .btn-google { display:inline-flex; align-items:center; gap:.7rem; padding:.9rem 1.6rem; background:#fff; border:1px solid #ddd; border-radius:8px; cursor:pointer; font-size:1.05rem; font-weight:600; color:#3c4043; transition:box-shadow .15s; }
+  .btn-google:hover { box-shadow:0 1px 6px rgba(0,0,0,.15); }
+  .btn-google svg { width:22px; height:22px; }
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(44,36,24,.65); z-index:1000; align-items:center; justify-content:center; }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--bg); padding:2.2rem; border-radius:14px; max-width:560px; width:92%; max-height:92vh; overflow-y:auto; }
+  .modal h3 { margin-top:0; font-size:1.4rem; }
+  .modal label { display:block; margin:1.1rem 0 .4rem; font-weight:700; font-size:1rem; color:var(--ink); text-transform:uppercase; letter-spacing:.5px; }
+  .modal select, .modal input, .modal textarea { width:100%; padding:.75rem .9rem; border:1px solid var(--gold); border-radius:8px; background:#fff; font-size:1.05rem; font-family:inherit; color:var(--ink); }
+  .modal textarea { resize:vertical; min-height:90px; }
+  .modal-actions { margin-top:1.6rem; display:flex; gap:.6rem; justify-content:flex-end; }
+  .modal-actions button { padding:.75rem 1.4rem; border-radius:8px; cursor:pointer; font-weight:700; font-size:15px; }
+  .btn-ann { border:1px solid var(--ink); background:transparent; color:var(--ink); }
+  .btn-ok { border:none; background:var(--gold); color:#fff; }
+  .nuovo-lead-box { background:#fff; padding:1.2rem; border-radius:10px; margin-top:.5rem; border:1px dashed var(--gold); }
+  .msg-ok { background:#e7f5e7; color:#1b6b1b; padding:1rem; border-radius:8px; margin-top:1rem; font-size:15px; font-weight:600; }
+  .msg-err { background:#fce; color:#c00; padding:1rem; border-radius:8px; margin-top:1rem; white-space:pre-wrap; font-size:14px; font-weight:600; }
+  .userbar { text-align:right; color:var(--muted); font-size:15px; font-weight:600; margin-bottom:1rem; }
+  .userbar a { color:var(--gold); cursor:pointer; text-decoration:underline; font-weight:700; }
+  @media(min-width:1024px){
+    body { font-size:19px; }
+    h1 { font-size:2.4rem; }
+    .sub { font-size:1.15rem; }
+    .range { font-size:19px; }
+    .bar button { font-size:17px; padding:.7rem 1.4rem; }
+    .slot strong { font-size:20px; }
+    .ora { font-size:1.4rem; }
+    .ist { font-size:1.1rem; }
+    .prenot { font-size:1.1rem; }
+    .posti { font-size:1.4rem; padding:.6rem 1.2rem; }
+    .btn-prenota { font-size:17px; padding:.8rem 1.6rem; }
+    .modal h3 { font-size:1.6rem; }
+    .modal label { font-size:1.05rem; }
+    .modal select, .modal input, .modal textarea { font-size:1.1rem; padding:.85rem 1rem; }
+    .modal-actions button { font-size:17px; padding:.85rem 1.6rem; }
+    .userbar { font-size:17px; }
+    .empty,.err { font-size:18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Agenda Prime Lezioni</h1>
+  <div class="sub">Test standalone v3.1 · dropdown Fonte + Note</div>
+
+  <div id="userbar" class="userbar" style="display:none"></div>
+
+  <div id="login-container"></div>
+  <div id="app-container" style="display:none">
+    <div class="bar">
+      <button id="prev">← Settimana prec.</button>
+      <div class="range" id="range">…</div>
+      <button id="next">Settimana succ. →</button>
+    </div>
+    <div id="grid" class="grid"><div class="empty">Caricamento…</div></div>
+  </div>
+</div>
+
+<div id="modal" class="modal-bg">
+  <div class="modal">
+    <h3>Prenota prima lezione</h3>
+    <div id="slot-info" style="color:var(--muted); font-size:1rem; font-weight:600"></div>
+
+    <label>Seleziona lead</label>
+    <select id="lead-select">
+      <option value="">— seleziona —</option>
+    </select>
+
+    <div id="nuovo-lead" class="nuovo-lead-box" style="display:none">
+      <strong style="font-size:1.1rem; font-weight:700">Nuovo lead</strong>
+      <label>Nome *</label><input id="nl-nome" type="text">
+      <label>Cognome</label><input id="nl-cognome" type="text" placeholder="opzionale">
+      <label>Telefono</label><input id="nl-tel" type="tel" placeholder="opzionale">
+      <label>Email</label><input id="nl-email" type="email" placeholder="opzionale">
+      <label>Fonte</label>
+      <select id="nl-fonte"><option value="">— seleziona —</option></select>
+      <label>Note</label>
+      <textarea id="nl-note" placeholder="Es: già arrampicava in passato, gli ho spiegato che Open è diverso..."></textarea>
+    </div>
+
+    <div id="modal-msg"></div>
+
+    <div class="modal-actions">
+      <button class="btn-ann" id="btn-annulla">Annulla</button>
+      <button class="btn-ok" id="btn-conferma">Conferma prenotazione</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL = 'https://wbtougychlhnlcnonqge.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+  let offset = 0;
+  let currentSlot = null;
+  let fontiCache = []; // popolata 1 volta dopo login
+
+  // --- AUTH -------------------------------------------------------
+  async function checkAuth() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('app-container').style.display = 'block';
+      const ub = document.getElementById('userbar');
+      ub.style.display = 'block';
+      ub.innerHTML = `Loggato come <strong>${session.user.email}</strong> · <a id="logout-link">logout</a>`;
+      document.getElementById('logout-link').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+      await caricaFonti();
+      render();
+    } else {
+      showLogin();
+    }
+  }
+
+  function showLogin() {
+    document.getElementById('login-container').innerHTML = `
+      <div class="login-box">
+        <h2>Login richiesto</h2>
+        <p style="color:var(--muted)">Accedi con il tuo account Google per gestire le prenotazioni.</p>
+        <button class="btn-google" id="btn-google">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Accedi con Google
+        </button>
+        <div id="login-msg" style="margin-top:1rem"></div>
+      </div>`;
+    document.getElementById('btn-google').onclick = async () => {
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
+      });
+      if (error) document.getElementById('login-msg').innerHTML = `<div class="msg-err">${error.message}</div>`;
+    };
+  }
+
+  // --- DATE -------------------------------------------------------
+  function lunSett(off) {
+    const d = new Date(); const dow = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - dow + off * 7); d.setHours(0,0,0,0); return d;
+  }
+  const addG = (d,n) => { const r = new Date(d); r.setDate(r.getDate()+n); return r; };
+  const isoD = d => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+  const fmt  = d => d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+
+  // --- FETCH ------------------------------------------------------
+  async function caricaFonti() {
+    const { data, error } = await sb.from('crm_lead_sources')
+      .select('code, label').eq('attivo', true).order('ordine');
+    if (error) { console.error('Errore caricaFonti:', error); return; }
+    fontiCache = data || [];
+  }
+  async function caricaSlot() {
+    const { data, error } = await sb.from('corsi_attivi_settimanali')
+      .select('id, giorno_settimana, ora_inizio, ora_fine, capienza_max, istruttori(nome)')
+      .eq('tipo_corso','prima_lezione').eq('status','attivo')
+      .order('giorno_settimana').order('ora_inizio');
+    if (error) throw error; return data || [];
+  }
+  async function caricaPrenot(dal, al) {
+    const { data, error } = await sb.from('prenotazioni_prima_lezione')
+      .select('id, slot_id, data_lezione, lead_id, crm_leads(nome, cognome, funnel_stage)')
+      .gte('data_lezione', isoD(dal)).lte('data_lezione', isoD(al));
+    if (error) throw error; return data || [];
+  }
+  async function caricaLeadsPrenotabili() {
+    const { data, error } = await sb.from('crm_leads')
+      .select('id, nome, cognome, telefono, funnel_stage')
+      .in('funnel_stage', ['nuovo','contattato'])
+      .order('created_at', { ascending: false });
+    if (error) throw error; return data || [];
+  }
+
+  // --- RENDER -----------------------------------------------------
+  async function render() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '<div class="empty">Caricamento…</div>';
+    const lun = lunSett(offset); const dom = addG(lun, 6);
+    document.getElementById('range').textContent = `Settimana ${fmt(lun)} – ${fmt(dom)}`;
+
+    try {
+      const [slots, prenot] = await Promise.all([caricaSlot(), caricaPrenot(lun, dom)]);
+      if (!slots.length) { grid.innerHTML = '<div class="empty">Nessuno slot configurato.</div>'; return; }
+      const oggi = new Date(); oggi.setHours(0,0,0,0);
+      grid.innerHTML = '';
+      slots.forEach(s => {
+        const data = addG(lun, s.giorno_settimana - 1);
+        const di = isoD(data);
+        const p = prenot.filter(x => x.slot_id === s.id && x.data_lezione === di);
+        const liberi = s.capienza_max - p.length;
+        const passato = data < oggi;
+        const label = `${GIORNI[s.giorno_settimana-1]} ${fmt(data)} · ${s.ora_inizio.slice(0,5)}–${s.ora_fine.slice(0,5)} · ${s.istruttori?.nome||''}`;
+        const card = document.createElement('div');
+        card.className = 'slot' + (passato ? ' passato' : '');
+        card.innerHTML = `
+          <div>
+            <strong>${GIORNI[s.giorno_settimana-1]} ${fmt(data)}</strong>
+            <div class="ora">${s.ora_inizio.slice(0,5)}–${s.ora_fine.slice(0,5)}</div>
+            <div class="ist">${s.istruttori?.nome || '—'}</div>
+          </div>
+          <div class="prenot">${p.length === 0 ? '<em>Nessuna prenotazione</em>' :
+            p.map(x => `• ${x.crm_leads?.nome||''} ${x.crm_leads?.cognome||''} <em>(${x.crm_leads?.funnel_stage||'—'})</em>`).join('<br>')}
+          </div>
+          <div class="posti${liberi === 0 ? ' pieno' : ''}">${p.length}/${s.capienza_max}</div>
+          <div>${(!passato && liberi > 0)
+            ? `<button class="btn-prenota" data-slot="${s.id}" data-data="${di}" data-label="${label.replace(/"/g,'&quot;')}">+ Prenota</button>`
+            : ''}</div>`;
+        grid.appendChild(card);
+      });
+      grid.querySelectorAll('.btn-prenota').forEach(b => b.onclick = () => apriModal(b.dataset.slot, b.dataset.data, b.dataset.label));
+    } catch (err) {
+      grid.innerHTML = `<div class="err"><strong>Errore</strong><pre>${err.message||err}</pre></div>`;
+    }
+  }
+
+  // --- MODAL ------------------------------------------------------
+  async function apriModal(slotId, dataIso, label) {
+    currentSlot = { id: slotId, data_lezione: dataIso, label };
+    document.getElementById('slot-info').textContent = label;
+    document.getElementById('modal-msg').innerHTML = '';
+    document.getElementById('nuovo-lead').style.display = 'none';
+    ['nl-nome','nl-cognome','nl-tel','nl-email','nl-note'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('nl-fonte').value = '';
+
+    // popola dropdown fonti
+    const fonteSel = document.getElementById('nl-fonte');
+    fonteSel.innerHTML = '<option value="">— seleziona —</option>' +
+      fontiCache.map(f => `<option value="${f.code}">${f.label}</option>`).join('');
+
+    const leads = await caricaLeadsPrenotabili();
+    const sel = document.getElementById('lead-select');
+    sel.innerHTML = '<option value="">— seleziona —</option>' +
+      leads.map(l => `<option value="${l.id}">${l.nome} ${l.cognome||''} · ${l.telefono||'no tel'} · ${l.funnel_stage}</option>`).join('') +
+      '<option value="__new__">➕ Aggiungi nuovo lead…</option>';
+    sel.onchange = () => {
+      document.getElementById('nuovo-lead').style.display = sel.value === '__new__' ? 'block' : 'none';
+    };
+    document.getElementById('modal').classList.add('show');
+  }
+  document.getElementById('btn-annulla').onclick = () => document.getElementById('modal').classList.remove('show');
+
+  document.getElementById('btn-conferma').onclick = async () => {
+    const msg = document.getElementById('modal-msg');
+    msg.innerHTML = '';
+    const sel = document.getElementById('lead-select').value;
+    if (!sel) { msg.innerHTML = '<div class="msg-err">Seleziona un lead o aggiungine uno nuovo.</div>'; return; }
+    let leadId = sel;
+
+    try {
+      if (sel === '__new__') {
+        const nome = document.getElementById('nl-nome').value.trim();
+        if (!nome) { msg.innerHTML = '<div class="msg-err">Il nome è obbligatorio.</div>'; return; }
+        const fonte = document.getElementById('nl-fonte').value || 'manuale';
+        const { data: nuovo, error: e1 } = await sb.from('crm_leads').insert({
+          nome,
+          cognome: document.getElementById('nl-cognome').value.trim() || null,
+          telefono: document.getElementById('nl-tel').value.trim() || null,
+          email: document.getElementById('nl-email').value.trim() || null,
+          fonte,
+          note: document.getElementById('nl-note').value.trim() || null,
+          funnel_stage: 'nuovo'
+        }).select('id').single();
+        if (e1) throw new Error('Creazione lead: ' + e1.message);
+        leadId = nuovo.id;
+      }
+
+      const { error: e2 } = await sb.from('prenotazioni_prima_lezione').insert({
+        lead_id: leadId, slot_id: currentSlot.id, data_lezione: currentSlot.data_lezione
+      });
+      if (e2) throw new Error('Prenotazione: ' + e2.message);
+
+      const { error: e3 } = await sb.from('crm_leads').update({
+        funnel_stage: 'prima_lezione_fissata',
+        prossima_azione_il: currentSlot.data_lezione
+      }).eq('id', leadId);
+      if (e3) throw new Error('Update stato: ' + e3.message);
+
+      msg.innerHTML = '<div class="msg-ok">✓ Prenotazione creata. Aggiorno griglia…</div>';
+      setTimeout(() => { document.getElementById('modal').classList.remove('show'); render(); }, 1000);
+    } catch (err) {
+      msg.innerHTML = `<div class="msg-err">${err.message}</div>`;
+    }
+  };
+
+  document.getElementById('prev').onclick = () => { offset--; render(); };
+  document.getElementById('next').onclick = () => { offset++; render(); };
+
+  checkAuth();
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') checkAuth();
+  });
+</script>
+</body>
+</html>
