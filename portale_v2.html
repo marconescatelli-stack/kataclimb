@@ -1,0 +1,3074 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KataClimb® — Portale</title>
+<meta name="description" content="Il portale KataClimb: il tuo percorso, i tuoi Kata, il tuo logbook roccia. Progressione, video, certificazioni — tutto in un unico spazio.">
+<link rel="canonical" href="https://kataclimb.com/portale">
+
+<!-- Open Graph -->
+<meta property="og:title" content="KataClimb® — Portale">
+<meta property="og:description" content="Il tuo percorso, i tuoi Kata, il tuo logbook roccia. Progressione, video, certificazioni — tutto in un unico spazio.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kataclimb.com/portale">
+<meta property="og:site_name" content="KataClimb">
+<meta property="og:locale" content="it_IT">
+
+<!-- Favicons -->
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+<!-- Robots -->
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+  --bg:#F5F1EB; --bg2:#EDE8E0; --bg3:#E4DFD6;
+  --card:rgba(0,0,0,.018); --border:rgba(0,0,0,.065);
+  --text:#2C2418; --text2:rgba(44,36,24,.55); --text3:rgba(44,36,24,.35);
+  --open:#5B8C5A; --advance:#3A7D44; --intro:#2E86AB; --evo:#7B2D8E;
+  --warn:#FE6D73; --gold:#C49520; --info:#2E86AB;
+  --font:'DM Sans',sans-serif; --serif:'Cormorant Garamond',serif;
+  --r:14px; --rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:0;opacity:1;pointer-events:none;background-image:radial-gradient(circle at 1px 1px,rgba(44,36,24,.06) .5px,transparent 0);background-size:32px 32px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.fu{animation:fadeUp .5s ease both}
+.fu1{animation:fadeUp .5s ease .07s both}
+.fu2{animation:fadeUp .5s ease .14s both}
+.fu3{animation:fadeUp .5s ease .21s both}
+
+.container{max-width:760px;margin:0 auto;padding:26px 16px;position:relative;z-index:1}
+@media(min-width:768px){.container{padding:32px 32px;max-width:920px}.profile-card{gap:24px;padding:24px 28px}.avatar{width:100px;height:100px;font-size:32px}.kr{padding:14px 16px;gap:14px}.ki{min-width:160px}.kname{font-size:15px}.knum{width:28px;height:28px;font-size:13px}.sec-tog button{padding:14px 12px;font-size:15px}.vs{width:56px;height:56px;border-radius:10px}.vs .si{font-size:16px}.tab-btn .tl{font-size:14px}.tab-btn .ts{font-size:12px}.btn{font-size:14px;padding:12px 22px}.landing-hero h1{font-size:40px}.landing-hero p{font-size:16px}.profile-info h1{font-size:26px}.oh{font-size:15px}.member-info .mn{font-size:14px}}
+@media(min-width:1024px){.container{max-width:1200px;padding:48px 56px}.profile-card{gap:40px;padding:36px 40px}.avatar{width:150px;height:150px;font-size:48px}.profile-info h1{font-size:44px}.profile-level span{font-size:22px}.cert-badge{font-size:20px;padding:10px 20px;border-radius:14px}.card{padding:36px;border-radius:18px}.sec-tog button{font-size:24px;padding:24px 22px}.landing-hero h1{font-size:68px}.landing-hero p{font-size:24px;max-width:720px;line-height:1.7;color:rgba(44,36,24,.6)}.landing-hero .logo{font-size:20px;letter-spacing:6px}.btn{font-size:20px;padding:18px 36px;border-radius:12px}.input{font-size:20px;padding:18px 20px;border-radius:12px}.kr{padding:22px 26px;margin-bottom:14px;gap:22px;border-radius:16px}.kname{font-size:24px}.kcount{font-size:18px}.ki{min-width:240px}.knum{width:42px;height:42px;font-size:20px;border-radius:10px}.tab-btn .tl{font-size:20px;letter-spacing:1.2px}.tab-btn .ts{font-size:18px}.tab-btn .tc{font-size:16px}.tab-btn{padding:20px 14px;gap:5px}.vs{width:86px;height:86px;border-radius:14px}.vs .si{font-size:26px}.vs .sl{font-size:20px}.vs .pb{width:20px;height:20px;font-size:11px}.oh{font-size:22px;padding:24px 28px}.stag{font-size:20px;padding:7px 18px;border-radius:10px}.tdesc{font-size:20px;line-height:1.7}.oi{width:56px;height:56px;font-size:26px;border-radius:14px}.member-info .mn{font-size:22px}.member-info .ml{font-size:18px}.member-stats .stat{font-size:18px}.demo-label{font-size:20px;padding:10px 24px;border-radius:28px}.ib{font-size:20px;padding:18px 24px;border-radius:13px;line-height:1.7}.footer{font-size:18px;padding:48px 0 24px}.toast{font-size:18px;padding:16px 32px;border-radius:16px}.mo-box{padding:40px;max-width:560px;border-radius:22px}.mo-box h3{font-size:28px;margin-bottom:28px}.back-btn{font-size:20px;margin-bottom:26px}.add-d{font-size:20px;padding:16px;border-radius:10px}#demo-kata-grid,#my-kata-grid,#pub-sec-kata{columns:2;column-gap:18px}#demo-kata-grid .kr,#my-kata-grid .kr{break-inside:avoid}.member-grid{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))!important}.member-card{padding:26px;gap:20px;border-radius:16px}.tabs{margin-bottom:24px;border-radius:15px}.sec-tog{margin-bottom:32px;border-radius:15px}.dz{padding:48px 28px;border-radius:18px;font-size:18px}.empty-st{padding:72px 0;font-size:20px}.empty-st .icon{font-size:52px;margin-bottom:16px}.profile-level .dot{width:10px;height:10px}.cert-row{gap:14px;margin-top:22px}.tent{gap:16px;margin-bottom:14px}.tnum{width:32px;height:32px;font-size:18px;border-radius:9px}.vc{padding:24px 26px;margin-bottom:14px;border-radius:16px}.oc{margin-bottom:16px;border-radius:18px}textarea.input{min-height:100px}}
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:20px}
+.btn{border:none;border-radius:var(--rs);cursor:pointer;font-family:var(--font);font-weight:700;font-size:12px;padding:10px 20px;transition:all .2s}
+.btn-p{background:var(--open);color:#fff}.btn-p:hover{filter:brightness(1.15)}
+.btn-g{background:rgba(0,0,0,.035);color:var(--text2);border:1px solid var(--border)}.btn-g:hover{background:rgba(0,0,0,.07)}
+.btn-full{width:100%}
+.input{width:100%;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.08);border-radius:var(--rs);padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .2s}
+.input:focus{border-color:rgba(0,0,0,.18)}
+.input[type="date"]{color-scheme:dark}
+textarea.input{min-height:60px;resize:vertical}
+.hidden{display:none!important}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:12px;z-index:200;pointer-events:none;animation:fadeUp .3s ease}
+
+/* Modal */
+.mo{position:fixed;inset:0;z-index:100;background:rgba(44,36,24,.4);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:20px}
+.mo-box{background:var(--bg2);border-radius:18px;padding:26px;max-width:400px;width:100%;border:1px solid rgba(0,0,0,.07)}
+.mo-box h3{font-family:var(--serif);font-size:17px;font-weight:400;margin-bottom:16px}
+
+/* Screens */
+.screen{display:none}.screen.active{display:block}
+
+/* ═══ DEMO LANDING ═══ */
+#landing{min-height:100vh;position:relative;overflow:hidden}
+.landing-hero{text-align:center;padding:60px 20px 30px;position:relative;z-index:1;overflow:hidden}
+@media(min-width:1024px){.landing-hero{padding:80px 40px 40px}.landing-hero p{color:rgba(44,36,24,.65)!important;font-size:16px!important;max-width:600px;line-height:1.7!important}.landing-hero h1{font-size:46px!important;margin-bottom:12px}.landing-hero .logo{font-size:14px!important;letter-spacing:4px;margin-bottom:22px;color:rgba(44,36,24,.35)!important}.landing-hero .cta-row{gap:12px;margin-top:6px}.landing-hero .cta-row .btn{font-size:14px!important;padding:12px 26px!important}.landing-hero a[href="guida.html"]{font-size:13px!important;padding:12px 24px!important}}
+.landing-hero .logo,.landing-hero h1,.landing-hero p,.landing-hero .cta-row{position:relative;z-index:1}
+.landing-hero .logo{font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:20px}
+.landing-hero h1{font-family:var(--serif);font-size:clamp(28px,5vw,42px);font-weight:300;line-height:1.15;margin-bottom:10px}
+.landing-hero p{font-size:14px;color:var(--text2);max-width:480px;margin:0 auto 24px}
+.landing-hero .cta-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.landing-glow{position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(91,140,90,.06),transparent 70%);pointer-events:none}
+.demo-label{display:inline-flex;align-items:center;gap:6px;background:rgba(196,149,32,.08);border:1px solid rgba(196,149,32,.2);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px}
+.demo-watermark{position:fixed;top:12px;right:12px;z-index:50;background:rgba(196,149,32,.1);border:1px solid rgba(196,149,32,.2);border-radius:8px;padding:4px 10px;font-size:13px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;pointer-events:none}
+
+/* ═══ PROGRESSION ═══ */
+.prog-svg{width:100%;overflow-x:auto}
+
+/* ═══ PROFILE ═══ */
+.profile-card{display:flex;align-items:center;gap:18px;padding:20px 22px}
+.avatar{width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,#1B4965,#2E86AB);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;border:3px solid rgba(0,0,0,.06);box-shadow:0 4px 16px rgba(0,0,0,.1);overflow:hidden;flex-shrink:0}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-sm{width:44px;height:44px;font-size:15px;border-width:2px}
+.profile-info h1{font-family:var(--serif);font-size:24px;font-weight:400;line-height:1.1;margin-bottom:3px}
+.profile-level{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.profile-level .dot{width:6px;height:6px;border-radius:50%}
+.profile-level span{font-size:12.5px;color:var(--text2)}
+
+/* ═══ TABS ═══ */
+.tabs{display:flex;border-radius:11px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px}
+.tab-btn{flex:1;padding:10px 6px;background:rgba(0,0,0,.015);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1.5px;transition:all .2s;font-family:var(--font)}
+.tab-btn+.tab-btn{border-left:1px solid var(--border)}
+.tab-btn .tl{font-size:12.5px;font-weight:500;text-transform:uppercase;letter-spacing:.7px}
+.tab-btn.active .tl{font-weight:800}
+.tab-btn .ts{font-size:12px;font-style:italic}
+.tab-btn .tc{font-size:12px;color:var(--text3);margin-top:1px}
+
+/* Section toggle */
+.sec-tog{display:flex;border-radius:11px;overflow:hidden;border:1px solid var(--border);margin-bottom:20px}
+.sec-tog button{flex:1;padding:12px 8px;background:rgba(0,0,0,.015);border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--serif);font-size:12px;color:var(--text3)}
+.sec-tog button.active{background:rgba(0,0,0,.07);color:var(--text);font-weight:700}
+.sec-tog button+button{border-left:1px solid var(--border)}
+
+/* ═══ KATA ROW ═══ */
+.kr{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:13px;background:rgba(0,0,0,.025);border:1px solid var(--border);position:relative;transition:all .3s;margin-bottom:7px}
+.kr.locked{opacity:.25}
+.kr.locked .lock-ov{position:absolute;inset:0;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(44,36,24,.15);backdrop-filter:blur(1px);z-index:2;font-size:15px}
+.kr.done{background:rgba(91,140,90,.05);border-color:rgba(91,140,90,.2)}
+.ki{min-width:140px;flex:0 0 auto}
+.ki-inner{display:flex;align-items:center;gap:7px}
+.knum{width:26px;height:26px;border-radius:7px;flex-shrink:0;background:rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:rgba(44,36,24,.4)}
+.kr.done .knum{background:linear-gradient(135deg,#5B8C5A,#3A7D44);color:#fff}
+.kname{font-size:13.5px;font-weight:600;line-height:1.2}
+.kcount{font-size:13px;color:var(--text3);margin-top:1px}
+.kslots{display:flex;gap:5px;flex:1;justify-content:flex-end;flex-wrap:wrap}
+
+/* Video slot */
+.vs{width:50px;height:50px;border-radius:9px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;transition:all .2s}
+.vs.empty{border:1.5px dashed rgba(0,0,0,.1);background:rgba(0,0,0,.02);cursor:pointer}
+.vs.empty:hover{border-color:rgba(0,0,0,.18)}
+.vs.cert{border:2px solid var(--open);background:rgba(91,140,90,.1)}
+.vs.pend{border:2px solid var(--gold);background:rgba(255,200,87,.05)}
+.vs .si{font-size:13px}
+.vs .sl{position:absolute;bottom:2px;font-size:13px;color:rgba(0,0,0,.12);font-weight:700}
+.vs .pb{position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:var(--info);display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:800}
+
+/* ═══ LOGBOOK ═══ */
+.oc{background:rgba(0,0,0,.025);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:8px}
+.oh{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;transition:background .2s}
+.oh:hover{background:rgba(0,0,0,.03)}
+.oi{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(0,0,0,.07),rgba(0,0,0,.03));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ob{padding:0 16px 16px;display:none}
+.oc.exp .ob{display:block}
+.oc.exp .chev{transform:rotate(180deg)}
+.chev{transition:transform .2s}
+.vc{background:rgba(0,0,0,.03);border-radius:11px;padding:12px 14px;margin-bottom:8px;border:1px solid rgba(0,0,0,.035)}
+.stag{display:inline-flex;align-items:center;gap:3px;border-radius:6px;padding:2px 7px;font-size:13px;font-weight:600;white-space:nowrap}
+.tent{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+.tnum{width:20px;height:20px;border-radius:6px;flex-shrink:0;margin-top:1px;background:rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--text3)}
+.tnum.ok{background:rgba(91,140,90,.2);color:var(--open)}
+.tdesc{font-size:13px;color:var(--text2);line-height:1.5}
+.add-d{width:100%;background:none;border:1px dashed rgba(0,0,0,.08);border-radius:7px;padding:8px;cursor:pointer;font-size:13px;color:var(--text3);font-weight:600;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s}
+.add-d:hover{border-color:rgba(0,0,0,.15);color:var(--text2)}
+
+/* ═══ COMMUNITY ═══ */
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.member-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px}
+.member-card:hover{background:rgba(0,0,0,.035);border-color:rgba(0,0,0,.08)}
+.member-info .mn{font-size:13px;font-weight:600}
+.member-info .ml{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:4px;margin-top:2px}
+.member-info .ml .dot{width:5px;height:5px;border-radius:50%}
+.member-stats{display:flex;gap:12px;margin-top:6px}
+.member-stats .stat{font-size:13px;color:var(--text3)}
+.member-stats .stat b{color:var(--text2);font-weight:700}
+
+/* Back button */
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-size:15px;color:var(--text2);font-family:var(--font);font-weight:600;padding:4px 0;margin-bottom:16px;transition:color .2s}
+.back-btn:hover{color:var(--text)}
+
+/* Lead Detail — CRM Segreteria: leggibilità forte */
+#seg-lead-detail .ld-sub{font-size:15px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-top:4px}
+#seg-lead-detail .ld-badges{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+#seg-lead-detail .ld-badge{font-size:14px;font-weight:700;padding:6px 14px;border-radius:20px;background:rgba(0,0,0,.06);color:var(--text);display:inline-flex;align-items:center;gap:7px}
+#seg-lead-detail .ld-badge .dot{width:9px;height:9px;border-radius:50%}
+#seg-lead-detail .ld-grid{display:grid;grid-template-columns:auto 1fr;gap:10px 20px;font-size:16px}
+#seg-lead-detail .ld-grid .lbl{color:var(--text2);font-weight:600}
+#seg-lead-detail .ld-grid .val{color:var(--text)}
+#seg-lead-detail .ld-grid .val.strong{font-weight:700}
+#seg-lead-detail .ld-note{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:16px;color:var(--text);line-height:1.55}
+#seg-lead-detail .ld-section{margin-top:18px;padding:18px;background:rgba(0,0,0,.04);border:1px solid var(--border);border-radius:12px}
+#seg-lead-detail .ld-section-h{font-size:15px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+#seg-lead-detail .ld-row{display:flex;justify-content:space-between;align-items:center;font-size:16px;padding:11px 0;border-bottom:1px solid var(--border);gap:12px}
+#seg-lead-detail .ld-row:last-child{border-bottom:none}
+#seg-lead-detail .ld-row strong{color:var(--text);font-weight:700}
+#seg-lead-detail .ld-pill{font-size:13px;font-weight:700;padding:5px 12px;border-radius:12px;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+#seg-lead-detail .ld-section-foot{font-size:14px;color:var(--text2);margin-top:10px}
+#seg-lead-detail .ld-section-foot a{color:var(--text);font-weight:700;text-decoration:underline}
+#seg-lead-detail .ld-esito{margin-top:18px;padding:18px;border-radius:12px}
+#seg-lead-detail .ld-esito-h{font-size:15px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px}
+#seg-lead-detail .ld-esito-val{font-size:18px;font-weight:700;margin-bottom:8px}
+#seg-lead-detail .ld-esito-nota{font-size:16px;color:var(--text);line-height:1.55}
+#seg-lead-detail .ld-diary-item{font-size:15px;padding:12px 0;border-bottom:1px solid var(--border)}
+#seg-lead-detail .ld-diary-item:last-child{border-bottom:none}
+#seg-lead-detail .ld-diary-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:10px}
+#seg-lead-detail .ld-diary-head strong{color:var(--text);font-weight:700;font-size:15px}
+#seg-lead-detail .ld-diary-meta{font-size:13px;color:var(--text2);font-weight:600;white-space:nowrap}
+#seg-lead-detail .ld-diary-text{color:var(--text);line-height:1.55;font-size:15px}
+#seg-lead-detail-actions .btn{font-size:15px;padding:12px 20px;font-weight:700}
+#seg-lead-detail-actions .btn-dark{background:var(--text);color:#F5F1EB}
+#seg-lead-detail-actions .btn-dark:hover{background:#1e190f}
+@media(min-width:1024px){
+  #seg-lead-detail .ld-sub{font-size:17px}
+  #seg-lead-detail .ld-badge{font-size:17px;padding:8px 18px}
+  #seg-lead-detail .ld-grid{font-size:19px;gap:12px 26px}
+  #seg-lead-detail .ld-note{font-size:19px}
+  #seg-lead-detail .ld-section-h{font-size:17px}
+  #seg-lead-detail .ld-row{font-size:19px;padding:13px 0}
+  #seg-lead-detail .ld-pill{font-size:15px;padding:6px 14px}
+  #seg-lead-detail .ld-section-foot{font-size:16px}
+  #seg-lead-detail .ld-esito-h{font-size:17px}
+  #seg-lead-detail .ld-esito-val{font-size:22px}
+  #seg-lead-detail .ld-esito-nota{font-size:19px}
+  #seg-lead-detail .ld-diary-item{font-size:17px;padding:14px 0}
+  #seg-lead-detail .ld-diary-head strong{font-size:18px}
+  #seg-lead-detail .ld-diary-meta{font-size:15px}
+  #seg-lead-detail .ld-diary-text{font-size:18px}
+  #seg-lead-detail-actions .btn{font-size:18px;padding:14px 28px}
+}
+
+/* Segreteria list — header + filtri + card lead */
+.sl-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.sl-head h3{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--text)}
+.sl-head-count{font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.sl-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.sl-filter{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:700;padding:8px 14px;border-radius:20px;border:none;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.5px;transition:all .15s}
+.sl-filter .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.sl-filter .num{opacity:.7;font-weight:700}
+.sl-card{padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:background .15s}
+.sl-card:hover{background:rgba(0,0,0,.04)}
+.sl-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:10px}
+.sl-card-name{font-family:var(--serif);font-size:19px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.25}
+.sl-card-sub{font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.sl-card-urg{text-align:right;flex-shrink:0}
+.sl-card-urg .label{font-size:14px;font-weight:700;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px}
+.sl-card-urg .date{font-size:13px;color:var(--text2);font-weight:600}
+.sl-card-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sl-card-pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:5px 12px;border-radius:20px;background:rgba(0,0,0,.06);color:var(--text)}
+.sl-card-pill .dot{width:8px;height:8px;border-radius:50%}
+.sl-card-note{font-size:14px;color:var(--text);line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.sl-empty{padding:32px 24px;text-align:center;color:var(--text2);font-size:15px;font-weight:600}
+.sl-loading{padding:28px 0;color:var(--text2);font-size:15px;font-weight:600}
+@media(min-width:1024px){
+  .sl-head h3{font-size:26px}
+  .sl-head-count{font-size:17px}
+  .sl-filter{font-size:16px;padding:10px 18px}
+  .sl-card{padding:22px 26px}
+  .sl-card-name{font-size:23px}
+  .sl-card-sub{font-size:16px}
+  .sl-card-urg .label{font-size:16px}
+  .sl-card-urg .date{font-size:15px}
+  .sl-card-pill{font-size:15px;padding:6px 14px}
+  .sl-card-note{font-size:17px}
+  .sl-empty{font-size:18px}
+  .sl-loading{font-size:17px}
+}
+
+/* Cert badge row */
+.cert-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cert-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+
+/* Dropzone */
+.dz{border:2px dashed rgba(0,0,0,.08);border-radius:13px;padding:28px 14px;text-align:center;cursor:pointer;margin-bottom:14px;transition:all .2s}
+.dz:hover{border-color:rgba(0,0,0,.15)}
+.dz.dragover{border-color:var(--open);background:rgba(91,140,90,.05)}
+
+/* Info/Warn box */
+.ib{border-radius:9px;padding:8px 12px;margin-bottom:14px;font-size:13px;line-height:1.5}
+.ib.info{background:rgba(46,134,171,.07);border:1px solid rgba(46,134,171,.12);color:var(--info)}
+.ib.warn{background:rgba(254,109,115,.07);border:1px solid rgba(254,109,115,.12);color:var(--warn)}
+
+/* Tag selector */
+.tsel{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.tsel button{background:rgba(0,0,0,.035);border:1px solid var(--border);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text3);font-family:var(--font);display:flex;align-items:center;gap:3px;transition:all .2s}
+.tsel button.sel{border-color:currentColor}
+
+.empty-st{text-align:center;padding:40px 0;color:var(--text3)}
+.empty-st .icon{font-size:32px;margin-bottom:8px}
+.loader{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.1);border-top-color:var(--open);border-radius:50%;animation:spin .6s linear infinite}
+.footer{text-align:center;padding:32px 0 14px;font-size:13px;color:rgba(0,0,0,.1);letter-spacing:.7px}
+
+.login-box{max-width:380px;width:100%;text-align:center}
+.login-box .input{margin-bottom:10px}
+.login-err{background:rgba(254,109,115,.08);border:1px solid rgba(254,109,115,.15);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--warn);margin-bottom:10px;display:none}
+
+/* Readonly slot (for public view) */
+.vs-ro{cursor:default!important}
+
+/* Spiral behind hero */
+.landing-spiral{display:block;position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:min(900px,100%);height:auto;opacity:.07;pointer-events:none;z-index:0;mix-blend-mode:multiply}
+.landing-spiral path{fill:#0ea5e9}
+@media(min-width:1024px){.landing-spiral{top:38%;width:min(1150px,95%);opacity:.06}}
+
+@media(min-width:1440px){.container{max-width:1400px;padding:56px 72px}.landing-hero h1{font-size:80px}.landing-hero p{font-size:28px;max-width:800px}.profile-info h1{font-size:52px}.kr{padding:26px 32px}.kname{font-size:28px}.kcount{font-size:20px}.vs{width:96px;height:96px;border-radius:16px}.vs .si{font-size:30px}.sec-tog button{font-size:28px;padding:26px 24px}.oh{font-size:26px;padding:28px 32px}.tdesc{font-size:24px}.tab-btn .tl{font-size:24px}.tab-btn .ts{font-size:20px}.btn{font-size:22px;padding:20px 40px}.member-grid{grid-template-columns:repeat(auto-fill,minmax(400px,1fr))!important}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     LANDING / DEMO (non autenticato)
+     ═══════════════════════════════════════ -->
+<div id="screen-landing">
+  <div class="landing-glow"></div>
+  <div style="position:relative;z-index:2;padding:14px 20px">
+    <a href="/" style="font-size:12px;color:var(--text3);text-decoration:none;letter-spacing:.5px">← kataclimb.com</a>
+  </div>
+  <div class="landing-hero fu">
+    <!-- Spirale KataClimb — proporzione aurea -->
+    <svg class="landing-spiral" version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="2000.000000pt" height="740.000000pt" viewBox="0 0 2000.000000 740.000000"
+ preserveAspectRatio="xMidYMid meet">
+
+<g transform="translate(0.000000,740.000000) scale(0.100000,-0.100000)"
+fill="#1d4ed8" stroke="none">
+<path d="M19970 7365 c0 -24 5 -35 15 -35 10 0 15 11 15 35 0 24 -5 35 -15 35
+-10 0 -15 -11 -15 -35z"/>
+<path d="M11080 6388 c-645 -13 -1235 -30 -1345 -38 -60 -4 -141 -15 -180 -24
+-38 -9 -135 -21 -215 -26 -80 -6 -203 -14 -275 -20 -71 -6 -193 -15 -270 -20
+-194 -13 -348 -27 -425 -39 -110 -17 -233 -31 -277 -31 -24 0 -62 -4 -85 -10
+-24 -5 -86 -14 -138 -20 -52 -6 -122 -16 -155 -21 -33 -5 -96 -14 -140 -19
+-141 -15 -300 -38 -317 -45 -15 -6 -108 -22 -268 -45 -36 -5 -87 -15 -115 -21
+-45 -10 -101 -20 -275 -48 -30 -5 -77 -15 -105 -21 -77 -17 -193 -39 -265 -50
+-36 -5 -85 -14 -110 -20 -25 -6 -71 -15 -103 -21 -33 -5 -63 -11 -68 -14 -4
+-3 -36 -10 -71 -15 -35 -4 -81 -14 -103 -20 -22 -7 -65 -16 -95 -20 -77 -11
+-208 -37 -255 -50 -22 -6 -65 -15 -95 -20 -79 -14 -188 -37 -240 -50 -25 -6
+-65 -15 -90 -20 -110 -21 -311 -70 -332 -81 -10 -5 -25 -9 -33 -9 -8 0 -48
+-11 -87 -25 -39 -14 -82 -25 -94 -25 -13 0 -26 -4 -29 -10 -3 -5 -16 -10 -28
+-10 -12 -1 -40 -8 -62 -16 -22 -9 -58 -20 -80 -26 -22 -5 -49 -13 -60 -18 -39
+-16 -234 -80 -244 -80 -6 0 -30 -8 -54 -18 -23 -11 -69 -27 -102 -37 -33 -10
+-78 -26 -100 -36 -22 -9 -68 -26 -101 -38 -34 -11 -77 -26 -95 -34 -19 -8 -52
+-20 -74 -27 -22 -7 -53 -18 -70 -26 -58 -26 -231 -95 -285 -114 -30 -10 -68
+-25 -85 -33 -31 -16 -58 -27 -165 -71 -88 -37 -98 -41 -150 -64 -25 -10 -106
+-45 -180 -77 -74 -31 -145 -63 -157 -71 -12 -8 -27 -14 -33 -14 -6 0 -58 -22
+-116 -50 -58 -27 -108 -50 -111 -50 -4 0 -34 -13 -67 -29 -138 -65 -258 -117
+-371 -161 -47 -18 -168 -43 -270 -55 -60 -7 -126 -16 -145 -20 -32 -7 -125
+-60 -160 -92 -8 -8 -40 -33 -72 -57 -31 -23 -63 -49 -71 -57 -8 -8 -28 -24
+-44 -36 -40 -30 -203 -189 -203 -197 0 -4 -13 -21 -28 -37 -16 -17 -42 -56
+-58 -87 -16 -32 -32 -59 -36 -62 -16 -12 -27 -154 -15 -204 6 -28 13 -53 16
+-56 4 -3 14 -21 23 -40 24 -47 41 -74 53 -82 6 -3 24 -18 40 -32 110 -95 216
+-165 365 -243 47 -25 90 -49 95 -53 6 -4 57 -26 115 -49 58 -22 113 -45 122
+-51 10 -5 23 -10 29 -10 6 0 37 -11 68 -24 31 -13 76 -29 101 -36 25 -6 74
+-20 110 -31 96 -28 168 -46 235 -59 33 -7 71 -16 85 -20 14 -5 70 -16 125 -25
+55 -9 129 -24 165 -32 77 -18 78 -18 250 -43 74 -11 160 -25 190 -30 30 -6 89
+-15 130 -20 41 -6 125 -17 185 -25 61 -7 139 -19 175 -25 36 -6 97 -15 135
+-20 130 -17 280 -40 320 -50 22 -5 78 -12 125 -15 47 -4 108 -10 135 -15 28
+-5 158 -14 290 -20 335 -16 741 -53 1070 -99 83 -12 218 -28 300 -36 83 -8
+191 -19 240 -25 50 -6 242 -14 428 -20 186 -5 341 -11 345 -14 19 -11 1831
+-17 2292 -7 446 10 872 31 925 45 11 3 99 13 195 21 252 22 472 44 492 51 18
+5 243 26 478 44 194 15 389 35 480 51 30 5 90 14 132 19 42 6 89 15 105 21 29
+11 149 35 243 49 30 4 75 13 100 20 25 6 70 15 100 20 101 14 238 44 275 59
+11 5 47 14 80 21 33 7 87 22 120 34 33 13 85 31 115 40 50 16 84 29 190 74
+178 75 347 174 455 267 62 54 145 170 145 203 0 11 5 24 10 27 14 9 12 58 -3
+88 -12 23 -68 76 -132 124 -89 66 -123 91 -155 108 -19 11 -37 23 -40 26 -7
+10 -101 59 -112 59 -5 0 -21 8 -35 18 -68 44 -268 100 -484 136 -244 41 -270
+45 -349 51 -41 3 -124 13 -185 20 -129 17 -302 32 -506 45 -80 5 -235 16 -343
+25 -205 18 -573 16 -791 -4 -55 -5 -178 -14 -273 -20 -95 -6 -177 -13 -181
+-15 -4 -3 -112 -7 -241 -11 -311 -7 -328 -9 -560 -56 -52 -11 -191 -52 -235
+-69 -11 -5 -29 -11 -40 -13 -91 -23 -206 -82 -223 -114 -46 -87 2 -202 103
+-248 65 -30 222 -93 255 -103 114 -36 184 -51 255 -57 89 -7 116 2 143 46 13
+23 13 31 2 59 -10 25 -27 38 -69 57 -99 43 -122 58 -139 84 -23 40 -2 84 52
+108 153 67 321 100 571 110 341 13 1125 2 1315 -19 47 -5 130 -14 185 -20 255
+-28 418 -65 605 -140 204 -81 267 -122 301 -197 81 -177 -114 -336 -601 -491
+-105 -34 -194 -58 -285 -78 -33 -7 -103 -22 -155 -34 -111 -25 -229 -47 -320
+-60 -36 -5 -86 -14 -110 -20 -44 -11 -188 -33 -325 -49 -38 -5 -115 -16 -170
+-25 -238 -38 -592 -60 -1355 -86 -162 -5 -347 -14 -410 -19 -150 -13 -531 -13
+-740 -1 -91 6 -244 15 -340 20 -96 6 -224 15 -285 20 -60 5 -196 14 -301 19
+-326 17 -537 31 -584 41 -65 13 -260 40 -400 56 -30 3 -71 10 -90 14 -37 10
+-209 33 -405 55 -66 7 -127 16 -135 19 -8 3 -76 13 -150 22 -74 8 -166 19
+-205 24 -38 4 -108 17 -155 28 -47 11 -112 26 -145 32 -97 19 -149 32 -159 41
+-6 5 -21 9 -35 9 -15 0 -66 12 -116 26 -49 13 -141 38 -204 55 -63 16 -128 36
+-144 44 -17 8 -37 15 -45 15 -16 0 -167 51 -312 107 -97 37 -277 121 -364 170
+-68 39 -147 120 -170 173 -19 45 -23 56 -47 120 -8 21 -14 74 -14 130 0 81 3
+101 22 133 13 21 23 44 23 50 0 12 29 48 90 114 27 29 221 173 233 173 3 0 18
+11 33 25 15 14 33 25 40 25 8 0 14 4 14 8 0 5 19 18 42 31 24 12 79 45 123 72
+94 60 241 139 490 262 99 49 191 95 205 102 29 14 206 89 265 112 22 9 58 23
+80 33 22 9 63 25 90 35 28 9 68 25 90 36 22 10 74 30 115 44 41 14 111 39 155
+55 104 37 160 55 215 70 25 7 77 22 115 35 39 12 90 28 115 34 25 7 65 19 90
+27 25 8 79 24 120 35 41 11 102 28 135 39 33 10 94 26 135 35 41 10 84 21 95
+26 11 5 92 27 180 50 169 44 191 49 295 73 36 8 79 20 95 26 17 7 50 15 75 20
+25 4 81 18 125 30 97 27 177 46 268 65 37 8 72 17 77 20 10 6 121 29 221 45
+31 5 79 15 105 21 27 6 87 17 134 25 47 7 128 20 180 28 52 9 111 20 130 26
+32 9 67 14 275 41 39 5 93 13 120 18 45 8 119 19 340 52 39 5 93 14 120 20 28
+5 82 13 120 18 162 20 256 34 355 52 58 10 125 19 150 19 25 0 61 4 80 9 19 6
+80 14 135 20 55 6 136 17 180 26 44 8 110 15 146 15 36 0 79 4 95 9 16 6 106
+15 199 21 94 6 215 15 270 20 55 5 208 14 340 20 132 6 258 13 280 15 107 11
+1527 37 1745 31 336 -9 884 -44 1025 -66 73 -12 419 -38 615 -46 206 -9 672
+-67 750 -94 62 -21 144 -39 177 -40 26 0 36 6 48 30 18 35 20 96 3 107 -53 34
+-466 133 -635 153 -46 5 -109 14 -140 20 -52 10 -124 18 -448 50 -55 5 -131
+14 -170 19 -73 10 -271 34 -435 52 -52 6 -126 15 -165 20 -104 14 -293 27
+-545 39 -243 11 -1352 10 -1910 -2z"/>
+<path d="M19973 5718 c2 -303 5 -392 15 -396 9 -3 12 80 12 392 0 334 -2 396
+-14 396 -12 0 -14 -61 -13 -392z"/>
+<path d="M11485 4719 c-242 -4 -532 -12 -645 -18 -113 -5 -340 -14 -505 -20
+-310 -11 -738 -35 -905 -51 -52 -5 -129 -11 -170 -15 -188 -14 -402 -38 -480
+-52 -47 -9 -110 -19 -140 -23 -122 -17 -198 -31 -260 -46 -36 -9 -87 -20 -115
+-25 -50 -8 -111 -21 -285 -59 -52 -12 -115 -25 -139 -30 -23 -6 -62 -15 -85
+-21 -22 -7 -68 -18 -101 -25 -121 -25 -196 -43 -204 -48 -5 -3 -37 -12 -72
+-20 -108 -25 -193 -46 -219 -55 -14 -5 -57 -19 -96 -31 -39 -11 -80 -27 -90
+-35 -11 -8 -25 -15 -32 -15 -7 0 -45 -15 -85 -34 -39 -19 -92 -44 -117 -55
+-25 -11 -79 -39 -120 -62 -41 -22 -102 -55 -135 -73 -206 -111 -289 -176 -320
+-249 -20 -48 -19 -133 3 -177 50 -104 189 -211 382 -293 32 -13 60 -23 160
+-55 19 -6 89 -26 155 -43 66 -17 136 -35 155 -41 19 -5 55 -13 80 -18 65 -11
+186 -37 255 -54 33 -9 81 -15 108 -16 26 0 55 -4 65 -9 24 -13 406 -64 572
+-77 527 -40 847 -43 1265 -13 480 34 528 38 620 49 50 6 185 18 300 26 265 18
+355 28 383 43 12 7 57 25 100 41 76 28 202 76 316 120 76 29 96 50 96 100 0
+54 -29 79 -165 145 -202 98 -252 112 -563 156 -80 11 -85 11 -105 -9 -21 -22
+-21 -22 3 -47 13 -14 65 -49 116 -77 80 -45 96 -59 109 -92 15 -36 14 -41 -2
+-73 -32 -62 -136 -88 -533 -132 -41 -5 -194 -9 -340 -11 -146 -1 -326 -4 -400
+-5 -148 -4 -523 10 -665 25 -49 5 -135 13 -190 19 -184 18 -383 60 -580 120
+-33 10 -80 25 -105 32 -141 41 -258 126 -280 204 -21 74 0 132 77 211 59 62
+114 100 218 151 93 46 217 92 435 159 47 15 94 30 105 34 21 8 125 34 215 55
+30 7 98 23 150 35 154 36 221 50 290 59 36 5 101 16 145 25 69 13 168 26 375
+51 153 18 386 36 585 45 552 26 2359 45 2805 30 594 -20 1004 -41 1155 -59
+234 -27 333 -42 470 -71 50 -10 128 -26 175 -35 47 -9 123 -25 170 -35 47 -11
+123 -27 170 -35 47 -9 121 -24 165 -35 44 -10 107 -24 140 -30 61 -12 83 -17
+215 -50 41 -10 95 -24 120 -29 61 -15 234 -69 290 -91 25 -10 65 -26 90 -35
+25 -9 63 -25 85 -35 22 -11 65 -30 95 -44 30 -14 64 -31 75 -38 11 -7 56 -35
+100 -62 44 -27 82 -52 85 -55 3 -3 23 -19 45 -35 22 -17 85 -75 140 -131 113
+-115 135 -157 135 -267 0 -65 -30 -150 -66 -185 -8 -8 -14 -18 -14 -23 0 -16
+-190 -197 -271 -258 -46 -35 -91 -69 -99 -75 -8 -7 -37 -25 -65 -41 -27 -16
+-52 -32 -55 -36 -3 -3 -12 -10 -20 -13 -8 -4 -28 -16 -45 -27 -16 -11 -46 -28
+-65 -39 -19 -11 -51 -29 -70 -40 -43 -25 -383 -194 -465 -231 -130 -60 -225
+-100 -234 -100 -6 0 -34 -11 -63 -24 -29 -13 -84 -33 -123 -46 -38 -12 -74
+-25 -80 -30 -5 -4 -39 -16 -75 -25 -36 -10 -77 -24 -92 -32 -28 -14 -149 -56
+-283 -100 -44 -14 -94 -32 -112 -39 -17 -8 -35 -14 -40 -14 -13 0 -136 -37
+-198 -60 -27 -10 -77 -25 -110 -35 -33 -9 -71 -21 -84 -26 -37 -15 -307 -88
+-441 -118 -19 -5 -55 -15 -80 -24 -41 -14 -145 -40 -210 -53 -14 -3 -47 -11
+-75 -19 -27 -8 -88 -21 -135 -30 -47 -8 -121 -24 -165 -34 -189 -45 -216 -51
+-243 -51 -16 0 -42 -4 -58 -10 -16 -5 -42 -11 -59 -14 -26 -4 -197 -33 -290
+-50 -16 -2 -50 -10 -75 -15 -25 -6 -79 -15 -120 -20 -122 -15 -300 -40 -370
+-51 -63 -11 -111 -16 -325 -39 -55 -6 -152 -18 -215 -27 -114 -15 -153 -19
+-514 -48 -103 -8 -197 -18 -209 -22 -23 -7 -322 -27 -757 -49 -168 -8 -359
+-19 -425 -24 -180 -12 -923 -13 -1145 -1 -611 34 -1048 64 -1085 75 -11 3 -99
+12 -195 21 -96 8 -247 21 -335 29 -88 8 -187 19 -220 24 -56 10 -166 22 -365
+41 -47 5 -116 13 -155 20 -74 11 -246 36 -355 49 -36 5 -96 16 -135 24 -38 9
+-112 25 -163 36 -51 12 -108 27 -125 35 -74 33 -99 37 -124 21 -12 -9 -23 -20
+-23 -25 0 -18 86 -70 165 -101 34 -13 123 -28 285 -49 166 -20 303 -43 354
+-59 17 -5 54 -12 81 -16 28 -3 70 -10 95 -16 170 -36 306 -63 410 -79 36 -6
+92 -17 125 -25 33 -8 105 -21 160 -30 100 -15 114 -18 190 -35 22 -5 99 -18
+170 -30 164 -27 231 -39 276 -51 20 -5 64 -9 98 -9 34 0 103 -4 154 -10 51 -5
+166 -14 257 -20 91 -6 203 -15 250 -20 47 -6 162 -14 255 -20 94 -6 271 -17
+395 -25 427 -30 516 -34 825 -44 376 -13 954 -6 1280 15 132 8 308 19 390 24
+83 5 170 12 195 15 25 3 104 10 175 15 72 6 166 14 210 20 44 5 125 14 180 19
+113 11 330 37 420 51 33 4 112 16 175 25 217 31 245 35 295 46 28 6 77 14 110
+19 136 19 252 39 290 49 22 6 72 16 110 21 82 12 217 34 295 50 30 6 82 15
+115 20 206 32 361 59 605 105 47 9 117 21 155 27 39 6 74 14 79 19 6 5 24 9
+40 9 17 1 60 8 96 16 36 8 88 19 115 24 28 5 66 13 85 19 19 5 62 15 95 21 33
+6 69 15 80 19 19 8 99 25 195 42 25 4 65 14 90 22 25 8 83 22 130 32 47 9 94
+21 105 25 11 4 40 13 65 20 25 7 56 16 70 21 14 4 41 11 60 14 19 4 62 15 95
+26 89 29 116 37 155 44 19 4 40 10 45 14 18 11 80 31 98 31 9 0 25 4 35 9 9 5
+58 21 107 36 50 15 99 31 110 35 30 12 204 70 255 85 83 24 205 67 248 86 23
+10 50 19 58 19 9 0 30 6 47 14 18 8 41 16 52 19 11 3 79 26 150 52 72 25 157
+55 190 66 33 12 78 29 100 39 22 10 63 25 90 34 28 9 68 25 90 36 22 10 58 26
+80 35 22 10 58 25 80 35 22 9 58 25 80 35 48 21 155 74 285 142 152 80 180 96
+180 105 0 4 8 8 19 8 10 0 24 7 31 15 7 8 16 15 21 15 7 0 79 46 187 120 50
+34 121 86 157 115 17 13 68 55 115 92 47 37 91 72 97 78 7 5 50 46 95 90 158
+153 198 219 206 339 4 62 1 87 -13 115 -9 20 -24 52 -33 71 -16 33 -46 75 -96
+130 -28 32 -135 124 -150 129 -6 2 -13 7 -16 11 -6 9 -105 71 -140 88 -14 7
+-45 23 -69 37 -24 14 -48 25 -54 25 -5 0 -21 8 -35 19 -30 20 -203 96 -267
+117 -22 7 -71 24 -110 39 -38 14 -88 30 -110 35 -22 5 -62 16 -90 25 -27 9
+-75 23 -105 32 -30 9 -73 22 -95 30 -22 8 -60 19 -85 23 -46 9 -122 27 -220
+53 -30 8 -100 24 -155 37 -55 12 -113 26 -130 30 -16 5 -52 12 -80 15 -27 3
+-68 10 -90 15 -22 5 -69 14 -105 20 -36 7 -78 16 -95 21 -16 4 -75 13 -130 20
+-203 23 -231 27 -290 38 -70 14 -328 38 -530 51 -77 4 -167 11 -200 14 -180
+17 -670 44 -1030 57 -137 4 -374 15 -525 23 -333 18 -2084 28 -2755 15z"/>
+<path d="M19976 4392 c-3 -5 -5 -160 -4 -345 1 -275 4 -337 15 -337 11 0 13
+63 13 345 0 314 -4 369 -24 337z"/>
+<path d="M19972 3653 c4 -66 28 -70 28 -4 0 39 -4 51 -16 51 -12 0 -14 -10
+-12 -47z"/>
+<path d="M19976 3573 c-12 -30 -5 -234 8 -230 15 5 17 110 2 119 -8 6 -8 8 2
+8 8 0 12 19 12 60 0 58 -11 78 -24 43z"/>
+<path d="M19985 3170 c-3 -5 -1 -10 4 -10 6 0 11 5 11 10 0 6 -2 10 -4 10 -3
+0 -8 -4 -11 -10z"/>
+<path d="M19986 3104 c-4 -9 -4 -19 -1 -22 2 -3 7 3 11 12 4 9 4 19 1 22 -2 3
+-7 -3 -11 -12z"/>
+<path d="M19985 3058 c-11 -27 -10 -121 1 -125 7 -2 11 20 12 67 2 67 -3 85
+-13 58z"/>
+<path d="M19987 2836 c-4 -10 -5 -21 -2 -24 9 -9 17 6 13 25 -3 17 -4 17 -11
+-1z"/>
+<path d="M19980 2679 c0 -5 5 -7 10 -4 6 3 10 8 10 11 0 2 -4 4 -10 4 -5 0
+-10 -5 -10 -11z"/>
+<path d="M19976 2472 c-10 -17 -2 -567 8 -574 7 -5 7 -8 -1 -8 -10 0 -13 -28
+-13 -105 0 -86 3 -105 15 -105 12 0 15 54 15 400 0 366 -4 425 -24 392z"/>
+<path d="M19972 258 c1 -135 6 -216 13 -220 6 -5 6 -8 -2 -8 -7 0 -13 -7 -13
+-15 0 -8 7 -15 15 -15 13 0 15 33 15 235 0 201 -2 235 -15 235 -13 0 -14 -31
+-13 -212z"/>
+</g>
+</svg>
+    <div class="logo">KataClimb<span style="color:var(--open)">®</span> Portale</div>
+    <h1>Il tuo percorso.<br>I tuoi <em>Kata</em>.<br>La tua <em>cordata</em>.</h1>
+    <p>Progressione, video, logbook roccia, certificazioni — tutto in un unico spazio. Scorri per vedere una demo.</p>
+    <div class="cta-row">
+      <button class="btn btn-p" onclick="showScreen('screen-login')" style="font-size:13px;padding:12px 28px">Accedi</button>
+      <button class="btn btn-g" onclick="scrollToDemo()" style="font-size:13px;padding:12px 28px">Vedi la demo ↓</button>
+    </div>
+    <div style="margin-top:16px"><a href="guida.html" style="display:inline-block;font-size:13px;font-weight:600;padding:12px 28px;background:rgba(46,134,171,.1);color:#1E6F8F;border:1px solid rgba(46,134,171,.25);border-radius:8px;text-decoration:none;font-family:var(--font);transition:all .3s">Come funziona? →</a></div>
+  </div>
+
+  <!-- Demo Profile -->
+  <div id="demo-section" class="container" style="padding-top:40px">
+    <div class="demo-label">👁 Demo — Profilo di esempio</div>
+
+    <!-- Profile + Progression -->
+    <div class="card fu" style="margin-bottom:22px;padding-bottom:14px">
+      <div class="profile-card" style="margin-bottom:14px;padding:0">
+        <div class="avatar">GF</div>
+        <div class="profile-info">
+          <h1>Giulia <em>Ferretti</em></h1>
+          <div class="profile-level">
+            <div class="dot" style="background:#EA580C"></div>
+            <span>Advance · Accademia RCC</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-badge" style="background:rgba(234,179,8,.1);color:#9A7B06">✓ Open</span>
+            <span class="cert-badge" style="background:rgba(234,88,12,.1);color:#C44A0A">✓ Advance</span>
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:12px">
+        <svg class="prog-svg" id="demo-prog-bar" viewBox="0 0 680 90"></svg>
+        <div id="demo-prog-current" style="margin-top:4px;font-size:12px;font-weight:600;text-align:center"></div>
+      </div>
+    </div>
+
+    <!-- Section toggle -->
+    <div class="sec-tog fu2">
+      <button class="active" id="demo-tog-kata" onclick="showDemoSec('kata')"><span style="font-size:14px">🧗</span> Kata</button>
+      <button id="demo-tog-logbook" onclick="showDemoSec('logbook')"><span style="font-size:14px">🪨</span> Logbook</button>
+      <button id="demo-tog-cert" onclick="showDemoSec('cert')"><span style="font-size:14px">🏅</span> Certificazioni</button>
+    </div>
+
+    <!-- Demo Kata -->
+    <div id="demo-sec-kata" class="screen active fu3">
+      <div class="tabs" id="demo-course-tabs"></div>
+      <div id="demo-phase-label" class="fu" style="display:flex;align-items:center;gap:8px;margin-bottom:10px"></div>
+      <div id="demo-kata-grid"></div>
+    </div>
+
+    <!-- Demo Logbook -->
+    <div id="demo-sec-logbook" class="screen">
+      <div id="demo-logbook-list"></div>
+    </div>
+
+    <!-- Demo Certifications -->
+    <div id="demo-sec-cert" class="screen">
+      <div id="demo-cert-list"></div>
+    </div>
+
+    <!-- CTA after demo -->
+    <div class="fu" style="text-align:center;padding:40px 0 20px">
+      <p style="font-size:14px;color:var(--text2);margin-bottom:16px">
+        Questo è un profilo di esempio.<br>
+        <strong style="color:var(--text)">Registrati</strong> per iniziare il tuo percorso KataClimb.
+      </p>
+      <button class="btn btn-p" onclick="showScreen('screen-login')" style="font-size:13px;padding:12px 32px">
+        Crea il tuo profilo
+      </button>
+    </div>
+
+    <div class="footer">KataClimb® è un brand di Syncrolink Ltd · London, UK · Company N. 15702722</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     LOGIN / REGISTER
+     ═══════════════════════════════════════ -->
+<div id="screen-login" class="hidden" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px">
+  <div class="login-box fu">
+    <div class="logo" style="font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:32px">
+      KataClimb<span style="color:var(--open)">®</span>
+    </div>
+    <h1 style="font-family:var(--serif);font-size:28px;font-weight:300;margin-bottom:6px">Entra nel <em>Portale</em></h1>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:24px">Il tuo percorso, i tuoi Kata, il tuo logbook.</p>
+    <div id="login-error" class="login-err"></div>
+    <input id="login-name" class="input hidden" placeholder="Nome" autocomplete="given-name">
+    <input id="login-surname" class="input hidden" placeholder="Cognome" autocomplete="family-name">
+    <input id="login-email" class="input" type="email" placeholder="Email" autocomplete="email">
+    <input id="login-password" class="input" type="password" placeholder="Password" autocomplete="current-password">
+    <input id="login-code" class="input hidden" placeholder="Codice evento (opzionale)">
+    <button id="login-submit" class="btn btn-p btn-full" onclick="handleAuth()" style="margin-top:6px">Accedi</button>
+    <div style="margin-top:16px;font-size:13px;color:var(--text3)">
+      <span id="login-toggle-text">Non hai un account?</span>
+      <a id="login-toggle-link" onclick="toggleAuthMode()" style="color:var(--info);cursor:pointer;text-decoration:none">Registrati</a>
+    </div>
+    <div style="margin-top:12px">
+      <a onclick="showScreen('screen-landing')" style="font-size:12px;color:var(--text3);cursor:pointer">← Torna alla demo</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     APP (autenticato)
+     ═══════════════════════════════════════ -->
+<div id="screen-app" class="hidden">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="fu" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <span style="font-size:13.5px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3)">
+        KataClimb<span id="brand-dot" style="color:var(--open)">®</span></span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.04);padding:4px 11px;border-radius:14px;font-size:12.5px;color:var(--text2)">
+          🪙 <span id="coins-display" style="color:var(--gold);font-weight:700">€0</span>
+        </div>
+        <button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);font-family:var(--font);padding:4px 8px">Esci</button>
+      </div>
+    </div>
+
+    <!-- Nav tabs: Profilo / Comunità -->
+    <div class="sec-tog fu" style="margin-bottom:18px">
+      <button class="active" id="nav-profilo" onclick="showNav('profilo')"><span style="font-size:14px">👤</span> Il mio profilo</button>
+      <button id="nav-comunita" onclick="showNav('comunita')"><span style="font-size:14px">👥</span> Comunità</button>
+      <button id="nav-segreteria" onclick="showNav('segreteria')" style="display:none"><span style="font-size:14px">🗂️</span> Segreteria</button>
+    </div>
+
+    <!-- ═══ MY PROFILE VIEW ═══ -->
+    <div id="nav-profilo-view" class="screen active">
+      <!-- Profile + Progression -->
+      <div class="card fu" style="margin-bottom:22px;padding-bottom:14px" id="my-profile-prog">
+        <div class="profile-card" id="my-profile-card" style="margin-bottom:14px;padding:0">
+          <div style="position:relative;flex-shrink:0">
+            <div class="avatar" id="my-avatar"></div>
+            <label for="photo-upload" style="position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;border-radius:50%;background:#1B4965;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#fff">📷</label>
+            <input id="photo-upload" type="file" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+          </div>
+          <div class="profile-info" id="my-profile-info"></div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:12px" id="my-prog-card">
+          <svg class="prog-svg" id="my-prog-bar" viewBox="0 0 680 90"></svg>
+          <div id="my-prog-current" style="margin-top:4px;font-size:12px;font-weight:600;text-align:center"></div>
+        </div>
+      </div>
+
+      <!-- Section toggle -->
+      <div class="sec-tog fu2">
+        <button class="active" id="my-tog-kata" onclick="showMySec('kata')"><span style="font-size:14px">🧗</span> Kata</button>
+        <button id="my-tog-logbook" onclick="showMySec('logbook')"><span style="font-size:14px">🪨</span> Logbook</button>
+      </div>
+
+      <!-- My Kata -->
+      <div id="my-sec-kata" class="screen active fu3">
+        <div style="display:flex;align-items:baseline;justify-content:flex-end;margin-bottom:12px">
+          <span style="font-size:13px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.8px">5 video · max 12s · auto-GIF</span>
+        </div>
+        <div class="tabs" id="my-course-tabs"></div>
+        <div id="my-phase-label" style="display:flex;align-items:center;gap:8px;margin-bottom:10px"></div>
+        <div id="my-kata-grid"></div>
+      </div>
+
+      <!-- My Logbook -->
+      <div id="my-sec-logbook" class="screen">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <h2 style="font-family:var(--serif);font-size:17px;font-weight:300">Logbook <em>Roccia</em></h2>
+            <p style="font-size:13px;color:var(--text3);margin-top:2px">Max 4 vie per uscita · Max 4 tentativi per via</p>
+          </div>
+          <button class="btn btn-g" onclick="openModal('mo-outing')" style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:14px">+</span> Nuova uscita
+          </button>
+        </div>
+        <div id="my-logbook-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══ COMMUNITY VIEW ═══ -->
+    <div id="nav-comunita-view" class="screen">
+      <!-- Public profile detail (hidden by default) -->
+      <div id="pub-profile-detail" class="hidden">
+        <button class="back-btn" onclick="closePubProfile()">← Torna alla comunità</button>
+        <div class="card" style="margin-bottom:22px;padding-bottom:14px">
+          <div class="profile-card" style="margin-bottom:14px;padding:0" id="pub-profile-card"></div>
+          <div style="border-top:1px solid var(--border);padding-top:12px" id="pub-prog-card">
+            <svg class="prog-svg" id="pub-prog-bar" viewBox="0 0 680 90"></svg>
+            <div id="pub-prog-current" style="margin-top:4px;font-size:12px;font-weight:600;text-align:center"></div>
+          </div>
+        </div>
+        <div class="sec-tog" style="margin-bottom:16px">
+          <button class="active" id="pub-tog-kata" onclick="showPubSec('kata')"><span style="font-size:14px">🧗</span> Kata</button>
+          <button id="pub-tog-logbook" onclick="showPubSec('logbook')"><span style="font-size:14px">🪨</span> Logbook</button>
+          <button id="pub-tog-cert" onclick="showPubSec('cert')"><span style="font-size:14px">🏅</span> Certificazioni</button>
+        </div>
+        <div id="pub-sec-kata" class="screen active"></div>
+        <div id="pub-sec-logbook" class="screen"></div>
+        <div id="pub-sec-cert" class="screen"></div>
+      </div>
+
+      <!-- Member list -->
+      <div id="community-list">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h2 style="font-family:var(--serif);font-size:17px;font-weight:300">La <em>Comunità</em></h2>
+          <input id="community-search" class="input" placeholder="Cerca..." style="width:200px;padding:6px 10px;font-size:11px" oninput="filterCommunity()">
+        </div>
+        <div class="member-grid" id="member-grid"></div>
+      </div>
+    </div>
+
+    <!-- ═══ SEGRETERIA VIEW (solo staff) ═══ -->
+    <div id="nav-segreteria-view" class="screen">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap">
+        <h2 style="font-family:var(--serif);font-size:17px;font-weight:300">La <em>Segreteria</em></h2>
+        <span id="seg-role-badge" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px"></span>
+      </div>
+
+      <!-- Dettaglio persona (hidden di default) -->
+      <div id="seg-lead-detail" class="hidden">
+        <button class="back-btn" onclick="closeLeadDetail()">← Torna alla lista</button>
+        <div class="card" style="margin-bottom:16px" id="seg-lead-detail-body"></div>
+        <div id="seg-lead-detail-actions" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+
+      <!-- Lista lead -->
+      <div id="seg-lead-list-wrap">
+        <div class="sl-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <h3 style="margin:0">Lead in arrivo</h3>
+            <span id="seg-leads-count" class="sl-head-count"></span>
+          </div>
+          <button class="btn btn-p" style="padding:8px 14px;font-size:13.5px" onclick="openAddLeadModal()">+ Aggiungi lead</button>
+        </div>
+        <input id="seg-search" class="input" placeholder="🔍 Cerca per nome..." style="margin-bottom:12px;font-size:14px;padding:10px 14px;margin-top:12px" oninput="setCrmSearch(this.value)">
+        <div id="seg-urgency-filters" class="sl-filters"></div>
+        <div id="seg-leads-list"></div>
+      </div>
+    </div>
+
+    <div class="footer">KataClimb® è un brand di Syncrolink Ltd · London, UK · Company N. 15702722</div>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<div id="mo-upload" class="mo hidden">
+  <div class="mo-box">
+    <h3>Carica Video</h3>
+    <p id="upload-info" style="font-size:12.5px;color:var(--text2);margin-bottom:18px"></p>
+    <div class="dz" id="upload-dz" onclick="document.getElementById('vid-input').click()">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style="margin:0 auto 8px;display:block"><rect x="3" y="7" width="26" height="18" rx="3" stroke="rgba(0,0,0,.12)" stroke-width="1.5"/><path d="M12 14L16 10L20 14" stroke="rgba(0,0,0,.18)" stroke-width="1.5" stroke-linecap="round"/><path d="M16 10V21" stroke="rgba(0,0,0,.18)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <p>Trascina il video o clicca</p>
+      <p class="sub" style="font-size:13px;color:var(--text3)">MP4 · Max 12 secondi · Auto-GIF</p>
+      <p id="upload-fname" style="margin-top:8px;font-size:13px;color:var(--open);display:none"></p>
+    </div>
+    <input id="vid-input" type="file" accept="video/mp4,video/quicktime,video/webm" style="display:none" onchange="handleVideoSelect(event)">
+    <div class="ib info">ℹ Il video verrà convertito in GIF. L'originale viene conservato.</div>
+    <div id="upload-warn" class="ib warn hidden">⚠ Slot permanente — non eliminabile</div>
+    <div id="upload-prog" class="hidden" style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><div class="loader"></div><span style="font-size:13px;color:var(--text2)">Caricamento...</span></div>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-p" style="flex:1" onclick="submitUpload()">Carica</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-upload')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div id="mo-outing" class="mo hidden">
+  <div class="mo-box">
+    <h3>Nuova Uscita Roccia</h3>
+    <input id="out-falesia" class="input" placeholder="Nome falesia" style="margin-bottom:8px">
+    <input id="out-date" class="input" type="date" style="margin-bottom:14px">
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-p" style="flex:1" onclick="submitOuting()">Crea</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-outing')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div id="mo-via" class="mo hidden">
+  <div class="mo-box">
+    <h3>Nuova Via</h3>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="via-nome" class="input" placeholder="Nome via" style="flex:2">
+      <input id="via-grado" class="input" placeholder="Grado" style="flex:1">
+    </div>
+    <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Stile</div>
+    <div class="tsel" id="via-tags"></div>
+    <textarea id="via-desc" class="input" placeholder="Descrizione primo tentativo..."></textarea>
+    <div style="display:flex;gap:7px;margin-top:14px">
+      <button class="btn btn-p" style="flex:1" onclick="submitVia()">Aggiungi</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-via')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registra Esito Prima Lezione (Fase 3.2.3) -->
+<div id="mo-esito" class="mo hidden">
+  <div class="mo-box">
+    <h3>Registra esito prima lezione</h3>
+    <p id="esito-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
+
+    <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px">Esito</div>
+    <div id="esito-options" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;font-size:14px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="esito" value="vuole_continuare" onchange="toggleEsitoDataVisibility()"> Vuole continuare</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="esito" value="ha_deciso" onchange="toggleEsitoDataVisibility()"> Ha deciso Open o corso</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="esito" value="da_ricontattare" onchange="toggleEsitoDataVisibility()"> Da ricontattare</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="esito" value="non_continua" onchange="toggleEsitoDataVisibility()"> Non continua</label>
+    </div>
+
+    <div id="esito-data-wrap" class="hidden" style="margin-bottom:14px">
+      <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Data inizio desiderata</div>
+      <input id="esito-data" class="input" type="date">
+    </div>
+
+    <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Nota istruttore <span style="color:var(--warn);text-transform:none;letter-spacing:0">*</span></div>
+    <textarea id="esito-nota" class="input" placeholder="Com'è andata? Osservazioni sull'allievo..." maxlength="500" oninput="document.getElementById('esito-nota-count').textContent=this.value.length"></textarea>
+    <div style="font-size:12px;color:var(--text2);text-align:right;margin-top:3px;font-weight:600"><span id="esito-nota-count">0</span>/500</div>
+
+    <div style="display:flex;gap:7px;margin-top:14px">
+      <button class="btn btn-p" style="flex:1" onclick="submitEsito()">Salva</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-esito')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Annulla prenotazione / Segna assente -->
+<!-- Modal Aggiungi lead (segreteria) -->
+<div id="mo-add-lead" class="mo hidden">
+  <div class="mo-box" style="max-width:480px">
+    <h3>Aggiungi lead</h3>
+    <p style="font-size:12.5px;color:var(--text2);margin-bottom:14px">Persona che ha contattato ma non ha ancora prenotato una prima lezione.</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);display:block;margin-bottom:4px">Nome *</label>
+          <input id="add-lead-nome" class="input" style="font-size:14px;padding:9px 12px" placeholder="Nome">
+        </div>
+        <div style="flex:1">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);display:block;margin-bottom:4px">Cognome</label>
+          <input id="add-lead-cognome" class="input" style="font-size:14px;padding:9px 12px" placeholder="Cognome">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);display:block;margin-bottom:4px">Telefono</label>
+        <input id="add-lead-telefono" class="input" style="font-size:14px;padding:9px 12px" placeholder="+39 ..." inputmode="tel">
+      </div>
+
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);display:block;margin-bottom:4px">Email</label>
+        <input id="add-lead-email" class="input" style="font-size:14px;padding:9px 12px" placeholder="email@..." inputmode="email">
+      </div>
+
+      <div id="add-lead-contatti-warn" class="ib warn hidden" style="font-size:12.5px">⚠ Serve almeno telefono o email per ricontattare la persona.</div>
+
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);display:block;margin-bottom:4px">Fonte *</label>
+          <select id="add-lead-fonte" class="input" style="font-size:14px;padding:9px 12px">
+            <option value="">— scegli —</option>
+            <option value="telefono">Telefono</option>
+            <option value="passaparola">Passaparola</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="instagram">Instagram</option>
+            <option value="form_kataclimb">Form KataClimb</option>
+            <option value="form_syncrolink">Form Syncrolink</option>
+            <option value="form_accademia">Form Accademia</option>
+            <option value="altro">Altro</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);display:block;margin-bottom:4px">Stato funnel</label>
+          <select id="add-lead-funnel" class="input" style="font-size:14px;padding:9px 12px">
+            <option value="nuovo">Nuovo</option>
+            <option value="contattato">Contattato</option>
+            <option value="da_riprogrammare">Da riprogrammare</option>
+            <option value="perso">Perso</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);display:block;margin-bottom:4px">Nota</label>
+        <textarea id="add-lead-note" class="input" rows="2" style="font-size:14px;padding:9px 12px;resize:vertical;font-family:inherit" placeholder="Contesto: chiamata del giorno X, vuole provare, ecc."></textarea>
+      </div>
+    </div>
+
+    <div id="add-lead-msg" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:7px">
+      <button id="add-lead-submit" class="btn btn-p" style="flex:1" onclick="submitAddLead()">Crea lead</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-add-lead')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal conflitto duplicato lead -->
+<div id="mo-lead-dup" class="mo hidden">
+  <div class="mo-box" style="max-width:460px">
+    <h3>Lead già esistente</h3>
+    <div class="ib warn" style="font-size:13px;margin-bottom:12px">
+      Esiste già un lead con <span id="dup-field-label">questa email</span>:
+      <div style="margin-top:6px;padding:10px;background:rgba(0,0,0,.04);border-radius:6px;font-size:13.5px" id="dup-lead-info"></div>
+    </div>
+
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Come vuoi procedere?</p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      <button class="btn" style="text-align:left;padding:11px 14px;background:var(--text);color:var(--bg);font-size:13.5px" onclick="dupOpenExisting()">
+        <strong>Apri il lead esistente</strong><br>
+        <span style="font-size:12px;opacity:.8">Chiude questo modal e apre il pannello del lead trovato</span>
+      </button>
+      <button class="btn btn-g" style="text-align:left;padding:11px 14px;font-size:13.5px" onclick="dupMergeUpdate()">
+        <strong>Aggiorna con i nuovi dati</strong><br>
+        <span style="font-size:12px;color:var(--text2)">Aggiorna solo i campi diversi, preserva storia e note precedenti</span>
+      </button>
+      <button class="btn btn-g" style="text-align:left;padding:11px 14px;font-size:13.5px" onclick="dupCreateAnyway()">
+        <strong>Crea comunque nuovo lead</strong><br>
+        <span style="font-size:12px;color:var(--text2)">Caso raro: omonimi, email familiare condivisa</span>
+      </button>
+    </div>
+
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-lead-dup')">Annulla e correggi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Riepilogo merge lead -->
+<div id="mo-merge-summary" class="mo hidden">
+  <div class="mo-box" style="max-width:480px">
+    <h3>Riepilogo aggiornamento</h3>
+    <div id="merge-summary-body" style="margin-bottom:14px"></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button id="merge-confirm-btn" class="btn btn-p" style="flex:1;min-width:140px" onclick="confirmMergeExecute()">Conferma aggiornamento</button>
+      <button class="btn btn-g" style="flex:1;min-width:140px" onclick="openLeadFromMergeSummary()">Apri lead e modifica a mano</button>
+    </div>
+    <button class="btn btn-g" style="width:100%;margin-top:7px" onclick="closeModal('mo-merge-summary')">Annulla</button>
+  </div>
+</div>
+
+<div id="mo-annulla" class="mo hidden">
+  <div class="mo-box">
+    <h3 id="annulla-title">Annulla prenotazione</h3>
+    <p id="annulla-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Dove finisce il lead?</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px" id="annulla-options">
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:14px">
+        <input type="radio" name="annulla-dest" value="breve" style="margin-top:3px">
+        <span><strong>A breve (3 giorni)</strong><br><span style="font-size:12px;color:var(--text2)">Riappare in corsia "Da riprogrammare" entro la settimana</span></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:14px">
+        <input type="radio" name="annulla-dest" value="lungo" style="margin-top:3px">
+        <span><strong>A lungo (30 giorni)</strong><br><span style="font-size:12px;color:var(--text2)">Ricontattare tra un mese</span></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:14px">
+        <input type="radio" name="annulla-dest" value="perso" style="margin-top:3px">
+        <span><strong>Perso</strong><br><span style="font-size:12px;color:var(--text2)">Non ricontattare</span></span>
+      </label>
+    </div>
+
+    <div id="annulla-msg" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-p" style="flex:1" onclick="submitAnnullaPrenot()">Conferma</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-annulla')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sposta prenotazione -->
+<div id="mo-sposta" class="mo hidden">
+  <div class="mo-box">
+    <h3>Sposta prenotazione</h3>
+    <p id="sposta-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Scegli nuovo slot</div>
+    <div id="sposta-slots" style="max-height:320px;overflow-y:auto;margin-bottom:10px"></div>
+    <div id="sposta-msg" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn btn-g" style="flex:1;min-width:120px" onclick="mettiInAttesa()">⏸ Metti in attesa</button>
+      <button class="btn btn-g" style="flex:1;min-width:100px" onclick="closeModal('mo-sposta')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Fissa Prima Lezione -->
+<div id="mo-fissa" class="mo hidden">
+  <div class="mo-box">
+    <h3>Fissa prima lezione</h3>
+    <p id="fissa-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
+    <div id="fissa-slots" style="max-height:400px;overflow-y:auto;margin-bottom:10px"></div>
+    <div id="fissa-msg" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-fissa')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Modifica Dati Lead -->
+<div id="mo-lead-info" class="mo hidden">
+  <div class="mo-box">
+    <h3>Modifica dati lead</h3>
+    <p id="lead-info-current" style="font-size:13px;color:var(--text2);margin-bottom:14px;font-weight:400;font-style:italic"></p>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Nome *</div>
+    <input id="lead-info-nome" class="input" type="text" style="margin-bottom:14px;font-size:14px">
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Cognome</div>
+    <input id="lead-info-cognome" class="input" type="text" style="margin-bottom:14px;font-size:14px">
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Telefono</div>
+    <input id="lead-info-telefono" class="input" type="tel" style="margin-bottom:14px;font-size:14px">
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Email</div>
+    <input id="lead-info-email" class="input" type="email" style="margin-bottom:14px;font-size:14px">
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Note generali</div>
+    <textarea id="lead-info-note" class="input" rows="3" style="font-size:14px;margin-bottom:14px" placeholder="Tag tipo lead: [ADULTO] / [PER FIGLI] / [MISTO] — e qualsiasi contesto utile..."></textarea>
+
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-p" style="flex:1" onclick="submitEditLeadInfo()">Salva modifiche</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-lead-info')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registra Contatto (CRM follow-up) -->
+<div id="mo-contatto" class="mo hidden">
+  <div class="mo-box">
+    <h3 id="contatto-modal-title">Registra contatto</h3>
+    <p id="contatto-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Tipo</div>
+    <div id="contatto-tipo" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Esito</div>
+    <div id="contatto-esito" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Nota</div>
+    <textarea id="contatto-nota" class="input" placeholder="Cosa hai detto, cosa ha risposto, cosa è emerso..." maxlength="500" rows="3" style="font-size:14px" oninput="document.getElementById('contatto-nota-count').textContent=this.value.length"></textarea>
+    <div style="font-size:12px;color:var(--text2);text-align:right;margin-top:3px;margin-bottom:14px"><span id="contatto-nota-count">0</span>/500</div>
+
+    <div id="contatto-lead-fields">
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Sposta nel funnel <span style="text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;color:var(--text2)">(opzionale)</span></div>
+    <select id="contatto-stage" class="input" style="margin-bottom:14px;font-size:14px">
+      <option value="">— lascia invariato —</option>
+      <option value="nuovo">Nuovo</option>
+      <option value="contattato">Contattato</option>
+      <option value="da_riprogrammare">Da riprogrammare</option>
+      <option value="perso">Perso</option>
+    </select>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Prossima azione il <span style="text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;color:var(--text2)">(opzionale)</span></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+      <button type="button" class="btn btn-g" style="font-size:13px;padding:6px 12px;font-weight:700" onclick="setProssimaQuick(1)">+1g</button>
+      <button type="button" class="btn btn-g" style="font-size:13px;padding:6px 12px;font-weight:700" onclick="setProssimaQuick(3)">+3g</button>
+      <button type="button" class="btn btn-g" style="font-size:13px;padding:6px 12px;font-weight:700" onclick="setProssimaQuick(7)">+1sett</button>
+      <button type="button" class="btn btn-g" style="font-size:13px;padding:6px 12px;font-weight:700" onclick="setProssimaQuick(14)">+2sett</button>
+      <button type="button" class="btn btn-g" style="font-size:13px;padding:6px 12px;font-weight:700" onclick="document.getElementById('contatto-prossima').value=''">×</button>
+    </div>
+    <input id="contatto-prossima" class="input" type="date" style="margin-bottom:14px;font-size:14px">
+    </div>
+
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-p" id="contatto-submit-btn" style="flex:1" onclick="submitContatto()">Salva</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-contatto')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Iscrivi a Open (Fase 2) -->
+<div id="mo-iscrivi" class="mo hidden">
+  <div class="mo-box">
+    <h3>Iscrivi a corso</h3>
+    <p id="iscrivi-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Tipo corso</div>
+    <select id="iscrivi-tipo" class="input" style="margin-bottom:14px;font-size:14px">
+      <option value="open">Open (175€ + 40€ iscrizione)</option>
+      <option value="advance">Advance (190€)</option>
+      <option value="intro_corda">Intro Corda (190€)</option>
+      <option value="evo_corda">Evo Corda (190€)</option>
+    </select>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Data inizio</div>
+    <input id="iscrivi-data" class="input" type="date" style="margin-bottom:14px;font-size:14px">
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Prezzo pagato (€)</div>
+    <input id="iscrivi-prezzo" class="input" type="number" value="215" style="margin-bottom:14px;font-size:14px">
+
+    <div class="ib info">ℹ 7 lezioni · 70 giorni dalla prima lezione Open. La scadenza si calcola al primo ingresso.</div>
+
+    <div style="display:flex;gap:7px;margin-top:14px">
+      <button class="btn" style="flex:1;background:#2563EB;color:#fff;font-weight:700" onclick="submitIscrivi()">Iscrivi</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-iscrivi')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div id="mo-tent" class="mo hidden">
+  <div class="mo-box">
+    <h3>Nuovo Tentativo</h3>
+    <p id="tent-info" style="font-size:12.5px;color:var(--text2);margin-bottom:14px"></p>
+    <textarea id="tent-desc" class="input" placeholder="Descrivi il tentativo..."></textarea>
+    <div style="display:flex;gap:7px;margin-top:14px">
+      <button class="btn btn-p" style="flex:1" onclick="submitTent()">Aggiungi</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-tent')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-el" class="toast hidden"></div>
+
+<script>
+/* ═══ CONFIG ═══ */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+  WORKER:'https://kataclimb-upload.tuoworker.workers.dev',
+};
+
+/* ═══ DATA ═══ */
+const STEPS=[
+  {id:'prima',label:'1ª Lezione',short:'1ª Lez.',color:'#A0A0A0',desc:'Primo contatto'},
+  {id:'open',label:'Open',short:'Open',color:'#EAB308',desc:'Linguaggio del Corpo'},
+  {id:'advance',label:'Advance',short:'Advance',color:'#EA580C',desc:'Corpo in Azione'},
+  {id:'intro',label:'Intro Corda',short:'Intro',color:'#16A34A',desc:'Legami'},
+  {id:'evo',label:'Evo Corda',short:'Evo',color:'#2563EB',desc:'Fly'},
+  {id:'lavorato',label:'Lavorato',short:'Lavorato',color:'#9333EA',desc:'Percorso lavorato'},
+  {id:'monitor',label:'Monitor',short:'Monitor',color:'#EC4899',desc:'Osservazione attiva'},
+  {id:'assistente',label:'Assistente',short:'Assist.',color:'#F43F5E',desc:'Supporto in cordata'},
+  {id:'istruttore',label:'Istruttore',short:'Istrutt.',color:'#F59E0B',desc:'Guida certificata'},
+];
+const KN={1:'Il Pronti',2:'Il Gradino',3:'Lo Scorrere',4:'Il Piombo',5:"Blocco dell'Asse",6:"Angolo d'Incidenza in Parete",7:"Angolo d'Incidenza in Sospensione",8:'Fuori–Dentro–Fuori',9:'Tutto in Uno',10:'Appendersi (Fiducia)',11:'Andare su Corda',12:'Altalena',13:'Progressione Appendersi Alto',14:'Pendoli',15:'Processo di Moschettonaggio',16:'Appendersi da Primo',17:'Moschettona e Appendi',18:'Pendolo in Calata',19:'Setup Sicura',20:'Postura di Sicura',21:'Dare / Recuperare Corda',22:'Blocca / Sblocca',23:'Dare e Recuperare Veloce',24:'Calata',25:'Test Progressivo in Parete',26:'Accompagnare il Compagno',27:'Lettura e Individuazione Via',28:'Determinazione Punto di Volo',29:'Progressività del Volo',30:'Mini-Caduta Tecnica',31:'Postura di Sicura Dinamica',32:'Ammortizzamento del Volo',33:'Buddy Check'};
+const CT=[
+  {id:'open',label:'Open',sub:'Linguaggio del Corpo',color:'#5B8C5A',katas:[1,2,3,4,5,6,10,11,12,13,14],phase:'Corpo + Gravità'},
+  {id:'advance',label:'Advance',sub:'Corpo in Azione',color:'#3A7D44',katas:[7,8,9],extra:'+ Prep. Kata 27 + ripasso',phase:'Corpo avanzato'},
+  {id:'intro',label:'Intro Corda',sub:'Legami',color:'#2E86AB',katas:[15,16,17,18,19,20,21,22,23,24,25,26],phase:'Sistema + Cordata'},
+  {id:'evo',label:'Evo Corda',sub:'Fly',color:'#7B2D8E',katas:[27,28,29,30,31,32,33],phase:'Vuoto + Fiducia'},
+];
+const STAGS=[
+  {id:'mai_provata',label:'Mai provata prima',color:'#9B5DE5',icon:'✦'},
+  {id:'a_vista',label:'A vista',color:'#FFC857',icon:'👁'},
+  {id:'flash',label:'Flash',color:'#FF6B6B',icon:'⚡'},
+  {id:'libera',label:'In libera',color:'#5B8C5A',icon:'🟢'},
+  {id:'lavorata',label:'Lavorata',color:'#2E86AB',icon:'🔄'},
+];
+
+/* ═══ STATE ═══ */
+let sb=null,user=null,profile=null,kataVids={},logbook=[];
+let myTabIdx=0,isReg=false;
+let uploadTgt=null,viaTgt=null,tentTgt=null,selFile=null,selTags=[];
+let communityMembers=[];
+
+/* ═══ DEMO DATA ═══ */
+const DEMO={
+  nome:'Giulia',cognome:'Ferretti',step:2,enrolled_next:true,coins:15,struttura:'Accademia RCC',
+  certs:['open','advance'],
+  vids:{1:[{slot:0,status:'certified',is_public:true},{slot:1,status:'certified',is_public:false},{slot:2,status:'certified',is_public:true},{slot:3,status:'pending',is_public:false}],2:[{slot:0,status:'certified',is_public:true},{slot:1,status:'certified',is_public:false},{slot:2,status:'pending',is_public:false}],3:[{slot:0,status:'certified',is_public:true}],10:[{slot:0,status:'certified',is_public:false},{slot:1,status:'pending',is_public:false}]},
+  log:[
+    {id:1,date:'2026-03-28',falesia:'Sperlonga — Grotta',vie:[
+      {nome:'Diedro Magico',grado:'6a',tags:['mai_provata','a_vista'],tentativi:[{n:1,desc:'Primo tentativo, letto bene la via. Passaggio chiave risolto con dulfer.'}]},
+      {nome:'Strapiombo dei Sogni',grado:'6c',tags:['lavorata'],tentativi:[{n:1,desc:'Caduta al crux.'},{n:2,desc:'Piede trovato, scaricato tardi.'},{n:3,desc:'Completata! Sequenza fluida.'}]}
+    ]},
+    {id:2,date:'2026-03-15',falesia:'Finalborgo — Bric Pianarella',vie:[
+      {nome:'Luna Nascente',grado:'5c',tags:['mai_provata','flash'],tentativi:[{n:1,desc:'Flash al primo tentativo.'}]},
+      {nome:'Verticale Pura',grado:'6b+',tags:['lavorata'],tentativi:[{n:1,desc:'Troppa fretta nel boulder centrale.'},{n:2,desc:'Gestito meglio il ritmo.'}]}
+    ]}
+  ],
+};
+
+const DEMO_COMMUNITY=[
+  {nome:'Marco',cognome:'Rossi',step:4,enrolled_next:true,struttura:'Accademia RCC',certs:['open','advance','intro_corda'],kataCount:22,outings:8},
+  {nome:'Sara',cognome:'Bianchi',step:6,enrolled_next:false,struttura:'Accademia RCC',certs:['open','advance','intro_corda','evo_corda','lavorato'],kataCount:31,outings:24},
+  {nome:'Luca',cognome:'Conti',step:1,enrolled_next:true,struttura:'Accademia RCC',certs:[],kataCount:4,outings:1},
+  {nome:'Elena',cognome:'Moretti',step:3,enrolled_next:false,struttura:'Accademia RCC',certs:['open','advance'],kataCount:14,outings:6},
+  {nome:'Andrea',cognome:'De Luca',step:8,enrolled_next:false,struttura:'KataClimb Roma Nord',certs:['open','advance','intro_corda','evo_corda','lavorato','monitor','assistente','istruttore'],kataCount:33,outings:52},
+];
+
+/* ═══ RENDERING HELPERS ═══ */
+
+function renderProg(barId,curId,step,enrolled){
+  const svg=document.getElementById(barId);
+  const pad=36,right=644,gap=(right-pad)/(STEPS.length-1);
+  const dk=false;
+  const dimL='rgba(0,0,0,0.07)';
+  const dimN='rgba(0,0,0,0.1)';
+  const dimT='rgba(0,0,0,0.18)';
+  const bgC='#F5F1EB';
+  const nextIdx=Math.min(step+1,STEPS.length-1);
+  let h='';
+
+  // Lines
+  for(let i=0;i<STEPS.length-1;i++){
+    const x1=pad+i*gap,x2=pad+(i+1)*gap;
+    const done=i<step;
+    const isEnrSeg=enrolled&&i===step&&step<STEPS.length-1;
+    if(done){
+      const col=STEPS[i+1].color;
+      h+=`<line x1="${x1}" y1="38" x2="${x2}" y2="38" stroke="${col}" stroke-width="8" stroke-linecap="round" opacity="0.12"/>`;
+      h+=`<line x1="${x1}" y1="38" x2="${x2}" y2="38" stroke="${col}" stroke-width="3.5" stroke-linecap="round"/>`;
+    }else if(isEnrSeg){
+      const xMid=x1+(x2-x1)*0.4;
+      h+=`<line x1="${x1}" y1="38" x2="${x2}" y2="38" stroke="${dimL}" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>`;
+      h+=`<line x1="${x1}" y1="38" x2="${xMid}" y2="38" stroke="${STEPS[nextIdx].color}" stroke-width="3" stroke-linecap="round" opacity="0.6"/>`;
+      h+=`<line x1="${x1}" y1="38" x2="${xMid}" y2="38" stroke="${STEPS[nextIdx].color}" stroke-width="7" stroke-linecap="round" opacity="0.08"/>`;
+      h+=`<circle cx="${xMid}" cy="38" r="4" fill="${STEPS[nextIdx].color}" opacity="0.9"/>`;
+      h+=`<circle cx="${xMid}" cy="38" r="8" fill="${STEPS[nextIdx].color}" opacity="0.12"/>`;
+    }else{
+      h+=`<line x1="${x1}" y1="38" x2="${x2}" y2="38" stroke="${dimL}" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>`;
+    }
+  }
+
+  // Nodes
+  for(let i=0;i<STEPS.length;i++){
+    const x=pad+i*gap,s=STEPS[i];
+    const done=i<=step,active=i===step;
+    const isNext=enrolled&&i===nextIdx&&step<STEPS.length-1;
+
+    if(done&&!active){
+      h+=`<circle cx="${x}" cy="38" r="13" fill="${s.color}" opacity="0.1"/>`;
+      h+=`<circle cx="${x}" cy="38" r="8" fill="${s.color}"/>`;
+      h+=`<path d="M${x-3.5} 38.5L${x-1} 41L${x+3.5} 35.5" fill="none" stroke="${bgC}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }else if(active){
+      h+=`<circle cx="${x}" cy="38" r="20" fill="${s.color}" opacity="0.08"/>`;
+      h+=`<circle cx="${x}" cy="38" r="14" fill="none" stroke="${s.color}" stroke-width="1.5" opacity="0.35"/>`;
+      h+=`<circle cx="${x}" cy="38" r="10" fill="${s.color}"/>`;
+      h+=`<circle cx="${x}" cy="38" r="4" fill="${bgC}"/>`;
+    }else if(isNext){
+      h+=`<circle cx="${x}" cy="38" r="11" fill="${s.color}" opacity="0.06"/>`;
+      h+=`<circle cx="${x}" cy="38" r="8" fill="none" stroke="${s.color}" stroke-width="2" stroke-dasharray="3 3" opacity="0.7"/>`;
+      h+=`<circle cx="${x}" cy="38" r="3" fill="${s.color}" opacity="0.4"/>`;
+    }else{
+      h+=`<circle cx="${x}" cy="38" r="7" fill="none" stroke="${dimN}" stroke-width="1.5"/>`;
+    }
+
+    const lc=done?s.color:isNext?s.color:dimT;
+    const fw=active||isNext?'font-weight:500':'';
+    const fs=active?'13px':'11px';
+    const lb=active?s.label:s.short;
+    h+=`<text x="${x}" y="72" text-anchor="middle" fill="${lc}" style="font-family:'DM Sans',sans-serif;font-size:${fs};${fw}">${lb}</text>`;
+    if(isNext)h+=`<text x="${x}" y="84" text-anchor="middle" fill="${s.color}" style="font-family:'DM Sans',sans-serif;font-size:13px;opacity:0.7">iscritto</text>`;
+  }
+
+  svg.innerHTML=h;
+  const si=STEPS[step];
+  document.getElementById(curId).innerHTML=`<span style="color:${si.color}">${si.label} — ${si.desc}</span>`;
+}
+
+function renderTabs(elId,active,prefix){
+  document.getElementById(elId).innerHTML=CT.map((c,i)=>`
+    <button class="tab-btn ${i===active?'active':''}" onclick="${prefix}Tab(${i})">
+      <span class="tl" style="color:${i===active?c.color:'rgba(44,36,24,.28)'}">${c.label}</span>
+      <span class="ts" style="color:${i===active?'rgba(44,36,24,.4)':'rgba(0,0,0,.12)'}">${c.sub}</span>
+      <span class="tc">${c.katas.length} Kata</span>
+    </button>`).join('');
+}
+
+function renderPhase(elId,tab){
+  document.getElementById(elId).innerHTML=`<div style="width:3px;height:14px;border-radius:2px;background:${tab.color}"></div>
+    <span style="font-size:13px;font-weight:700;color:${tab.color};text-transform:uppercase;letter-spacing:1.5px">${tab.phase}</span>
+    ${tab.extra?`<span style="font-size:13px;color:var(--text2);font-style:italic">${tab.extra}</span>`:''}`;
+}
+
+function renderKataGrid(elId,vids,step,readonly,tabIdx){
+  const tab=CT[tabIdx||0];
+  let h='';
+  tab.katas.forEach(k=>{
+    const v=vids[k]||[];
+    const cert=v.filter(x=>x.status==='certified').length;
+    const done=cert===5,locked=k>=12&&step<2;
+    const slots=Array.from({length:5},(_,i)=>{const f=v.find(x=>x.slot===i);return f||null});
+    h+=`<div class="kr ${done?'done':''} ${locked?'locked':''}">
+      ${locked?'<div class="lock-ov">🔒</div>':''}
+      <div class="ki"><div class="ki-inner">
+        <div class="knum">${String(k).padStart(2,'0')}</div>
+        <div><div class="kname">${KN[k]}</div><div class="kcount">${cert}/5${done?' · ✓':''}</div></div>
+      </div></div>
+      <div class="kslots">${slots.map((s,i)=>{
+        const ic=s&&s.status==='certified',ip=s&&s.status==='pending',ie=!s,pm=i<3;
+        let cls='vs'+(readonly?' vs-ro':'');
+        if(ic)cls+=' cert';else if(ip)cls+=' pend';else cls+=' empty';
+        const click=ie&&!locked&&!readonly?` onclick="openUpload(${k},${i})"`:'';
+        return`<div class="${cls}"${click}>
+          ${ie?'<svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="opacity:.2"><path d="M10 4V16M4 10H16" stroke="#2C2418" stroke-width="2" stroke-linecap="round"/></svg>':''}
+          ${ic?'<span class="si" style="color:var(--open)">✓</span>':''}
+          ${ip?'<span class="si" style="color:var(--gold)">⏳</span>':''}
+          ${s&&s.is_public&&ic?'<div class="pb">€</div>':''}
+          <span class="sl">${pm?'🔒':i+1}</span>
+        </div>`;
+      }).join('')}</div></div>`;
+  });
+  document.getElementById(elId).innerHTML=h;
+}
+
+function renderLogbookHTML(entries,readonly){
+  if(!entries.length)return`<div class="empty-st"><div class="icon">🪨</div><p>Nessuna uscita registrata</p></div>`;
+  return entries.map(e=>{
+    const d=new Date(e.date).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'});
+    return`<div class="oc" id="oc-${e.id}">
+      <div class="oh" onclick="document.getElementById('oc-${e.id}').classList.toggle('exp')">
+        <div style="display:flex;align-items:center"><div class="oi">🪨</div>
+          <div style="margin-left:10px"><div style="font-size:13px;font-weight:600">${e.falesia}</div>
+          <div style="font-size:12px;color:var(--text2)">${d} · ${e.vie.length} vi${e.vie.length===1?'a':'e'}</div></div>
+        </div>
+        <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="rgba(0,0,0,.25)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ob">${e.vie.map((v,vi)=>`
+        <div class="vc">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div><span style="font-size:13px;font-weight:700">${v.nome}</span>${v.grado?`<span style="font-size:12px;font-weight:700;color:var(--text2);background:rgba(0,0,0,.07);padding:1px 6px;border-radius:4px;margin-left:8px">${v.grado}</span>`:''}</div>
+            <span style="font-size:13px;color:var(--text3)">${v.tentativi.length} t.</span>
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">${v.tags.map(tid=>{const t=STAGS.find(x=>x.id===tid);return t?`<span class="stag" style="background:${t.color}15;border:1px solid ${t.color}30;color:${t.color}"><span style="font-size:8px">${t.icon}</span> ${t.label}</span>`:'';}).join('')}</div>
+          <div>${v.tentativi.map((t,ti)=>{const ok=ti===v.tentativi.length-1&&v.tags.some(x=>['a_vista','flash','libera'].includes(x));return`<div class="tent"><div class="tnum ${ok?'ok':''}">${t.n}</div><div class="tdesc">${t.desc}</div></div>`;}).join('')}
+          ${!readonly&&v.tentativi.length<4?`<button class="add-d" onclick="openTent(${e.id},${vi})">+ Aggiungi tentativo</button>`:''}
+          </div>
+        </div>`).join('')}
+        ${!readonly&&e.vie.length<4?`<button class="add-d" onclick="openVia(${e.id})">+ Aggiungi via</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCerts(certs){
+  if(!certs||!certs.length)return`<div class="empty-st"><div class="icon">🏅</div><p>Nessuna certificazione ancora</p></div>`;
+  const map={open:{label:'Open',color:'#5B8C5A'},advance:{label:'Advance',color:'#3A7D44'},intro_corda:{label:'Intro Corda',color:'#2E86AB'},evo_corda:{label:'Evo Corda',color:'#7B2D8E'},lavorato:{label:'Lavorato',color:'#D4526E'},monitor:{label:'Monitor',color:'#F15BB5'},assistente:{label:'Assistente',color:'#FE6D73'},istruttore:{label:'Istruttore',color:'#FFC857'}};
+  return`<div style="display:flex;flex-wrap:wrap;gap:10px">${certs.map(c=>{const m=map[c]||{label:c,color:'#6B6B6B'};return`<div class="cert-badge" style="background:${m.color}15;color:${m.color};border:1px solid ${m.color}30;padding:10px 18px;font-size:12px">✓ ${m.label}</div>`;}).join('')}</div>`;
+}
+
+/* ═══ SCREEN MANAGEMENT ═══ */
+
+function showScreen(id){
+  ['screen-landing','screen-login','screen-app'].forEach(s=>{
+    const el=document.getElementById(s);
+    if(s===id){el.classList.remove('hidden');if(s==='screen-login')el.style.display='flex';else el.style.display='';}
+    else{el.classList.add('hidden');el.style.display='none';}
+  });
+}
+
+function scrollToDemo(){document.getElementById('demo-section').scrollIntoView({behavior:'smooth'})}
+
+/* ═══ DEMO RENDERING ═══ */
+
+let demoTabIdx=0;
+function initDemo(){
+  renderProg('demo-prog-bar','demo-prog-current',DEMO.step,DEMO.enrolled_next);
+  renderTabs('demo-course-tabs',0,'demo');
+  renderPhase('demo-phase-label',CT[0]);
+  renderKataGrid('demo-kata-grid',DEMO.vids,DEMO.step,true,0);
+  document.getElementById('demo-logbook-list').innerHTML=renderLogbookHTML(DEMO.log,true);
+  document.getElementById('demo-cert-list').innerHTML=renderCerts(DEMO.certs);
+}
+function demoTab(i){demoTabIdx=i;renderTabs('demo-course-tabs',i,'demo');renderPhase('demo-phase-label',CT[i]);renderKataGrid('demo-kata-grid',DEMO.vids,DEMO.step,true,i);}
+function showDemoSec(id){
+  ['kata','logbook','cert'].forEach(s=>{
+    document.getElementById('demo-sec-'+s).classList.toggle('active',s===id);
+    document.getElementById('demo-sec-'+s).style.display=s===id?'block':'none';
+    document.getElementById('demo-tog-'+s).classList.toggle('active',s===id);
+  });
+}
+
+/* ═══ AUTH ═══ */
+
+function toggleAuthMode(){
+  isReg=!isReg;
+  ['login-name','login-surname','login-code'].forEach(id=>document.getElementById(id).classList.toggle('hidden',!isReg));
+  document.getElementById('login-submit').textContent=isReg?'Registrati':'Accedi';
+  document.getElementById('login-toggle-text').textContent=isReg?'Hai già un account?':'Non hai un account?';
+  document.getElementById('login-toggle-link').textContent=isReg?'Accedi':'Registrati';
+  document.getElementById('login-error').style.display='none';
+}
+
+async function handleAuth(){
+  const email=document.getElementById('login-email').value.trim();
+  const pw=document.getElementById('login-password').value;
+  if(!email||!pw)return showErr('Inserisci email e password');
+  const btn=document.getElementById('login-submit');btn.disabled=true;btn.innerHTML='<span class="loader"></span>';
+  try{
+    if(!sb)throw new Error('demo');
+    if(isReg){
+      const nome=document.getElementById('login-name').value.trim(),cogn=document.getElementById('login-surname').value.trim();
+      if(!nome||!cogn){showErr('Inserisci nome e cognome');return}
+      const{data,error}=await sb.auth.signUp({email,password:pw,options:{data:{nome,cognome:cogn}}});if(error)throw error;
+      // Se confirm email è attivo, l'utente deve confermare prima di entrare
+      if(data.user&&!data.user.email_confirmed_at&&!data.session){
+        try{sessionStorage.setItem('kc_reg',JSON.stringify({nome,cognome:cogn}))}catch(e){}
+        showConfirmMsg(email);return;
+      }
+      user=data.user;
+      const{error:insErr}=await sb.from('profiles').insert({user_id:user.id,email,nome,cognome:cogn,step:0});
+      if(insErr)console.warn('Profile insert:',insErr.message);
+      profile={user_id:user.id,email,nome,cognome:cogn,step:0,struttura:'',bio:'',citta:'',foto_url:'',codice_allievo:''};
+      const code=document.getElementById('login-code').value.trim();
+      if(code)await sb.from('event_participants').insert({user_id:user.id,event_code:code});
+    }else{
+      const{data,error}=await sb.auth.signInWithPassword({email,password:pw});if(error)throw error;user=data.user;
+    }
+    await loadAll();showScreen('screen-app');renderApp();
+  }catch(e){
+    if(e.message==='demo'){profile={...DEMO,photo_url:null};kataVids=DEMO.vids;logbook=DEMO.log;communityMembers=DEMO_COMMUNITY;showScreen('screen-app');renderApp();}
+    else showErr(authErrIT(e.message)||'Errore');
+  }finally{btn.disabled=false;btn.textContent=isReg?'Registrati':'Accedi'}
+}
+
+function showConfirmMsg(email){
+  document.getElementById('login-error').style.display='none';
+  const box=document.querySelector('.login-box');
+  box.innerHTML=`
+    <div class="logo" style="font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:32px">
+      KataClimb<span style="color:var(--open)">®</span>
+    </div>
+    <div style="font-size:32px;margin-bottom:16px">📬</div>
+    <h1 style="font-family:var(--serif);font-size:24px;font-weight:300;margin-bottom:10px">Controlla la tua email</h1>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Abbiamo inviato un link di conferma a:</p>
+    <p style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:20px">${email}</p>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:24px">Clicca il link nella mail per attivare il tuo account.<br>Controlla anche la cartella spam.</p>
+    <button class="btn btn-g" onclick="location.reload()" style="font-size:13px;padding:10px 24px">← Torna al login</button>`;
+}
+
+function authErrIT(msg){
+  if(!msg)return 'Errore sconosciuto';
+  if(msg.includes('Email not confirmed'))return 'Email non confermata. Controlla la tua casella di posta.';
+  if(msg.includes('Invalid login credentials'))return 'Email o password errati.';
+  if(msg.includes('User already registered'))return 'Questa email è già registrata. Prova ad accedere.';
+  if(msg.includes('Password should be'))return 'La password deve essere di almeno 6 caratteri.';
+  if(msg.includes('rate limit'))return 'Troppi tentativi. Riprova tra qualche minuto.';
+  return msg;
+}
+
+async function handleLogout(){if(sb)await sb.auth.signOut();user=null;profile=null;showScreen('screen-landing')}
+function showErr(m){const e=document.getElementById('login-error');e.textContent=m;e.style.display='block'}
+
+/* ═══ LOAD DATA ═══ */
+
+async function loadAll(){
+  if(!sb||!user)return;
+  const{data:p,error:pErr}=await sb.from('profiles').select('*').eq('user_id',user.id).single();
+  if(p)profile=p;
+  if(!profile)profile={user_id:user.id,nome:'',cognome:'',step:0,struttura:'',bio:'',citta:'',foto_url:'',codice_allievo:''};
+  // Recupera nome/cognome da metadata se vuoti nel profilo
+  if((!profile.nome||!profile.cognome)&&user.user_metadata){
+    const meta=user.user_metadata;
+    if(!profile.nome&&meta.nome){profile.nome=meta.nome;sb.from('profiles').update({nome:meta.nome}).eq('user_id',user.id)}
+    if(!profile.cognome&&meta.cognome){profile.cognome=meta.cognome;sb.from('profiles').update({cognome:meta.cognome}).eq('user_id',user.id)}
+  }
+  const{data:v}=await sb.from('kata_videos').select('*').eq('user_id',user.id);
+  kataVids={};(v||[]).forEach(x=>{if(!kataVids[x.kata_num])kataVids[x.kata_num]=[];kataVids[x.kata_num].push(x)});
+  const{data:o}=await sb.from('logbook_outings').select('*,logbook_routes(*,logbook_attempts(*))').eq('user_id',user.id).order('date',{ascending:false});
+  logbook=(o||[]).map(x=>({id:x.id,date:x.date,falesia:x.falesia,vie:(x.logbook_routes||[]).map(r=>({id:r.id,nome:r.nome,grado:r.grado,tags:r.tags||[],tentativi:(r.logbook_attempts||[]).map(a=>({n:a.attempt_num,desc:a.description}))}))}));
+  let coins=0;Object.values(kataVids).forEach(vs=>vs.forEach(x=>{if(x.status==='certified'&&x.is_public)coins+=5}));
+  profile.coins=coins;
+  // Load community
+  const{data:members}=await sb.from('profiles').select('*').neq('user_id',user.id);
+  communityMembers=(members||[]).map(m=>({nome:m.nome,cognome:m.cognome,step:m.step,struttura:m.struttura,user_id:m.user_id}));
+}
+
+/* ═══ ROLE HELPERS (Fase A) ═══ */
+function isStaff(){return !!profile && (profile.role==='admin'||profile.role==='segreteria'||profile.role==='istruttore')}
+function isAdmin(){return !!profile && profile.role==='admin'}
+function isSegreteria(){return !!profile && (profile.role==='admin'||profile.role==='segreteria')}
+
+function applyRoleVisibility(){
+  const btn=document.getElementById('nav-segreteria');
+  if(btn)btn.style.display=isStaff()?'':'none';
+  const badge=document.getElementById('seg-role-badge');
+  if(badge)badge.textContent=profile&&profile.role?profile.role:'';
+  console.log('[KataClimb] role:',profile&&profile.role,'· isStaff:',isStaff(),'· isAdmin:',isAdmin());
+  if(isStaff())loadCrmLeads();
+}
+
+/* ═══ CRM LEADS (Fase A · Step 2 + 3) ═══ */
+const FUNNEL_LABEL={
+  /* Pre-ingresso */
+  nuovo:'Nuovo',contattato:'Contattato',da_riprogrammare:'Da riprogrammare',
+  /* Ingresso Accademia */
+  prenotato_prima_lezione:'Prenotato prima lezione',fatta_prima_lezione:'Prima lezione fatta',
+  /* Open */
+  prenotato_open:'Prenotato Open',iscritto_open:'Iscritto Open',concluso_open:'Concluso Open',
+  /* Advance */
+  prenotato_advance:'Prenotato Advance',iscritto_advance:'Iscritto Advance',concluso_advance:'Concluso Advance',
+  /* Intro */
+  prenotato_intro:'Prenotato Intro',iscritto_intro:'Iscritto Intro',concluso_intro:'Concluso Intro',
+  /* Evo */
+  prenotato_evo:'Prenotato Evo',iscritto_evo:'Iscritto Evo',concluso_evo:'Concluso Evo',
+  /* Stato acquisito */
+  concluso_lavorato:'Lavorato',
+  /* Percorso istruttore */
+  prenotato_monitor:'Prenotato Monitor',iscritto_monitor:'Iscritto Monitor',concluso_monitor:'Concluso Monitor',
+  prenotato_assistente:'Prenotato Assistente',iscritto_assistente:'Iscritto Assistente',concluso_assistente:'Concluso Assistente',
+  prenotato_istruttore_jr:'Prenotato Istr. Jr',iscritto_istruttore_jr:'Iscritto Istr. Jr',concluso_istruttore_jr:'Concluso Istr. Jr',
+  prenotato_istruttore_senior:'Prenotato Istr. Senior',iscritto_istruttore_senior:'Iscritto Istr. Senior',concluso_istruttore_senior:'Istruttore Senior',
+  /* Maestro di Cordata */
+  maestro_di_cordata:'Maestro di Cordata',
+  /* Uscita */
+  perso:'Perso',ibernato:'Ibernato'
+};
+const FUNNEL_COLOR={
+  /* Pre-ingresso = grigi/gialli */
+  nuovo:'#9CA3AF',contattato:'#EAB308',da_riprogrammare:'#F97316',
+  /* Ingresso Accademia = arancio/verde (colori originali 1ª lezione) */
+  prenotato_prima_lezione:'#EA580C',fatta_prima_lezione:'#16A34A',
+  /* Open = giallo (coerente con linea progressione #EAB308) */
+  prenotato_open:'#EAB308',iscritto_open:'#CA8A04',concluso_open:'#854D0E',
+  /* Advance = arancio scuro #EA580C */
+  prenotato_advance:'#FB923C',iscritto_advance:'#EA580C',concluso_advance:'#9A3412',
+  /* Intro = verde #16A34A */
+  prenotato_intro:'#4ADE80',iscritto_intro:'#16A34A',concluso_intro:'#14532D',
+  /* Evo = blu #2563EB */
+  prenotato_evo:'#60A5FA',iscritto_evo:'#2563EB',concluso_evo:'#1E3A8A',
+  /* Lavorato = viola #9333EA */
+  concluso_lavorato:'#9333EA',
+  /* Monitor = rosa #EC4899 */
+  prenotato_monitor:'#F9A8D4',iscritto_monitor:'#EC4899',concluso_monitor:'#9D174D',
+  /* Assistente = rosso #F43F5E */
+  prenotato_assistente:'#FDA4AF',iscritto_assistente:'#F43F5E',concluso_assistente:'#9F1239',
+  /* Istruttore Jr = oro chiaro */
+  prenotato_istruttore_jr:'#FBBF24',iscritto_istruttore_jr:'#F59E0B',concluso_istruttore_jr:'#92400E',
+  /* Istruttore Senior = oro #F59E0B */
+  prenotato_istruttore_senior:'#FCD34D',iscritto_istruttore_senior:'#D97706',concluso_istruttore_senior:'#78350F',
+  /* Maestro di Cordata = oro intenso */
+  maestro_di_cordata:'#C49520',
+  /* Uscita */
+  perso:'#9333EA',ibernato:'#64748B'
+};
+const STATO_LABEL={attivo:'Attivo',da_richiamare:'Da richiamare',dormiente:'Dormiente'};
+const FONTE_LABEL={instagram:'Instagram',passaparola:'Passaparola',form_kataclimb:'Form KataClimb',form_syncrolink:'Form Syncrolink',form_accademia:'Form Accademia',whatsapp:'WhatsApp',telefono:'Telefono',altro:'Altro'};
+const CORSIE=[
+  {key:'tutti',label:'Tutti',emoji:'📋'},
+  {key:'da_chiamare',label:'Da chiamare',emoji:'📞'},
+  {key:'contattati',label:'Contattati',emoji:'💬'},
+  {key:'da_riprogrammare',label:'Riprogram.',emoji:'🔄'},
+  {key:'lezione_fissata',label:'Fissata',emoji:'📅'},
+  {key:'post_lezione',label:'Post lezione',emoji:'🎯'},
+  {key:'ha_deciso',label:'Ha deciso',emoji:'✅'},
+  {key:'persi',label:'Persi',emoji:'💤'}
+];
+let crmLeadsData=[];
+let crmCorsiaFilter='tutti';
+let crmSearchQuery='';
+
+function fmtDate(d){if(!d)return'—';const dt=new Date(d);return dt.toLocaleDateString('it-IT',{day:'2-digit',month:'short'})}
+function dayDelta(d){if(!d)return null;const dt=new Date(d);const t=new Date();dt.setHours(0,0,0,0);t.setHours(0,0,0,0);return Math.round((dt-t)/86400000)}
+function urgencyKey(delta){if(delta===null)return'oltre';if(delta<0)return'adesso';if(delta===0)return'oggi';if(delta<=3)return'entro3';return'oltre'}
+
+function corsiaOf(l){
+  const s=l.funnel_stage;
+  if(s==='nuovo')return 'da_chiamare';
+  if(s==='contattato')return 'contattati';
+  if(s==='da_riprogrammare')return 'da_riprogrammare';
+  if(s==='prenotato_prima_lezione')return 'lezione_fissata';
+  if(s==='fatta_prima_lezione'){
+    if(l.esito_prima_lezione==='ha_deciso')return 'ha_deciso';
+    return 'post_lezione';
+  }
+  if(s==='perso'||s==='ibernato')return 'persi';
+  // Tutti gli stati "prenotato_X" / "iscritto_X" / "concluso_X" dei livelli avanzati → 'tutti'
+  // (finché non aggiungeremo corsie dedicate per loro)
+  return 'tutti';
+}
+
+function renderCorsieFilters(){
+  const box=document.getElementById('seg-urgency-filters');
+  if(!box)return;
+  const counts={tutti:crmLeadsData.length};
+  CORSIE.forEach(c=>{if(c.key!=='tutti')counts[c.key]=0});
+  crmLeadsData.forEach(l=>{const k=corsiaOf(l);if(counts[k]!==undefined)counts[k]++});
+  box.innerHTML=CORSIE.map(f=>{
+    const active=crmCorsiaFilter===f.key;
+    const bg=active?'var(--text)':'rgba(0,0,0,.06)';
+    const fg=active?'var(--bg)':'var(--text)';
+    const n=counts[f.key]||0;
+    return`<button class="sl-filter" onclick="setCorsiaFilter('${f.key}')" style="background:${bg};color:${fg}">${f.emoji} ${f.label} <span class="num">${n}</span></button>`;
+  }).join('');
+}
+
+function setCorsiaFilter(k){crmCorsiaFilter=k;renderCorsieFilters();renderCrmLeads()}
+function setCrmSearch(v){crmSearchQuery=v.toLowerCase().trim();renderCrmLeads()}
+
+// ═══ AGGIUNGI LEAD (segreteria) ═══
+// Stato del modal: trattenuto tra apertura e submit
+let addLeadState={pendingData:null,existingLead:null,conflictField:null};
+
+function openAddLeadModal(){
+  // Reset campi
+  ['add-lead-nome','add-lead-cognome','add-lead-telefono','add-lead-email','add-lead-note'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('add-lead-fonte').value='';
+  document.getElementById('add-lead-funnel').value='nuovo';
+  document.getElementById('add-lead-msg').innerHTML='';
+  document.getElementById('add-lead-contatti-warn').classList.add('hidden');
+  addLeadState={pendingData:null,existingLead:null,conflictField:null};
+  openModal('mo-add-lead');
+}
+
+function addLeadValidate(){
+  const nome=document.getElementById('add-lead-nome').value.trim();
+  const cognome=document.getElementById('add-lead-cognome').value.trim();
+  const telefono=document.getElementById('add-lead-telefono').value.trim();
+  const email=document.getElementById('add-lead-email').value.trim().toLowerCase();
+  const fonte=document.getElementById('add-lead-fonte').value;
+  const funnel=document.getElementById('add-lead-funnel').value;
+  const note=document.getElementById('add-lead-note').value.trim();
+  const msg=document.getElementById('add-lead-msg');
+  const warn=document.getElementById('add-lead-contatti-warn');
+
+  if(!nome){msg.innerHTML='<div class="ib warn">Il nome è obbligatorio.</div>';return null}
+  if(!fonte){msg.innerHTML='<div class="ib warn">Scegli una fonte.</div>';return null}
+  if(!telefono&&!email){warn.classList.remove('hidden');msg.innerHTML='<div class="ib warn">Servono email o telefono per poter ricontattare.</div>';return null}
+  warn.classList.add('hidden');
+  msg.innerHTML='';
+  return {nome,cognome:cognome||null,telefono:telefono||null,email:email||null,fonte,funnel_stage:funnel,note:note||null};
+}
+
+async function submitAddLead(){
+  const data=addLeadValidate();
+  if(!data)return;
+  const btn=document.getElementById('add-lead-submit');
+  btn.disabled=true;btn.textContent='Controllo...';
+
+  // Check duplicati: email prima (più distintiva), poi telefono
+  let existing=null;let conflictField=null;
+  if(data.email){
+    const{data:byEmail}=await sb.from('crm_leads').select('*').ilike('email',data.email).limit(1);
+    if(byEmail&&byEmail.length){existing=byEmail[0];conflictField='email'}
+  }
+  if(!existing&&data.telefono){
+    // Normalizzo telefono per confronto: rimuovo spazi e prefissi comuni
+    const telNorm=data.telefono.replace(/\s|-/g,'');
+    const{data:byTel}=await sb.from('crm_leads').select('*').eq('telefono',data.telefono).limit(1);
+    if(byTel&&byTel.length){existing=byTel[0];conflictField='telefono'}
+  }
+
+  btn.disabled=false;btn.textContent='Crea lead';
+
+  if(existing){
+    addLeadState.pendingData=data;
+    addLeadState.existingLead=existing;
+    addLeadState.conflictField=conflictField;
+    showDupModal(existing,conflictField);
+    return;
+  }
+
+  // Nessun duplicato: inserisci
+  await insertNewLead(data);
+}
+
+function showDupModal(lead,field){
+  document.getElementById('dup-field-label').textContent=field==='email'?'questa email':'questo telefono';
+  const nomeCompleto=(lead.nome||'')+(lead.cognome?' '+lead.cognome:'');
+  const fonteLbl=FONTE_LABEL[lead.fonte]||lead.fonte;
+  const funnelLbl=FUNNEL_LABEL[lead.funnel_stage]||lead.funnel_stage;
+  const creato=fmtDate(lead.created_at);
+  document.getElementById('dup-lead-info').innerHTML=
+    '<strong>'+nomeCompleto+'</strong><br>'+
+    '<span style="color:var(--text2);font-size:12.5px">'+
+    (lead.email?'✉ '+lead.email+'<br>':'')+
+    (lead.telefono?'📞 '+lead.telefono+'<br>':'')+
+    'Fonte: '+fonteLbl+' · Stato: '+funnelLbl+' · Creato: '+creato+
+    '</span>';
+  openModal('mo-lead-dup');
+}
+
+async function dupOpenExisting(){
+  const lead=addLeadState.existingLead;
+  closeModal('mo-lead-dup');
+  closeModal('mo-add-lead');
+  if(lead)showLeadDetail(lead.id);
+}
+
+async function dupMergeUpdate(){
+  const newData=addLeadState.pendingData;
+  const existing=addLeadState.existingLead;
+  if(!newData||!existing)return;
+
+  // Calcola cosa cambia e cosa no
+  const changes=[];  // {campo, vecchio, nuovo, azione: 'aggiorna'|'appende'|'aggiunge'}
+  const unchanged=[]; // {campo, vecchio, scartato}
+
+  // nome
+  if(newData.nome&&newData.nome!==existing.nome){
+    if(existing.nome)unchanged.push({campo:'Nome',vecchio:existing.nome,scartato:newData.nome});
+    else changes.push({campo:'Nome',vecchio:'—',nuovo:newData.nome,azione:'aggiunge'});
+  }
+  // cognome
+  if(newData.cognome&&newData.cognome!==existing.cognome){
+    if(existing.cognome)unchanged.push({campo:'Cognome',vecchio:existing.cognome,scartato:newData.cognome});
+    else changes.push({campo:'Cognome',vecchio:'—',nuovo:newData.cognome,azione:'aggiunge'});
+  }
+  // telefono
+  if(newData.telefono&&newData.telefono!==existing.telefono){
+    if(existing.telefono)unchanged.push({campo:'Telefono',vecchio:existing.telefono,scartato:newData.telefono});
+    else changes.push({campo:'Telefono',vecchio:'—',nuovo:newData.telefono,azione:'aggiunge'});
+  }
+  // email
+  if(newData.email&&newData.email!==existing.email){
+    if(existing.email)unchanged.push({campo:'Email',vecchio:existing.email,scartato:newData.email});
+    else changes.push({campo:'Email',vecchio:'—',nuovo:newData.email,azione:'aggiunge'});
+  }
+  // fonte
+  if(newData.fonte&&newData.fonte!==existing.fonte){
+    const fNuovo=FONTE_LABEL[newData.fonte]||newData.fonte;
+    const fVecchio=FONTE_LABEL[existing.fonte]||existing.fonte;
+    if(existing.fonte)unchanged.push({campo:'Fonte',vecchio:fVecchio,scartato:fNuovo});
+    else changes.push({campo:'Fonte',vecchio:'—',nuovo:fNuovo,azione:'aggiunge'});
+  }
+  // nota: sempre appende (non sovrascrive mai)
+  if(newData.note){
+    changes.push({campo:'Nota',vecchio:existing.note?'(esistente)':'—',nuovo:newData.note,azione:'appende'});
+  }
+
+  // Salva lo stato per l'esecuzione
+  addLeadState.mergeChanges=changes;
+  addLeadState.mergeUnchanged=unchanged;
+
+  if(changes.length===0&&unchanged.length===0){
+    // Nulla da aggiornare davvero
+    closeModal('mo-lead-dup');
+    closeModal('mo-add-lead');
+    showLeadDetail(existing.id);
+    return;
+  }
+
+  // Costruisci il contenuto del modal riepilogo
+  let html='';
+  const nomeCompleto=(existing.nome||'')+(existing.cognome?' '+existing.cognome:'');
+  html+='<p style="font-size:13px;color:var(--text2);margin-bottom:10px">Lead: <strong style="color:var(--text)">'+nomeCompleto+'</strong></p>';
+
+  if(changes.length){
+    html+='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text);margin-bottom:6px;margin-top:10px">✓ Cosa verrà aggiornato</div>';
+    html+='<div style="background:#E8F5E8;border:1px solid #C3E6C3;border-radius:6px;padding:10px;margin-bottom:12px">';
+    changes.forEach(c=>{
+      let azioneLbl='';
+      if(c.azione==='aggiunge')azioneLbl='<span style="font-size:11px;color:#2d7a2d">(vuoto prima)</span>';
+      if(c.azione==='appende')azioneLbl='<span style="font-size:11px;color:#2d7a2d">(appesa con data)</span>';
+      html+='<div style="font-size:13px;margin-bottom:6px"><strong>'+c.campo+':</strong> '+c.nuovo+' '+azioneLbl+'</div>';
+    });
+    html+='</div>';
+  }
+
+  if(unchanged.length){
+    html+='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text);margin-bottom:6px;margin-top:10px">⚠ Cosa NON verrà cambiato</div>';
+    html+='<div style="background:#FEF3E2;border:1px solid #F5D9A0;border-radius:6px;padding:10px;margin-bottom:12px">';
+    html+='<p style="font-size:12px;color:var(--text2);margin:0 0 8px 0">Questi campi sono già valorizzati sul lead esistente. Se vuoi davvero cambiarli, apri il pannello e modificali a mano.</p>';
+    unchanged.forEach(u=>{
+      html+='<div style="font-size:13px;margin-bottom:6px"><strong>'+u.campo+':</strong> resta <strong>'+u.vecchio+'</strong> · scartato: <span style="color:var(--text3);text-decoration:line-through">'+u.scartato+'</span></div>';
+    });
+    html+='</div>';
+  }
+
+  document.getElementById('merge-summary-body').innerHTML=html;
+
+  // Mostra/nascondi bottone conferma: se non c'è nulla da aggiornare, nascondilo
+  document.getElementById('merge-confirm-btn').style.display=changes.length?'block':'none';
+
+  closeModal('mo-lead-dup');
+  openModal('mo-merge-summary');
+}
+
+async function confirmMergeExecute(){
+  const newData=addLeadState.pendingData;
+  const existing=addLeadState.existingLead;
+  const changes=addLeadState.mergeChanges||[];
+  if(!newData||!existing||!changes.length){closeModal('mo-merge-summary');return}
+
+  // Costruisci l'UPDATE solo con i campi in changes
+  const update={};
+  changes.forEach(c=>{
+    if(c.campo==='Nome')update.nome=newData.nome;
+    if(c.campo==='Cognome')update.cognome=newData.cognome;
+    if(c.campo==='Telefono')update.telefono=newData.telefono;
+    if(c.campo==='Email')update.email=newData.email;
+    if(c.campo==='Fonte')update.fonte=newData.fonte;
+    if(c.campo==='Nota'){
+      const oggi=new Date();
+      const dataStr=oggi.getFullYear()+'-'+String(oggi.getMonth()+1).padStart(2,'0')+'-'+String(oggi.getDate()).padStart(2,'0');
+      const noteAppend='['+dataStr+'] '+newData.note;
+      update.note=existing.note?(existing.note+'\n---\n'+noteAppend):noteAppend;
+    }
+  });
+
+  if(Object.keys(update).length===0){
+    closeModal('mo-merge-summary');
+    closeModal('mo-add-lead');
+    showLeadDetail(existing.id);
+    return;
+  }
+
+  update.updated_at=new Date().toISOString();
+  const{error}=await sb.from('crm_leads').update(update).eq('id',existing.id);
+  if(error){
+    document.getElementById('merge-summary-body').innerHTML+='<div class="ib warn" style="margin-top:10px">Errore: '+error.message+'</div>';
+    return;
+  }
+  closeModal('mo-merge-summary');
+  closeModal('mo-add-lead');
+  await loadCrmLeads();
+  showLeadDetail(existing.id);
+}
+
+function openLeadFromMergeSummary(){
+  const existing=addLeadState.existingLead;
+  closeModal('mo-merge-summary');
+  closeModal('mo-add-lead');
+  if(existing)showLeadDetail(existing.id);
+}
+
+async function dupCreateAnyway(){
+  const data=addLeadState.pendingData;
+  if(!data)return;
+  closeModal('mo-lead-dup');
+  await insertNewLead(data);
+}
+
+async function insertNewLead(data){
+  const{data:{user:curUser}}=await sb.auth.getUser();
+  const currentUserId=curUser?curUser.id:null;
+  const payload={
+    nome:data.nome,
+    cognome:data.cognome,
+    telefono:data.telefono,
+    email:data.email,
+    fonte:data.fonte,
+    funnel_stage:data.funnel_stage,
+    stato_gestione:'attivo',
+    note:data.note,
+    created_by:currentUserId
+  };
+  const{data:inserted,error}=await sb.from('crm_leads').insert(payload).select().single();
+  if(error){
+    document.getElementById('add-lead-msg').innerHTML='<div class="ib warn">Errore: '+error.message+'</div>';
+    return;
+  }
+  closeModal('mo-add-lead');
+  await loadCrmLeads();
+  if(inserted)showLeadDetail(inserted.id);
+}
+
+async function loadCrmLeads(){
+  const list=document.getElementById('seg-leads-list');
+  if(!list)return;
+  list.innerHTML='<p class="sl-loading">Carico lead…</p>';
+  const{data,error}=await sb.from('crm_leads').select('*').order('prossima_azione_il',{ascending:true,nullsFirst:false});
+  if(error){list.innerHTML='<p class="sl-loading" style="color:#c0392b">Errore: '+error.message+'</p>';console.error('[CRM]',error);return}
+  crmLeadsData=data||[];
+  renderCorsieFilters();
+  renderCrmLeads();
+}
+
+function renderCrmLeads(){
+  const list=document.getElementById('seg-leads-list');
+  const cnt=document.getElementById('seg-leads-count');
+  if(!list)return;
+  let filtered=crmCorsiaFilter==='tutti'?[...crmLeadsData]:crmLeadsData.filter(l=>corsiaOf(l)===crmCorsiaFilter);
+  if(crmSearchQuery){
+    filtered=filtered.filter(l=>{
+      const nome=((l.nome||'')+' '+(l.cognome||'')).toLowerCase();
+      return nome.includes(crmSearchQuery);
+    });
+  }
+  // Sort by urgency: prossima_azione_il ascending, nulls last
+  filtered.sort((a,b)=>{
+    const da=a.prossima_azione_il, db_=b.prossima_azione_il;
+    if(!da&&!db_)return 0;
+    if(!da)return 1;
+    if(!db_)return -1;
+    return da.localeCompare(db_);
+  });
+  if(cnt)cnt.textContent=filtered.length+(filtered.length===crmLeadsData.length?' lead':' di '+crmLeadsData.length+' lead');
+  if(!filtered.length){list.innerHTML='<div class="card sl-empty">Nessun lead in questa fascia.</div>';return}
+  list.innerHTML=filtered.map(l=>{
+    // Lead perso/ibernato: nessuna urgenza mostrata (principio Uniformità)
+    const inattivo=(l.funnel_stage==='perso'||l.funnel_stage==='ibernato');
+    const delta=inattivo?null:dayDelta(l.prossima_azione_il);
+    let urgenza='';let urgColor='var(--text2)';
+    if(delta!==null){
+      if(delta<0){urgenza='Adesso · da '+Math.abs(delta)+'g';urgColor='#c0392b'}
+      else if(delta===0){urgenza='oggi';urgColor='#EA580C'}
+      else if(delta<=3){urgenza='tra '+delta+'g';urgColor='#EAB308'}
+      else{urgenza='tra '+delta+'g';urgColor='var(--text2)'}
+    }
+    const fColor=FUNNEL_COLOR[l.funnel_stage]||'#9CA3AF';
+    const fLabel=FUNNEL_LABEL[l.funnel_stage]||l.funnel_stage;
+    const sLabel=STATO_LABEL[l.stato_gestione]||l.stato_gestione;
+    const fonteLabel=FONTE_LABEL[l.fonte]||l.fonte;
+    const nomeCompleto=(l.nome||'')+(l.cognome?' '+l.cognome:'');
+    const ec=l.esito_prima_lezione?ESITO_COLOR[l.esito_prima_lezione]:null;
+    const el_=l.esito_prima_lezione?ESITO_LABEL[l.esito_prima_lezione]:null;
+    return`<div class="card sl-card" onclick="showLeadDetail('${l.id}')">
+      <div class="sl-card-top">
+        <div style="flex:1;min-width:0">
+          <div class="sl-card-name">${nomeCompleto}</div>
+          <div class="sl-card-sub">${fonteLabel}${l.telefono?' · '+l.telefono:''}</div>
+        </div>
+        <div class="sl-card-urg">
+          <div class="label" style="color:${urgColor}">${urgenza||'—'}</div>
+          <div class="date">${fmtDate(l.prossima_azione_il)}</div>
+        </div>
+      </div>
+      <div class="sl-card-badges">
+        <span class="sl-card-pill"><span class="dot" style="background:${fColor}"></span>${fLabel}</span>
+        <span class="sl-card-pill">${sLabel}</span>
+        ${ec?`<span class="sl-card-pill" style="background:${ec}18;color:${ec};border:1px solid ${ec}40">✓ ${el_}</span>`:''}
+      </div>
+      ${l.note?`<p class="sl-card-note">${l.note}</p>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ═══ LEAD DETAIL (Fase 3.2.3) ═══ */
+const ESITO_LABEL={vuole_continuare:'Vuole continuare',da_ricontattare:'Da ricontattare',ha_deciso:'Ha deciso',non_continua:'Non continua'};
+const ESITO_COLOR={vuole_continuare:'#16A34A',da_ricontattare:'#EAB308',ha_deciso:'#2563EB',non_continua:'#9CA3AF'};
+const GIORNI_BREVI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const TIPO_CONTATTO=[['chiamata','📞 Chiamata'],['whatsapp','💬 WhatsApp'],['email','✉️ Email'],['incontro','🤝 Incontro'],['altro','• Altro']];
+const ESITO_CONTATTO=[['ha_risposto','Ha risposto'],['non_risposto','Non ha risposto'],['messaggio_lasciato','Messaggio lasciato'],['appuntamento_preso','Appuntamento preso'],['da_ricontattare','Da ricontattare'],['rifiutato','Ha rifiutato']];
+let currentLeadDetail=null;
+let currentLeadPrenot=[];
+let currentLeadFollowUps=[];
+let editFollowUpId=null;
+let currentAnnullaPrenotId=null;
+let currentAnnullaIsAssenza=false;
+let currentSpostaPrenotId=null;
+
+function showLeadDetail(id){
+  const lead=crmLeadsData.find(l=>l.id===id);
+  if(!lead)return;
+  currentLeadDetail=lead;
+  currentLeadPrenot=[];
+  currentLeadFollowUps=[];
+  document.getElementById('seg-lead-list-wrap').style.display='none';
+  document.getElementById('seg-lead-detail').classList.remove('hidden');
+  renderLeadDetail();
+  loadLeadPrenotazioni(lead.id);
+  loadLeadFollowUps(lead.id);
+}
+
+async function loadLeadPrenotazioni(leadId){
+  const{data,error}=await sb.from('prenotazioni_prima_lezione')
+    .select('id,data_lezione,presente,slot_id,corsi_attivi_settimanali(giorno_settimana,ora_inizio,ora_fine,tipo_corso,istruttori(nome))')
+    .eq('lead_id',leadId)
+    .order('data_lezione',{ascending:false});
+  if(error){console.error('loadLeadPrenotazioni:',error);return}
+  if(!currentLeadDetail||currentLeadDetail.id!==leadId)return;
+  currentLeadPrenot=data||[];
+  renderLeadDetail();
+}
+
+async function loadLeadFollowUps(leadId){
+  const{data,error}=await sb.from('crm_follow_ups')
+    .select('id,tipo,esito,testo,avvenuto_il,created_by,profiles!crm_follow_ups_created_by_fkey(nome,cognome)')
+    .eq('lead_id',leadId)
+    .order('avvenuto_il',{ascending:false});
+  if(error){console.error('loadLeadFollowUps:',error);return}
+  if(!currentLeadDetail||currentLeadDetail.id!==leadId)return;
+  currentLeadFollowUps=data||[];
+  renderLeadDetail();
+}
+
+function closeLeadDetail(){
+  currentLeadDetail=null;
+  currentLeadPrenot=[];
+  currentLeadFollowUps=[];
+  document.getElementById('seg-lead-detail').classList.add('hidden');
+  document.getElementById('seg-lead-list-wrap').style.display='block';
+}
+
+function renderLeadDetail(){
+  if(!currentLeadDetail)return;
+  const l=currentLeadDetail;
+  const fColor=FUNNEL_COLOR[l.funnel_stage]||'#9CA3AF';
+  const fLabel=FUNNEL_LABEL[l.funnel_stage]||l.funnel_stage;
+  const sLabel=STATO_LABEL[l.stato_gestione]||l.stato_gestione;
+  const fonteLabel=FONTE_LABEL[l.fonte]||l.fonte;
+  const nomeCompleto=((l.nome||'')+(l.cognome?' '+l.cognome:'')).trim()||'(senza nome)';
+
+  let esitoBlock='';
+  if(l.esito_prima_lezione){
+    const ec=ESITO_COLOR[l.esito_prima_lezione];
+    const el_=ESITO_LABEL[l.esito_prima_lezione];
+    esitoBlock=`<div class="ld-esito" style="background:${ec}12;border:1px solid ${ec}40">
+      <div class="ld-esito-h">Esito prima lezione</div>
+      <div class="ld-esito-val" style="color:${ec}">${el_}${l.data_inizio_desiderata?' — inizio '+fmtDate(l.data_inizio_desiderata):''}</div>
+      ${l.nota_istruttore?`<div class="ld-esito-nota">"${l.nota_istruttore}"</div>`:''}
+    </div>`;
+  }
+
+  let prenotBlock='';
+  if(currentLeadPrenot&&currentLeadPrenot.length){
+    const oggiPren=new Date();oggiPren.setHours(0,0,0,0);
+    const items=currentLeadPrenot.map(p=>{
+      const cas=p.corsi_attivi_settimanali;
+      const ist=cas?.istruttori?.nome||'—';
+      const giorno=(cas&&cas.giorno_settimana)?GIORNI_BREVI[cas.giorno_settimana-1]:'?';
+      const ora=cas?cas.ora_inizio.slice(0,5)+'–'+cas.ora_fine.slice(0,5):'';
+      const dataLez=new Date(p.data_lezione);
+      const passata=dataLez<oggiPren;
+      let stato,bg,fg;
+      if(p.presente===true){stato='presente';bg='#16A34A20';fg='#16A34A'}
+      else if(p.presente===false){stato='assente';bg='#9CA3AF20';fg='#6B7280'}
+      else if(passata){stato='da registrare';bg='var(--text)';fg='#FBBF24'}
+      else{stato='programmata';bg='var(--text)';fg='#FB923C'}
+
+      let actions='';
+      if(isStaff()){
+        if(stato==='programmata'){
+          actions=`<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-g" style="font-size:12px;padding:5px 10px;font-weight:600" onclick="openSpostaPrenotModal('${p.id}')">↔ Sposta</button>
+            <button class="btn btn-g" style="font-size:12px;padding:5px 10px;font-weight:600" onclick="openAnnullaPrenotModal('${p.id}',false)">✕ Annulla</button>
+          </div>`;
+        }else if(stato==='da registrare'){
+          actions=`<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-p" style="font-size:12px;padding:5px 10px;font-weight:600" onclick="segnaPresente('${p.id}')">✓ Presente</button>
+            <button class="btn btn-g" style="font-size:12px;padding:5px 10px;font-weight:600" onclick="openAnnullaPrenotModal('${p.id}',true)">✗ Assente</button>
+          </div>`;
+        }
+      }
+
+      return`<div class="ld-row" style="flex-direction:column;align-items:stretch">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div><strong>${giorno} ${fmtDate(p.data_lezione)}</strong> · ${ora} · ${ist}</div>
+          <span class="ld-pill" style="background:${bg};color:${fg}">${stato}</span>
+        </div>
+        ${actions}
+      </div>`;
+    }).join('');
+    prenotBlock=`<div class="ld-section">
+      <div class="ld-section-h">📅 Prenotazioni prima lezione</div>
+      ${items}
+    </div>`;
+  }
+
+  let diaryBlock='';
+  if(currentLeadFollowUps&&currentLeadFollowUps.length){
+    const tipoMap=Object.fromEntries(TIPO_CONTATTO);
+    const esitoMap=Object.fromEntries(ESITO_CONTATTO);
+    const items=currentLeadFollowUps.map(f=>{
+      const quando=new Date(f.avvenuto_il);
+      const dataStr=quando.toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' '+quando.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      const tipoLab=tipoMap[f.tipo]||f.tipo;
+      const esitoLab=f.esito?(esitoMap[f.esito]||f.esito):'';
+      const chi=f.profiles?((f.profiles.nome||'')+' '+(f.profiles.cognome||'')).trim():'';
+      const staffActs=isStaff()?` · <a href="#" onclick="event.preventDefault();openContattoModal('${f.id}')" style="color:inherit;text-decoration:underline">modifica</a> · <a href="#" onclick="event.preventDefault();deleteFollowUp('${f.id}')" style="color:inherit;text-decoration:underline">elimina</a>`:'';
+      return`<div class="ld-diary-item">
+        <div class="ld-diary-head">
+          <strong>${tipoLab}${esitoLab?' · '+esitoLab:''}</strong>
+          <span class="ld-diary-meta">${dataStr}${chi?' · '+chi:''}${staffActs}</span>
+        </div>
+        ${f.testo?`<div class="ld-diary-text">"${f.testo}"</div>`:''}
+      </div>`;
+    }).join('');
+    diaryBlock=`<div class="ld-section">
+      <div class="ld-section-h">📒 Diario contatti${l.tentativi_contatto?' · '+l.tentativi_contatto+' tentativi':''}</div>
+      ${items}
+    </div>`;
+  }else if(l.tentativi_contatto){
+    diaryBlock=`<div style="margin-top:16px;font-size:15px;color:var(--text2);font-weight:600">${l.tentativi_contatto} tentativi di contatto registrati (nessun diario).</div>`;
+  }
+
+  document.getElementById('seg-lead-detail-body').innerHTML=`
+    <div style="margin-bottom:16px">
+      <h2 style="font-family:var(--serif);font-size:26px;font-weight:400;margin-bottom:2px">${nomeCompleto}</h2>
+      <div class="ld-sub">${fonteLabel}${l.created_at?' · arrivata il '+fmtDate(l.created_at):''}</div>
+    </div>
+    <div class="ld-badges">
+      <span class="ld-badge"><span class="dot" style="background:${fColor}"></span>${fLabel}</span>
+      <span class="ld-badge">${sLabel}</span>
+    </div>
+    <div class="ld-grid">
+      ${l.telefono?`<span class="lbl">Telefono</span><span class="val">${l.telefono}</span>`:''}
+      ${l.email?`<span class="lbl">Email</span><span class="val">${l.email}</span>`:''}
+      ${l.prossima_azione_il?`<span class="lbl">Prossima azione</span><span class="val strong">${fmtDate(l.prossima_azione_il)}</span>`:''}
+    </div>
+    ${l.note?`<div class="ld-note">${l.note}</div>`:''}
+    ${esitoBlock}
+    ${prenotBlock}
+    ${diaryBlock}
+  `;
+
+  const showEsitoBtn=l.funnel_stage==='prenotato_prima_lezione'||l.funnel_stage==='fatta_prima_lezione'||l.esito_prima_lezione;
+  const showIscriviBtn=l.funnel_stage==='fatta_prima_lezione';
+  const oggi=new Date();oggi.setHours(0,0,0,0);
+  const haPrenotFutura=(currentLeadPrenot||[]).some(p=>new Date(p.data_lezione)>=oggi&&p.presente!==false);
+  const haPrenotPresente=(currentLeadPrenot||[]).some(p=>p.presente===true);
+  const showFissaBtn=isStaff()&&!haPrenotFutura&&!haPrenotPresente&&['nuovo','contattato','da_riprogrammare','prenotato_prima_lezione'].includes(l.funnel_stage);
+  const btnContatto=`<button class="btn btn-dark" onclick="openContattoModal()">📞 Registra contatto</button>`;
+  const btnFissa=showFissaBtn?`<button class="btn btn-p" onclick="openFissaLezioneModal()">📅 Fissa prima lezione</button>`:'';
+  const btnAgenda=`<button class="btn btn-dark" onclick="window.open('agenda_test_v3_1.html','_blank')">📅 Apri agenda</button>`;
+  const btnModificaDati=isStaff()?`<button class="btn btn-g" onclick="openEditLeadInfo()">✏️ Modifica dati</button>`:'';
+  const btnEsito=showEsitoBtn?`<button class="btn btn-p" onclick="openEsitoModal()">${l.esito_prima_lezione?'Modifica esito':'Registra esito'}</button>`:'';
+  const btnIscrivi=showIscriviBtn?`<button class="btn" style="background:#2563EB;color:#fff;font-weight:700" onclick="openFissaLezioneModal('open')">📅 Prenota Open</button>`:'';
+  document.getElementById('seg-lead-detail-actions').innerHTML=btnContatto+btnFissa+btnAgenda+btnEsito+btnIscrivi+btnModificaDati;
+}
+
+function openEsitoModal(){
+  if(!currentLeadDetail)return;
+  const l=currentLeadDetail;
+  document.getElementById('esito-info').textContent=((l.nome||'')+' '+(l.cognome||'')).trim();
+  document.querySelectorAll('#esito-options input[name="esito"]').forEach(r=>{r.checked=(r.value===l.esito_prima_lezione)});
+  document.getElementById('esito-nota').value=l.nota_istruttore||'';
+  document.getElementById('esito-nota-count').textContent=(l.nota_istruttore||'').length;
+  document.getElementById('esito-data').value=l.data_inizio_desiderata||'';
+  toggleEsitoDataVisibility();
+  openModal('mo-esito');
+}
+
+function toggleEsitoDataVisibility(){
+  const sel=document.querySelector('#esito-options input[name="esito"]:checked');
+  const show=sel&&sel.value==='ha_deciso';
+  document.getElementById('esito-data-wrap').classList.toggle('hidden',!show);
+}
+
+async function submitEsito(){
+  if(!currentLeadDetail)return;
+  const sel=document.querySelector('#esito-options input[name="esito"]:checked');
+  const nota=document.getElementById('esito-nota').value.trim();
+  const data=document.getElementById('esito-data').value;
+  if(!sel)return toast('Seleziona un esito');
+  if(!nota)return toast('Nota obbligatoria');
+  if(nota.length>500)return toast('Nota troppo lunga (max 500)');
+  if(sel.value==='ha_deciso'&&!data)return toast('Inserisci la data di inizio desiderata');
+
+  const update={
+    esito_prima_lezione:sel.value,
+    nota_istruttore:nota,
+    data_inizio_desiderata:sel.value==='ha_deciso'?data:null
+  };
+  if(currentLeadDetail.funnel_stage==='prenotato_prima_lezione'){
+    update.funnel_stage='fatta_prima_lezione';
+  }
+
+  // Sincronizza prossima_azione_il e funnel_stage in base all'esito
+  if(sel.value==='ha_deciso'){
+    update.prossima_azione_il=data; // ricordati di iscriverla il giorno X
+  }else if(sel.value==='non_continua'){
+    update.funnel_stage='perso';
+    update.prossima_azione_il=null;
+  }
+  // vuole_continuare / da_ricontattare: prossima_azione la gestisce la segretaria da "Registra contatto"
+
+  try{
+    const{error}=await sb.from('crm_leads').update(update).eq('id',currentLeadDetail.id);
+    if(error)throw error;
+    Object.assign(currentLeadDetail,update);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],update);
+    closeModal('mo-esito');
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast('Esito registrato');
+  }catch(e){toast('Errore: '+e.message);console.error('[esito]',e)}
+}
+
+/* ═══ MODAL REGISTRA CONTATTO (CRM follow-up) ═══ */
+
+function openContattoModal(editId){
+  if(!currentLeadDetail)return;
+  const l=currentLeadDetail;
+  editFollowUpId=editId||null;
+  const isEdit=!!editFollowUpId;
+  const fu=isEdit?currentLeadFollowUps.find(x=>x.id===editFollowUpId):null;
+  if(isEdit&&!fu){editFollowUpId=null;return toast('Contatto non trovato')}
+
+  document.getElementById('contatto-modal-title').textContent=isEdit?'Modifica contatto':'Registra contatto';
+  document.getElementById('contatto-info').textContent=((l.nome||'')+' '+(l.cognome||'')).trim();
+  document.getElementById('contatto-lead-fields').style.display=isEdit?'none':'block';
+  document.getElementById('contatto-submit-btn').textContent=isEdit?'Salva modifiche':'Salva';
+
+  // Render pillole tipo
+  const tipoBox=document.getElementById('contatto-tipo');
+  tipoBox.innerHTML=TIPO_CONTATTO.map(([v,lab])=>
+    `<button type="button" data-val="${v}" class="pill-tipo btn btn-g" style="font-size:13.5px;padding:8px 14px;font-weight:600" onclick="selectPill('contatto-tipo',this)">${lab}</button>`
+  ).join('');
+
+  // Render pillole esito
+  const esitoBox=document.getElementById('contatto-esito');
+  esitoBox.innerHTML=ESITO_CONTATTO.map(([v,lab])=>
+    `<button type="button" data-val="${v}" class="pill-esito btn btn-g" style="font-size:13.5px;padding:8px 14px;font-weight:600" onclick="selectPill('contatto-esito',this)">${lab}</button>`
+  ).join('');
+
+  if(isEdit){
+    const tBtn=tipoBox.querySelector(`button[data-val="${fu.tipo}"]`);
+    if(tBtn)selectPill('contatto-tipo',tBtn);
+    if(fu.esito){
+      const eBtn=esitoBox.querySelector(`button[data-val="${fu.esito}"]`);
+      if(eBtn)selectPill('contatto-esito',eBtn);
+    }
+    document.getElementById('contatto-nota').value=fu.testo||'';
+    document.getElementById('contatto-nota-count').textContent=(fu.testo||'').length;
+  }else{
+    document.getElementById('contatto-nota').value='';
+    document.getElementById('contatto-nota-count').textContent='0';
+  }
+  document.getElementById('contatto-stage').value='';
+  document.getElementById('contatto-prossima').value='';
+  openModal('mo-contatto');
+}
+
+function selectPill(boxId,btn){
+  const box=document.getElementById(boxId);
+  box.querySelectorAll('button').forEach(b=>{
+    b.style.background='';b.style.color='';b.style.borderColor='';
+    b.dataset.selected='';
+  });
+  btn.style.background='var(--text)';
+  btn.style.color='#F5F1EB';
+  btn.dataset.selected='1';
+}
+
+function setProssimaQuick(giorni){
+  const d=new Date();d.setDate(d.getDate()+giorni);
+  document.getElementById('contatto-prossima').value=d.toISOString().slice(0,10);
+}
+
+async function submitContatto(){
+  if(!currentLeadDetail)return;
+  const tipoBtn=document.querySelector('#contatto-tipo button[data-selected="1"]');
+  const esitoBtn=document.querySelector('#contatto-esito button[data-selected="1"]');
+  const nota=document.getElementById('contatto-nota').value.trim();
+
+  if(!tipoBtn)return toast('Seleziona il tipo');
+  if(!esitoBtn)return toast('Seleziona l\u2019esito');
+
+  const tipo=tipoBtn.dataset.val;
+  const esito=esitoBtn.dataset.val;
+
+  try{
+    if(editFollowUpId){
+      // MODALITÀ EDIT: UPDATE del follow-up, non tocca il lead
+      const{error:eU}=await sb.from('crm_follow_ups').update({tipo,esito,testo:nota||null}).eq('id',editFollowUpId);
+      if(eU)throw new Error('Diario: '+eU.message);
+      closeModal('mo-contatto');
+      editFollowUpId=null;
+      loadLeadFollowUps(currentLeadDetail.id);
+      toast('Contatto aggiornato');
+      return;
+    }
+
+    // MODALITÀ INSERT (flusso normale)
+    const nuovoStage=document.getElementById('contatto-stage').value;
+    const prossima=document.getElementById('contatto-prossima').value;
+
+    // 1. INSERT follow_up
+    const fuRow={lead_id:currentLeadDetail.id,tipo,esito,testo:nota||null};
+    if(user&&user.id)fuRow.created_by=user.id;
+    const{error:e1}=await sb.from('crm_follow_ups').insert(fuRow);
+    if(e1)throw new Error('Diario: '+e1.message);
+
+    // 2. UPDATE lead: tentativi + (opzionali) stage e prossima_azione
+    const update={tentativi_contatto:(currentLeadDetail.tentativi_contatto||0)+1,updated_at:new Date().toISOString()};
+    if(nuovoStage)update.funnel_stage=nuovoStage;
+    if(prossima)update.prossima_azione_il=prossima;
+    const{error:e2}=await sb.from('crm_leads').update(update).eq('id',currentLeadDetail.id);
+    if(e2)throw new Error('Lead: '+e2.message);
+
+    // 3. Sync stato locale
+    Object.assign(currentLeadDetail,update);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],update);
+
+    closeModal('mo-contatto');
+    loadLeadFollowUps(currentLeadDetail.id);
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast('Contatto registrato');
+  }catch(e){toast('Errore: '+e.message);console.error('[contatto]',e)}
+}
+
+async function deleteFollowUp(id){
+  if(typeof isStaff!=='function'||!isStaff())return;
+  if(!currentLeadDetail)return;
+  if(!confirm('Eliminare questo contatto dal diario?\nL\u2019azione è definitiva.'))return;
+  try{
+    const{error}=await sb.from('crm_follow_ups').delete().eq('id',id);
+    if(error)throw new Error(error.message);
+    loadLeadFollowUps(currentLeadDetail.id);
+    toast('Contatto eliminato');
+  }catch(e){toast('Errore: '+e.message);console.error('[delete followup]',e)}
+}
+
+function openEditLeadInfo(){
+  if(typeof isStaff!=='function'||!isStaff())return;
+  if(!currentLeadDetail)return;
+  const l=currentLeadDetail;
+  document.getElementById('lead-info-current').textContent='Lead arrivata il '+fmtDate(l.created_at)+' · Fonte: '+(FONTE_LABEL[l.fonte]||l.fonte);
+  document.getElementById('lead-info-nome').value=l.nome||'';
+  document.getElementById('lead-info-cognome').value=l.cognome||'';
+  document.getElementById('lead-info-telefono').value=l.telefono||'';
+  document.getElementById('lead-info-email').value=l.email||'';
+  document.getElementById('lead-info-note').value=l.note||'';
+  openModal('mo-lead-info');
+}
+
+async function submitEditLeadInfo(){
+  if(typeof isStaff!=='function'||!isStaff())return;
+  if(!currentLeadDetail)return;
+  const nome=document.getElementById('lead-info-nome').value.trim();
+  const cognome=document.getElementById('lead-info-cognome').value.trim();
+  const telefono=document.getElementById('lead-info-telefono').value.trim();
+  const email=document.getElementById('lead-info-email').value.trim();
+  const note=document.getElementById('lead-info-note').value.trim();
+
+  if(!nome)return toast('Il nome è obbligatorio');
+
+  try{
+    const update={
+      nome,
+      cognome:cognome||null,
+      telefono:telefono||null,
+      email:email||null,
+      note:note||null,
+      updated_at:new Date().toISOString()
+    };
+    const{error}=await sb.from('crm_leads').update(update).eq('id',currentLeadDetail.id);
+    if(error)throw new Error(error.message);
+
+    // Sync stato locale
+    Object.assign(currentLeadDetail,update);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],update);
+
+    closeModal('mo-lead-info');
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast('Dati aggiornati');
+  }catch(e){toast('Errore: '+e.message);console.error('[edit lead info]',e)}
+}
+
+async function openFissaLezioneModal(tipoCorso){
+  if(typeof isStaff!=='function'||!isStaff())return;
+  if(!currentLeadDetail)return;
+  tipoCorso=tipoCorso||'prima_lezione';
+  const l=currentLeadDetail;
+  const LBL={
+    prima_lezione:{titolo:'Fissa una prima lezione per ',ok:'Prima lezione fissata ✓',funnel:'prenotato_prima_lezione'},
+    open:{titolo:'Prenota la prima lezione Open per ',ok:'Prenota Open fissata ✓',funnel:'prenotato_open'}
+  };
+  const cfg=LBL[tipoCorso]||LBL.prima_lezione;
+  document.getElementById('fissa-info').textContent=cfg.titolo+((l.nome||'')+' '+(l.cognome||'')).trim();
+  document.getElementById('fissa-msg').innerHTML='';
+  document.getElementById('fissa-slots').innerHTML='<div style="text-align:center;padding:20px;color:var(--text2)">Caricamento slot...</div>';
+  openModal('mo-fissa');
+
+  try{
+    const{data:slots,error:sErr}=await sb.from('corsi_attivi_settimanali')
+      .select('id,giorno_settimana,ora_inizio,ora_fine,capienza_max,istruttori(nome)')
+      .eq('tipo_corso',tipoCorso).eq('status','attivo')
+      .order('giorno_settimana').order('ora_inizio');
+    if(sErr)throw new Error(sErr.message);
+
+    const oggi=new Date();oggi.setHours(0,0,0,0);
+    const fine=new Date(oggi);fine.setDate(fine.getDate()+14);
+    const isoD=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+    const{data:prenot,error:pErr}=await sb.from('prenotazioni_prima_lezione')
+      .select('slot_id,data_lezione')
+      .gte('data_lezione',isoD(oggi)).lte('data_lezione',isoD(fine));
+    if(pErr)throw new Error(pErr.message);
+
+    const GIORNI_BR=['lun','mar','mer','gio','ven','sab','dom'];
+    const occorrenze=[];
+    for(let dayOff=0;dayOff<=14;dayOff++){
+      const data=new Date(oggi);data.setDate(data.getDate()+dayOff);
+      const dowISO=((data.getDay()+6)%7)+1;
+      (slots||[]).filter(s=>s.giorno_settimana===dowISO).forEach(s=>{
+        const di=isoD(data);
+        const nPrenot=(prenot||[]).filter(p=>p.slot_id===s.id&&p.data_lezione===di).length;
+        const liberi=s.capienza_max-nPrenot;
+        if(liberi>0){occorrenze.push({slot:s,data:di,dataObj:data,liberi})}
+      });
+    }
+
+    if(occorrenze.length===0){
+      document.getElementById('fissa-slots').innerHTML='<div style="padding:20px;text-align:center;color:var(--text2)">Nessuno slot libero nelle prossime 2 settimane.</div>';
+      return;
+    }
+
+    const items=occorrenze.map(o=>{
+      const dowIdx=(o.dataObj.getDay()===0?6:o.dataObj.getDay()-1);
+      const giorno=GIORNI_BR[dowIdx];
+      const dataLab=giorno+' '+o.dataObj.toLocaleDateString('it-IT',{day:'2-digit',month:'short'});
+      const ora=o.slot.ora_inizio.slice(0,5)+'–'+o.slot.ora_fine.slice(0,5);
+      const ist=o.slot.istruttori?.nome||'—';
+      return`<button class="btn" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:10px 12px;background:transparent;border:1px solid var(--bord,#ccc);font-size:14px;cursor:pointer" onclick="confermaFissaLezione('${o.slot.id}','${o.data}','${cfg.funnel}','${cfg.ok.replace(/'/g,"\\'")}')">
+        <span><strong>${dataLab}</strong> · ${ora} · ${ist}</span>
+        <span style="font-size:12px;color:var(--text2);font-weight:600">${o.liberi}/${o.slot.capienza_max} liberi</span>
+      </button>`;
+    }).join('');
+    document.getElementById('fissa-slots').innerHTML=items;
+  }catch(e){
+    document.getElementById('fissa-slots').innerHTML='<div style="padding:20px;color:#dc2626;font-size:13px">Errore: '+e.message+'</div>';
+    console.error('[fissa lezione]',e);
+  }
+}
+
+async function confermaFissaLezione(slotId,dataIso,funnelStage,okMsg){
+  if(!currentLeadDetail)return;
+  funnelStage=funnelStage||'prenotato_prima_lezione';
+  okMsg=okMsg||'Prima lezione fissata ✓';
+  try{
+    const{error:e1}=await sb.from('prenotazioni_prima_lezione').insert({
+      lead_id:currentLeadDetail.id,
+      slot_id:slotId,
+      data_lezione:dataIso
+    });
+    if(e1)throw new Error('Prenotazione: '+e1.message);
+
+    const update={
+      funnel_stage:funnelStage,
+      stato_gestione:'attivo',
+      prossima_azione_il:dataIso,
+      updated_at:new Date().toISOString()
+    };
+    const{error:e2}=await sb.from('crm_leads').update(update).eq('id',currentLeadDetail.id);
+    if(e2)throw new Error('Lead: '+e2.message);
+
+    Object.assign(currentLeadDetail,update);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],update);
+
+    closeModal('mo-fissa');
+    loadLeadPrenotazioni(currentLeadDetail.id);
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast(okMsg);
+  }catch(e){
+    document.getElementById('fissa-msg').innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px;font-weight:600">'+e.message+'</div>';
+    console.error('[conferma fissa]',e);
+  }
+}
+
+/* ═══ AZIONI SU PRENOTAZIONE ESISTENTE (Passo B) ═══ */
+
+function openAnnullaPrenotModal(prenotId,isAssenza){
+  if(typeof isStaff!=='function'||!isStaff())return;
+  if(!currentLeadDetail)return;
+  const p=(currentLeadPrenot||[]).find(x=>x.id===prenotId);
+  if(!p)return toast('Prenotazione non trovata');
+  currentAnnullaPrenotId=prenotId;
+  currentAnnullaIsAssenza=!!isAssenza;
+  document.getElementById('annulla-title').textContent=isAssenza?'Segna assente':'Annulla prenotazione';
+  const cas=p.corsi_attivi_settimanali;
+  const ora=cas?cas.ora_inizio.slice(0,5)+'–'+cas.ora_fine.slice(0,5):'';
+  document.getElementById('annulla-info').textContent=(isAssenza?'Assenza alla lezione di ':'Annullamento lezione di ')+((currentLeadDetail.nome||'')+' '+(currentLeadDetail.cognome||'')).trim()+' ('+fmtDate(p.data_lezione)+(ora?' · '+ora:'')+')';
+  document.querySelectorAll('#annulla-options input[name="annulla-dest"]').forEach(r=>{r.checked=false});
+  document.getElementById('annulla-msg').innerHTML='';
+
+  // Controllo se il lead ha altre prenotazioni future attive (diverse da questa)
+  const oggi=new Date();oggi.setHours(0,0,0,0);
+  const altrePrenotFuture=(currentLeadPrenot||[]).filter(x=>
+    x.id!==prenotId &&
+    new Date(x.data_lezione)>=oggi &&
+    x.presente!==false
+  );
+
+  // Gestisco avviso + opzione "non cambiare stato" (4ª opzione)
+  const avvisoBox=document.getElementById('annulla-avviso')||(()=>{
+    const box=document.createElement('div');
+    box.id='annulla-avviso';
+    box.style.cssText='margin:12px 0;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4';
+    const opts=document.getElementById('annulla-options');
+    opts.parentNode.insertBefore(box,opts);
+    return box;
+  })();
+
+  const nonCambiareOpt=document.getElementById('annulla-opt-non-cambiare');
+  if(altrePrenotFuture.length>0){
+    const righe=altrePrenotFuture.map(x=>{
+      const c=x.corsi_attivi_settimanali;
+      const oraX=c?c.ora_inizio.slice(0,5)+'–'+c.ora_fine.slice(0,5):'';
+      const tipoX=c?.tipo_corso||'';
+      const tipoLbl=tipoX==='open'?' (Open)':(tipoX==='prima_lezione'?' (Prima lezione)':'');
+      return `• ${fmtDate(x.data_lezione)}${oraX?' · '+oraX:''}${tipoLbl}`;
+    }).join('<br>');
+    avvisoBox.style.cssText='margin:12px 0;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4;background:#fef3c7;color:#78350f;border:1px solid #fbbf24';
+    avvisoBox.innerHTML=`<strong>⚠ Attenzione:</strong> questo lead ha già altre prenotazioni future attive:<br>${righe}<br><span style="font-size:12px">Scegli "Non cambiare stato" qui sotto se vuoi solo registrare questa assenza/annullamento senza modificare il funnel.</span>`;
+    // Aggiungo la 4ª opzione radio se non c'è
+    if(!nonCambiareOpt){
+      const opts=document.getElementById('annulla-options');
+      const label=document.createElement('label');
+      label.style.cssText='display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--bord,#ccc);border-radius:8px;cursor:pointer;margin-top:6px';
+      label.innerHTML=`<input type="radio" name="annulla-dest" value="non_cambiare" id="annulla-opt-non-cambiare" style="margin-top:3px"><div><strong>Non cambiare stato</strong><div style="font-size:12px;color:var(--text2)">Registra solo l'assenza/annullamento, il lead resta nel suo stato attuale</div></div>`;
+      opts.appendChild(label);
+    }
+  }else{
+    avvisoBox.style.display='none';
+    if(nonCambiareOpt)nonCambiareOpt.parentElement.remove();
+  }
+
+  openModal('mo-annulla');
+}
+
+async function submitAnnullaPrenot(){
+  if(!currentLeadDetail||!currentAnnullaPrenotId)return;
+  const destRadio=document.querySelector('#annulla-options input[name="annulla-dest"]:checked');
+  if(!destRadio){
+    document.getElementById('annulla-msg').innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px;font-weight:600">Scegli dove finisce il lead</div>';
+    return;
+  }
+  const dest=destRadio.value;
+  const isAssenza=currentAnnullaIsAssenza;
+  const p=(currentLeadPrenot||[]).find(x=>x.id===currentAnnullaPrenotId);
+  if(!p){document.getElementById('annulla-msg').innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px">Prenotazione non trovata</div>';return}
+  const dataPren=p.data_lezione;
+
+  try{
+    // 1. Agisci sulla prenotazione
+    if(isAssenza){
+      const{error:eP}=await sb.from('prenotazioni_prima_lezione').update({presente:false}).eq('id',currentAnnullaPrenotId);
+      if(eP)throw new Error('Prenotazione: '+eP.message);
+    }else{
+      const{error:eD}=await sb.from('prenotazioni_prima_lezione').delete().eq('id',currentAnnullaPrenotId);
+      if(eD)throw new Error('Prenotazione: '+eD.message);
+    }
+
+    // 2. Aggiorna lead in base alla destinazione
+    const leadUpdate={updated_at:new Date().toISOString()};
+    if(dest==='non_cambiare'){
+      // Scelta esplicita: non toccare funnel_stage né prossima_azione_il.
+      // Il lead mantiene lo stato attuale (es. prenotato_open) perché ha altre prenotazioni future attive.
+    }else if(dest==='perso'){
+      leadUpdate.funnel_stage='perso';
+      leadUpdate.prossima_azione_il=null;
+    }else{
+      leadUpdate.funnel_stage='da_riprogrammare';
+      leadUpdate.stato_gestione='da_richiamare';
+      const giorni=dest==='breve'?3:30;
+      const d=new Date();d.setDate(d.getDate()+giorni);
+      leadUpdate.prossima_azione_il=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    }
+    const{error:eL}=await sb.from('crm_leads').update(leadUpdate).eq('id',currentLeadDetail.id);
+    if(eL)throw new Error('Lead: '+eL.message);
+
+    // 3. Follow-up automatico nel diario
+    const destLabel=dest==='breve'?'ricontattare tra qualche giorno':(dest==='lungo'?'ricontattare tra un mese':(dest==='perso'?'perso definitivo':'stato lead invariato'));
+    const verbo=isAssenza?'Assente':'Annullata';
+    const fuRow={
+      lead_id:currentLeadDetail.id,
+      tipo:'altro',
+      esito:dest==='perso'?'rifiutato':(dest==='non_cambiare'?'ha_risposto':'da_ricontattare'),
+      testo:`${verbo} · lezione del ${fmtDate(dataPren)} — ${destLabel}`
+    };
+    if(user&&user.id)fuRow.created_by=user.id;
+    await sb.from('crm_follow_ups').insert(fuRow); // best-effort, non blocca
+
+    // 4. Sync stato locale
+    Object.assign(currentLeadDetail,leadUpdate);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],leadUpdate);
+
+    closeModal('mo-annulla');
+    currentAnnullaPrenotId=null;
+    currentAnnullaIsAssenza=false;
+    loadLeadPrenotazioni(currentLeadDetail.id);
+    loadLeadFollowUps(currentLeadDetail.id);
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast(isAssenza?'Assenza registrata':'Prenotazione annullata');
+  }catch(e){
+    document.getElementById('annulla-msg').innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px;font-weight:600">'+e.message+'</div>';
+    console.error('[annulla prenot]',e);
+  }
+}
+
+async function segnaPresente(prenotId){
+  if(typeof isStaff!=='function'||!isStaff())return;
+  if(!currentLeadDetail)return;
+  if(!confirm('Segnare la persona come PRESENTE a questa lezione?'))return;
+  try{
+    const{error:eP}=await sb.from('prenotazioni_prima_lezione').update({presente:true}).eq('id',prenotId);
+    if(eP)throw new Error('Prenotazione: '+eP.message);
+
+    // Sposta funnel a fatta_prima_lezione se era prenotato
+    if(currentLeadDetail.funnel_stage==='prenotato_prima_lezione'){
+      const leadUpdate={funnel_stage:'fatta_prima_lezione',updated_at:new Date().toISOString()};
+      const{error:eL}=await sb.from('crm_leads').update(leadUpdate).eq('id',currentLeadDetail.id);
+      if(eL)throw new Error('Lead: '+eL.message);
+      Object.assign(currentLeadDetail,leadUpdate);
+      const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+      if(idx>=0)Object.assign(crmLeadsData[idx],leadUpdate);
+    }
+
+    loadLeadPrenotazioni(currentLeadDetail.id);
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast('Segnato presente ✓');
+  }catch(e){toast('Errore: '+e.message);console.error('[segna presente]',e)}
+}
+
+async function openSpostaPrenotModal(prenotId){
+  if(typeof isStaff!=='function'||!isStaff())return;
+  if(!currentLeadDetail)return;
+  const p=(currentLeadPrenot||[]).find(x=>x.id===prenotId);
+  if(!p)return toast('Prenotazione non trovata');
+  currentSpostaPrenotId=prenotId;
+  const cas=p.corsi_attivi_settimanali;
+  const ora=cas?cas.ora_inizio.slice(0,5)+'–'+cas.ora_fine.slice(0,5):'';
+  document.getElementById('sposta-info').textContent='Sposta lezione di '+((currentLeadDetail.nome||'')+' '+(currentLeadDetail.cognome||'')).trim()+' (attuale: '+fmtDate(p.data_lezione)+(ora?' · '+ora:'')+')';
+  document.getElementById('sposta-msg').innerHTML='';
+  document.getElementById('sposta-slots').innerHTML='<div style="text-align:center;padding:20px;color:var(--text2)">Caricamento slot...</div>';
+  openModal('mo-sposta');
+
+  try{
+    // Prendo il tipo_corso dalla prenotazione che sto spostando (non hardcoded a prima_lezione!)
+    const tipoCorsoCorrente=p.corsi_attivi_settimanali?.tipo_corso||'prima_lezione';
+
+    const{data:slots,error:sErr}=await sb.from('corsi_attivi_settimanali')
+      .select('id,giorno_settimana,ora_inizio,ora_fine,capienza_max,istruttori(nome)')
+      .eq('tipo_corso',tipoCorsoCorrente).eq('status','attivo')
+      .order('giorno_settimana').order('ora_inizio');
+    if(sErr)throw new Error(sErr.message);
+
+    const oggi=new Date();oggi.setHours(0,0,0,0);
+    const fine=new Date(oggi);fine.setDate(fine.getDate()+14);
+    const isoD=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+    const{data:prenot,error:pErr}=await sb.from('prenotazioni_prima_lezione')
+      .select('id,slot_id,data_lezione')
+      .gte('data_lezione',isoD(oggi)).lte('data_lezione',isoD(fine));
+    if(pErr)throw new Error(pErr.message);
+
+    const GIORNI_BR=['lun','mar','mer','gio','ven','sab','dom'];
+    const occorrenze=[];
+    for(let dayOff=0;dayOff<=14;dayOff++){
+      const data=new Date(oggi);data.setDate(data.getDate()+dayOff);
+      const dowISO=((data.getDay()+6)%7)+1;
+      (slots||[]).filter(s=>s.giorno_settimana===dowISO).forEach(s=>{
+        const di=isoD(data);
+        // escludi lo slot corrente (= stessa prenotazione da spostare)
+        const nPrenot=(prenot||[]).filter(pp=>pp.slot_id===s.id&&pp.data_lezione===di&&pp.id!==currentSpostaPrenotId).length;
+        const liberi=s.capienza_max-nPrenot;
+        // escludi la combinazione attuale e slot pieni
+        const isCurrente=(s.id===p.slot_id&&di===p.data_lezione);
+        if(liberi>0&&!isCurrente){occorrenze.push({slot:s,data:di,dataObj:data,liberi})}
+      });
+    }
+
+    if(occorrenze.length===0){
+      document.getElementById('sposta-slots').innerHTML='<div style="padding:20px;text-align:center;color:var(--text2)">Nessun altro slot libero nelle prossime 2 settimane.<br><span style="font-size:12px">Puoi mettere in attesa qui sotto.</span></div>';
+      return;
+    }
+
+    const items=occorrenze.map(o=>{
+      const dowIdx=(o.dataObj.getDay()===0?6:o.dataObj.getDay()-1);
+      const giorno=GIORNI_BR[dowIdx];
+      const dataLab=giorno+' '+o.dataObj.toLocaleDateString('it-IT',{day:'2-digit',month:'short'});
+      const ora=o.slot.ora_inizio.slice(0,5)+'–'+o.slot.ora_fine.slice(0,5);
+      const ist=o.slot.istruttori?.nome||'—';
+      return`<button class="btn" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:10px 12px;background:transparent;border:1px solid var(--bord,#ccc);font-size:14px;cursor:pointer" onclick="confermaSpostaPrenot('${o.slot.id}','${o.data}')">
+        <span><strong>${dataLab}</strong> · ${ora} · ${ist}</span>
+        <span style="font-size:12px;color:var(--text2);font-weight:600">${o.liberi}/${o.slot.capienza_max} liberi</span>
+      </button>`;
+    }).join('');
+    document.getElementById('sposta-slots').innerHTML=items;
+  }catch(e){
+    document.getElementById('sposta-slots').innerHTML='<div style="padding:20px;color:#dc2626;font-size:13px">Errore: '+e.message+'</div>';
+    console.error('[sposta modal]',e);
+  }
+}
+
+async function confermaSpostaPrenot(slotId,dataIso){
+  if(!currentLeadDetail||!currentSpostaPrenotId)return;
+  try{
+    const{error:eP}=await sb.from('prenotazioni_prima_lezione').update({
+      slot_id:slotId,
+      data_lezione:dataIso
+    }).eq('id',currentSpostaPrenotId);
+    if(eP)throw new Error('Prenotazione: '+eP.message);
+
+    const oldP=(currentLeadPrenot||[]).find(x=>x.id===currentSpostaPrenotId);
+    const vecchiaData=oldP?oldP.data_lezione:'?';
+    const tipoCorsoSpostato=oldP?.corsi_attivi_settimanali?.tipo_corso||'prima_lezione';
+    // Funnel coerente col tipo_corso: prenotato_prima_lezione / prenotato_open / ecc.
+    const nuovoFunnel='prenotato_'+(tipoCorsoSpostato==='prima_lezione'?'prima_lezione':tipoCorsoSpostato);
+
+    const leadUpdate={
+      funnel_stage:nuovoFunnel,
+      stato_gestione:'attivo',
+      prossima_azione_il:dataIso,
+      updated_at:new Date().toISOString()
+    };
+    const{error:eL}=await sb.from('crm_leads').update(leadUpdate).eq('id',currentLeadDetail.id);
+    if(eL)throw new Error('Lead: '+eL.message);
+
+    // Follow-up automatico
+    const fuRow={
+      lead_id:currentLeadDetail.id,
+      tipo:'altro',
+      esito:'appuntamento_preso',
+      testo:`Spostata lezione da ${fmtDate(vecchiaData)} a ${fmtDate(dataIso)}`
+    };
+    if(user&&user.id)fuRow.created_by=user.id;
+    await sb.from('crm_follow_ups').insert(fuRow);
+
+    Object.assign(currentLeadDetail,leadUpdate);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],leadUpdate);
+
+    closeModal('mo-sposta');
+    currentSpostaPrenotId=null;
+    loadLeadPrenotazioni(currentLeadDetail.id);
+    loadLeadFollowUps(currentLeadDetail.id);
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast('Prenotazione spostata ✓');
+  }catch(e){
+    document.getElementById('sposta-msg').innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px;font-weight:600">'+e.message+'</div>';
+    console.error('[conferma sposta]',e);
+  }
+}
+
+async function mettiInAttesa(){
+  if(!currentLeadDetail||!currentSpostaPrenotId)return;
+  if(!confirm('Mettere in attesa? La prenotazione sarà cancellata e il lead tornerà in "Da riprogrammare" (3 giorni).'))return;
+  try{
+    const oldP=(currentLeadPrenot||[]).find(x=>x.id===currentSpostaPrenotId);
+    const vecchiaData=oldP?oldP.data_lezione:'?';
+
+    const{error:eD}=await sb.from('prenotazioni_prima_lezione').delete().eq('id',currentSpostaPrenotId);
+    if(eD)throw new Error('Prenotazione: '+eD.message);
+
+    const d=new Date();d.setDate(d.getDate()+3);
+    const prossima=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const leadUpdate={
+      funnel_stage:'da_riprogrammare',
+      stato_gestione:'da_richiamare',
+      prossima_azione_il:prossima,
+      updated_at:new Date().toISOString()
+    };
+    const{error:eL}=await sb.from('crm_leads').update(leadUpdate).eq('id',currentLeadDetail.id);
+    if(eL)throw new Error('Lead: '+eL.message);
+
+    const fuRow={
+      lead_id:currentLeadDetail.id,
+      tipo:'altro',
+      esito:'da_ricontattare',
+      testo:`In attesa · lezione del ${fmtDate(vecchiaData)} rimandata — ricontattare tra qualche giorno`
+    };
+    if(user&&user.id)fuRow.created_by=user.id;
+    await sb.from('crm_follow_ups').insert(fuRow);
+
+    Object.assign(currentLeadDetail,leadUpdate);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],leadUpdate);
+
+    closeModal('mo-sposta');
+    currentSpostaPrenotId=null;
+    loadLeadPrenotazioni(currentLeadDetail.id);
+    loadLeadFollowUps(currentLeadDetail.id);
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast('Messo in attesa');
+  }catch(e){
+    document.getElementById('sposta-msg').innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px;font-weight:600">'+e.message+'</div>';
+    console.error('[metti in attesa]',e);
+  }
+}
+
+/* ═══ MODAL ISCRIVI A OPEN (Fase 2) ═══ */
+
+function openIscriviOpenModal(){
+  if(!currentLeadDetail)return;
+  const l=currentLeadDetail;
+  document.getElementById('iscrivi-info').textContent=((l.nome||'')+' '+(l.cognome||'')).trim();
+  const oggi=new Date();
+  document.getElementById('iscrivi-data').value=oggi.getFullYear()+'-'+String(oggi.getMonth()+1).padStart(2,'0')+'-'+String(oggi.getDate()).padStart(2,'0');
+  document.getElementById('iscrivi-tipo').value='open';
+  document.getElementById('iscrivi-prezzo').value='215';
+  openModal('mo-iscrivi');
+}
+
+async function submitIscrivi(){
+  if(!currentLeadDetail)return;
+  const tipo=document.getElementById('iscrivi-tipo').value;
+  const data=document.getElementById('iscrivi-data').value;
+  const prezzo=parseFloat(document.getElementById('iscrivi-prezzo').value)||0;
+  if(!data)return toast('Inserisci la data di inizio');
+
+  try{
+    const row={
+      lead_id:currentLeadDetail.id,
+      tipo_corso:tipo,
+      lezioni_totali:7,
+      lezioni_residue:7,
+      data_inizio:data,
+      data_scadenza:null,
+      prezzo_pagato:prezzo,
+      attivo:true
+    };
+    const{error:e1}=await sb.from('iscrizioni_corso').insert(row);
+    if(e1)throw new Error('Iscrizione: '+e1.message);
+
+    const update={funnel_stage:'iscritto_open',prossima_azione_il:null,updated_at:new Date().toISOString()};
+    const{error:e2}=await sb.from('crm_leads').update(update).eq('id',currentLeadDetail.id);
+    if(e2)throw new Error('Lead: '+e2.message);
+
+    Object.assign(currentLeadDetail,update);
+    const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
+    if(idx>=0)Object.assign(crmLeadsData[idx],update);
+
+    closeModal('mo-iscrivi');
+    renderLeadDetail();
+    renderCorsieFilters();
+    renderCrmLeads();
+    toast('Iscrizione registrata!');
+  }catch(e){toast('Errore: '+e.message);console.error('[iscrivi]',e)}
+}
+
+/* ═══ APP RENDERING ═══ */
+
+function renderApp(){
+  applyRoleVisibility();
+  const si=STEPS[profile.step||0];
+  document.getElementById('brand-dot').style.color=si.color;
+  document.getElementById('coins-display').textContent='€'+(profile.coins||0);
+  renderProg('my-prog-bar','my-prog-current',profile.step||0,profile.enrolled_next||false);
+  // Avatar
+  const av=document.getElementById('my-avatar');
+  const pn=profile.nome||'';const pc=profile.cognome||'';
+  const ini=(pn[0]||'?')+(pc[0]||'');
+  av.innerHTML=profile.photo_url?`<img src="${profile.photo_url}" alt="foto">`:ini;
+  // Info
+  document.getElementById('my-profile-info').innerHTML=`<h1>${pn} <em>${pc}</em></h1>
+    <div class="profile-level"><div class="dot" style="background:${si.color}"></div><span>${si.label} · ${profile.struttura||'KataClimb'}</span></div>`;
+  renderTabs('my-course-tabs',myTabIdx,'my');
+  renderPhase('my-phase-label',CT[myTabIdx]);
+  renderKataGrid('my-kata-grid',kataVids,profile.step||0,false,myTabIdx);
+  document.getElementById('my-logbook-list').innerHTML=renderLogbookHTML(logbook,false);
+  renderCommunity();
+}
+
+function myTab(i){myTabIdx=i;renderTabs('my-course-tabs',i,'my');renderPhase('my-phase-label',CT[i]);renderKataGrid('my-kata-grid',kataVids,profile.step||0,false,i);}
+
+function showMySec(id){
+  ['kata','logbook'].forEach(s=>{
+    document.getElementById('my-sec-'+s).style.display=s===id?'block':'none';
+    document.getElementById('my-tog-'+s).classList.toggle('active',s===id);
+  });
+}
+
+function showNav(id){
+  if(id==='segreteria'&&!isStaff())return;
+  ['profilo','comunita','segreteria'].forEach(s=>{
+    const v=document.getElementById('nav-'+s+'-view');if(v)v.style.display=s===id?'block':'none';
+    const b=document.getElementById('nav-'+s);if(b)b.classList.toggle('active',s===id);
+  });
+  if(id==='comunita'){document.getElementById('pub-profile-detail').classList.add('hidden');document.getElementById('community-list').style.display='block'}
+}
+
+/* ═══ COMMUNITY ═══ */
+
+function renderCommunity(){
+  const grid=document.getElementById('member-grid');
+  const members=communityMembers||DEMO_COMMUNITY;
+  grid.innerHTML=members.map((m,i)=>{
+    const si=STEPS[m.step||0];const ini=(m.nome||'?')[0]+(m.cognome||'')[0];
+    return`<div class="member-card" onclick="showPubProfile(${i})">
+      <div class="avatar avatar-sm">${ini}</div>
+      <div class="member-info">
+        <div class="mn">${m.nome} ${m.cognome}</div>
+        <div class="ml"><div class="dot" style="background:${si.color}"></div> ${si.label}${m.struttura?' · '+m.struttura:''}</div>
+        <div class="member-stats">
+          ${m.kataCount!==undefined?`<div class="stat"><b>${m.kataCount}</b> Kata`:''}
+          ${m.outings!==undefined?`<div class="stat"><b>${m.outings}</b> uscite</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCommunity(){
+  const q=document.getElementById('community-search').value.toLowerCase();
+  const cards=document.querySelectorAll('.member-card');
+  cards.forEach(c=>{c.style.display=c.textContent.toLowerCase().includes(q)?'flex':'none'});
+}
+
+function showPubProfile(idx){
+  const m=(communityMembers||DEMO_COMMUNITY)[idx];
+  if(!m)return;
+  document.getElementById('community-list').style.display='none';
+  document.getElementById('pub-profile-detail').classList.remove('hidden');
+
+  const si=STEPS[m.step||0];
+  renderProg('pub-prog-bar','pub-prog-current',m.step||0,m.enrolled_next||false);
+
+  const ini=(m.nome||'?')[0]+(m.cognome||'')[0];
+  document.getElementById('pub-profile-card').innerHTML=`
+    <div class="avatar">${ini}</div>
+    <div class="profile-info" style="margin-left:18px">
+      <h1>${m.nome} <em>${m.cognome}</em></h1>
+      <div class="profile-level"><div class="dot" style="background:${si.color}"></div><span>${si.label}${m.struttura?' · '+m.struttura:''}</span></div>
+    </div>`;
+
+  // For demo: show empty kata grid with step, certs, fake logbook
+  const demoVids=m.kataCount?DEMO.vids:{};
+  renderKataGrid('pub-sec-kata',demoVids,m.step||0,true,0);
+  document.getElementById('pub-sec-logbook').innerHTML=renderLogbookHTML(m.step>1?DEMO.log:[],true);
+  document.getElementById('pub-sec-cert').innerHTML=renderCerts(m.certs||[]);
+  showPubSec('kata');
+}
+
+function closePubProfile(){
+  document.getElementById('pub-profile-detail').classList.add('hidden');
+  document.getElementById('community-list').style.display='block';
+}
+
+let pubTabIdx=0;
+function showPubSec(id){
+  ['kata','logbook','cert'].forEach(s=>{
+    document.getElementById('pub-sec-'+s).style.display=s===id?'block':'none';
+    document.getElementById('pub-tog-'+s).classList.toggle('active',s===id);
+  });
+}
+
+/* ═══ MODALS ═══ */
+
+function openModal(id){document.getElementById(id).classList.remove('hidden')}
+function closeModal(id){document.getElementById(id).classList.add('hidden')}
+
+function openUpload(k,s){
+  uploadTgt={kata:k,slot:s};selFile=null;
+  document.getElementById('upload-fname').style.display='none';
+  document.getElementById('upload-prog').classList.add('hidden');
+  document.getElementById('upload-info').innerHTML=`Kata ${String(k).padStart(2,'0')} — ${KN[k]}<br>Slot ${s+1} ${s<3?'(permanente 🔒)':'(sostituibile)'}`;
+  document.getElementById('upload-warn').classList.toggle('hidden',s>=3);
+  openModal('mo-upload');
+}
+function handleVideoSelect(e){const f=e.target.files[0];if(!f)return;if(f.size>50*1024*1024){toast('File troppo grande');return}selFile=f;const el=document.getElementById('upload-fname');el.textContent='📹 '+f.name;el.style.display='block'}
+async function submitUpload(){
+  if(!selFile||!uploadTgt)return toast('Seleziona un video');
+  document.getElementById('upload-prog').classList.remove('hidden');document.getElementById('upload-prog').style.display='flex';
+  try{
+    if(sb&&user){
+      const fd=new FormData();fd.append('file',selFile);fd.append('user_id',user.id);fd.append('kata_num',uploadTgt.kata);fd.append('slot',uploadTgt.slot);
+      const r=await fetch(CFG.WORKER+'/upload',{method:'POST',body:fd});if(!r.ok)throw new Error('Upload fallito');const res=await r.json();
+      await sb.from('kata_videos').upsert({user_id:user.id,kata_num:uploadTgt.kata,slot:uploadTgt.slot,status:'pending',video_url:res.video_url,gif_url:res.gif_url,is_public:false});
+      await loadAll();
+    }else{
+      if(!kataVids[uploadTgt.kata])kataVids[uploadTgt.kata]=[];
+      kataVids[uploadTgt.kata].push({slot:uploadTgt.slot,status:'pending',is_public:false});
+    }
+    toast('Video caricato — in attesa di validazione');closeModal('mo-upload');renderApp();
+  }catch(e){toast('Errore: '+e.message)}
+  finally{document.getElementById('upload-prog').classList.add('hidden')}
+}
+
+async function submitOuting(){
+  const falesia=document.getElementById('out-falesia').value.trim();
+  const date=document.getElementById('out-date').value;
+  if(!falesia)return toast('Inserisci il nome della falesia');
+  const entry={id:Date.now(),date,falesia,vie:[]};
+  try{
+    if(sb&&user){
+      const{data,error}=await sb.from('logbook_outings').insert({user_id:user.id,date,falesia}).select().single();
+      if(error)throw error;
+      entry.id=data.id;
+    }
+    logbook.unshift(entry);
+    closeModal('mo-outing');renderApp();
+    showMySec('logbook');
+    setTimeout(()=>{const c=document.getElementById('oc-'+entry.id);if(c)c.classList.add('exp')},50);
+    toast('Uscita creata — aggiungi le vie');
+    document.getElementById('out-falesia').value='';
+    document.getElementById('out-date').value=new Date().toISOString().slice(0,10);
+  }catch(e){toast('Errore: '+e.message)}
+}
+
+function openVia(oid){
+  viaTgt=oid;selTags=[];
+  document.getElementById('via-nome').value='';document.getElementById('via-grado').value='';document.getElementById('via-desc').value='';
+  document.getElementById('via-tags').innerHTML=STAGS.map(t=>`<button onclick="togViaTag('${t.id}',this)" style="color:${t.color}"><span style="font-size:9px">${t.icon}</span> ${t.label}</button>`).join('');
+  openModal('mo-via');
+}
+function togViaTag(id,btn){if(selTags.includes(id)){selTags=selTags.filter(x=>x!==id);btn.classList.remove('sel')}else{selTags.push(id);btn.classList.add('sel')}}
+async function submitVia(){
+  const nome=document.getElementById('via-nome').value.trim(),grado=document.getElementById('via-grado').value.trim(),desc=document.getElementById('via-desc').value.trim();
+  if(!nome)return toast('Inserisci il nome della via');
+  const entry=logbook.find(e=>e.id===viaTgt);if(!entry)return;
+  const via={nome,grado,tags:[...selTags],tentativi:desc?[{n:1,desc}]:[]};
+  try{
+    if(sb&&user){
+      const{data,error}=await sb.from('logbook_routes').insert({outing_id:viaTgt,nome,grado,tags:selTags}).select().single();if(error)throw error;via.id=data.id;
+      if(desc)await sb.from('logbook_attempts').insert({route_id:data.id,attempt_num:1,description:desc});
+    }
+    entry.vie.push(via);closeModal('mo-via');renderApp();
+    setTimeout(()=>{const c=document.getElementById('oc-'+viaTgt);if(c)c.classList.add('exp')},50);
+    toast('Via aggiunta');
+  }catch(e){toast('Errore: '+e.message)}
+}
+
+function openTent(oid,vi){
+  tentTgt={oid,vi};const entry=logbook.find(e=>e.id===oid);const via=entry?.vie[vi];
+  document.getElementById('tent-info').textContent=`${via?.nome||''} ${via?.grado||''} — Tentativo #${(via?.tentativi.length||0)+1}`;
+  document.getElementById('tent-desc').value='';openModal('mo-tent');
+}
+async function submitTent(){
+  const desc=document.getElementById('tent-desc').value.trim();if(!desc)return toast('Descrivi il tentativo');
+  const entry=logbook.find(e=>e.id===tentTgt.oid);const via=entry?.vie[tentTgt.vi];if(!via)return;
+  const n=via.tentativi.length+1;
+  try{
+    if(sb&&user&&via.id)await sb.from('logbook_attempts').insert({route_id:via.id,attempt_num:n,description:desc});
+    via.tentativi.push({n,desc});closeModal('mo-tent');renderApp();
+    setTimeout(()=>{const c=document.getElementById('oc-'+tentTgt.oid);if(c)c.classList.add('exp')},50);
+    toast('Tentativo aggiunto');
+  }catch(e){toast('Errore: '+e.message)}
+}
+
+function handlePhotoUpload(e){const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);document.getElementById('my-avatar').innerHTML=`<img src="${url}" alt="foto">`;toast('Foto aggiornata')}
+
+/* ═══ UTILS ═══ */
+function toast(m){const e=document.getElementById('toast-el');e.textContent=m;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)}
+
+// Dropzone
+const dz=document.getElementById('upload-dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f){const i=document.getElementById('vid-input');const dt=new DataTransfer();dt.items.add(f);i.files=dt.files;handleVideoSelect({target:i})}});
+
+/* ═══ INIT ═══ */
+async function init(){
+  try{
+    sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+
+    // Gestisci callback da link conferma email (tokens nel hash URL)
+    const hash=window.location.hash;
+    if(hash&&(hash.includes('access_token')||hash.includes('type=signup')||hash.includes('type=recovery'))){
+      // Supabase processa automaticamente il token dal hash
+      const{data:{session},error}=await sb.auth.getSession();
+      if(error)console.warn('Auth callback error:',error.message);
+      if(session){
+        user=session.user;
+        // Crea profilo se non esiste (primo accesso dopo conferma)
+        const{data:existingProfile}=await sb.from('profiles').select('*').eq('user_id',user.id).single();
+        if(!existingProfile){
+          const meta=user.user_metadata||{};
+          let nome=meta.nome||'';
+          let cognome=meta.cognome||'';
+          // Recupera da sessionStorage se metadata vuoti
+          if(!nome||!cognome){
+            try{const reg=JSON.parse(sessionStorage.getItem('kc_reg')||'{}');nome=nome||reg.nome||'';cognome=cognome||reg.cognome||''}catch(e){}
+          }
+          await sb.from('profiles').insert({user_id:user.id,email:user.email,nome,cognome,step:0});
+          try{sessionStorage.removeItem('kc_reg')}catch(e){}
+        }
+        await loadAll();
+        // Pulisci hash dall'URL
+        history.replaceState(null,'',window.location.pathname);
+        showScreen('screen-app');renderApp();
+        toast('Email confermata — benvenuto!');
+        return;
+      }
+    }
+
+    const{data:{session}}=await sb.auth.getSession();
+    if(session){
+      user=session.user;
+      await loadAll();
+      showScreen('screen-app');
+      renderApp();
+      const leadIdParam=new URLSearchParams(window.location.search).get('lead_id');
+      if(leadIdParam&&typeof isStaff==='function'&&isStaff()){
+        await loadCrmLeads();
+        showNav('segreteria');
+        showLeadDetail(leadIdParam);
+        history.replaceState(null,'',window.location.pathname);
+      }
+      return;
+    }
+  }catch(e){console.log('Supabase non configurato — modalità demo')}
+  // Show landing with demo
+  showScreen('screen-landing');initDemo();
+  document.getElementById('out-date').value=new Date().toISOString().slice(0,10);
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
