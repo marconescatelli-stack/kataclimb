@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5F1EB">
+<title>Prenota la tua Prima Lezione · KataClimb</title>
+<meta name="description" content="Vieni a provare l'arrampicata con noi. Una lezione di un'ora, in palestra, con un istruttore dedicato. 25 €.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#F5F1EB; --bg2:#EDE8E0; --bg3:#E4DFD6;
+  --ink:#2C2418; --ink2:rgba(44,36,24,.62); --ink3:rgba(44,36,24,.38);
+  --border:rgba(44,36,24,.10); --border2:rgba(44,36,24,.18);
+  --gold:#C49520; --gold2:#A57C18;
+  --ok:#5B8C5A; --warn:#C49520; --full:#B33A2E;
+  --font:'DM Sans',sans-serif; --serif:'Cormorant Garamond',serif;
+  --r:14px; --rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font); background:var(--bg); color:var(--ink);
+  min-height:100vh; -webkit-font-smoothing:antialiased;
+  font-size:16px; line-height:1.55;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.7;
+  background-image:radial-gradient(circle at 1px 1px,rgba(44,36,24,.07) .5px,transparent 0);
+  background-size:32px 32px;
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .55s ease both}
+.fu1{animation-delay:.08s} .fu2{animation-delay:.16s} .fu3{animation-delay:.24s}
+
+.wrap{max-width:680px;margin:0 auto;padding:32px 22px 80px;position:relative;z-index:1}
+
+/* ── Brand bar ─────────────────────────────────────────────────────── */
+.brand{display:flex;align-items:baseline;gap:8px;margin-bottom:36px;color:var(--ink2);font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:500}
+.brand strong{color:var(--ink);font-weight:600;letter-spacing:.22em}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+.hero{margin-bottom:44px}
+.hero .eyebrow{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--gold2);letter-spacing:.02em;margin-bottom:10px;font-weight:400}
+.hero h1{
+  font-family:var(--serif); font-weight:300; line-height:1.05;
+  font-size:clamp(36px,8vw,56px); color:var(--ink);
+  margin-bottom:18px; letter-spacing:-.01em;
+}
+.hero h1 em{font-style:italic;color:var(--gold2);font-weight:400}
+.hero p{font-size:17px;color:var(--ink2);max-width:520px;line-height:1.65}
+.hero .price{display:inline-block;margin-top:14px;padding:6px 14px;background:rgba(196,149,32,.12);border:1px solid rgba(196,149,32,.3);border-radius:999px;font-size:14px;font-weight:600;color:var(--gold2);letter-spacing:.02em}
+
+/* ── Cosa succede (3 punti) ───────────────────────────────────────── */
+.what{
+  margin:36px 0 44px; padding:24px;
+  background:rgba(255,255,255,.55); border:1px solid var(--border);
+  border-radius:var(--r);
+}
+.what h2{font-family:var(--serif);font-weight:400;font-size:22px;color:var(--ink);margin-bottom:14px}
+.what h2 em{font-style:italic;color:var(--gold2)}
+.what ul{list-style:none;display:grid;gap:10px}
+.what li{padding-left:24px;position:relative;font-size:15px;color:var(--ink2);line-height:1.5}
+.what li::before{
+  content:''; position:absolute; left:0; top:9px;
+  width:8px; height:8px; border-radius:50%;
+  background:var(--gold); opacity:.55;
+}
+.what li strong{color:var(--ink);font-weight:600}
+
+/* ── Slot picker ──────────────────────────────────────────────────── */
+.picker-head{margin-bottom:18px}
+.picker-head h2{font-family:var(--serif);font-weight:400;font-size:24px;color:var(--ink);margin-bottom:4px}
+.picker-head h2 em{font-style:italic;color:var(--gold2)}
+.picker-head p{font-size:14px;color:var(--ink2)}
+
+.slot-grid{display:grid;gap:12px}
+.slot-card{
+  background:#fff; border:1px solid var(--border); border-radius:var(--r);
+  padding:18px 20px; display:grid; gap:14px;
+  grid-template-columns:1fr auto; align-items:center;
+  transition:border-color .2s, transform .2s, box-shadow .2s;
+}
+.slot-card:hover:not(.full){border-color:var(--gold);transform:translateY(-1px);box-shadow:0 6px 18px rgba(44,36,24,.06)}
+.slot-card.full{opacity:.55;background:var(--bg2)}
+.slot-info .day{font-family:var(--serif);font-weight:500;font-size:20px;color:var(--ink);text-transform:capitalize;line-height:1.1;margin-bottom:4px}
+.slot-info .day em{font-style:italic;color:var(--gold2);font-weight:400}
+.slot-info .time{font-size:15px;color:var(--ink2);font-weight:500;letter-spacing:.02em}
+.slot-info .ist{font-size:12px;color:var(--ink3);margin-top:6px;letter-spacing:.04em}
+
+.slot-action{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.slot-badge{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;letter-spacing:.02em;white-space:nowrap}
+.slot-badge.ok{background:rgba(91,140,90,.13);color:var(--ok);border:1px solid rgba(91,140,90,.25)}
+.slot-badge.warn{background:rgba(196,149,32,.13);color:var(--gold2);border:1px solid rgba(196,149,32,.3)}
+.slot-badge.full{background:rgba(179,58,46,.10);color:var(--full);border:1px solid rgba(179,58,46,.25)}
+
+.btn-choose{
+  background:var(--ink); color:#fff; border:none; border-radius:var(--rs);
+  padding:10px 18px; font-family:var(--font); font-size:13px; font-weight:600;
+  letter-spacing:.03em; cursor:pointer; transition:all .15s;
+  white-space:nowrap;
+}
+.btn-choose:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-choose:active{transform:translateY(0)}
+.btn-choose:disabled{background:var(--ink3);cursor:not-allowed;transform:none}
+
+.empty,.err{
+  background:#fff; border:1px solid var(--border); border-radius:var(--r);
+  padding:32px 22px; text-align:center; font-size:15px; color:var(--ink2);
+  font-style:italic; font-family:var(--serif); font-weight:400;
+}
+.err{color:var(--full);border-color:rgba(179,58,46,.3);font-style:normal;font-family:var(--font);font-size:14px}
+.loader{
+  display:inline-block;width:18px;height:18px;border:2px solid rgba(44,36,24,.12);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;
+  margin-right:8px;vertical-align:-4px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Footer mini ──────────────────────────────────────────────────── */
+.foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);font-size:13px;color:var(--ink3);text-align:center;line-height:1.7}
+.foot a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--border2);transition:color .2s}
+.foot a:hover{color:var(--gold2);border-color:var(--gold)}
+
+/* ── Modal placeholder (Step B1) ──────────────────────────────────── */
+.modal-bg{
+  display:none; position:fixed; inset:0; z-index:100;
+  background:rgba(44,36,24,.55); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:20px;
+  animation:fadeUp .25s ease;
+}
+.modal-bg.show{display:flex}
+.modal{
+  background:var(--bg); border-radius:18px; padding:32px 28px; max-width:440px; width:100%;
+  border:1px solid var(--border);
+  box-shadow:0 24px 80px rgba(44,36,24,.25);
+}
+.modal h3{font-family:var(--serif);font-weight:400;font-size:26px;color:var(--ink);margin-bottom:10px;line-height:1.2}
+.modal h3 em{font-style:italic;color:var(--gold2)}
+.modal .slot-summary{
+  margin:14px 0 18px; padding:14px 16px;
+  background:rgba(196,149,32,.08); border:1px solid rgba(196,149,32,.22);
+  border-radius:var(--rs); font-size:15px; color:var(--ink);
+}
+.modal .slot-summary strong{display:block;font-weight:600;margin-bottom:2px}
+.modal p{color:var(--ink2);font-size:15px;line-height:1.55;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal-actions button{padding:11px 22px;border-radius:var(--rs);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.modal .btn-close{background:transparent;color:var(--ink2);border:1px solid var(--border2)}
+.modal .btn-close:hover{background:rgba(44,36,24,.04)}
+
+/* ── Responsive bigger screens ────────────────────────────────────── */
+@media(min-width:768px){
+  body{font-size:17px}
+  .wrap{padding:48px 32px 100px;max-width:740px}
+  .brand{margin-bottom:48px}
+  .hero{margin-bottom:56px}
+  .slot-card{padding:22px 26px}
+  .slot-info .day{font-size:24px}
+  .slot-info .time{font-size:16px}
+  .what{padding:28px 32px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- Brand bar -->
+  <div class="brand fu"><strong>KataClimb</strong> · Accademia di ArrampiKata RCC</div>
+
+  <!-- Hero -->
+  <section class="hero fu fu1">
+    <div class="eyebrow">Una prima volta vale la prossima.</div>
+    <h1>Prenota la tua <em>Prima Lezione</em></h1>
+    <p>Un'ora in palestra, con un istruttore dedicato. Provi se l'arrampicata è la tua strada, senza impegno, senza attrezzatura tua.</p>
+    <div class="price">25 €</div>
+  </section>
+
+  <!-- Cosa succede -->
+  <section class="what fu fu2">
+    <h2>Cosa <em>succede</em></h2>
+    <ul>
+      <li><strong>Un'ora dedicata</strong> con un istruttore senior, in palestra a La Storta (Roma).</li>
+      <li><strong>Attrezzatura inclusa</strong>: imbragatura, scarpette, magnesite. Porta solo abiti comodi.</li>
+      <li><strong>Gruppi piccoli</strong>: massimo 6 persone, così l'istruttore segue ognuno davvero.</li>
+    </ul>
+  </section>
+
+  <!-- Slot picker -->
+  <section class="picker fu fu3">
+    <div class="picker-head">
+      <h2>Scegli <em>quando</em></h2>
+      <p>Disponibilità nei prossimi 7 giorni.</p>
+    </div>
+    <div id="slot-grid" class="slot-grid">
+      <div class="empty"><span class="loader"></span>Carico le date disponibili…</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div class="foot">
+    Termini e condizioni · Sede: Via Cassia 1634, La Storta (Roma)<br>
+    Syncrolink Ltd · kataclimb.com
+  </div>
+
+</div>
+
+<!-- Modal placeholder Step B1 -->
+<div id="modal" class="modal-bg" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>Hai scelto questa <em>data</em></h3>
+    <div class="slot-summary" id="modal-slot-summary">—</div>
+    <p>Il modulo di pagamento online sarà attivo a breve. Per prenotare adesso, scrivici a <strong>rccsegreteria@gmail.com</strong> indicando la data scelta — confermiamo lo slot e ti inviamo il link di pagamento.</p>
+    <div class="modal-actions">
+      <button class="btn-close" id="btn-modal-close">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  // Stessa istanza Supabase del portale (anon key, sola lettura su tabelle pubbliche)
+  const SUPABASE_URL = 'https://wbtougychlhnlcnonqge.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  const GIORNI = ['lunedì','martedì','mercoledì','giovedì','venerdì','sabato','domenica'];
+  const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
+  function isoDate(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+
+  // Range: domani → +7 giorni (DEC-2026-05-07-E)
+  function calcolaRange(){
+    const oggi = new Date(); oggi.setHours(0,0,0,0);
+    const giorni = [];
+    for(let i=1;i<=7;i++){
+      const d = new Date(oggi);
+      d.setDate(d.getDate()+i);
+      // giorno_settimana in DB: 1=Lunedì ... 7=Domenica
+      const gs = ((d.getDay()+6)%7)+1;
+      giorni.push({ data:d, iso:isoDate(d), giorno_settimana:gs });
+    }
+    return giorni;
+  }
+
+  async function caricaSlotAttivi(){
+    // Solo Prima Lezione attivi.
+    // NOTA: leggiamo solo campi pubblici, NESSUN dato personale.
+    const { data, error } = await sb.from('corsi_attivi_settimanali')
+      .select('id, giorno_settimana, ora_inizio, ora_fine, capienza_max, istruttori(nome)')
+      .eq('tipo_corso','prima_lezione')
+      .eq('status','attivo');
+    if(error) throw error;
+    return data || [];
+  }
+
+  async function caricaConteggi(slotIds, dataDal, dataAl){
+    // Solo count delle prenotazioni attive (escludiamo no-show e cancellati).
+    // SELECT minima: solo slot_id e data_lezione, NESSUN nome/email/lead_id.
+    const { data, error } = await sb.from('prenotazioni_prima_lezione')
+      .select('slot_id, data_lezione, stato')
+      .in('slot_id', slotIds)
+      .gte('data_lezione', dataDal)
+      .lte('data_lezione', dataAl)
+      .in('stato', ['prenotato','fatto']);
+    if(error) throw error;
+    const counts = {};
+    (data||[]).forEach(p => {
+      const k = `${p.slot_id}_${p.data_lezione}`;
+      counts[k] = (counts[k]||0) + 1;
+    });
+    return counts;
+  }
+
+  function formattaData(d){
+    return `${GIORNI[(d.getDay()+6)%7]} ${d.getDate()} ${MESI[d.getMonth()]}`;
+  }
+  function formattaOra(timeStr){
+    return timeStr.slice(0,5);
+  }
+
+  function renderOccorrenze(occorrenze, counts){
+    const grid = document.getElementById('slot-grid');
+    if(occorrenze.length === 0){
+      grid.innerHTML = '<div class="empty">Nessuna data disponibile nei prossimi 7 giorni. Riprova più tardi.</div>';
+      return;
+    }
+    grid.innerHTML = '';
+    occorrenze.forEach(o => {
+      const key = `${o.slot.id}_${o.data_lezione}`;
+      const count = counts[key] || 0;
+      const max = o.slot.capienza_max;
+      const liberi = max - count;
+
+      // Visibilità asimmetrica (DEC-2026-05-07-D)
+      let badgeClass, badgeText, isFull = false;
+      if(count === 0){
+        badgeClass = 'ok'; badgeText = 'Disponibile';
+      } else if(count >= max){
+        badgeClass = 'full'; badgeText = 'Tutto esaurito'; isFull = true;
+      } else {
+        badgeClass = 'warn';
+        badgeText = liberi === 1 ? '1 posto rimasto' : `${liberi} posti rimasti`;
+      }
+
+      const dataLabel = formattaData(o.dataObj);
+      const oraLabel = `${formattaOra(o.slot.ora_inizio)}–${formattaOra(o.slot.ora_fine)}`;
+      const istNome = o.slot.istruttori?.nome ? `con ${o.slot.istruttori.nome}` : '';
+
+      // Split data in giorno + resto, per stilizzare il giorno della settimana in italico
+      const giornoSettStr = GIORNI[(o.dataObj.getDay()+6)%7];
+      const resto = ` ${o.dataObj.getDate()} ${MESI[o.dataObj.getMonth()]}`;
+
+      const card = document.createElement('div');
+      card.className = 'slot-card' + (isFull ? ' full' : '');
+      card.innerHTML = `
+        <div class="slot-info">
+          <div class="day"><em>${giornoSettStr}</em>${resto}</div>
+          <div class="time">${oraLabel}</div>
+          ${istNome ? `<div class="ist">${istNome}</div>` : ''}
+        </div>
+        <div class="slot-action">
+          <div class="slot-badge ${badgeClass}">${badgeText}</div>
+          ${!isFull ? `<button class="btn-choose" data-slot-id="${o.slot.id}" data-data-lezione="${o.data_lezione}" data-label="${dataLabel} · ${oraLabel}">Scegli</button>` : ''}
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    // Bind bottoni
+    grid.querySelectorAll('.btn-choose').forEach(b => {
+      b.onclick = () => apriModal(b.dataset.label);
+    });
+  }
+
+  // Modal placeholder Step B1 — sarà sostituito con form anagrafica + Stripe Checkout in Step B2
+  function apriModal(label){
+    document.getElementById('modal-slot-summary').innerHTML = `<strong>${label}</strong>`;
+    document.getElementById('modal').classList.add('show');
+  }
+  document.getElementById('btn-modal-close').onclick = () => {
+    document.getElementById('modal').classList.remove('show');
+  };
+  document.getElementById('modal').addEventListener('click', (e) => {
+    if(e.target.id === 'modal') document.getElementById('modal').classList.remove('show');
+  });
+
+  async function init(){
+    try {
+      const slots = await caricaSlotAttivi();
+      if(slots.length === 0){
+        document.getElementById('slot-grid').innerHTML =
+          '<div class="empty">Stiamo aggiornando il calendario lezioni. Riprova fra qualche ora.</div>';
+        return;
+      }
+
+      // Calcola tutte le occurrence (slot × giorno) nei prossimi 7 gg
+      const range = calcolaRange();
+      const occorrenze = [];
+      range.forEach(giorno => {
+        slots.forEach(s => {
+          if(s.giorno_settimana === giorno.giorno_settimana){
+            occorrenze.push({
+              slot:s,
+              data_lezione:giorno.iso,
+              dataObj:giorno.data
+            });
+          }
+        });
+      });
+      occorrenze.sort((a,b) => {
+        const dt = a.dataObj - b.dataObj;
+        if(dt !== 0) return dt;
+        return a.slot.ora_inizio.localeCompare(b.slot.ora_inizio);
+      });
+
+      // Conteggi prenotazioni
+      const slotIds = [...new Set(slots.map(s => s.id))];
+      const dal = range[0].iso, al = range[range.length-1].iso;
+      const counts = await caricaConteggi(slotIds, dal, al);
+
+      renderOccorrenze(occorrenze, counts);
+
+    } catch(err){
+      console.error('inizia.html init error:', err);
+      document.getElementById('slot-grid').innerHTML =
+        `<div class="err">Errore caricamento date. Ricarica la pagina o scrivici a <strong>rccsegreteria@gmail.com</strong>.</div>`;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
