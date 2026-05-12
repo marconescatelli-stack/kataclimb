@@ -63,12 +63,8 @@ body{
 }
 .top-pill u{text-decoration-thickness:2px;text-underline-offset:3px}
 
-.hero-photo{
-  display:block; width:100%; height:auto;
-  background:#0A0A0A;
-}
 .hero{
-  padding:36px 22px 44px; text-align:center;
+  padding:48px 22px 56px; text-align:center;
   background:#0A0A0A;
   color:#fff;
 }
@@ -87,6 +83,51 @@ body{
   max-width:540px; margin:0 auto; line-height:1.55; font-weight:500;
 }
 .hero p strong{color:#fff;font-weight:800}
+
+/* ── Carousel foto fondo ────────────────────────────────────────── */
+.gallery{
+  background:#fff; padding:48px 0 24px;
+  overflow:hidden;
+}
+.gallery-eyebrow{
+  font-weight:900; font-size:12px; letter-spacing:.20em;
+  color:var(--sky-dark); text-transform:uppercase;
+  text-align:center; margin:0 22px 8px;
+}
+.gallery h2{
+  font-size:clamp(26px,5.5vw,32px); font-weight:900; line-height:1.1;
+  letter-spacing:-.02em; text-align:center; margin:0 22px 28px;
+}
+.gallery h2 .accent{color:var(--sky-dark)}
+.gallery-track-wrap{
+  position:relative;
+  width:100%; overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg, transparent 0, black 5%, black 95%, transparent 100%);
+          mask-image:linear-gradient(90deg, transparent 0, black 5%, black 95%, transparent 100%);
+}
+.gallery-track{
+  display:flex; gap:14px;
+  width:max-content;
+  animation:scroll 50s linear infinite;
+}
+.gallery-track:hover{animation-play-state:paused}
+.gallery-item{
+  flex:0 0 auto;
+  width:280px; height:200px;
+  border-radius:var(--r); overflow:hidden;
+  background:var(--bg2);
+}
+.gallery-item img{
+  width:100%; height:100%; object-fit:cover;
+  display:block;
+}
+@keyframes scroll{
+  from{transform:translateX(0)}
+  to{transform:translateX(calc(-50% - 7px))}
+}
+@media(min-width:768px){
+  .gallery-item{width:360px; height:240px}
+}
 
 .video-block{background:var(--bg3);padding-bottom:32px}
 .video-banner{
@@ -314,9 +355,7 @@ body{
   <div class="top-pill">La tua prima lezione di arrampicata · <u>25€</u></div>
 </div>
 
-<img class="hero-photo fu fu1" src="/hero-roccia.jpg" alt="Arrampicata su roccia">
-
-<section class="hero">
+<section class="hero fu fu1">
   <div class="hero-inner">
     <h1>
       La tua <span class="accent">prima volta</span> in palestra.
@@ -399,6 +438,27 @@ body{
   </p>
   <div id="slot-grid" class="slot-grid">
     <div class="empty"><span class="loader"></span>Carico le date disponibili…</div>
+  </div>
+</section>
+
+<section class="gallery">
+  <div class="gallery-eyebrow">Storie di chi sale</div>
+  <h2>Dove ti porterà <span class="accent">il percorso</span>.</h2>
+  <div class="gallery-track-wrap">
+    <div class="gallery-track">
+      <!-- Set 1 -->
+      <div class="gallery-item"><img src="/hero-palestra_jpg.jpeg" alt="Palestra RCC La Storta" loading="lazy"></div>
+      <div class="gallery-item"><img src="/arrampicata_grotti_nask_rcc.JPG" alt="Arrampicata outdoor" loading="lazy"></div>
+      <div class="gallery-item"><img src="/signora_arrampicata_grotto_rcc.jpg" alt="Allieva su parete naturale" loading="lazy"></div>
+      <div class="gallery-item"><img src="/arrampicata_cordoba_RCC.JPG" alt="Arrampicata in Spagna" loading="lazy"></div>
+      <div class="gallery-item"><img src="/arrampicata_kalymnos_rcc.jpg" alt="Volo su Kalymnos" loading="lazy"></div>
+      <!-- Set 2 duplicato per loop infinito -->
+      <div class="gallery-item"><img src="/hero-palestra_jpg.jpeg" alt="" loading="lazy"></div>
+      <div class="gallery-item"><img src="/arrampicata_grotti_nask_rcc.JPG" alt="" loading="lazy"></div>
+      <div class="gallery-item"><img src="/signora_arrampicata_grotto_rcc.jpg" alt="" loading="lazy"></div>
+      <div class="gallery-item"><img src="/arrampicata_cordoba_RCC.JPG" alt="" loading="lazy"></div>
+      <div class="gallery-item"><img src="/arrampicata_kalymnos_rcc.jpg" alt="" loading="lazy"></div>
+    </div>
   </div>
 </section>
 
