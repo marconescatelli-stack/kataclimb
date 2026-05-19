@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KataClimb · Agenda Accademia RCC v3.39</title>
+<title>KataClimb · Agenda Accademia RCC v3.40</title>
 <style>
   :root { --bg:#F5F1EB; --card:#fff; --ink:#2C2418; --gold:#C49520; --muted:#5E5548; --muted2:#8A7F6F;
-          --open:#5B8C5A; --advance:#3A7D44; --intro:#2E86AB; --evo:#7B2D8E;
+          --open:#5B8C5A; --advance:#3A7D44; --intro:#2E86AB; --evo:#7B2D8E; --prima:#C49520;
           --info:#2E86AB; --warn:#FE6D73; --ok:#5B8C5A; --border:rgba(44,36,24,.08); }
   * { box-sizing: border-box; }
   body { margin:0; padding:2rem; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); font-size:17px; line-height:1.45; }
+  body.embedded { padding:1rem; background:transparent; }
   .wrap { max-width:1100px; margin:0 auto; }
   h1 { margin:0 0 .3rem; font-size:2rem; font-weight:700; }
+  body.embedded h1 { font-size:1.4rem; }
   .sub { color:var(--muted); margin-bottom:1.4rem; font-size:1rem; font-weight:600; }
   .userbar { text-align:right; color:var(--muted); margin-bottom:1.2rem; font-size:14px; }
   .userbar a { color:var(--gold); font-weight:700; text-decoration:none; cursor:pointer; }
@@ -24,6 +26,13 @@
   .counter .residue em { font-style:normal; color:var(--open); }
   .counter .scadenza { font-size:.95rem; color:var(--muted); font-weight:600; }
   .counter .scadenza.urgente { color:var(--warn); }
+
+  /* Banner regole (§B-onboarding-comunicazione P1) — solo allievo */
+  .info-banner { background:rgba(46,134,171,.08); border:1px solid rgba(46,134,171,.2);
+                 border-left:4px solid var(--info); border-radius:10px;
+                 padding:.85rem 1.1rem; margin-bottom:1.2rem; font-size:14.5px;
+                 color:var(--ink); line-height:1.55; }
+  .info-banner strong { color:var(--info); }
 
   /* Bar settimana + dropdown */
   .bar { display:flex; justify-content:space-between; align-items:center; gap:.8rem; background:var(--card);
@@ -48,6 +57,7 @@
   .slot.advance { border-left-color:var(--advance); }
   .slot.intro_corda { border-left-color:var(--intro); }
   .slot.evo_corda { border-left-color:var(--evo); }
+  .slot.prima_lezione { border-left-color:var(--prima); }
   .slot.mia-prenot { background:linear-gradient(90deg,rgba(91,140,90,.06),#fff); }
   .slot strong { display:block; margin-bottom:.2rem; font-size:16px; color:var(--ink); }
   .ora { color:var(--gold); font-weight:700; font-size:1.15rem; }
@@ -58,6 +68,8 @@
   .prenot ul { list-style:none; padding:0; margin:0; }
   .prenot li { padding:.25rem 0; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
   .prenot .nome { flex:1; min-width:120px; }
+  .prenot .stage-tag { font-size:11px; padding:2px 7px; border-radius:5px; background:rgba(46,134,171,.1);
+                      color:var(--info); font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
 
   .posti { font-size:1.15rem; font-weight:700; padding:.45rem .9rem; border-radius:8px; background:var(--bg); color:var(--ink); white-space:nowrap; }
   .posti.pieno { color:var(--warn); }
@@ -126,6 +138,16 @@
   .btn-ok { border:none; background:var(--gold); color:#fff; }
   .btn-warn { border:none; background:var(--warn); color:#fff; }
 
+  /* Modale lead picker (Prima lezione segreteria) */
+  .modal label { display:block; margin-top:.7rem; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+  .modal select, .modal input[type=text], .modal input[type=tel], .modal input[type=email], .modal textarea {
+    width:100%; padding:.6rem .8rem; border:1px solid var(--border); border-radius:8px;
+    background:#fff; font-family:inherit; font-size:15px; color:var(--ink); margin-top:.3rem;
+  }
+  .modal textarea { min-height:60px; resize:vertical; }
+  .modal select:focus, .modal input:focus, .modal textarea:focus { outline:none; border-color:var(--gold); }
+  .nuovo-lead-box { background:#fff; padding:1.1rem; border-radius:10px; margin-top:.8rem; border:1px dashed var(--gold); }
+
   /* Toast */
   .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%);
            background:var(--ink); color:#fff; padding:.85rem 1.4rem; border-radius:10px;
@@ -148,7 +170,7 @@
 <body>
 <div class="wrap">
   <h1 id="title">Agenda Accademia RCC</h1>
-  <div id="sub" class="sub">v3.39 · caricamento…</div>
+  <div id="sub" class="sub">v3.40 · caricamento…</div>
 
   <div id="userbar" class="userbar" style="display:none"></div>
 
@@ -166,11 +188,17 @@
     <div id="counter-freeze" style="font-size:.9rem;color:var(--info);font-weight:700"></div>
   </div>
 
+  <!-- Banner regole §B-onboarding-comunicazione (solo allievo) -->
+  <div id="info-banner" class="info-banner" style="display:none">
+    <strong>Come funziona</strong> · Le 3 lezioni settimanali sono interscambiabili: prenota quella che preferisci, settimana per settimana. Puoi disdire fino a 8h prima della lezione e il credito ti viene riaccreditato.
+  </div>
+
   <div id="login-container"></div>
   <div id="app-container" style="display:none">
     <div class="bar">
       <div class="bar-left">
         <select id="tipo-select" class="tipo-select" style="display:none">
+          <option value="prima_lezione">Prima lezione</option>
           <option value="open">Open</option>
           <option value="advance">Advance</option>
           <option value="intro_corda">Intro Corda</option>
@@ -187,12 +215,13 @@
   </div>
 </div>
 
-<!-- Modale Prenota -->
+<!-- Modale Prenota (allievo, corsi multi-corso) -->
 <div id="modal-prenota" class="modal-bg">
   <div class="modal">
     <h3>Conferma prenotazione</h3>
     <div class="slot-info" id="prenota-info"></div>
     <p style="font-size:14px;color:var(--muted)">La prenotazione scala 1 lezione dal tuo pacchetto. Se disdici più di 8h prima della lezione, la lezione viene riaccreditata.</p>
+    <p style="font-size:14px;color:var(--info);margin-top:.5rem"><strong>Ricorda:</strong> puoi prenotare le altre lezioni della settimana — le 3 lezioni sono interscambiabili.</p>
     <div id="prenota-msg" class="modal-msg"></div>
     <div class="modal-actions">
       <button class="btn-ann" id="prenota-annulla">Annulla</button>
@@ -201,7 +230,7 @@
   </div>
 </div>
 
-<!-- Modale Disdici -->
+<!-- Modale Disdici (allievo) -->
 <div id="modal-disdici" class="modal-bg">
   <div class="modal">
     <h3>Disdici prenotazione</h3>
@@ -211,6 +240,38 @@
     <div class="modal-actions">
       <button class="btn-ann" id="disdici-annulla">Annulla</button>
       <button class="btn-warn" id="disdici-conferma">Disdici</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale Lead Picker (segreteria, Prima lezione) -->
+<div id="modal-lead" class="modal-bg">
+  <div class="modal">
+    <h3>Prenota Prima Lezione</h3>
+    <div class="slot-info" id="lead-slot-info"></div>
+
+    <label>Seleziona lead</label>
+    <select id="lead-select">
+      <option value="">— seleziona —</option>
+    </select>
+
+    <div id="nuovo-lead" class="nuovo-lead-box" style="display:none">
+      <strong style="font-size:1.05rem;font-weight:700">Nuovo lead</strong>
+      <label>Nome *</label><input id="nl-nome" type="text">
+      <label>Cognome</label><input id="nl-cognome" type="text" placeholder="opzionale">
+      <label>Telefono</label><input id="nl-tel" type="tel" placeholder="opzionale">
+      <label>Email</label><input id="nl-email" type="email" placeholder="opzionale">
+      <label>Fonte</label>
+      <select id="nl-fonte"><option value="">— seleziona —</option></select>
+      <label>Note</label>
+      <textarea id="nl-note" placeholder="Es: già arrampicava in passato, gli ho spiegato che Open è diverso..."></textarea>
+    </div>
+
+    <div id="lead-msg" class="modal-msg"></div>
+
+    <div class="modal-actions">
+      <button class="btn-ann" id="lead-annulla">Annulla</button>
+      <button class="btn-ok" id="lead-conferma">Conferma prenotazione</button>
     </div>
   </div>
 </div>
@@ -226,6 +287,23 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
   /* ═══════════════════════════════════════════════════════════════════
+     EMBEDDED MODE (caricato in iframe da portale.html tab Agenda)
+     ═══════════════════════════════════════════════════════════════════ */
+
+  const IS_EMBEDDED = new URLSearchParams(window.location.search).get('embedded') === '1';
+  if (IS_EMBEDDED) {
+    document.body.classList.add('embedded');
+  }
+
+  function notifyParent(reason) {
+    if (IS_EMBEDDED && window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage({ type: 'agenda_data_changed', reason }, '*');
+      } catch(e) { /* silenzioso */ }
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
      COSTANTI E STATO
      ═══════════════════════════════════════════════════════════════════ */
 
@@ -234,11 +312,30 @@
   const MESI_BR = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
 
   const TIPO_LABELS = {
-    open:        { label: 'Open',        color: 'var(--open)' },
-    advance:     { label: 'Advance',     color: 'var(--advance)' },
-    intro_corda: { label: 'Intro Corda', color: 'var(--intro)' },
-    evo_corda:   { label: 'Evo Corda',   color: 'var(--evo)' }
+    prima_lezione: { label: 'Prima Lezione', color: 'var(--prima)' },
+    open:          { label: 'Open',          color: 'var(--open)' },
+    advance:       { label: 'Advance',       color: 'var(--advance)' },
+    intro_corda:   { label: 'Intro Corda',   color: 'var(--intro)' },
+    evo_corda:     { label: 'Evo Corda',     color: 'var(--evo)' }
   };
+
+  // funnel_stage labels (per visualizzare stato lead in slot Prima lezione)
+  const FUNNEL_LABEL_MAP = {
+    nuovo: 'Nuovo',
+    contattato: 'Contattato',
+    da_riprogrammare: 'Da riprogrammare',
+    prenotato_prima_lezione: 'Prenotato',
+    fatta_prima_lezione: 'Fatta',
+    prenotato_open: 'Open',
+    in_open: 'In Open',
+    fatta_open: 'Open fatto',
+    prenotato_advance: 'Advance',
+    in_advance: 'In Advance',
+    maestro_di_cordata: 'Maestro',
+    perso: 'Perso',
+    ibernato: 'Ibernato'
+  };
+  const labelStage = s => s ? (FUNNEL_LABEL_MAP[s] || s) : '—';
 
   // Ruoli (asse staff_role da profile_data, Trappola #110)
   const STAFF_COMPLETO = ['staff_creator', 'staff_segreteria'];
@@ -247,13 +344,15 @@
   let userId = null;
   let userEmail = null;
   let userStaffRole = null;
-  let userProfile = null;       // dati profile_data utente loggato
+  let userProfile = null;
   let viewMode = null;          // 'allievo' | 'istruttore' | 'segreteria'
-  let tipiConfig = {};          // { open: {...}, advance: {...}, ... } da tipi_corso_config
-  let currentTipo = 'open';     // tipo corso selezionato (default open)
-  let weekOffset = 0;           // 0 = settimana corrente, +1 = prossima, ...
+  let tipiConfig = {};
+  let currentTipo = 'open';
+  let weekOffset = 0;
   let currentSlotForPrenota = null;
   let currentPrenotForDisdici = null;
+  let currentSlotForLead = null;   // {slotId, dataIso, label}
+  let fontiCache = [];
 
   const isStaffCompleto = () => STAFF_COMPLETO.includes(userStaffRole);
   const isStaffIstruttore = () => STAFF_ISTRUTTORE.includes(userStaffRole);
@@ -265,21 +364,14 @@
 
   function lunSett(offset) {
     const d = new Date(); d.setHours(0,0,0,0);
-    const dow = (d.getDay() + 6) % 7; // 0=lun ... 6=dom
+    const dow = (d.getDay() + 6) % 7;
     d.setDate(d.getDate() - dow + offset*7);
     return d;
   }
   function addG(date, giorni) { const d = new Date(date); d.setDate(d.getDate() + giorni); return d; }
   function isoD(date) { return date.toISOString().slice(0,10); }
   function fmt(date) { return `${date.getDate()} ${MESI_BR[date.getMonth()]}`; }
-  function fmtLong(date) {
-    return `${GIORNI[(date.getDay()+6)%7]} ${date.getDate()} ${MESI_BR[date.getMonth()]}`;
-  }
-  function fmtData(isoStr) { // YYYY-MM-DD → DD/MM
-    const [y,m,d] = isoStr.split('-');
-    return `${d}/${m}`;
-  }
-  function fmtScadenza(isoStr) { // YYYY-MM-DD → 21 mag 2026
+  function fmtScadenza(isoStr) {
     if (!isoStr) return '';
     const d = new Date(isoStr + 'T00:00:00');
     return `${d.getDate()} ${MESI_BR[d.getMonth()]} ${d.getFullYear()}`;
@@ -290,7 +382,6 @@
     const oggi = new Date(); oggi.setHours(0,0,0,0);
     return Math.ceil((d - oggi) / (24*60*60*1000));
   }
-  // Slot timestamp completo: yyyy-mm-dd + "HH:MM:SS" → Date
   function slotDateTime(dataIso, oraStr) {
     return new Date(`${dataIso}T${oraStr}`);
   }
@@ -306,7 +397,6 @@
     userId = session.user.id;
     userEmail = session.user.email;
 
-    // Carica profilo completo (staff_role + dati corso allievo se ha)
     const { data: pd, error: pdErr } = await sb
       .from('profile_data')
       .select('staff_role, corso_attivo, lezioni_residue, lezioni_iniziali_residue, scadenza_consumo_open, freeze_inizio, freeze_fine')
@@ -318,13 +408,11 @@
     userProfile = pd || {};
     userStaffRole = userProfile.staff_role || null;
 
-    // Detect view mode (priorità: staff > allievo)
     if (isStaffCompleto())       viewMode = 'segreteria';
     else if (isStaffIstruttore())viewMode = 'istruttore';
     else if (userProfile.corso_attivo) viewMode = 'allievo';
     else { showAccessDenied(); return; }
 
-    // Carica config tipi corso (capienze, finestre)
     const { data: cfgs, error: cfgErr } = await sb
       .from('tipi_corso_config')
       .select('tipo_corso, label, capienza_max, capienza_target, apertura_prenotazione_giorni, finestra_prenotazione_ore, finestra_disdetta_ore')
@@ -332,7 +420,26 @@
     if (cfgErr) { showError(`Errore lettura config corsi: ${cfgErr.message}`); return; }
     tipiConfig = Object.fromEntries((cfgs || []).map(c => [c.tipo_corso, c]));
 
-    // Setup UI per ruolo
+    // Config fallback per prima_lezione (NON è in tipi_corso_config)
+    if (!tipiConfig.prima_lezione) {
+      tipiConfig.prima_lezione = {
+        tipo_corso: 'prima_lezione',
+        label: 'Prima Lezione',
+        capienza_max: 6,
+        capienza_target: 4,
+        apertura_prenotazione_giorni: 7,
+        finestra_prenotazione_ore: 4,
+        finestra_disdetta_ore: 8
+      };
+    }
+
+    // Carica fonti CRM (per modale nuovo lead segreteria)
+    if (viewMode === 'segreteria') {
+      const { data: fonti } = await sb.from('crm_lead_sources')
+        .select('code, label').eq('attivo', true).order('ordine');
+      fontiCache = fonti || [];
+    }
+
     setupUI();
     bindEvents();
     await render();
@@ -341,34 +448,50 @@
   function setupUI() {
     document.getElementById('login-container').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
-    document.getElementById('nav-back').style.display = 'block';
 
-    const ub = document.getElementById('userbar');
-    ub.style.display = 'block';
-    const roleLabel = viewMode === 'segreteria' ? 'segreteria'
-                    : viewMode === 'istruttore' ? 'istruttore'
-                    : 'allievo';
-    ub.innerHTML = `Loggato come <strong>${userEmail}</strong> · <em style="color:var(--muted2);font-style:normal">vista ${roleLabel}</em> · <a id="logout-link">logout</a>`;
-    document.getElementById('logout-link').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    // Embedded mode: nascondi nav-back e userbar
+    if (!IS_EMBEDDED) {
+      document.getElementById('nav-back').style.display = 'block';
+      const ub = document.getElementById('userbar');
+      ub.style.display = 'block';
+      const roleLabel = viewMode === 'segreteria' ? 'segreteria'
+                      : viewMode === 'istruttore' ? 'istruttore'
+                      : 'allievo';
+      ub.innerHTML = `Loggato come <strong>${userEmail}</strong> · <em style="color:var(--muted2);font-style:normal">vista ${roleLabel}</em> · <a id="logout-link">logout</a>`;
+      document.getElementById('logout-link').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    }
 
     const tipoSel = document.getElementById('tipo-select');
 
     if (viewMode === 'allievo') {
-      // Allievo: auto-seleziona corso_attivo, dropdown nascosto
       currentTipo = userProfile.corso_attivo;
       tipoSel.style.display = 'none';
       const lab = TIPO_LABELS[currentTipo]?.label || currentTipo;
       document.getElementById('title').textContent = `Agenda · ${lab}`;
-      document.getElementById('sub').textContent = `v3.39 · corso ${lab}`;
+      document.getElementById('sub').textContent = `v3.40 · corso ${lab}`;
+      // Banner onboarding solo se ha credito attivo + corso open
+      if (currentTipo === 'open') {
+        document.getElementById('info-banner').style.display = '';
+      }
       updateCounter();
+    } else if (viewMode === 'istruttore') {
+      // Istruttore: dropdown 4 voci (no Prima lezione)
+      tipoSel.style.display = '';
+      // Nascondi option Prima lezione
+      const optPrima = tipoSel.querySelector('option[value="prima_lezione"]');
+      if (optPrima) optPrima.style.display = 'none';
+      currentTipo = 'open';
+      tipoSel.value = currentTipo;
+      document.getElementById('title').textContent = `Agenda · I miei corsi`;
+      document.getElementById('sub').textContent = `v3.40 · vista istruttore`;
+      document.getElementById('counter').style.display = 'none';
     } else {
-      // Istruttore/Segreteria: dropdown 4 voci
+      // Segreteria: dropdown 5 voci complete
       tipoSel.style.display = '';
       currentTipo = 'open';
       tipoSel.value = currentTipo;
-      const titleLabel = viewMode === 'istruttore' ? 'I miei corsi' : 'Tutti i corsi';
-      document.getElementById('title').textContent = `Agenda · ${titleLabel}`;
-      document.getElementById('sub').textContent = `v3.39 · vista ${viewMode}`;
+      document.getElementById('title').textContent = `Agenda · Tutti i corsi`;
+      document.getElementById('sub').textContent = `v3.40 · vista segreteria`;
       document.getElementById('counter').style.display = 'none';
     }
   }
@@ -397,7 +520,6 @@
       scadenzaEl.textContent = '';
     }
 
-    // Freeze info
     const freezeEl = document.getElementById('counter-freeze');
     const now = new Date();
     if (userProfile.freeze_inizio && userProfile.freeze_fine) {
@@ -418,14 +540,28 @@
       currentTipo = e.target.value;
       render();
     };
-    // Modali
     document.getElementById('prenota-annulla').onclick = () => closeModal('modal-prenota');
     document.getElementById('prenota-conferma').onclick = onPrenotaConferma;
     document.getElementById('disdici-annulla').onclick = () => closeModal('modal-disdici');
     document.getElementById('disdici-conferma').onclick = onDisdiciConferma;
+    document.getElementById('lead-annulla').onclick = () => closeModal('modal-lead');
+    document.getElementById('lead-conferma').onclick = onLeadConferma;
+    document.getElementById('lead-select').onchange = (e) => {
+      document.getElementById('nuovo-lead').style.display = e.target.value === '__new__' ? 'block' : 'none';
+    };
   }
 
   function showLogin() {
+    if (IS_EMBEDDED) {
+      // In iframe non mostriamo Google login (cookie/sessione condivisa con portale)
+      document.getElementById('login-container').innerHTML = `
+        <div class="login-box">
+          <h2>Sessione non attiva</h2>
+          <p>Apri prima il portale per accedere all'agenda.</p>
+          <p style="margin-top:1rem;font-size:14px"><a href="portale.html" style="color:var(--gold);font-weight:700">Vai al portale</a></p>
+        </div>`;
+      return;
+    }
     document.getElementById('login-container').innerHTML = `
       <div class="login-box">
         <h2>Accesso area riservata</h2>
@@ -446,9 +582,11 @@
         <h2>Nessun corso attivo</h2>
         <p>Per accedere all'agenda devi avere un corso attivo (Open, Advance, Intro Corda o Evo Corda).</p>
         <p style="margin-top:1rem;font-size:14px">Se pensi che ci sia un errore, scrivi a <a href="mailto:portale@kataclimb.com" style="color:var(--gold);font-weight:700">portale@kataclimb.com</a> o contatta la segreteria.</p>
-        <button class="btn-google" id="btn-logout-denied" style="margin-top:1.5rem">Esci</button>
+        ${IS_EMBEDDED ? '' : '<button class="btn-google" id="btn-logout-denied" style="margin-top:1.5rem">Esci</button>'}
       </div>`;
-    document.getElementById('btn-logout-denied').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    if (!IS_EMBEDDED) {
+      document.getElementById('btn-logout-denied').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    }
   }
 
   function showError(msg) {
@@ -466,13 +604,11 @@
      ═══════════════════════════════════════════════════════════════════ */
 
   async function caricaSlot() {
-    // Filtra per tipo_corso corrente + slot attivi
     let q = sb.from('corsi_attivi_settimanali')
-      .select('id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, istruttore_id, istruttori(nome, cognome)')
+      .select('id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, capienza_max, istruttore_id, istruttori(nome, cognome)')
       .eq('tipo_corso', currentTipo)
       .eq('status', 'attivo');
 
-    // Istruttore: solo propri slot
     if (viewMode === 'istruttore') {
       q = q.eq('istruttore_id', userId);
     }
@@ -483,14 +619,23 @@
   }
 
   async function caricaPrenotSettimana(lun, dom) {
-    // Carica tutte le prenotazioni del tipo_corso e settimana corrente
+    if (currentTipo === 'prima_lezione') {
+      // Tabella diversa: prenotazioni_prima_lezione (FK su crm_leads)
+      const { data, error } = await sb.from('prenotazioni_prima_lezione')
+        .select('id, slot_id, lead_id, data_lezione, stato, presente, crm_leads(nome, cognome, telefono, funnel_stage)')
+        .gte('data_lezione', isoD(lun))
+        .lte('data_lezione', isoD(dom));
+      if (error) throw error;
+      return data || [];
+    }
+
+    // Altri corsi: prenotazioni_corso (FK su auth.users)
     let q = sb.from('prenotazioni_corso')
       .select('id, slot_id, user_id, data_lezione, stato, profile_data!user_id(nome, cognome, telefono)')
       .eq('tipo_corso', currentTipo)
       .gte('data_lezione', isoD(lun))
       .lte('data_lezione', isoD(dom));
 
-    // Allievo: solo le proprie
     if (viewMode === 'allievo') {
       q = q.eq('user_id', userId);
     }
@@ -498,6 +643,29 @@
     const { data, error } = await q;
     if (error) throw error;
     return data || [];
+  }
+
+  async function caricaLeadsPrenotabili() {
+    // Lead "freschi" (mai prenotato Prima lezione, o cancellato in tempo)
+    const stages = ['nuovo', 'contattato', 'da_riprogrammare', 'prenotato_prima_lezione'];
+    const { data: leads, error: lErr } = await sb.from('crm_leads')
+      .select('id, nome, cognome, telefono, funnel_stage')
+      .in('funnel_stage', stages)
+      .order('created_at', { ascending: false });
+    if (lErr) throw lErr;
+    if (!leads || leads.length === 0) return [];
+
+    // Escludi chi ha già una prenotazione futura attiva (stati prenotato/fatto)
+    const oggi = new Date(); oggi.setHours(0,0,0,0);
+    const { data: prenotEsistenti, error: pErr } = await sb.from('prenotazioni_prima_lezione')
+      .select('lead_id')
+      .in('lead_id', leads.map(l => l.id))
+      .gte('data_lezione', isoD(oggi))
+      .in('stato', ['prenotato', 'fatto']);
+    if (pErr) throw pErr;
+
+    const conPrenot = new Set((prenotEsistenti || []).map(p => p.lead_id));
+    return leads.filter(l => !conPrenot.has(l.id));
   }
 
   /* ═══════════════════════════════════════════════════════════════════
@@ -527,7 +695,6 @@
       const now = new Date();
       const cfg = tipiConfig[currentTipo] || { capienza_max:8, apertura_prenotazione_giorni:7, finestra_prenotazione_ore:4, finestra_disdetta_ore:8 };
 
-      // Per ogni slot della settimana, crea una "lezione" (slot × data)
       const lezioni = [];
       for (const s of slots) {
         const data = addG(lun, s.giorno_settimana - 1);
@@ -539,7 +706,6 @@
         lezioni.push({ slot:s, data, dataIso, dtInizio, dtFine, passato, prenotazioni:pSlot });
       }
 
-      // Ordina cronologicamente
       lezioni.sort((a,b) => a.dtInizio - b.dtInizio);
 
       grid.innerHTML = '';
@@ -548,7 +714,6 @@
         grid.appendChild(card);
       }
 
-      // Bind eventi sui bottoni appena creati
       bindSlotEvents(lezioni, cfg);
 
     } catch (err) {
@@ -564,21 +729,24 @@
     const card = document.createElement('div');
     card.className = 'slot ' + currentTipo + (passato ? ' passato' : '');
 
-    // Conta solo prenotazioni attive (stato='prenotato' o 'presente')
-    const prenotAttive = prenotazioni.filter(p => p.stato === 'prenotato' || p.stato === 'presente');
+    // Stati che contano come "occupato slot"
+    const STATI_ATTIVI_CORSO = ['prenotato', 'presente'];
+    const STATI_ATTIVI_PRIMA = ['prenotato', 'fatto'];
+    const statiAttivi = currentTipo === 'prima_lezione' ? STATI_ATTIVI_PRIMA : STATI_ATTIVI_CORSO;
+
+    const prenotAttive = prenotazioni.filter(p => statiAttivi.includes(p.stato));
     const occupati = prenotAttive.length;
     const capienza = cfg.capienza_max;
     const liberi = capienza - occupati;
     const pieno = liberi <= 0;
 
-    // Trova la prenotazione dell'allievo loggato (se esiste)
-    const miaPrenot = viewMode === 'allievo'
+    // Trova la prenotazione dell'allievo loggato (mai per prima_lezione, è solo segreteria)
+    const miaPrenot = (viewMode === 'allievo' && currentTipo !== 'prima_lezione')
       ? prenotazioni.find(p => p.user_id === userId && (p.stato === 'prenotato' || p.stato === 'presente' || p.stato === 'assente'))
       : null;
 
     if (miaPrenot) card.classList.add('mia-prenot');
 
-    // Colonna sinistra: data + ora + istruttore
     const colData = `
       <div>
         <strong>${GIORNI_BR[s.giorno_settimana-1]} ${data.getDate()} ${MESI_BR[data.getMonth()]}</strong>
@@ -586,10 +754,9 @@
         <div class="ist">${ist}</div>
       </div>`;
 
-    // Colonna centrale: prenotazioni / messaggio allievo
     let colPrenot;
     if (viewMode === 'allievo') {
-      // Allievo: vede solo se è prenotato lui, niente lista altri (privacy)
+      // Allievo: vede solo la propria, niente lista altri (privacy)
       if (miaPrenot) {
         const statoLabel = miaPrenot.stato === 'presente' ? '<span class="stato-label presente">✓ Presente</span>'
                          : miaPrenot.stato === 'assente'  ? '<span class="stato-label assente">✗ Assente</span>'
@@ -599,37 +766,59 @@
         colPrenot = `<div class="prenot"><em>${pieno ? 'Pieno' : (liberi+' posti liberi')}</em></div>`;
       }
     } else {
-      // Istruttore/Segreteria: lista nomi con pulsanti P/A
+      // Istruttore/Segreteria: lista nomi
       if (prenotAttive.length === 0) {
         colPrenot = `<div class="prenot"><em>Nessun iscritto</em></div>`;
       } else {
         const items = prenotAttive.map(p => {
-          const nome = `${p.profile_data?.nome || ''} ${p.profile_data?.cognome || ''}`.trim() || '—';
-          // Pulsanti P/A solo se slot passato O in corso O futuro entro 12h dall'inizio? In MVP: sempre cliccabili.
-          const paP = p.stato === 'presente' ? ' attivo-p' : '';
-          const paA = p.stato === 'assente'  ? ' attivo-a' : '';
-          return `
-            <li>
-              <span class="nome">${nome}</span>
-              <div class="pa-buttons">
-                <button class="pa-btn${paP}" data-prenot="${p.id}" data-action="presente">P</button>
-                <button class="pa-btn${paA}" data-prenot="${p.id}" data-action="assente">A</button>
-              </div>
-            </li>`;
+          let nome, stageTag = '';
+          if (currentTipo === 'prima_lezione') {
+            nome = `${p.crm_leads?.nome || ''} ${p.crm_leads?.cognome || ''}`.trim() || '—';
+            const stage = p.crm_leads?.funnel_stage;
+            if (isStaffCompleto() && stage) stageTag = `<span class="stage-tag">${labelStage(stage)}</span>`;
+          } else {
+            nome = `${p.profile_data?.nome || ''} ${p.profile_data?.cognome || ''}`.trim() || '—';
+          }
+          // Bottoni P/A
+          let paLabels;
+          if (currentTipo === 'prima_lezione') {
+            // Prima lezione: 'fatto' / 'no_show'
+            const paP = p.stato === 'fatto'   ? ' attivo-p' : '';
+            const paA = p.stato === 'no_show' ? ' attivo-a' : '';
+            paLabels = `
+              <button class="pa-btn${paP}" data-prenot="${p.id}" data-action="fatto" data-tipo="prima_lezione">P</button>
+              <button class="pa-btn${paA}" data-prenot="${p.id}" data-action="no_show" data-tipo="prima_lezione">A</button>`;
+          } else {
+            // Open/Advance/Intro/Evo: 'presente' / 'assente'
+            const paP = p.stato === 'presente' ? ' attivo-p' : '';
+            const paA = p.stato === 'assente'  ? ' attivo-a' : '';
+            paLabels = `
+              <button class="pa-btn${paP}" data-prenot="${p.id}" data-action="presente" data-tipo="corso">P</button>
+              <button class="pa-btn${paA}" data-prenot="${p.id}" data-action="assente" data-tipo="corso">A</button>`;
+          }
+          // Solo segreteria può marcare prima_lezione (istruttore solo lettura per Prima lezione)
+          const showPA = (currentTipo === 'prima_lezione') ? isStaffCompleto() : isStaff();
+          const paHtml = showPA ? `<div class="pa-buttons">${paLabels}</div>` : '';
+          return `<li><span class="nome">${nome} ${stageTag}</span>${paHtml}</li>`;
         }).join('');
         colPrenot = `<div class="prenot"><ul>${items}</ul></div>`;
       }
     }
 
-    // Colonna posti
     const colPosti = `<div class="posti${pieno?' pieno':''}">${occupati}/${capienza}</div>`;
 
-    // Colonna azione (varia per ruolo)
     let colAction;
     if (viewMode === 'allievo') {
       colAction = renderAllievoAction(lez, cfg, miaPrenot, pieno, now);
+    } else if (viewMode === 'segreteria' && currentTipo === 'prima_lezione') {
+      // Segreteria su Prima lezione: bottone "+ Prenota" lead picker
+      if (!passato && !pieno) {
+        const label = `${GIORNI[s.giorno_settimana-1]} ${data.getDate()} ${MESI_BR[data.getMonth()]} · ${s.ora_inizio.slice(0,5)}–${s.ora_fine.slice(0,5)} · ${s.istruttori?.nome||'—'}`;
+        colAction = `<div><button class="btn-prenota btn-lead" data-slot="${s.id}" data-data="${dataIso}" data-label="${escAttr(label)}">+ Prenota</button></div>`;
+      } else {
+        colAction = `<div></div>`;
+      }
     } else {
-      // Istruttore/Segreteria: nessuna azione globale sullo slot (le P/A sono per riga sopra)
       colAction = `<div></div>`;
     }
 
@@ -640,7 +829,6 @@
   function renderAllievoAction(lez, cfg, miaPrenot, pieno, now) {
     const { dtInizio, dtFine, passato, dataIso, slot:s } = lez;
 
-    // 1. Slot passato → solo label stato presenza (no bottoni)
     if (passato) {
       if (miaPrenot) {
         if (miaPrenot.stato === 'presente') return `<div><span class="stato-label presente">✓ Presente</span></div>`;
@@ -649,53 +837,41 @@
       return `<div></div>`;
     }
 
-    // 2. Allievo HA prenotato
     if (miaPrenot && miaPrenot.stato === 'prenotato') {
       const oreAlla = (dtInizio - now) / (60*60*1000);
       if (oreAlla > cfg.finestra_disdetta_ore) {
-        // Disdicibile
         return `<div><button class="btn-disdici" data-prenot="${miaPrenot.id}" data-info="${escAttr(infoSlotLabel(lez))}">Disdici</button></div>`;
       } else {
-        // Fuori finestra disdetta: nascondo bottone (richiesta Marco)
         return `<div></div>`;
       }
     }
 
-    // 3. Allievo NON prenotato
-    // 3a. Slot pieno → label
     if (pieno) return `<div><span class="stato-label pieno">Pieno</span></div>`;
 
-    // 3b. Verifica finestra di apertura/cutoff
     const oreAlla = (dtInizio - now) / (60*60*1000);
     const giorniAlla = oreAlla / 24;
     if (giorniAlla > cfg.apertura_prenotazione_giorni) {
-      // Apre più tardi
       const apertura = new Date(dtInizio.getTime() - cfg.apertura_prenotazione_giorni * 24*60*60*1000);
       const apLab = `${apertura.getDate()} ${MESI_BR[apertura.getMonth()]} ${String(apertura.getHours()).padStart(2,'0')}:${String(apertura.getMinutes()).padStart(2,'0')}`;
       return `<div><span class="stato-label attesa">Apre il ${apLab}</span></div>`;
     }
     if (oreAlla < cfg.finestra_prenotazione_ore) {
-      // Chiusa
       return `<div><span class="stato-label chiuso">Chiusa</span></div>`;
     }
 
-    // 3c. Verifica credito allievo
     const R = userProfile.lezioni_residue || 0;
     if (R <= 0) {
       return `<div><span class="stato-label chiuso">Credito esaurito</span></div>`;
     }
 
-    // 3d. Verifica freeze
     if (userProfile.freeze_inizio && userProfile.freeze_fine) {
       const fi = new Date(userProfile.freeze_inizio);
       const ff = new Date(userProfile.freeze_fine);
-      // Se la lezione cade dentro il freeze → non prenotabile
       if (dtInizio >= fi && dtInizio <= ff) {
         return `<div><span class="stato-label chiuso">In pausa</span></div>`;
       }
     }
 
-    // 3e. OK prenotabile
     return `<div><button class="btn-prenota" data-slot="${s.id}" data-data="${dataIso}" data-info="${escAttr(infoSlotLabel(lez))}">Prenota</button></div>`;
   }
 
@@ -710,22 +886,26 @@
   }
 
   function bindSlotEvents(lezioni, cfg) {
-    // Bottoni Prenota (allievo)
-    document.querySelectorAll('.btn-prenota').forEach(b => {
+    // Prenota allievo (Open/Advance/Intro/Evo)
+    document.querySelectorAll('.btn-prenota:not(.btn-lead)').forEach(b => {
       b.onclick = () => apriPrenota(b.dataset.slot, b.dataset.data, b.dataset.info);
     });
-    // Bottoni Disdici (allievo)
+    // Prenota segreteria (Prima lezione, lead picker)
+    document.querySelectorAll('.btn-lead').forEach(b => {
+      b.onclick = () => apriLeadPicker(b.dataset.slot, b.dataset.data, b.dataset.label);
+    });
+    // Disdici allievo
     document.querySelectorAll('.btn-disdici').forEach(b => {
       b.onclick = () => apriDisdici(b.dataset.prenot, b.dataset.info);
     });
-    // Bottoni P/A (istruttore/segreteria)
+    // Marca P/A
     document.querySelectorAll('.pa-btn').forEach(b => {
-      b.onclick = () => onMarcaPresenza(b.dataset.prenot, b.dataset.action, b);
+      b.onclick = () => onMarcaPresenza(b.dataset.prenot, b.dataset.action, b.dataset.tipo, b);
     });
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     AZIONI: PRENOTA / DISDICI / MARCA PRESENZA
+     AZIONI: PRENOTA / DISDICI / MARCA / LEAD
      ═══════════════════════════════════════════════════════════════════ */
 
   function apriPrenota(slotId, dataIso, info) {
@@ -760,10 +940,9 @@
 
     closeModal('modal-prenota');
     toast('✓ Lezione prenotata');
-    // Aggiorna lezioni_residue locale
     userProfile.lezioni_residue = Math.max(0, (userProfile.lezioni_residue || 0) - 1);
     updateCounter();
-    // Ricarica
+    notifyParent('prenota');
     await render();
   }
 
@@ -798,22 +977,31 @@
 
     closeModal('modal-disdici');
     toast('✓ Lezione disdetta · credito riaccreditato');
-    // Aggiorna lezioni_residue locale (riaccreditata)
     userProfile.lezioni_residue = (userProfile.lezioni_residue || 0) + 1;
     updateCounter();
+    notifyParent('disdici');
     await render();
   }
 
-  async function onMarcaPresenza(prenotId, action, btn) {
-    // action: 'presente' o 'assente'
-    const p_presente = action === 'presente';
-    const oldText = btn.textContent;
+  async function onMarcaPresenza(prenotId, action, tipo, btn) {
     btn.disabled = true;
+    let error;
 
-    const { error } = await sb.rpc('marca_presenza_corso', {
-      p_prenotazione_id: prenotId,
-      p_presente: p_presente
-    });
+    if (tipo === 'prima_lezione') {
+      // RPC v3.40: marca_presenza_prima_lezione(p_prenotazione_id, p_nuovo_stato)
+      const res = await sb.rpc('marca_presenza_prima_lezione', {
+        p_prenotazione_id: prenotId,
+        p_nuovo_stato: action   // 'fatto' o 'no_show'
+      });
+      error = res.error;
+    } else {
+      // RPC v3.39: marca_presenza_corso(p_prenotazione_id, p_presente)
+      const res = await sb.rpc('marca_presenza_corso', {
+        p_prenotazione_id: prenotId,
+        p_presente: action === 'presente'
+      });
+      error = res.error;
+    }
 
     if (error) {
       btn.disabled = false;
@@ -821,8 +1009,139 @@
       return;
     }
 
-    toast(`✓ Segnato ${p_presente ? 'presente' : 'assente'}`);
+    const lab = action === 'presente' || action === 'fatto' ? 'presente' : (action === 'no_show' ? 'no-show' : 'assente');
+    toast(`✓ Segnato ${lab}`);
+    notifyParent('marca_presenza');
     await render();
+  }
+
+  /* ─── Lead picker (segreteria, Prima lezione) ─────────────────────── */
+
+  async function apriLeadPicker(slotId, dataIso, label) {
+    currentSlotForLead = { slotId, dataIso, label };
+    document.getElementById('lead-slot-info').textContent = label;
+    document.getElementById('lead-msg').innerHTML = '';
+    document.getElementById('lead-msg').className = 'modal-msg';
+    document.getElementById('nuovo-lead').style.display = 'none';
+    ['nl-nome','nl-cognome','nl-tel','nl-email','nl-note'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('nl-fonte').value = '';
+
+    // Popola dropdown fonti
+    const fonteSel = document.getElementById('nl-fonte');
+    fonteSel.innerHTML = '<option value="">— seleziona —</option>' +
+      fontiCache.map(f => `<option value="${f.code}">${f.label}</option>`).join('');
+
+    // Popola dropdown lead
+    try {
+      const leads = await caricaLeadsPrenotabili();
+      const sel = document.getElementById('lead-select');
+      sel.innerHTML = '<option value="">— seleziona —</option>' +
+        leads.map(l => `<option value="${l.id}">${l.nome} ${l.cognome||''} · ${l.telefono||'no tel'} · ${labelStage(l.funnel_stage)}</option>`).join('') +
+        '<option value="__new__">➕ Aggiungi nuovo lead…</option>';
+    } catch (err) {
+      document.getElementById('lead-msg').className = 'modal-msg err';
+      document.getElementById('lead-msg').textContent = 'Errore caricamento lead: ' + (err.message || err);
+    }
+
+    document.getElementById('lead-conferma').disabled = false;
+    openModal('modal-lead');
+  }
+
+  function traduciErrore(err, contesto) {
+    const code = err?.code || '';
+    const emsg = err?.message || '';
+    const details = err?.details || '';
+    if (code === '23505') {
+      if (emsg.includes('uniq_crm_leads_telefono') || details.includes('telefono')) {
+        return 'Esiste già un lead con questo telefono. Cercalo nella lista.';
+      }
+      if (emsg.includes('uniq_prenotazione_slot_lead_data') || (details.includes('slot_id') && details.includes('data_lezione'))) {
+        return 'Questo lead è già prenotato su questo slot per questa data.';
+      }
+      return 'Dato duplicato. ' + (details || emsg);
+    }
+    if (code === 'P0001' && emsg.includes('Slot pieno')) {
+      return 'Lo slot si è appena riempito. Ricarica per vedere la situazione.';
+    }
+    return (contesto ? contesto + ': ' : '') + (emsg || 'errore sconosciuto');
+  }
+
+  async function onLeadConferma() {
+    const btn = document.getElementById('lead-conferma');
+    const btnAnn = document.getElementById('lead-annulla');
+    const msg = document.getElementById('lead-msg');
+    msg.innerHTML = ''; msg.className = 'modal-msg';
+
+    const sel = document.getElementById('lead-select').value;
+    if (!sel) {
+      msg.className = 'modal-msg err';
+      msg.textContent = 'Seleziona un lead o aggiungine uno nuovo.';
+      return;
+    }
+
+    let nuovoLeadData = null;
+    if (sel === '__new__') {
+      const nome = document.getElementById('nl-nome').value.trim();
+      if (!nome) {
+        msg.className = 'modal-msg err';
+        msg.textContent = 'Il nome è obbligatorio.';
+        return;
+      }
+      nuovoLeadData = {
+        nome,
+        cognome: document.getElementById('nl-cognome').value.trim() || null,
+        telefono: document.getElementById('nl-tel').value.trim() || null,
+        email: document.getElementById('nl-email').value.trim() || null,
+        fonte: document.getElementById('nl-fonte').value || 'manuale',
+        note: document.getElementById('nl-note').value.trim() || null,
+        funnel_stage: 'nuovo'
+      };
+    }
+
+    btn.disabled = true; btnAnn.disabled = true;
+    btn.textContent = 'Prenotazione…';
+
+    let leadId = sel;
+    let leadAppenaCreato = null;
+
+    try {
+      if (sel === '__new__') {
+        const { data: nuovo, error: e1 } = await sb.from('crm_leads')
+          .insert(nuovoLeadData).select('id').single();
+        if (e1) throw { ...e1, _contesto: 'Creazione lead' };
+        leadId = nuovo.id;
+        leadAppenaCreato = nuovo.id;
+      }
+
+      const { error: e2 } = await sb.from('prenotazioni_prima_lezione').insert({
+        lead_id: leadId,
+        slot_id: currentSlotForLead.slotId,
+        data_lezione: currentSlotForLead.dataIso
+      });
+      if (e2) throw { ...e2, _contesto: 'Prenotazione' };
+
+      const { error: e3 } = await sb.from('crm_leads').update({
+        funnel_stage: 'prenotato_prima_lezione',
+        prossima_azione_il: currentSlotForLead.dataIso
+      }).eq('id', leadId);
+      if (e3) throw { ...e3, _contesto: 'Update stato' };
+
+      closeModal('modal-lead');
+      toast('✓ Prenotazione creata');
+      notifyParent('lead_prenota');
+      await render();
+    } catch (err) {
+      // Rollback lead se INSERT prenotazione fallisce
+      if (leadAppenaCreato && err._contesto === 'Prenotazione') {
+        sb.from('crm_leads').delete().eq('id', leadAppenaCreato)
+          .then(({ error }) => { if (error) console.warn('Cleanup lead orfano:', error); });
+      }
+      msg.className = 'modal-msg err';
+      msg.textContent = traduciErrore(err, err._contesto);
+    } finally {
+      btn.disabled = false; btnAnn.disabled = false;
+      btn.textContent = 'Conferma prenotazione';
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════════════
