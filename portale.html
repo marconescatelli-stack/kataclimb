@@ -1493,7 +1493,7 @@ fill="#1d4ed8" stroke="none">
     </div>
 
     <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Nota (opzionale)</div>
-    <textarea id="pagamento-nota" class="input" placeholder="Es. ricevuto in palestra il 23/05, pagato dal padre, ecc." maxlength="300" oninput="document.getElementById('pagamento-nota-count').textContent=this.value.length"></textarea>
+    <textarea id="pagamento-nota" class="input" placeholder="Es. ricevuto in Accademia il 23/05, pagato dal padre, ecc." maxlength="300" oninput="document.getElementById('pagamento-nota-count').textContent=this.value.length"></textarea>
     <div style="font-size:12px;color:var(--text2);text-align:right;margin-top:3px;font-weight:600"><span id="pagamento-nota-count">0</span>/300</div>
 
     <div style="display:flex;gap:7px;margin-top:14px">
@@ -1796,7 +1796,7 @@ fill="#1d4ed8" stroke="none">
     <label style="display:block;font-size:12.5px;color:var(--text2);margin-bottom:5px;font-weight:700">Nuovo stato</label>
     <select id="ag-stato-sel" class="input" style="margin-bottom:12px">
       <option value="solo_online">🔵 Solo online</option>
-      <option value="presenza_fisica_palestra">🟢 Presenza fisica palestra</option>
+      <option value="presenza_fisica_palestra">🟢 Presenza fisica Accademia</option>
       <option value="viaggio_lavoro">🟣 Viaggio lavoro</option>
       <option value="ferie">🟡 Ferie</option>
       <option value="evento_dedicato">🔴 Evento dedicato</option>
@@ -1858,7 +1858,7 @@ fill="#1d4ed8" stroke="none">
     <select id="ag-todo-statoreq" class="input" style="margin-bottom:16px">
       <option value="">— qualunque —</option>
       <option value="solo_online">🔵 Solo online</option>
-      <option value="presenza_fisica_palestra">🟢 Presenza fisica palestra</option>
+      <option value="presenza_fisica_palestra">🟢 Presenza fisica Accademia</option>
       <option value="viaggio_lavoro">🟣 Viaggio lavoro</option>
       <option value="ferie">🟡 Ferie</option>
       <option value="evento_dedicato">🔴 Evento dedicato</option>
@@ -5119,7 +5119,7 @@ function showMySec(id){
 /* ═══ AGENDA (P0.3) ═══ */
 const AG_STATO_META={
   solo_online:{label:'Solo online',color:'#2E86AB',icon:'🔵'},
-  presenza_fisica_palestra:{label:'Presenza fisica palestra',color:'#0A7F4B',icon:'🟢'},
+  presenza_fisica_palestra:{label:'Presenza fisica Accademia',color:'#0A7F4B',icon:'🟢'},
   viaggio_lavoro:{label:'Viaggio lavoro',color:'#7B2D8E',icon:'🟣'},
   ferie:{label:'Ferie',color:'#A77E11',icon:'🟡'},
   evento_dedicato:{label:'Evento dedicato',color:'#ED4956',icon:'🔴'}
