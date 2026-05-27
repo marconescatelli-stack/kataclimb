@@ -1,0 +1,59 @@
+{
+  "name": "KataClimb · Accademia RCC",
+  "short_name": "KataClimb",
+  "description": "Il portale dell'Accademia KataClimb. Profilo, agenda lezioni, Kata, percorso di arrampicata.",
+  "id": "/?source=pwa",
+  "start_url": "/portale.html?source=pwa",
+  "scope": "/",
+  "lang": "it",
+  "dir": "ltr",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "theme_color": "#1a1a2e",
+  "background_color": "#ffffff",
+  "categories": ["sports", "lifestyle", "education"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agenda",
+      "short_name": "Agenda",
+      "description": "Le tue prossime lezioni",
+      "url": "/agenda.html?source=pwa_shortcut",
+      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Profilo",
+      "short_name": "Profilo",
+      "description": "Il tuo percorso e i tuoi Kata",
+      "url": "/portale.html?source=pwa_shortcut",
+      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
