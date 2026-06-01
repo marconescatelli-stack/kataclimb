@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0EA5E9">
+<meta name="robots" content="noindex,nofollow">
+<title>Il tuo Open · Accademia RCC</title>
+<meta name="description" content="Il percorso Open di KataClimb. 7 lezioni per andare oltre, con leggerezza e metodo.">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kataclimb.com/proposta-open.html">
+<meta property="og:title" content="Il tuo percorso Open · Accademia RCC">
+<meta property="og:description" content="7 lezioni per andare oltre. Guarda i giorni disponibili e scegli come iniziare.">
+<meta property="og:image" content="https://kataclimb.com/arrampicata_kalymnos_rcc.jpg">
+<meta property="og:locale" content="it_IT">
+<meta property="og:site_name" content="Accademia RCC · KataClimb">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#FFFFFF; --bg2:#F4F4F5; --bg3:#0A0A0A;
+  --ink:#0A0A0A; --ink2:#404040; --ink3:#737373;
+  --ink-on-dark:#FFFFFF; --ink-on-dark2:#A3A3A3;
+  --border:#E5E5E5; --border2:#D4D4D4;
+  --sky:#0EA5E9; --sky-dark:#0284C7;
+  --yellow:#FACC15; --red:#EF4444; --green:#22C55E;
+  --r:8px; --r-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--ink);
+  min-height:100vh; -webkit-font-smoothing:antialiased;
+  font-size:16px; line-height:1.55;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .5s ease both}
+.fu1{animation-delay:.06s} .fu2{animation-delay:.12s} .fu3{animation-delay:.18s} .fu4{animation-delay:.24s}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.header{
+  display:flex; justify-content:center; align-items:center; gap:18px;
+  padding:14px 22px; border-bottom:1px solid var(--border); background:var(--bg);
+}
+.header .logo{height:30px;width:auto;display:block}
+.header .logo-rcc{height:26px}
+@media(min-width:768px){.header .logo{height:38px}.header .logo-rcc{height:32px}}
+.hero-photo{
+  width:100%; height:200px; object-fit:cover; display:block;
+}
+@media(min-width:768px){.hero-photo{height:280px}}
+
+.hero{padding:44px 22px 40px; text-align:center; background:#0A0A0A; color:#fff}
+.hero .top-pill{
+  display:inline-block; background:var(--sky); color:#fff;
+  padding:9px 22px; border-radius:var(--r-pill);
+  font-weight:900; font-size:13px; letter-spacing:.03em; margin-bottom:22px;
+}
+.hero h1{font-size:34px; line-height:1.12; font-weight:900; margin-bottom:14px; letter-spacing:-.02em}
+.hero h1 .accent{color:var(--sky)}
+.hero p{font-size:16px; color:var(--ink-on-dark2); max-width:540px; margin:0 auto; line-height:1.65}
+@media(min-width:768px){.hero h1{font-size:46px} .hero p{font-size:18px}}
+
+.wrap{max-width:640px; margin:0 auto; padding:36px 22px 48px}
+
+.info-ciclico{
+  background:#EFF6FF; border:1px solid #BFDBFE; border-radius:14px;
+  padding:18px 20px; margin-bottom:30px; font-size:14.5px; color:#1E3A5F; line-height:1.65;
+}
+.info-ciclico strong{color:var(--sky-dark)}
+
+.section-title{
+  font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink3); margin-bottom:6px; text-align:center;
+}
+.section-sub{font-size:14px; color:var(--ink2); text-align:center; margin-bottom:22px}
+
+.week-label{
+  font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink3); margin:22px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--border);
+}
+.week-label:first-of-type{margin-top:0}
+
+.slot-grid{display:flex; flex-direction:column; gap:10px}
+.slot-card{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:15px 18px; border:1px solid var(--border2); border-radius:14px; background:var(--bg);
+}
+.slot-card.full{background:#fafafa; opacity:.6}
+.slot-info .day{font-weight:900; font-size:16px}
+.slot-info .time{font-size:13px; color:var(--ink2); margin-top:2px; font-weight:500}
+.slot-info .ist{font-size:11px; color:var(--ink3); margin-top:3px; letter-spacing:.02em}
+.slot-badge{
+  font-size:12px; font-weight:800; padding:7px 13px; border-radius:var(--r-pill);
+  letter-spacing:.02em; white-space:nowrap;
+}
+.slot-badge.ok{background:var(--sky); color:#fff}
+.slot-badge.warn{background:var(--yellow); color:var(--ink)}
+.slot-badge.full{background:var(--border2); color:var(--ink3)}
+
+.empty{text-align:center; padding:34px 0; color:var(--ink3); font-size:14px}
+.loader{
+  display:inline-block; width:18px; height:18px; border:2px solid var(--border2);
+  border-top-color:var(--sky); border-radius:50%; animation:spin .7s linear infinite;
+  vertical-align:middle; margin-right:8px;
+}
+.note-posti{font-size:12.5px; color:var(--ink3); text-align:center; margin-top:16px; line-height:1.6}
+
+.pay-block{margin-top:40px; padding-top:36px; border-top:1px solid var(--border)}
+.pay-card{border:1px solid var(--border2); border-radius:16px; padding:22px; margin-bottom:14px}
+.pay-card .pc-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px}
+.pay-card .pc-name{font-size:17px; font-weight:800}
+.pay-card .pc-price{font-size:22px; font-weight:900; color:var(--sky-dark)}
+.pay-card .pc-desc{font-size:13px; color:var(--ink2); margin-bottom:16px; line-height:1.55}
+.btn-pay{
+  display:block; width:100%; text-align:center;
+  background:var(--sky); color:#fff; font-weight:800; font-size:16px;
+  padding:15px; border-radius:12px; border:0; cursor:pointer; text-decoration:none;
+  font-family:inherit; transition:transform .1s, box-shadow .15s;
+}
+.btn-pay:active{transform:scale(.98)}
+.btn-pay:hover{box-shadow:0 4px 16px rgba(14,165,233,.3)}
+.btn-pay.alt{background:var(--bg); color:var(--sky-dark); border:1.5px solid var(--sky)}
+.foot-note{font-size:12px; color:var(--ink3); text-align:center; margin-top:24px; line-height:1.7}
+.err-box{
+  background:#FEF2F2; border:1px solid #FECACA; color:#991B1B;
+  padding:14px 16px; border-radius:12px; font-size:14px; text-align:center; margin-top:20px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="https://kataclimb.com/logo-rcc.png" alt="Accademia RCC" class="logo logo-rcc"
+       onerror="this.style.display='none'">
+  <img src="https://kataclimb.com/kataclimb-logo.svg" alt="KataClimb" class="logo"
+       onerror="this.style.display='none'">
+</div>
+
+<img src="https://kataclimb.com/hero-photo.jpg" alt="Arrampicata · Accademia RCC" class="hero-photo">
+
+<div class="hero">
+  <div class="top-pill fu fu1">IL TUO PERCORSO OPEN</div>
+  <h1 class="fu fu2">7 lezioni per <span class="accent">andare oltre</span></h1>
+  <p class="fu fu3" id="hero-sub">Ora puoi vedere il calendario con le disponibilità, così capisci quando frequentare.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="info-ciclico fu fu1">
+    I corsi Open sono <strong>ciclici</strong>: ogni settimana si ripetono questi giorni.
+    La scelta di una settimana non preclude le altre — in base a quando sei libera,
+    partecipi alla lezione disponibile del momento.
+    Una volta iscritta, <strong>prenoti la tua lezione volta per volta</strong>,
+    di settimana in settimana, direttamente dal portale.
+  </div>
+
+  <div class="section-title fu fu1">Calendario Open · disponibilità</div>
+  <div class="section-sub fu fu1">In tempo reale · 10 posti per lezione</div>
+
+  <div id="slot-grid">
+    <div class="empty"><span class="loader"></span>Carico le disponibilità…</div>
+  </div>
+
+  <div class="note-posti" id="note-posti"></div>
+
+  <div class="pay-block" id="pay-block" style="display:none">
+    <div class="section-title">Come vuoi iniziare</div>
+    <div class="section-sub">Pagamento sicuro con carta · gestito da Stripe</div>
+
+    <div class="pay-card" id="card-saldo">
+      <div class="pc-top">
+        <span class="pc-name">Open completo</span>
+        <span class="pc-price">215&nbsp;€</span>
+      </div>
+      <div class="pc-desc">Tutte e 7 le lezioni, in un'unica soluzione. 45 giorni di validità.</div>
+      <a class="btn-pay" id="btn-saldo" href="#">Paga e inizia →</a>
+    </div>
+
+    <div class="pay-card" id="card-mezza">
+      <div class="pc-top">
+        <span class="pc-name">½ Open</span>
+        <span class="pc-price">115&nbsp;€</span>
+      </div>
+      <div class="pc-desc">Le prime 4 lezioni ora, le altre 3 quando vuoi proseguire.</div>
+      <a class="btn-pay alt" id="btn-mezza" href="#">Inizia con la prima metà →</a>
+    </div>
+
+    <div class="foot-note">
+      Dopo il pagamento ricevi via email l'accesso al portale, dove prenoti le tue lezioni
+      scegliendo tra questi giorni, volta per volta.
+    </div>
+  </div>
+
+  <div id="err-slot"></div>
+
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL  = 'https://wbtougychlhnlcnonqge.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+const MESI = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+
+// ── Link di pagamento via URL (?saldo=...&mezza=...&nome=...) ─────────
+const qs = new URLSearchParams(location.search);
+const urlSaldo = qs.get('saldo');
+const urlMezza = qs.get('mezza');
+const nome     = qs.get('nome');
+
+if (nome) {
+  document.getElementById('hero-sub').innerHTML =
+    `Ciao <strong style="color:#fff">${nome}</strong> — ora puoi vedere il calendario con le disponibilità, così capisci quando frequentare.`;
+}
+
+const payBlock = document.getElementById('pay-block');
+if (urlSaldo || urlMezza) {
+  payBlock.style.display = 'block';
+  if (urlSaldo) document.getElementById('btn-saldo').href = urlSaldo;
+  else document.getElementById('card-saldo').style.display = 'none';
+  if (urlMezza) document.getElementById('btn-mezza').href = urlMezza;
+  else document.getElementById('card-mezza').style.display = 'none';
+}
+
+// ── Carica disponibilità Open via RPC (solo numeri, nessun dato personale) ──
+function fmtData(isoStr){
+  const [y,m,d] = isoStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const giorno = GIORNI[(dt.getDay()+6)%7];
+  return { giorno, breve: `${giorno} ${d} ${MESI[m-1]}`, dt };
+}
+function settimanaKey(dt){
+  // lunedì della settimana di dt
+  const d = new Date(dt);
+  const off = (d.getDay()+6)%7;
+  d.setDate(d.getDate()-off);
+  return d;
+}
+
+async function caricaDisponibilita(){
+  const grid = document.getElementById('slot-grid');
+  try {
+    const { data, error } = await sb.rpc('slot_open_disponibilita');
+    if (error) throw error;
+
+    if (!data || data.length === 0){
+      grid.innerHTML = '<div class="empty">Nessuna lezione Open in programma al momento. Scrivici e ti aggiorniamo.</div>';
+      return;
+    }
+
+    // Raggruppo per settimana per dare il senso "ciclico"
+    const perSettimana = {};
+    data.forEach(r => {
+      const info = fmtData(r.data_lezione);
+      const wk = settimanaKey(info.dt);
+      const wkKey = wk.toISOString().slice(0,10);
+      if (!perSettimana[wkKey]) perSettimana[wkKey] = { lunedi: wk, righe: [] };
+      perSettimana[wkKey].righe.push({ ...r, info });
+    });
+
+    grid.innerHTML = '';
+    const oggi = new Date(); oggi.setHours(0,0,0,0);
+
+    Object.keys(perSettimana).sort().forEach(wkKey => {
+      const sett = perSettimana[wkKey];
+      const dom = new Date(sett.lunedi); dom.setDate(dom.getDate()+6);
+      const isQuesta = oggi >= sett.lunedi && oggi <= dom;
+      const label = isQuesta
+        ? 'Questa settimana'
+        : `Settimana ${sett.lunedi.getDate()} ${MESI[sett.lunedi.getMonth()]} – ${dom.getDate()} ${MESI[dom.getMonth()]}`;
+
+      const wkDiv = document.createElement('div');
+      wkDiv.className = 'week-label';
+      wkDiv.textContent = label;
+      grid.appendChild(wkDiv);
+
+      const gd = document.createElement('div');
+      gd.className = 'slot-grid';
+      sett.righe.forEach(r => {
+        const liberi = r.liberi;
+        let badgeClass, badgeText;
+        if (liberi <= 0)        { badgeClass='full'; badgeText='AL COMPLETO'; }
+        else if (liberi === 1)  { badgeClass='warn'; badgeText='1 POSTO'; }
+        else if (r.occupati===0){ badgeClass='ok';   badgeText='DISPONIBILE'; }
+        else                    { badgeClass='warn'; badgeText=`${liberi} POSTI`; }
+
+        const ora = r.ora_inizio.slice(0,5) + '–' + r.ora_fine.slice(0,5);
+        const ist = r.istruttore_nome ? `con ${r.istruttore_nome}` : '';
+
+        const card = document.createElement('div');
+        card.className = 'slot-card' + (liberi<=0 ? ' full' : '');
+        card.innerHTML = `
+          <div class="slot-info">
+            <div class="day">${r.info.breve}</div>
+            <div class="time">${ora}</div>
+            ${ist ? `<div class="ist">${ist}</div>` : ''}
+          </div>
+          <div class="slot-badge ${badgeClass}">${badgeText}</div>`;
+        gd.appendChild(card);
+      });
+      grid.appendChild(gd);
+    });
+
+    document.getElementById('note-posti').textContent =
+      'I posti si aggiornano in tempo reale. Le lezioni le prenoti tu dal portale dopo l\'iscrizione, scegliendo tra questi giorni.';
+
+  } catch(e){
+    console.error('[proposta-open] caricaDisponibilita', e);
+    grid.innerHTML = '';
+    document.getElementById('err-slot').innerHTML =
+      '<div class="err-box">Non riesco a caricare le disponibilità in questo momento. Riprova tra poco o scrivici.</div>';
+  }
+}
+
+caricaDisponibilita();
+</script>
+</body>
+</html>
