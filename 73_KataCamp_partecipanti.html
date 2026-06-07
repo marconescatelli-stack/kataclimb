@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Partecipanti · 73° KataCamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+:root{
+  --amber:#FFBB58; --amber-deep:#F39A1F;
+  --ink:#16130d; --ink2:#231e15; --paper:#f6f1e7; --paper2:#efe7d6;
+  --teal:#1f8a8f; --teal-deep:#0f5e62;
+  --line:rgba(22,19,13,.12); --maxw:1080px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Archivo",system-ui,sans-serif;font-size:16px;line-height:1.5}
+h1{font-family:"Archivo Black",sans-serif;font-weight:900;margin:0;font-size:26px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:22px}
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.pill{display:inline-block;background:var(--amber);color:var(--ink);
+  font-family:"Archivo Black";text-transform:uppercase;letter-spacing:.02em;
+  font-size:11px;padding:5px 10px;border-radius:999px}
+.muted{color:#5c5345;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:16px}
+input[type=password]{font:inherit;padding:11px 14px;border:1.5px solid var(--line);
+  border-radius:12px;width:100%;max-width:320px;background:#fff}
+.btn{font-family:"Archivo Black";border:none;cursor:pointer;border-radius:12px;
+  padding:11px 18px;font-size:14px;background:var(--amber);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.err{color:#a12; font-size:14px; margin-top:8px}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 4px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:120px}
+.stat .n{font-family:"Archivo Black";font-size:22px;color:var(--teal-deep);line-height:1}
+.stat .l{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#5c5345;margin-top:4px}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;min-width:720px;background:#fff}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+th{font-family:"Archivo Black";font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#5c5345;background:var(--paper2)}
+tr:last-child td{border-bottom:none}
+.st{font-family:"Archivo Black";font-size:10px;text-transform:uppercase;letter-spacing:.04em;
+  padding:3px 8px;border-radius:999px;white-space:nowrap}
+.st-att{background:rgba(243,154,31,.18);color:var(--amber-deep)}
+.st-conf{background:rgba(31,138,143,.18);color:var(--teal-deep)}
+.st-ann{background:rgba(22,19,13,.10);color:#5c5345}
+.sub{color:#5c5345;font-size:12px}
+.refresh{background:none;border:1.5px solid var(--line);color:var(--ink);
+  font-family:"Archivo";font-weight:600;border-radius:12px;padding:9px 14px;cursor:pointer;font-size:13px}
+.empty{padding:24px;text-align:center;color:#5c5345}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Partecipanti</h1>
+    <span class="pill">73° KataCamp</span>
+  </div>
+  <p class="muted">Elenco riservato. Inserisci la password per vedere chi si è iscritto.</p>
+
+  <div class="card" id="gate">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input type="password" id="pass" placeholder="Password" autocomplete="current-password">
+      <button class="btn" id="go">Entra</button>
+    </div>
+    <div class="err" id="err" style="display:none"></div>
+  </div>
+
+  <div id="content" style="display:none">
+    <div class="stats" id="stats"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:6px">
+      <button class="refresh" id="refresh">↻ Aggiorna</button>
+    </div>
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Nome</th><th>Categoria</th><th>Quota</th><th>Acconto</th>
+            <th>Stato</th><th>Contatti</th><th>Iscritto il</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="empty" style="display:none">Nessun partecipante ancora.</p>
+  </div>
+</div>
+
+<script>
+// === Configura una sola riga: l'URL del Worker kc-eventi-lista ===
+const WORKER_URL = "https://...url-del-worker...";
+
+let PASS = "";
+
+const $ = function(id){ return document.getElementById(id); };
+
+function eur(n){
+  if(n===null||n===undefined||n==="") return "—";
+  return "€" + Number(n).toLocaleString("it-IT");
+}
+function fdate(s){
+  if(!s) return "—";
+  const d = new Date(s);
+  return d.toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"});
+}
+function stBadge(st){
+  if(st==="confermato")        return '<span class="st st-conf">confermato</span>';
+  if(st==="annullato")         return '<span class="st st-ann">annullato</span>';
+  return '<span class="st st-att">in attesa bonifico</span>';
+}
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+  });
+}
+
+async function load(){
+  $("err").style.display="none";
+  try{
+    const r = await fetch(WORKER_URL, { headers: { "x-kc-pass": PASS } });
+    if(r.status===401){ throw new Error("Password errata."); }
+    if(!r.ok){ throw new Error("Errore nel caricamento (" + r.status + ")."); }
+    const data = await r.json();
+    const rows = (data && data.rows) ? data.rows : [];
+    render(rows);
+    $("gate").style.display="none";
+    $("content").style.display="block";
+  }catch(e){
+    $("err").textContent = e.message || "Errore.";
+    $("err").style.display="block";
+  }
+}
+
+function render(rows){
+  const body = $("rows");
+  body.innerHTML = "";
+  $("empty").style.display = rows.length ? "none" : "block";
+
+  let conf=0, accConf=0;
+  rows.forEach(function(x){
+    if(x.stato==="confermato"){ conf++; accConf += Number(x.acconto||0); }
+    const contatti = [x.telefono, x.email].filter(Boolean).map(esc).join('<br><span class="sub">') ;
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      "<td><b>"+esc(x.nome)+"</b>"+(x.profilo?'<br><span class="sub">@'+esc(x.profilo)+"</span>":"")+"</td>"+
+      "<td>"+esc(x.categoria)+"</td>"+
+      "<td>"+eur(x.quota)+"</td>"+
+      "<td>"+eur(x.acconto)+"</td>"+
+      "<td>"+stBadge(x.stato)+"</td>"+
+      "<td>"+(contatti?'<span class="sub">'+contatti+"</span>":"—")+"</td>"+
+      "<td>"+fdate(x.created_at)+"</td>";
+    body.appendChild(tr);
+  });
+
+  $("stats").innerHTML =
+    '<div class="stat"><div class="n">'+rows.length+'</div><div class="l">Iscritti</div></div>'+
+    '<div class="stat"><div class="n">'+conf+'</div><div class="l">Confermati</div></div>'+
+    '<div class="stat"><div class="n">'+eur(accConf)+'</div><div class="l">Acconti confermati</div></div>';
+}
+
+$("go").addEventListener("click", function(){
+  PASS = $("pass").value.trim();
+  if(!PASS){ $("err").textContent="Inserisci la password."; $("err").style.display="block"; return; }
+  load();
+});
+$("pass").addEventListener("keydown", function(e){ if(e.key==="Enter") $("go").click(); });
+$("refresh").addEventListener("click", load);
+</script>
+</body>
+</html>
