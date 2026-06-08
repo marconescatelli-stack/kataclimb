@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Partecipanti · 73° KataCamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --amber:#FFBB58; --amber-deep:#F39A1F;
+  --ink:#16130d; --ink2:#231e15; --paper:#f6f1e7; --paper2:#efe7d6;
+  --teal:#1f8a8f; --teal-deep:#0f5e62; --line:rgba(22,19,13,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:"Archivo",system-ui,sans-serif;font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:20px}
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:"Archivo Black";font-size:23px}
+.pill{display:inline-block;background:var(--amber);color:var(--ink);font-family:"Archivo Black";
+  text-transform:uppercase;letter-spacing:.02em;font-size:11px;padding:5px 10px;border-radius:999px}
+.muted{color:#5c5345;font-size:13px}
+.btn{font-family:"Archivo Black";border:none;cursor:pointer;border-radius:10px;padding:11px 16px;font-size:13px;background:var(--amber);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.center{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.err{color:#a12;font-size:14px}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+@media(max-width:920px){.board{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.board{grid-template-columns:1fr}}
+.col{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;min-height:120px}
+.col h2{font-family:"Archivo Black";font-size:12px;text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center;padding:4px 4px 10px}
+.col .cnt{background:var(--paper2);border-radius:999px;padding:2px 9px;font-size:12px}
+.c-int h2{color:#5c5345}.c-pre h2{color:var(--amber-deep)}.c-con h2{color:var(--teal-deep)}.c-pres h2{color:#7B2D8E}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px}
+.card .nm{font-family:"Archivo Black";font-size:14px}
+.card .sub{font-size:12px;color:#5c5345;margin-top:2px;word-break:break-word}
+.card .money{font-size:12px;color:var(--teal-deep);font-weight:700;margin-top:3px}
+.row{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.mini{font-family:"Archivo";font-weight:700;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;cursor:pointer}
+.mini.go{background:var(--ink);color:#fff;border-color:var(--ink)}
+.mini.x{color:#a12}
+.empty{color:#9a8e78;font-size:12px;text-align:center;padding:14px 0}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.note{background:var(--paper2);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:10px 14px;margin-top:14px;font-size:13px}
+.logout{background:none;border:1px solid var(--line);color:var(--ink);font-family:"Archivo";font-weight:600;border-radius:9px;padding:8px 12px;cursor:pointer;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <div class="top"><h1>Partecipanti</h1><span class="pill">73&deg; KataCamp</span></div>
+    <button class="logout" id="logout" style="display:none">Esci</button>
+  </div>
+
+  <div id="gate" class="center">
+    <p class="muted">Area riservata. Accedi col tuo account per gestire i partecipanti.</p>
+    <button class="btn" id="login">Entra con Google</button>
+    <div class="err" id="gateErr"></div>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="board">
+      <div class="col c-int"><h2>Interessati <span class="cnt" id="n-int">0</span></h2><div id="col-interessato"></div></div>
+      <div class="col c-pre"><h2>Prenotati <span class="cnt" id="n-pre">0</span></h2><div id="col-prenotato"></div></div>
+      <div class="col c-con"><h2>Confermati <span class="cnt" id="n-con">0</span></h2><div id="col-confermato"></div></div>
+      <div class="col c-pres"><h2>Presenti <span class="cnt" id="n-pres">0</span></h2><div id="col-presente"></div></div>
+    </div>
+    <div class="note">Annullati: <span id="n-ann">0</span>. Far avanzare allo stato <b>Confermato</b> registra il pagamento qui; il provisioning automatico (account + scudetto + percorso) sar&agrave; collegato in un secondo momento.</div>
+  </div>
+</div>
+
+<script>
+const SB_URL = "https://wbtougychlhnlcnonqge.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E";
+const EVENTO_SLUG = "kcamp-73";
+const ORDER = ["interessato","prenotato","confermato","presente"];
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+const $ = (id) => document.getElementById(id);
+let eventoId = null;
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function eur(n){ return (n==null||n==="") ? "" : "\u20ac"+Number(n).toLocaleString("it-IT"); }
+function fdate(s){ if(!s) return ""; return new Date(s).toLocaleDateString("it-IT",{day:"2-digit",month:"short"}); }
+
+async function boot(){
+  const sess = await sb.auth.getSession();
+  const session = sess.data.session;
+  if(!session){ $("gate").style.display="flex"; return; }
+  let role=null;
+  try{
+    const { data } = await sb.from("profile_data").select("role").eq("user_id", session.user.id).single();
+    role = data ? data.role : null;
+  }catch(e){}
+  if(role !== "creator"){
+    $("gate").style.display="flex";
+    $("gateErr").textContent = "Questo account non ha accesso (serve il profilo creator).";
+    return;
+  }
+  $("gate").style.display="none";
+  $("app").style.display="block";
+  $("logout").style.display="inline-block";
+  const { data:ev, error:evErr } = await sb.from("eventi").select("id").eq("slug", EVENTO_SLUG).single();
+  if(evErr || !ev){ $("app").innerHTML = '<p class="err">Evento non trovato.</p>'; return; }
+  eventoId = ev.id;
+  await load();
+}
+
+async function load(){
+  const { data, error } = await sb.from("eventi_partecipazioni")
+    .select("*").eq("evento_id", eventoId).order("created_at",{ascending:false});
+  if(error){ console.error(error); return; }
+  render(data || []);
+}
+
+function render(rows){
+  ORDER.forEach(function(s){ $("col-"+s).innerHTML=""; });
+  const counts = {interessato:0,prenotato:0,confermato:0,presente:0,annullato:0};
+  rows.forEach(function(r){
+    counts[r.stato] = (counts[r.stato]||0)+1;
+    if(r.stato==="annullato") return;
+    $("col-"+r.stato).appendChild(cardEl(r));
+  });
+  $("n-int").textContent=counts.interessato; $("n-pre").textContent=counts.prenotato;
+  $("n-con").textContent=counts.confermato; $("n-pres").textContent=counts.presente;
+  $("n-ann").textContent=counts.annullato;
+  ORDER.forEach(function(s){ if(!$("col-"+s).children.length) $("col-"+s).innerHTML='<div class="empty">&mdash;</div>'; });
+}
+
+function cardEl(r){
+  const idx = ORDER.indexOf(r.stato);
+  const next = ORDER[idx+1];
+  const nextLabel = {prenotato:"\u2192 Prenotato", confermato:"\u2192 Confermato (pagato)", presente:"\u2192 Presente"}[next];
+  const contatti = [r.telefono, r.email].filter(Boolean).map(esc).join(" \u00b7 ");
+  const money = [eur(r.quota)&&("quota "+eur(r.quota)), eur(r.acconto)&&("acconto "+eur(r.acconto))].filter(Boolean).join(" \u00b7 ");
+  const d = document.createElement("div");
+  d.className="card";
+  d.innerHTML =
+    '<div class="nm">'+esc(r.nome||"\u2014")+(r.profilo?' <span class="sub">@'+esc(r.profilo)+'</span>':'')+'</div>'+
+    (r.categoria?'<div class="sub">'+esc(r.categoria)+'</div>':'')+
+    (contatti?'<div class="sub">'+contatti+'</div>':'')+
+    (money?'<div class="money">'+money+'</div>':'')+
+    '<div class="sub">'+fdate(r.created_at)+'</div>'+
+    '<div class="row">'+
+      (next?'<button class="mini go" data-id="'+r.id+'" data-to="'+next+'">'+nextLabel+'</button>':'')+
+      '<button class="mini x" data-id="'+r.id+'" data-to="annullato">Annulla</button>'+
+    '</div>';
+  return d;
+}
+
+document.addEventListener("click", async function(e){
+  const b = e.target.closest(".mini"); if(!b) return;
+  b.disabled = true;
+  const patch = { stato: b.dataset.to, updated_at: new Date().toISOString() };
+  const { error } = await sb.from("eventi_partecipazioni").update(patch).eq("id", b.dataset.id);
+  if(error){ alert("Errore: "+error.message); b.disabled=false; return; }
+  await load();
+});
+
+$("login").addEventListener("click", async function(){
+  await sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: location.origin + location.pathname } });
+});
+$("logout").addEventListener("click", async function(){ await sb.auth.signOut(); location.reload(); });
+
+boot();
+</script>
+</body>
+</html>
