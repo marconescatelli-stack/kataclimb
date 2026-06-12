@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: agenda v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
+<!-- KC-BUILD: agenda v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
 <!-- KC-BUILD-PREV: agenda v3.64 · 2026-06-04 -->
 <!-- KC-BUILD-PREV: agenda v3.63 · 2026-06-04 -->
 <meta charset="UTF-8">
@@ -2022,5 +2022,28 @@
   init();
 
 </script>
+<style>
+/* v3.67 barra Oggi in fondo (namespaced: .bar esiste già in agenda per gli slot) */
+#kc-bar{position:fixed;bottom:0;left:0;right:0;display:flex;z-index:900;
+  background:rgba(13,13,15,.94);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.1);
+  padding:7px 0 max(9px, env(safe-area-inset-bottom));}
+#kc-bar a{flex:1;text-align:center;color:#9A9AA0;font-size:.66rem;letter-spacing:.05em;text-decoration:none;font-weight:600}
+#kc-bar a span{display:block;font-size:1.25rem;margin-bottom:2px}
+#kc-bar a.kc-on{color:#fff}
+#kc-bar a.kc-on span{color:#FFD60A}
+body{padding-bottom:88px}
+/* v3.67 fix mobile: le pillole della testata vanno a capo invece di accavallarsi */
+#nav-back{flex-wrap:wrap;row-gap:6px}
+#nav-back a{margin-bottom:4px;white-space:nowrap;display:inline-block}
+@media (max-width:640px){
+  #nav-back a{font-size:12px!important;padding:5px 9px!important;margin-right:4px!important}
+}
+</style>
+<nav id="kc-bar">
+  <a href="oggi.html"><span>◉</span>Oggi</a>
+  <a href="agenda.html" class="kc-on"><span>🗓</span>Agenda</a>
+  <a href="eventi.html"><span>✈</span>Eventi</a>
+  <a href="portale.html?nav=profilo"><span>👤</span>Portale</a>
+</nav>
 </body>
 </html>
