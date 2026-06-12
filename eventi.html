@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<!-- KC-BUILD: eventi v1.1 · 2026-06-12 02:30 · + orario partenza sulle card (uscite). CUMULA v1.0: Calendario community Accademia: viste anno/mese/agenda, countdown prossimo evento, chip iscritti, memoria-oro eventi passati (foto/video), ICS, video testata desktop-only con poster. Fonte: RPC get_eventi_calendario() -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eventi — Accademia ArrampiKata RCC | KataClimb</title>
+<meta name="description" content="Il calendario vivo dell'Accademia: uscite in falesia per ragazzi e adulti, viaggi d'arrampicata, eventi. E la memoria di quello che abbiamo vissuto.">
+<link rel="canonical" href="https://kataclimb.com/eventi.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+:root{
+  --amber:#FFBB58; --amber-deep:#F39A1F;
+  --ink:#16130d; --ink2:#231e15; --paper:#f6f1e7; --paper2:#efe7d6;
+  --teal:#1f8a8f; --teal-deep:#0f5e62;
+  --oliva:#6e8f3d; --terra:#b4552d;
+  --oro:#c9a13b; --oro-soft:#f3e7c8;
+  --line:rgba(22,19,13,.12);
+  --maxw:1080px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);overflow-x:clip;
+  font-family:"Archivo",system-ui,sans-serif;font-size:14.4px;line-height:1.6}
+h1,h2,h3,.display{font-family:"Archivo Black",sans-serif;font-weight:900;line-height:1.05;margin:0}
+a{color:inherit}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 18px}
+
+/* ── header ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;max-width:var(--maxw);margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Archivo Black";font-size:16px;text-decoration:none}
+.brand small{font-family:"Archivo";font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:9.5px;opacity:.6;display:block}
+.topcta{background:var(--amber);color:var(--ink);font-family:"Archivo Black";font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding:9px 16px;border-radius:999px;text-decoration:none}
+
+/* ── hero / countdown ── */
+.hero{position:relative;border-radius:24px;overflow:hidden;margin:6px auto 22px;max-width:var(--maxw);min-height:300px;
+  background:linear-gradient(160deg,var(--teal-deep),var(--ink) 70%);display:flex;align-items:flex-end}
+.hero .media{position:absolute;inset:0;overflow:hidden}
+.hero .media img,.hero .media video{width:100%;height:100%;object-fit:cover;display:block}
+.hero .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(22,19,13,.15) 30%,rgba(22,19,13,.82) 100%)}
+.hero .inner{position:relative;padding:clamp(22px,4vw,42px);color:#fff;width:100%}
+.hero .eyebrow{font-family:"Archivo Black";font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--amber)}
+.hero h1{font-size:clamp(26px,4.6vw,44px);text-transform:uppercase;margin:8px 0 4px}
+.hero .sub{opacity:.85;max-width:560px}
+.cd{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.cd .num{font-family:"Archivo Black";font-size:clamp(28px,4vw,40px);color:var(--amber);line-height:1}
+.cd .lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;opacity:.75}
+.cd .box{text-align:center;min-width:58px}
+.cd .who{margin-left:14px;font-size:12.5px;opacity:.9}
+.hero .cta{margin-top:16px;display:inline-block;background:var(--amber);color:var(--ink);font-family:"Archivo Black";
+  font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:12px 22px;border-radius:999px;text-decoration:none}
+
+/* ── switcher ── */
+.views{display:flex;gap:6px;margin:0 0 16px;flex-wrap:wrap}
+.views button{font-family:"Archivo Black";font-size:11px;text-transform:uppercase;letter-spacing:.04em;
+  border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:9px 18px;border-radius:999px;cursor:pointer}
+.views button.on{background:var(--ink);color:var(--paper)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 18px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;opacity:.85}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ── card evento (agenda) ── */
+.evlist{display:grid;gap:14px;margin-bottom:40px}
+.evcard{display:grid;grid-template-columns:86px 1fr;gap:0;border:1.5px solid var(--line);border-radius:18px;
+  overflow:hidden;background:#fff;text-decoration:none;transition:transform .12s ease,box-shadow .12s ease}
+.evcard:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(22,19,13,.10)}
+.evcard .date{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;padding:14px 8px;text-align:center}
+.evcard .date .d{font-family:"Archivo Black";font-size:24px;line-height:1}
+.evcard .date .m{font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-top:3px;opacity:.9}
+.evcard .body{padding:14px 16px}
+.evcard .tipo{font-family:"Archivo Black";font-size:9.8px;text-transform:uppercase;letter-spacing:.1em}
+.evcard h3{font-size:17px;text-transform:uppercase;margin:3px 0 2px}
+.evcard .meta{font-size:12px;opacity:.7}
+.chips{display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap}
+.chip{background:var(--paper2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:10.8px;font-weight:700}
+.chip.more{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.evcard.past{border-color:var(--oro);background:linear-gradient(165deg,#fffdf6,var(--oro-soft))}
+.evcard.past .date{background:linear-gradient(160deg,var(--oro),#a8842c)!important}
+.mem{display:inline-flex;gap:10px;margin-top:9px;font-size:11.5px;font-weight:700;color:#7a5e16}
+.empty{border:1.5px dashed var(--line);border-radius:18px;padding:34px;text-align:center;opacity:.75}
+
+/* ── mese ── */
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.mnav h2{font-size:19px;text-transform:uppercase}
+.mnav button{border:1.5px solid var(--ink);background:transparent;border-radius:10px;width:36px;height:36px;
+  font-size:16px;cursor:pointer;font-family:inherit}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px}
+.mgrid .dow{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;text-align:center;opacity:.55;font-weight:700;padding:4px 0}
+.mgrid .cell{min-height:74px;border:1px solid var(--line);border-radius:10px;padding:5px;background:#fff;font-size:11px;position:relative}
+.mgrid .cell.out{opacity:.32;background:transparent}
+.mgrid .cell.today{outline:2px solid var(--amber-deep)}
+.mgrid .cell .n{font-weight:700;opacity:.65;font-size:10px}
+.mgrid .pill{display:block;margin-top:3px;border-radius:6px;padding:2px 5px;color:#fff;font-size:9.5px;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none;line-height:1.5}
+.mgrid .pill.past{box-shadow:inset 0 0 0 1.5px var(--oro);color:var(--ink);background:var(--oro-soft)!important}
+@media(max-width:680px){
+  .mgrid .cell{min-height:46px;padding:3px}
+  .mgrid .pill{font-size:0;height:7px;padding:0;border-radius:4px}
+}
+
+/* ── anno ── */
+.ygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:14px;margin-bottom:40px}
+.ymonth{border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:13px}
+.ymonth h3{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.yev{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;font-weight:600;text-decoration:none;border-top:1px dashed var(--line)}
+.yev:first-of-type{border-top:0}
+.yev i{flex:0 0 auto;width:9px;height:9px;border-radius:50%}
+.yev.past i{background:var(--oro)!important;box-shadow:0 0 0 3px var(--oro-soft)}
+.yev .mm{margin-left:auto;font-size:10px;color:#7a5e16;font-weight:700}
+.ymonth .none{font-size:11px;opacity:.4;padding:4px 0}
+.ynav{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.ynav h2{font-size:22px}
+.ynav button{border:1.5px solid var(--ink);background:transparent;border-radius:10px;width:34px;height:34px;cursor:pointer;font-size:15px}
+
+footer{border-top:1.5px solid var(--line);padding:26px 18px 40px;text-align:center;font-size:11.5px;opacity:.65;margin-top:30px}
+@media (prefers-reduced-motion:reduce){.evcard{transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="/">KATACLIMB<small>Accademia ArrampiKata RCC · Roma</small></a>
+  <a class="topcta" href="/inizia.html">Inizia da qui</a>
+</header>
+
+<section class="hero" id="hero">
+  <div class="media" id="heroMedia"></div>
+  <div class="veil"></div>
+  <div class="inner">
+    <div class="eyebrow">Accademia Eventi</div>
+    <h1>La vita dell'Accademia,<br>fuori dalla sala</h1>
+    <div class="sub">Uscite in falesia, viaggi, eventi. E la memoria di quello che abbiamo vissuto insieme.</div>
+    <div class="cd" id="countdown" hidden>
+      <div class="box"><div class="num" id="cdD">–</div><div class="lab">giorni</div></div>
+      <div class="box"><div class="num" id="cdH">–</div><div class="lab">ore</div></div>
+      <div class="who" id="cdWho"></div>
+    </div>
+    <a class="cta" id="cdCta" hidden href="#">Scopri il prossimo evento →</a>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="views" role="tablist">
+    <button data-v="agenda" class="on">Agenda</button>
+    <button data-v="mese">Mese</button>
+    <button data-v="anno">Anno</button>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--amber-deep)"></i>✈ Viaggi</span>
+    <span><i style="background:var(--teal)"></i>⛰ Uscite adulti</span>
+    <span><i style="background:var(--oliva)"></i>🧗 Uscite ragazzi</span>
+    <span><i style="background:var(--terra)"></i>◆ Eventi</span>
+    <span><i style="background:var(--oro)"></i>📸 Memoria</span>
+  </div>
+
+  <section id="v-agenda"><div class="evlist" id="agendaList"></div></section>
+  <section id="v-mese" hidden>
+    <div class="mnav"><button id="mPrev" aria-label="Mese precedente">‹</button><h2 id="mTitle"></h2><button id="mNext" aria-label="Mese successivo">›</button></div>
+    <div class="mgrid" id="mGrid"></div>
+  </section>
+  <section id="v-anno" hidden>
+    <div class="ynav"><button id="yPrev" aria-label="Anno precedente">‹</button><h2 id="yTitle"></h2><button id="yNext" aria-label="Anno successivo">›</button></div>
+    <div class="ygrid" id="yGrid"></div>
+  </section>
+</main>
+
+<footer>Accademia ArrampiKata RCC · Via Cassia 1634, Roma · <a href="/">kataclimb.com</a></footer>
+
+<script>
+/* ═══ CONFIG ═══ */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+  /* Video di testata (loop muto, SOLO desktop): MP4 ≤2-3MB servito da Pages, NON da Stream.
+     Lascia HERO_VIDEO vuoto finché non hai il file: resta il gradiente/poster. */
+  HERO_VIDEO:'',            /* es. '/media/hero-falesie.mp4' */
+  HERO_POSTER:'',           /* es. '/media/hero-falesie.jpg' — mostrato sempre, anche mobile */
+};
+const TIPO={
+  viaggio:        {label:'✈ Viaggio',        color:'var(--amber-deep)'},
+  uscita_adulti:  {label:'⛰ Uscita adulti',  color:'var(--teal)'},
+  uscita_ragazzi: {label:'🧗 Uscita ragazzi', color:'var(--oliva)'},
+  evento:         {label:'◆ Evento',          color:'var(--terra)'},
+};
+const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MESI_S=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+
+let EV=[];                      /* eventi dal DB */
+let cur=new Date();             /* cursore mese */
+let curY=new Date().getFullYear();
+
+/* date locali, niente toISOString (Trappola #134) */
+function dLoc(s){const[p1,p2,p3]=s.split('-');return new Date(+p1,+p2-1,+p3);}
+function today0(){const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate());}
+function isPast(e){return dLoc(e.data_fine||e.data_inizio)<today0();}
+function fmtRange(e){
+  const a=dLoc(e.data_inizio),b=dLoc(e.data_fine||e.data_inizio);
+  if(a.getTime()===b.getTime())return a.getDate()+' '+MESI_S[a.getMonth()]+' '+a.getFullYear();
+  if(a.getMonth()===b.getMonth())return a.getDate()+'–'+b.getDate()+' '+MESI_S[a.getMonth()]+' '+a.getFullYear();
+  return a.getDate()+' '+MESI_S[a.getMonth()]+' – '+b.getDate()+' '+MESI_S[b.getMonth()]+' '+a.getFullYear();
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+async function load(){
+  const r=await fetch(CFG.SB_URL+'/rest/v1/rpc/get_eventi_calendario',{
+    method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.SB_KEY,'Authorization':'Bearer '+CFG.SB_KEY},body:'{}'
+  });
+  EV=r.ok?await r.json():[];
+  renderHero();renderAgenda();renderMese();renderAnno();
+}
+
+/* ── hero: countdown sul prossimo evento futuro ── */
+function renderHero(){
+  const m=document.getElementById('heroMedia');
+  if(CFG.HERO_POSTER)m.innerHTML='<img src="'+esc(CFG.HERO_POSTER)+'" alt="" loading="eager">';
+  /* video solo desktop, solo se motion ok: zero peso su mobile */
+  if(CFG.HERO_VIDEO&&window.matchMedia('(min-width:900px)').matches&&!window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+    const v=document.createElement('video');
+    v.muted=true;v.loop=true;v.autoplay=true;v.playsInline=true;v.preload='metadata';
+    if(CFG.HERO_POSTER)v.poster=CFG.HERO_POSTER;
+    v.src=CFG.HERO_VIDEO;m.appendChild(v);
+  }
+  const fut=EV.filter(e=>!isPast(e)).sort((a,b)=>dLoc(a.data_inizio)-dLoc(b.data_inizio));
+  if(!fut.length)return;
+  const n=fut[0],ms=dLoc(n.data_inizio)-new Date();
+  document.getElementById('cdD').textContent=Math.max(0,Math.floor(ms/86400000));
+  document.getElementById('cdH').textContent=Math.max(0,Math.floor(ms/3600000)%24);
+  document.getElementById('cdWho').innerHTML='<b>'+esc(n.nome)+'</b> · '+esc(n.luogo||'')+
+    (n.n_iscritti>0?'<br>'+n.n_iscritti+' in cordata'+(n.n_interessati>0?' · '+n.n_interessati+' interessati':''):'');
+  document.getElementById('countdown').hidden=false;
+  const cta=document.getElementById('cdCta');cta.hidden=false;cta.href='/evento.html?slug='+encodeURIComponent(n.slug);
+}
+
+/* ── agenda (vista primaria, mobile-first) ── */
+function cardHTML(e){
+  const t=TIPO[e.tipo]||TIPO.evento,past=isPast(e),a=dLoc(e.data_inizio);
+  const chips=(e.primi_iscritti||[]).map(x=>'<span class="chip">'+esc(x)+'</span>').join('');
+  const more=e.n_iscritti>(e.primi_iscritti||[]).length?'<span class="chip more">+'+(e.n_iscritti-(e.primi_iscritti||[]).length)+'</span>':'';
+  const inter=e.n_interessati>0?'<span class="chip" style="opacity:.65">'+e.n_interessati+' interessati</span>':'';
+  const mem=past?'<div class="mem">'+(e.n_foto>0?'<span>📸 '+e.n_foto+' foto</span>':'')+(e.n_video>0?'<span>🎬 minivideo</span>':'')+
+    ((e.n_foto+e.n_video)===0?'<span>La memoria arriva presto</span>':'')+'</div>':'';
+  return '<a class="evcard'+(past?' past':'')+'" href="/evento.html?slug='+encodeURIComponent(e.slug)+'">'+
+    '<div class="date" style="background:'+t.color+'"><div class="d">'+a.getDate()+'</div><div class="m">'+MESI_S[a.getMonth()]+' '+a.getFullYear()+'</div></div>'+
+    '<div class="body"><div class="tipo" style="color:'+t.color+'">'+t.label+(past?' · memoria':'')+'</div>'+
+    '<h3>'+esc(e.nome)+'</h3><div class="meta">'+fmtRange(e)+(e.ora_partenza?' · partenza '+e.ora_partenza.slice(0,5):'')+(e.luogo?' · '+esc(e.luogo):'')+'</div>'+
+    (past?mem:'<div class="chips">'+chips+more+inter+'</div>')+'</div></a>';
+}
+function renderAgenda(){
+  const el=document.getElementById('agendaList');
+  if(!EV.length){el.innerHTML='<div class="empty">Il calendario si sta riempiendo. Torna presto.</div>';return;}
+  const fut=EV.filter(e=>!isPast(e)).sort((a,b)=>dLoc(a.data_inizio)-dLoc(b.data_inizio));
+  const past=EV.filter(isPast).sort((a,b)=>dLoc(b.data_inizio)-dLoc(a.data_inizio));
+  el.innerHTML=(fut.length?'<h2 style="font-size:15px;text-transform:uppercase;margin:4px 0 2px">In arrivo</h2>'+fut.map(cardHTML).join(''):'')+
+    (past.length?'<h2 style="font-size:15px;text-transform:uppercase;margin:18px 0 2px;color:#7a5e16">La memoria</h2>'+past.map(cardHTML).join(''):'');
+}
+
+/* ── mese ── */
+function renderMese(){
+  const y=cur.getFullYear(),mo=cur.getMonth();
+  document.getElementById('mTitle').textContent=MESI[mo]+' '+y;
+  const first=new Date(y,mo,1),start=(first.getDay()+6)%7,days=new Date(y,mo+1,0).getDate();
+  const t0=today0();
+  let h=['L','M','M','G','V','S','D'].map(d=>'<div class="dow">'+d+'</div>').join('');
+  for(let i=0;i<start;i++)h+='<div class="cell out"></div>';
+  for(let d=1;d<=days;d++){
+    const cd=new Date(y,mo,d);
+    const evs=EV.filter(e=>dLoc(e.data_inizio)<=cd&&cd<=dLoc(e.data_fine||e.data_inizio));
+    h+='<div class="cell'+(cd.getTime()===t0.getTime()?' today':'')+'"><span class="n">'+d+'</span>'+
+      evs.map(e=>{const t=TIPO[e.tipo]||TIPO.evento;return '<a class="pill'+(isPast(e)?' past':'')+'" style="background:'+t.color+'" href="/evento.html?slug='+encodeURIComponent(e.slug)+'" title="'+esc(e.nome)+'">'+esc(e.nome)+'</a>';}).join('')+'</div>';
+  }
+  document.getElementById('mGrid').innerHTML=h;
+}
+
+/* ── anno: 12 mini-mesi, la storia che si scrive ── */
+function renderAnno(){
+  document.getElementById('yTitle').textContent=curY;
+  let h='';
+  for(let m=0;m<12;m++){
+    const evs=EV.filter(e=>{const a=dLoc(e.data_inizio);return a.getFullYear()===curY&&a.getMonth()===m;});
+    h+='<div class="ymonth"><h3>'+MESI[m]+'</h3>'+
+      (evs.length?evs.map(e=>{const t=TIPO[e.tipo]||TIPO.evento,p=isPast(e);
+        return '<a class="yev'+(p?' past':'')+'" href="/evento.html?slug='+encodeURIComponent(e.slug)+'">'+
+        '<i style="background:'+t.color+'"></i>'+esc(e.nome)+
+        (p&&(e.n_foto>0||e.n_video>0)?'<span class="mm">📸'+(e.n_video>0?'🎬':'')+'</span>':'')+'</a>';}).join('')
+      :'<div class="none">—</div>')+'</div>';
+  }
+  document.getElementById('yGrid').innerHTML=h;
+}
+
+/* ── switcher + nav ── */
+document.querySelectorAll('.views button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.views button').forEach(x=>x.classList.toggle('on',x===b));
+  ['agenda','mese','anno'].forEach(v=>document.getElementById('v-'+v).hidden=(b.dataset.v!==v));
+}));
+document.getElementById('mPrev').onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);renderMese();};
+document.getElementById('mNext').onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);renderMese();};
+document.getElementById('yPrev').onclick=()=>{curY--;renderAnno();};
+document.getElementById('yNext').onclick=()=>{curY++;renderAnno();};
+
+load();
+</script>
+</body>
+</html>
