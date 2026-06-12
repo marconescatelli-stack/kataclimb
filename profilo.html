@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: profilo v1.1 · 2026-06-13 notte · Tessera ASD e Scudetti cablate su colonne VERIFICATE (query Marco): tesseramenti(persona_id, anno, data_scadenza, stato) -> anno corrente + vale-fino-al; scudetti_persona(persona_id, evento_nome, conquistato_at) -> conteggio reale, nome evento nel tooltip. Chiave unica persona_id, niente piu tentativi alla cieca. CUMULA v1.0 · INTEGRAZIONE del prototipo approvato (profilo-proto v0.2).
+     Pagina SEPARATA (pattern oggi/agenda/monitor): auth condivisa, zero righe a rischio sul portale.
+     Legge del fascicolo: CHI SEI / DOVE SEI ORA / QUANTO SEI ANDATO. Firma: Sentiero intero 33 nodi.
+     Fonti VERIFICATE: profiles(*), profile_data(*), kata_videos (slot/status reali: ready|certified),
+     iscrizioni_corso (proprie righe, RLS) per il percorso corsi; prima_done da profile_data.
+     Fonti DIFENSIVE (struttura mai vista, T#167): tesseramenti e scudetti_persona — try/catch,
+     la tessera si NASCONDE se la struttura non combacia; da cablare con una query ciascuna.
+     T#134 rispettata (date locali). Caricamenti indipendenti per tessera. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profilo · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
+  --rosso:#FF3B30; --rosso2:#C81E1E;
+  --corpo:#FF5A1F; --gravita:#0A84FF; --cordata:#30D158; --vuoto:#BF5AF2; --fiducia:#FFD60A;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--nero); color:var(--bianco);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.4;
+  max-width:480px; margin:0 auto; padding:10px 0 88px;
+}
+.mono{font-family:'JetBrains Mono',monospace; letter-spacing:.14em; text-transform:uppercase}
+a{color:inherit; text-decoration:none}
+
+#gate{display:none; padding:80px 24px; text-align:center}
+#gate h1{font-family:'Cormorant Garamond',serif; font-weight:500; font-size:1.8rem; margin-bottom:10px}
+#gate p{color:var(--grigio); font-size:.92rem; margin-bottom:24px}
+#gate a{display:inline-block; padding:14px 28px; border-radius:12px; background:var(--fiducia); color:#000; font-weight:800; font-family:'JetBrains Mono',monospace; letter-spacing:.05em; font-size:.9rem}
+
+#app{display:none}
+.console{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:0 12px}
+.full{grid-column:1/-1}
+.due{grid-column:span 2}
+.zona{grid-column:1/-1; padding:4px 2px 0; color:var(--grigio); font-weight:800; font-size:.56rem; display:flex; align-items:center; gap:8px}
+.zona::after{content:''; flex:1; height:1px; background:var(--velo)}
+
+.t{
+  border-radius:var(--r); padding:10px; min-height:88px; display:flex; flex-direction:column;
+  background:var(--tile); border:1px solid var(--velo); position:relative; overflow:hidden;
+  transition:transform .1s;
+}
+.t:active{transform:scale(.96)}
+.t .et{font-weight:800; font-size:.52rem; margin-bottom:auto; opacity:.95}
+.t .big{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.3rem; line-height:1.05}
+.t .big small{font-size:.75rem; opacity:.7}
+.t .cmd{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.56rem; letter-spacing:.08em; margin-top:3px}
+
+/* CHI SEI */
+.chi{grid-column:1/-1; padding:6px 2px 2px; display:flex; align-items:center; gap:12px}
+.chi .iniz{
+  width:54px; height:54px; border-radius:16px; flex:none;
+  background:linear-gradient(140deg,#222226,#0E0E10); border:1px solid var(--velo);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.15rem; color:var(--fiducia);
+}
+.chi .nome{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.05rem; letter-spacing:.05em}
+.chi .da{color:var(--grigio); font-size:.68rem; margin-top:2px}
+.chi .grado{
+  margin-left:auto; flex:none; font-family:'JetBrains Mono',monospace; font-weight:800;
+  font-size:.56rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:6px 10px; border-radius:999px; border:1.5px solid var(--cordata); color:var(--cordata);
+}
+
+/* DOVE SEI ORA */
+.t-corso{background:linear-gradient(140deg,#1C1C1F,#0C0C0E); border-color:rgba(255,214,10,.4)}
+.t-corso .et{color:var(--grigio)}
+.t-corso .big{color:var(--fiducia); font-size:1.1rem}
+.t-corso .cmd{color:var(--fiducia)}
+.t-credito{border-color:rgba(255,59,48,.5)}
+.t-credito .et{color:#FF8A84}
+.t-credito .cmd{color:var(--rosso)}
+.t-asd .et{color:var(--grigio)}
+.t-asd .big{color:var(--cordata); font-size:1.05rem}
+.t-asd .cmd{color:var(--cordata)}
+.t-asd.scaduta .big{color:var(--rosso)}
+.t-asd.scaduta .cmd{color:var(--rosso)}
+.t-val .et{color:var(--grigio)}
+.t-val .cmd{color:var(--grigio)}
+
+/* IL SENTIERO (firma) */
+.t-sentiero{padding:14px 12px 12px}
+.t-sentiero .testa{display:flex; align-items:baseline; gap:10px; margin-bottom:10px}
+.t-sentiero .testa .et{margin:0; color:var(--grigio)}
+.t-sentiero .testa .big{font-size:1.7rem; margin-left:auto}
+.fascia{margin-bottom:10px}
+.fascia:last-of-type{margin-bottom:0}
+.fascia .fnome{
+  font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.52rem;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--fc); margin-bottom:5px;
+  display:flex; align-items:center; gap:6px;
+}
+.fascia .fnome::after{content:''; flex:1; height:1px; background:var(--fc); opacity:.18}
+.fnodi{display:flex; gap:6px; flex-wrap:wrap}
+.fn{
+  width:26px; height:26px; border-radius:50%; border:1.6px solid var(--fc); flex:none;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.5rem; color:var(--fc);
+  opacity:.45;
+}
+.fn.vissuto{background:var(--fc); color:#000; opacity:1}
+.fn.oro{background:var(--fiducia); border-color:var(--fiducia); color:#000; opacity:1}
+.fn.next{opacity:1; border-width:2.2px; box-shadow:0 0 0 3px rgba(255,255,255,.07)}
+.t-sentiero .leg{display:flex; gap:12px; margin-top:12px; color:var(--grigio); font-size:.58rem}
+.t-sentiero .leg b{font-weight:800}
+.t-sentiero .leg .d{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px; vertical-align:-1px}
+
+.t-kata3{border-color:rgba(255,90,31,.5)}
+.t-kata3 .et{color:#FF9A73}
+.t-kata3 .big{font-size:.95rem}
+.t-kata3 .cmd{color:var(--corpo)}
+.t-parola .et{color:var(--grigio)}
+.t-parola p{font-family:'Cormorant Garamond',serif; font-style:italic; font-size:.86rem; line-height:1.25}
+.t-parola .cmd{color:var(--fiducia)}
+
+.t-scudi .et{color:var(--grigio)}
+.scudi{display:flex; gap:8px; margin-top:4px; flex-wrap:wrap}
+.scudo{
+  width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:1.05rem; background:#222226; border:1px solid var(--velo);
+}
+.scudo.preso{background:linear-gradient(140deg,#2A2400,#191500); border-color:var(--fiducia)}
+.scudo.vuoto{opacity:.3}
+.t-scudi .cmd{color:var(--fiducia)}
+
+.t-mem{background:linear-gradient(140deg,#BF5AF2,#7A1FA8); border:none}
+.t-mem .et{color:#EFD9FF}
+.t-mem .vv{display:flex; gap:5px; margin-top:4px}
+.t-mem .v{flex:1; height:44px; border-radius:10px; background:rgba(0,0,0,.32) center/cover no-repeat; display:flex; align-items:center; justify-content:center; font-size:.9rem}
+.t-mem .v.oro{outline:1.5px solid var(--fiducia)}
+.t-mem .cmd{color:#FFF}
+
+.t-perc .et{color:var(--grigio)}
+.tappe{display:flex; align-items:center; gap:0; margin-top:6px}
+.tappa{
+  flex:1; text-align:center; font-family:'JetBrains Mono',monospace; font-weight:800;
+  font-size:.58rem; letter-spacing:.06em; text-transform:uppercase;
+  padding:8px 0; border-top:2.5px solid #3A3A40; color:var(--grigio);
+}
+.tappa.fatta{border-color:var(--cordata); color:var(--cordata)}
+.tappa.qui{border-color:var(--fiducia); color:var(--fiducia)}
+.t-perc .cmd{color:var(--grigio)}
+
+.t-corda .et{color:var(--grigio)}
+.t-corda .big{font-size:1.05rem; color:var(--cordata)}
+.t-corda .cmd{color:var(--cordata)}
+.t-port .et{color:var(--grigio)}
+.t-port .cmd{color:var(--fiducia)}
+
+.bar{position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; display:flex;
+  background:rgba(13,13,15,.94); backdrop-filter:blur(12px); border-top:1px solid var(--velo);
+  padding:7px 0 max(9px, env(safe-area-inset-bottom)); z-index:40}
+.bar a{flex:1; text-align:center; color:var(--grigio); font-size:.62rem; letter-spacing:.05em}
+.bar a span{display:block; font-size:1.2rem; margin-bottom:2px}
+.bar a.attivo{color:var(--bianco)}
+.bar a.attivo span{color:var(--fiducia)}
+
+@media (min-width:900px){
+  body{max-width:760px; padding-top:24px}
+  .console{gap:12px; padding:0 16px}
+  .t{min-height:104px; border-radius:20px}
+  .t .big{font-size:1.6rem}
+  .bar{max-width:760px}
+}
+@media (min-width:1200px){
+  body{max-width:1100px}
+  .console{grid-template-columns:repeat(6,1fr); gap:12px; padding:0 24px}
+  .console > .t{grid-column:span 2}
+  .t.due{grid-column:span 4}
+  .t.full{grid-column:1/-1}
+  .chi{grid-column:1/-1}
+  .bar{max-width:1100px}
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>Profilo</h1>
+  <p>Per vedere il tuo fascicolo devi entrare dal portale.</p>
+  <a href="/portale.html">ENTRA</a>
+</div>
+
+<div id="app">
+  <div class="console" id="console"></div>
+</div>
+
+<nav class="bar">
+  <a href="/oggi.html"><span>◉</span>Oggi</a>
+  <a href="/agenda.html"><span>🗓</span>Agenda</a>
+  <a href="/eventi.html"><span>✈</span>Eventi</a>
+  <a href="/profilo.html" class="attivo"><span>👤</span>Profilo</a>
+</nav>
+
+<script>
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+};
+const KN={1:'Il Pronti',2:'Atterraggio',3:'Il Gradino',4:'Lo Scorrere',5:'Il Piombo',6:"Blocco dell'Asse",7:"Angolo d'Incidenza in Parete",8:"Angolo d'Incidenza in Sospensione",9:'Fuori–Dentro–Fuori',10:'Tutto in Uno',11:'Appendersi (Fiducia)',12:'Andare su Corda',13:'Altalena',14:'Progressione Appendersi Alto',15:'Pendoli',16:'Processo di Moschettonaggio',17:'Appendersi da Primo',18:'Pendolo in Calata',19:'Setup Sicura',20:'Postura di Sicura',21:'Dare / Recuperare Corda',22:'Blocca / Sblocca',23:'Dare e Recuperare Veloce',24:'Calata',25:'Test Progressivo in Parete',26:'Accompagnare il Compagno',27:'Lettura e Individuazione Via',28:'Determinazione Punto di Volo',29:'Progressività del Volo',30:'Mini-Caduta Tecnica',31:'Postura di Sicura Dinamica',32:'Ammortizzamento del Volo',33:'Buddy Check'};
+const FASCE=[
+  {da:1,a:9,c:'var(--corpo)',nome:'Corpo'},
+  {da:10,a:18,c:'var(--gravita)',nome:'Gravità'},
+  {da:19,a:26,c:'var(--cordata)',nome:'Cordata'},
+  {da:27,a:32,c:'var(--vuoto)',nome:'Vuoto'},
+  {da:33,a:33,c:'var(--fiducia)',nome:'Fiducia'}
+];
+const PAROLE={
+  1:'«Il Pronti non è il Kata più semplice. È il Kata che contiene tutti gli altri.»',
+  2:'«Ogni atterraggio ti rende più presente. Ogni atterraggio è un nuovo inizio.»'
+};
+const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const TIPO_LBL={open:'Open',advance:'Advance',intro_corda:'Intro',evo_corda:'Evo',prima_lezione:'Prima'};
+const RUOLO_LBL={creator:'Creator',admin:'Admin',segreteria:'Segreteria',staff_istruttore_jr:'Istruttore Jr',staff_istruttore_sr:'Istruttore Sr',staff_istruttore_tutor:'Istruttore Tutor'};
+
+let sb,uid,profilo={},pdata={};
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function dLoc(s){const[a,b,c]=String(s).slice(0,10).split('-').map(Number);return new Date(a,b-1,c);}
+
+async function init(){
+  sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){document.getElementById('gate').style.display='block';return;}
+  uid=session.user.id;
+
+  const[rp,rd]=await Promise.all([
+    sb.from('profiles').select('*').eq('user_id',uid).maybeSingle(),
+    sb.from('profile_data').select('*').eq('user_id',uid).maybeSingle()
+  ]);
+  profilo=rp.data||{};
+  pdata=rd.data||{};
+
+  document.getElementById('app').style.display='block';
+  render();
+  loadSentiero(); loadPercorso(); loadAsd(); loadScudetti();
+}
+
+function render(){
+  const c=document.getElementById('console');
+  const nome=(profilo.nome||'').trim(), cogn=(profilo.cognome||'').trim();
+  const iniz=((nome[0]||'')+(cogn[0]||'')).toUpperCase()||'KC';
+  /* "in cordata dal": usa profiles.created_at SE esiste (difensivo) */
+  let da='Accademia RCC';
+  if(profilo.created_at){
+    const d=new Date(profilo.created_at);
+    if(!isNaN(d)) da='In cordata dal '+MESI[d.getMonth()]+' '+d.getFullYear()+' · Accademia RCC';
+  }
+  const grado=RUOLO_LBL[pdata.staff_role]||RUOLO_LBL[profilo.role]||TIPO_LBL[pdata.corso_attivo]||'KataClimb';
+
+  /* validità pacchetto (solo se il dato c'è) */
+  let valHtml='';
+  if(pdata.corso_attivo==='open' && pdata.scadenza_consumo_open){
+    const sc=dLoc(pdata.scadenza_consumo_open);
+    const oggi=new Date(); oggi.setHours(0,0,0,0);
+    const gg=Math.round((sc-oggi)/86400000);
+    valHtml=`<div class="t t-val due">
+      <span class="et mono">Validità pacchetto</span>
+      <div class="big">${gg}<small> giorni</small></div>
+      <span class="cmd mono">FINO AL ${sc.getDate()} ${MESI[sc.getMonth()].slice(0,3).toUpperCase()}</span>
+    </div>`;
+  }
+
+  c.innerHTML=`
+  <div class="chi">
+    <div class="iniz">${esc(iniz)}</div>
+    <div>
+      <div class="nome">${esc((nome+' '+(cogn?cogn[0]+'.':'')).trim().toUpperCase()||'KATACLIMBER')}</div>
+      <div class="da">${esc(da)}</div>
+    </div>
+    <div class="grado">${esc(grado)}</div>
+  </div>
+
+  <div class="zona mono">Dove sei ora</div>
+
+  <a class="t t-corso due" href="/agenda.html">
+    <span class="et mono">⛰ Corso</span>
+    <div class="big">${esc((TIPO_LBL[pdata.corso_attivo]||pdata.corso_attivo||'—').toUpperCase())}</div>
+    <span class="cmd mono">${pdata.corso_attivo?'VAI IN AGENDA ›':'PARLA CON LA SEGRETERIA'}</span>
+  </a>
+
+  <a class="t t-credito" href="/agenda.html">
+    <span class="et mono">🔔 Lezioni</span>
+    <div class="big">${pdata.lezioni_residue??'—'}</div>
+    <span class="cmd mono">PRENOTA ›</span>
+  </a>
+
+  <a class="t t-asd" id="t-asd" href="/portale.html?nav=profilo" style="display:none">
+    <span class="et mono">Tessera ASD</span>
+    <div class="big" id="asd-big">…</div>
+    <span class="cmd mono" id="asd-cmd"></span>
+  </a>
+
+  ${valHtml}
+
+  <div class="zona mono">Quanto sei andato</div>
+
+  <div class="t t-sentiero full">
+    <div class="testa">
+      <span class="et mono">🌀 Il Sentiero</span>
+      <div class="big" id="sent-num">…<small>/33</small></div>
+    </div>
+    <div id="sent-fasce"></div>
+    <div class="leg">
+      <span><span class="d" style="background:var(--fiducia)"></span><b>ORO</b> certificato</span>
+      <span><span class="d" style="background:var(--corpo)"></span><b>PIENO</b> vissuto</span>
+      <span><span class="d" style="border:1.4px solid var(--grigio)"></span>davanti a te</span>
+    </div>
+  </div>
+
+  <a class="t t-kata3" href="/portale.html?nav=profilo">
+    <span class="et mono">🎯 Prossimo</span>
+    <div class="big" id="kata-next">…</div>
+    <span class="cmd mono">VAI. ›</span>
+  </a>
+
+  <a class="t t-parola due" href="/portale.html?nav=profilo">
+    <span class="et mono">📖 La parola</span>
+    <p id="parola-txt">…</p>
+    <span class="cmd mono" id="parola-k"></span>
+  </a>
+
+  <a class="t t-scudi due" id="t-scudi" href="/portale.html?nav=profilo" style="display:none">
+    <span class="et mono">🛡 Scudetti</span>
+    <div class="scudi" id="scudi-box"></div>
+    <span class="cmd mono" id="scudi-cmd"></span>
+  </a>
+
+  <a class="t t-mem" id="t-mem" href="/portale.html?nav=profilo">
+    <span class="et mono">▶ Memoria</span>
+    <div class="vv" id="mem-vv"><div class="v">▶</div><div class="v">▶</div></div>
+    <span class="cmd mono">GUARDATI ›</span>
+  </a>
+
+  <div class="t t-perc full" style="min-height:0">
+    <span class="et mono">Il percorso dei corsi</span>
+    <div class="tappe" id="tappe"></div>
+    <span class="cmd mono" id="perc-cmd"></span>
+  </div>
+
+  <a class="t t-corda due" href="/portale.html?nav=comunita" style="min-height:0; flex-direction:row; align-items:center; gap:10px; padding:12px 14px">
+    <span class="et mono" style="margin:0">Cordata</span>
+    <div class="big" style="margin-left:auto">PRESTO</div>
+    <span class="cmd mono">SULLA CORDA ›</span>
+  </a>
+
+  <a class="t t-port" href="/portale.html?nav=profilo" style="min-height:0">
+    <span class="et mono">Portale</span>
+    <div class="big">▦</div>
+    <span class="cmd mono">COMPLETO ›</span>
+  </a>`;
+}
+
+/* ── SENTIERO INTERO: 33 nodi, oro=certificato pieno=vissuto ── */
+async function loadSentiero(){
+  try{
+    const{data:v,error}=await sb.from('kata_videos').select('*').eq('user_id',uid);
+    if(error)throw error;
+    const vids=(v||[]).filter(x=>x.status!=='error');
+    const perKata={};
+    vids.forEach(x=>{ (perKata[x.kata_num]=perKata[x.kata_num]||[]).push(x); });
+    const vissuti=Object.keys(perKata).map(Number);
+    /* kata_certs: array, oppure oggetto jsonb {num:..} (portale), fallback video certified */
+    let certNums=[];
+    if(Array.isArray(profilo.kata_certs)) certNums=profilo.kata_certs.map(Number);
+    else if(profilo.kata_certs && typeof profilo.kata_certs==='object') certNums=Object.keys(profilo.kata_certs).map(Number);
+    if(!certNums.length) certNums=vids.filter(x=>x.status==='certified').map(x=>Number(x.kata_num));
+    const certs=new Set(certNums.filter(n=>!isNaN(n)&&n>=1&&n<=33));
+
+    document.getElementById('sent-num').innerHTML=vissuti.length+'<small>/33</small>';
+    let next=null;
+    for(let k=1;k<=33;k++){ if(!perKata[k]){next=k;break;} }
+
+    const box=document.getElementById('sent-fasce');
+    box.innerHTML=FASCE.map(f=>{
+      let nodi='';
+      for(let k=f.da;k<=f.a;k++){
+        const cls=certs.has(k)?' oro':(perKata[k]?' vissuto':(k===next?' next':''));
+        nodi+=`<span class="fn${cls}" title="${esc(KN[k]||'')}">${k}</span>`;
+      }
+      return `<div class="fascia" style="--fc:${f.c}">
+        <div class="fnome">${f.nome} · ${f.da===f.a?f.da:f.da+'–'+f.a}</div>
+        <div class="fnodi">${nodi}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('kata-next').textContent=next?('KATA '+String(next).padStart(2,'0')):'COMPLETO';
+    const ptxt=document.getElementById('parola-txt'), pk=document.getElementById('parola-k');
+    const kRef=next||33;
+    if(PAROLE[kRef]){ ptxt.textContent=PAROLE[kRef]; }
+    else{ ptxt.textContent=KN[kRef]||''; }
+    pk.textContent='KATA '+String(kRef).padStart(2,'0')+' ›';
+
+    const conData=vids.filter(x=>x.uploaded_at).sort((a,b)=>new Date(a.uploaded_at)-new Date(b.uploaded_at));
+    if(conData.length){
+      const primo=conData[0], ultimo=conData[conData.length-1];
+      const cell=(x,oro)=>`<div class="v${oro?' oro':''}" ${x.thumbnail_url?`style="background-image:url('${esc(x.thumbnail_url)}')`+`"`:''}>${x.thumbnail_url?'':'▶'}</div>`;
+      document.getElementById('mem-vv').innerHTML=cell(primo,false)+cell(ultimo,true);
+    }
+  }catch(e){ console.error('[sentiero]',e); }
+}
+
+/* ── PERCORSO CORSI: fonte iscrizioni_corso (P-FONTE-CORSO), cache corso_attivo per il "qui" ── */
+async function loadPercorso(){
+  try{
+    let righe=[];
+    try{
+      const{data,error}=await sb.from('iscrizioni_corso').select('tipo_corso,status').eq('user_id',uid);
+      if(error)throw error;
+      righe=data||[];
+    }catch(e){ console.warn('[percorso] iscrizioni non leggibili:',e.message); }
+
+    const ORD=['prima_lezione','open','advance','intro_corda','evo_corda'];
+    const qui=pdata.corso_attivo||null;
+    const fatte=new Set();
+    if(pdata.prima_done)fatte.add('prima_lezione');
+    righe.forEach(r=>{
+      const st=String(r.status||'');
+      if(st && st!=='attiva')fatte.add(r.tipo_corso); /* completata / completata_pregressa / conclusa… */
+    });
+
+    document.getElementById('tappe').innerHTML=ORD.map(t=>{
+      const cls=t===qui?' qui':(fatte.has(t)?' fatta':'');
+      return `<div class="tappa${cls}">${TIPO_LBL[t]}</div>`;
+    }).join('');
+    document.getElementById('perc-cmd').textContent=qui?('SEI QUI: '+(TIPO_LBL[qui]||qui).toUpperCase()):'IL PERCORSO TI ASPETTA';
+  }catch(e){ console.error('[percorso]',e); }
+}
+
+/* ── TESSERA ASD: colonne verificate 13 giu (tesseramenti: persona_id, anno, data_scadenza, stato) ── */
+async function loadAsd(){
+  const tile=document.getElementById('t-asd');
+  try{
+    if(!pdata.persona_id)return; /* senza persona_id la tabella non è interrogabile: tessera assente */
+    const{data:rows,error}=await sb.from('tesseramenti')
+      .select('anno, data_inizio, data_scadenza, stato')
+      .eq('persona_id',pdata.persona_id)
+      .order('anno',{ascending:false});
+    if(error)throw error;
+    if(!rows||!rows.length)return; /* mai tesserato: la tessera non compare (sarà la segreteria a parlarne) */
+    const annoOra=new Date().getFullYear();
+    const oggi=new Date(); oggi.setHours(0,0,0,0);
+    const corrente=rows.find(r=>r.anno===annoOra);
+    const valida=!!corrente && (!corrente.data_scadenza || dLoc(corrente.data_scadenza)>=oggi);
+    if(valida){
+      const sc=corrente.data_scadenza?dLoc(corrente.data_scadenza):null;
+      document.getElementById('asd-big').textContent=annoOra+' ✓';
+      document.getElementById('asd-cmd').textContent=sc?('VALE FINO AL '+sc.getDate()+' '+MESI[sc.getMonth()].slice(0,3).toUpperCase()):"VALE TUTTO L'ANNO";
+    }else{
+      document.getElementById('asd-big').textContent='RINNOVA';
+      document.getElementById('asd-cmd').textContent='PARLA CON LA SEGRETERIA ›';
+      tile.classList.add('scaduta');
+    }
+    tile.style.display='';
+  }catch(e){ console.warn('[asd] nascosta:',e.message); }
+}
+
+/* ── SCUDETTI: colonne verificate 13 giu (scudetti_persona: persona_id, evento_nome, conquistato_at) ── */
+async function loadScudetti(){
+  const tile=document.getElementById('t-scudi');
+  try{
+    if(!pdata.persona_id)return;
+    const{data:rows,error}=await sb.from('scudetti_persona')
+      .select('evento_nome, evento_slug, conquistato_at')
+      .eq('persona_id',pdata.persona_id)
+      .order('conquistato_at',{ascending:true});
+    if(error)throw error;
+    const presi=(rows||[]).filter(r=>r.conquistato_at);
+    if(!presi.length && !(rows||[]).length)return; /* nessuna storia eventi: tessera assente */
+    const n=presi.length;
+    const slot=Math.max(5,n);
+    let html='';
+    for(let i=0;i<slot;i++){
+      if(i<n)html+=`<div class="scudo preso" title="${esc(presi[i].evento_nome||'')}">🛡</div>`;
+      else html+=`<div class="scudo vuoto">·</div>`;
+    }
+    document.getElementById('scudi-box').innerHTML=html;
+    document.getElementById('scudi-cmd').textContent=n===0?'IL PRIMO TI ASPETTA ›':(n===1?'1 CONQUISTATO ›':n+' CONQUISTATI ›');
+    tile.style.display='';
+  }catch(e){ console.warn('[scudetti] nascosta:',e.message); }
+}
+
+init();
+</script>
+</body>
+</html>

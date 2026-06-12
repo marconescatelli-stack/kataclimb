@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: oggi v2.3 · 2026-06-13 notte · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
+<!-- KC-BUILD: oggi v2.4 · 2026-06-13 notte · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
      tessere span 2 (tre per riga, grandi), due=span 4, ADESSO full. Collaudo Marco: "non si adatta al desktop".
      CUMULA v2.0 · CONSOLE A RUOLI (collaudo Marco: "tutti abbiamo la console").
      Vista decisa da profiles.role + profile_data.staff_role (i PERMESSI restano dove sono: RLS/RPC invariati,
@@ -222,7 +222,7 @@ a{color:inherit; text-decoration:none}
   <a href="/oggi.html" class="attivo"><span>◉</span>Oggi</a>
   <a href="/agenda.html"><span>🗓</span>Agenda</a>
   <a href="/eventi.html"><span>✈</span>Eventi</a>
-  <a href="/portale.html?nav=profilo"><span>👤</span>Portale</a>
+  <a href="/profilo.html"><span>👤</span>Portale</a>
 </nav>
 
 <script>
@@ -333,20 +333,20 @@ function renderAllievo(){
 
   <div class="zona mono">La cura</div>
 
-  <a class="t t-sent" id="t-sent" href="/portale.html?nav=profilo">
+  <a class="t t-sent" id="t-sent" href="/profilo.html">
     <span class="et mono">🌀 Sentiero</span>
     <div class="big" id="sent-num">…<small>/33</small></div>
     <div class="fnodi" id="sent-nodi"></div>
     <span class="cmd mono">IL FLUSSO ›</span>
   </a>
 
-  <a class="t t-kata3" id="t-kata" href="/portale.html?nav=profilo">
+  <a class="t t-kata3" id="t-kata" href="/profilo.html">
     <span class="et mono">🎯 Prossimo</span>
     <div class="big" id="kata-next">…</div>
     <span class="cmd mono">VAI. ›</span>
   </a>
 
-  <a class="t t-mem" id="t-mem" href="/portale.html?nav=profilo">
+  <a class="t t-mem" id="t-mem" href="/profilo.html">
     <span class="et mono">▶ Memoria</span>
     <div class="vv" id="mem-vv"><div class="v">▶</div><div class="v">▶</div></div>
     <span class="cmd mono">GUARDATI ›</span>
@@ -362,7 +362,7 @@ function renderAllievo(){
     <span class="cmd mono" id="asc-stato">UN TOCCO</span>
   </div>
 
-  <a class="t t-parola" id="t-parola" href="/portale.html?nav=profilo">
+  <a class="t t-parola" id="t-parola" href="/profilo.html">
     <span class="et mono">📖 La parola</span>
     <p id="parola-txt">…</p>
     <span class="cmd mono" id="parola-k"></span>
