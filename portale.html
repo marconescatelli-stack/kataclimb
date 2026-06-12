@@ -1,7 +1,24 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: portale v3.88 · 2026-06-12 sera · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
+<style>
+/* v3.87 — velo di carico: niente landing-flash MA nemmeno pagina vuota.
+   Con sessione in localStorage si vede subito una schermata nera "KATACLIMB"
+   finché init non decide (showScreen toglie il velo). Paracadute JS a 8s. */
+html.kc-boot, html.kc-boot body{background:#0B0B0D!important}
+html.kc-boot #screen-landing{display:none!important}
+html.kc-boot body::before{
+  content:'KATACLIMB';position:fixed;inset:0;z-index:9999;background:#0B0B0D;
+  display:flex;align-items:center;justify-content:center;
+  color:#FFD60A;font-family:ui-monospace,Menlo,monospace;font-weight:800;
+  letter-spacing:.3em;font-size:14px;animation:kcboot 1.6s ease-in-out infinite;
+}
+@keyframes kcboot{0%,100%{opacity:.45}50%{opacity:1}}
+</style>
+<script>/* v3.87 anti-flash con velo visibile + paracadute: se init non finisce entro 8s il velo cade e la landing riappare. */
+try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
+
+<!-- KC-BUILD: portale v3.89 · 2026-06-12 notte · Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
 <!-- KC-BUILD-PREV: portale v3.77 · 2026-06-11 19:10 · Registra contatto: checkbox "Sposta in Chiamate segreteria" (coda=segreteria via RPC imposta_coda_fascia, in un atto col follow-up) -->
 <!-- KC-BUILD-PREV: portale v3.76 · 2026-06-11 17:50 · Da contattare oggi (campagna attiva 7gg) + Gestione contatti 4 pulsanti (Commerciale ≤14gg/Segreteria/Riacciuffo/Campagna attiva) -->
@@ -1089,22 +1106,6 @@ m225 -56 c0 -50 0 -50 -77 -53 -78 -3 -78 -3 -78 53 0 56 0 56 78 53 77 -3 77
 <!-- ═══════════════════════════════════════
      LANDING / DEMO (non autenticato)
      ═══════════════════════════════════════ -->
-<style>
-/* v3.87 — velo di carico: niente landing-flash MA nemmeno pagina vuota.
-   Con sessione in localStorage si vede subito una schermata nera "KATACLIMB"
-   finché init non decide (showScreen toglie il velo). Paracadute JS a 8s. */
-html.kc-boot, html.kc-boot body{background:#0B0B0D!important}
-html.kc-boot #screen-landing{display:none!important}
-html.kc-boot body::before{
-  content:'KATACLIMB';position:fixed;inset:0;z-index:9999;background:#0B0B0D;
-  display:flex;align-items:center;justify-content:center;
-  color:#FFD60A;font-family:ui-monospace,Menlo,monospace;font-weight:800;
-  letter-spacing:.3em;font-size:14px;animation:kcboot 1.6s ease-in-out infinite;
-}
-@keyframes kcboot{0%,100%{opacity:.45}50%{opacity:1}}
-</style>
-<script>/* v3.87 anti-flash con velo visibile + paracadute: se init non finisce entro 8s il velo cade e la landing riappare. */
-try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 <div id="screen-landing">
   <div class="landing-glow"></div>
   <div style="position:relative;z-index:2;padding:14px 20px">
