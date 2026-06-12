@@ -285,7 +285,7 @@ function render(){
 
   <a class="t t-corso due" href="/agenda.html">
     <span class="et mono">⛰ Corso</span>
-    <div class="big">${esc((TIPO_LBL[pdata.corso_attivo]||pdata.corso_attivo||'—').toUpperCase())}</div>
+    <div class="big">${pdata.corso_attivo?esc((TIPO_LBL[pdata.corso_attivo]||pdata.corso_attivo).toUpperCase())+' ATTIVO':'—'}</div>
     <span class="cmd mono">${pdata.corso_attivo?'VAI IN AGENDA ›':'PARLA CON LA SEGRETERIA'}</span>
   </a>
 
@@ -296,7 +296,7 @@ function render(){
   </a>
 
   <a class="t t-asd" id="t-asd" href="/portale.html?nav=profilo" style="display:none">
-    <span class="et mono">Tessera ASD</span>
+    <span class="et mono">Iscrizione ASD · Accademia RCC</span>
     <div class="big" id="asd-big">…</div>
     <span class="cmd mono" id="asd-cmd"></span>
   </a>
@@ -437,55 +437,53 @@ async function loadPercorso(){
   }catch(e){ console.error('[percorso]',e); }
 }
 
-/* ── TESSERA ASD: colonne verificate 13 giu (tesseramenti: persona_id, anno, data_scadenza, stato) ── */
+/* ── ISCRIZIONE ASD Accademia RCC: struttura verificata 13 giu
+      (tesseramenti: persona_id uuid, anno int, data_inizio/data_scadenza date, stato text) ── */
 async function loadAsd(){
   const tile=document.getElementById('t-asd');
   try{
-    if(!pdata.persona_id)return; /* senza persona_id la tabella non è interrogabile: tessera assente */
+    if(!pdata.persona_id)return; /* senza persona_id niente asse ASD */
     const{data:rows,error}=await sb.from('tesseramenti')
-      .select('anno, data_inizio, data_scadenza, stato')
+      .select('anno, data_scadenza, stato')
       .eq('persona_id',pdata.persona_id)
       .order('anno',{ascending:false});
     if(error)throw error;
-    if(!rows||!rows.length)return; /* mai tesserato: la tessera non compare (sarà la segreteria a parlarne) */
+    if(!rows||!rows.length)return; /* mai tesserato: tessera assente, lo dira la segreteria */
     const annoOra=new Date().getFullYear();
-    const oggi=new Date(); oggi.setHours(0,0,0,0);
     const corrente=rows.find(r=>r.anno===annoOra);
-    const valida=!!corrente && (!corrente.data_scadenza || dLoc(corrente.data_scadenza)>=oggi);
-    if(valida){
+    if(corrente){
       const sc=corrente.data_scadenza?dLoc(corrente.data_scadenza):null;
-      document.getElementById('asd-big').textContent=annoOra+' ✓';
-      document.getElementById('asd-cmd').textContent=sc?('VALE FINO AL '+sc.getDate()+' '+MESI[sc.getMonth()].slice(0,3).toUpperCase()):"VALE TUTTO L'ANNO";
+      document.getElementById('asd-big').textContent=annoOra+' \u2713';
+      document.getElementById('asd-cmd').textContent=sc?('FINO AL '+sc.getDate()+' '+MESI[sc.getMonth()].slice(0,3).toUpperCase()):"VALE TUTTO L'ANNO";
     }else{
       document.getElementById('asd-big').textContent='RINNOVA';
-      document.getElementById('asd-cmd').textContent='PARLA CON LA SEGRETERIA ›';
+      document.getElementById('asd-cmd').textContent='ULTIMO ANNO: '+rows[0].anno+' \u203a';
       tile.classList.add('scaduta');
     }
     tile.style.display='';
   }catch(e){ console.warn('[asd] nascosta:',e.message); }
 }
 
-/* ── SCUDETTI: colonne verificate 13 giu (scudetti_persona: persona_id, evento_nome, conquistato_at) ── */
+/* ── SCUDETTI: struttura verificata 13 giu (scudetti_persona: persona_id, evento_nome,
+      evento_slug, data_inizio, conquistato_at) — uno scudo per evento conquistato ── */
 async function loadScudetti(){
   const tile=document.getElementById('t-scudi');
   try{
     if(!pdata.persona_id)return;
     const{data:rows,error}=await sb.from('scudetti_persona')
-      .select('evento_nome, evento_slug, conquistato_at')
+      .select('evento_nome, evento_slug, data_inizio, conquistato_at')
       .eq('persona_id',pdata.persona_id)
       .order('conquistato_at',{ascending:true});
     if(error)throw error;
-    const presi=(rows||[]).filter(r=>r.conquistato_at);
-    if(!presi.length && !(rows||[]).length)return; /* nessuna storia eventi: tessera assente */
-    const n=presi.length;
+    const n=(rows||[]).length;
     const slot=Math.max(5,n);
     let html='';
     for(let i=0;i<slot;i++){
-      if(i<n)html+=`<div class="scudo preso" title="${esc(presi[i].evento_nome||'')}">🛡</div>`;
-      else html+=`<div class="scudo vuoto">·</div>`;
+      const r=rows&&rows[i];
+      html+=`<div class="scudo ${r?'preso':'vuoto'}" title="${r?esc(r.evento_nome||''):''}">${r?'\u{1F6E1}':'\u00b7'}</div>`;
     }
     document.getElementById('scudi-box').innerHTML=html;
-    document.getElementById('scudi-cmd').textContent=n===0?'IL PRIMO TI ASPETTA ›':(n===1?'1 CONQUISTATO ›':n+' CONQUISTATI ›');
+    document.getElementById('scudi-cmd').textContent=n===0?'IL PRIMO TI ASPETTA \u203a':(n===1?'1 CONQUISTATO \u203a':n+' CONQUISTATI \u203a');
     tile.style.display='';
   }catch(e){ console.warn('[scudetti] nascosta:',e.message); }
 }
