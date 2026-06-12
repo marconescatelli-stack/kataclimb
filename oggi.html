@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: oggi v1.0 · 2026-06-12 · Home console "Oggi": pagina separata (pattern agenda/monitor),
+     auth condivisa via sb.auth.getSession(), legge profile_data (corso_attivo/lezioni_residue),
+     profiles (nome/kata_certs), kata_videos, prenotazioni_corso (prossima prenotata),
+     RPC get_eventi_calendario. Legge della console: SOPRA il tempo, SOTTO la cura.
+     Tessera ADESSO = motore compiti v1 (4 stati: oggi / futura / prenota / respira).
+     Dichiarati v1 = solo locale (localStorage), struttura DB da decidere.
+     Trappola #134 rispettata: date locali, mai toISOString per data_lezione. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oggi · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
+  --rosso:#FF3B30; --rosso2:#C81E1E;
+  --corpo:#FF5A1F; --gravita:#0A84FF; --cordata:#30D158; --vuoto:#BF5AF2; --fiducia:#FFD60A;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--nero); color:var(--bianco);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.4;
+  max-width:480px; margin:0 auto; padding:10px 0 88px;
+}
+.mono{font-family:'JetBrains Mono',monospace; letter-spacing:.14em; text-transform:uppercase}
+a{color:inherit; text-decoration:none}
+@media (prefers-reduced-motion:reduce){.pulsa{animation:none!important}}
+
+/* login gate */
+#gate{display:none; padding:80px 24px; text-align:center}
+#gate h1{font-family:'Cormorant Garamond',serif; font-weight:500; font-size:1.8rem; margin-bottom:10px}
+#gate p{color:var(--grigio); font-size:.92rem; margin-bottom:24px}
+#gate a{display:inline-block; padding:14px 28px; border-radius:12px; background:var(--fiducia); color:#000; font-weight:800; font-family:'JetBrains Mono',monospace; letter-spacing:.05em; font-size:.9rem}
+
+/* console */
+#app{display:none}
+.console{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:0 12px}
+.full{grid-column:1/-1}
+.zona{grid-column:1/-1; padding:4px 2px 0; color:var(--grigio); font-weight:800; font-size:.56rem; display:flex; align-items:center; gap:8px}
+.zona::after{content:''; flex:1; height:1px; background:var(--velo)}
+.saluto{grid-column:1/-1; padding:2px 2px 4px; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.82rem; letter-spacing:.05em}
+.saluto b{color:var(--fiducia)}
+.saluto span{color:var(--grigio); font-weight:600; font-size:.7rem; letter-spacing:.02em}
+
+.t{
+  border-radius:var(--r); padding:10px; min-height:88px; display:flex; flex-direction:column;
+  background:var(--tile); border:1px solid var(--velo); position:relative; overflow:hidden;
+  transition:transform .1s;
+}
+.t:active{transform:scale(.95)}
+.t .et{font-weight:800; font-size:.52rem; margin-bottom:auto; opacity:.95}
+.t .big{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.3rem; line-height:1.05}
+.t .big small{font-size:.75rem; opacity:.7}
+.t .cmd{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.56rem; letter-spacing:.08em; margin-top:3px}
+
+/* ADESSO */
+.t-adesso{flex-direction:row; align-items:center; gap:12px; min-height:0; padding:12px 14px;
+  background:linear-gradient(135deg,var(--rosso),var(--rosso2)); border:none}
+.t-adesso .ora{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.7rem; line-height:1}
+.t-adesso .cosa{flex:1}
+.t-adesso .cosa b{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.85rem; letter-spacing:.05em; display:block}
+.t-adesso .cosa span{font-size:.7rem; color:#FFE3E1}
+.t-adesso .bell{font-size:.66rem; font-weight:800; background:rgba(0,0,0,.25); padding:5px 9px; border-radius:999px; white-space:nowrap}
+.t-adesso.calmo{background:linear-gradient(135deg,#1B5E8E,#0E3A5C)}
+.t-adesso.calmo .cosa span{color:#CFE6FF}
+.pulsa{animation:pulsa 2.2s ease-in-out infinite}
+@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(255,59,48,.5)}50%{box-shadow:0 0 0 7px rgba(255,59,48,0)}}
+
+.t-avviso{border-color:rgba(255,59,48,.5)}
+.t-avviso .et{color:#FF8A84}
+.t-avviso .big{font-size:1.05rem}
+.t-avviso .cmd{color:var(--rosso)}
+.t-malaga{background:linear-gradient(145deg,#FFD60A,#FF9F0A 75%,#FF7A00); border:none; color:#1A1200}
+.t-malaga .et{color:#5C4300}
+.t-uscita{background:linear-gradient(140deg,#0A84FF,#0040C1); border:none}
+.t-uscita .et{color:#CFE6FF}
+.t-uscita .cmd{color:#FFF}
+
+.t-sent .et{color:var(--grigio)}
+.t-sent .cmd{color:var(--corpo)}
+.fnodi{display:flex; gap:4px; margin-top:2px; flex-wrap:wrap}
+.fn{width:8px; height:8px; border-radius:50%; border:1.2px solid var(--c)}
+.fn.f{background:var(--c)}
+.fn.o{background:var(--fiducia); border-color:var(--fiducia)}
+.t-kata3{border-color:rgba(255,90,31,.5)}
+.t-kata3 .et{color:#FF9A73}
+.t-kata3 .big{font-size:.95rem}
+.t-kata3 .cmd{color:var(--corpo)}
+.t-mem{background:linear-gradient(140deg,#BF5AF2,#7A1FA8); border:none}
+.t-mem .et{color:#EFD9FF}
+.t-mem .vv{display:flex; gap:4px; margin-top:2px}
+.t-mem .v{flex:1; height:30px; border-radius:8px; background:rgba(0,0,0,.32) center/cover no-repeat; display:flex; align-items:center; justify-content:center; font-size:.8rem}
+.t-mem .v.oro{outline:1.5px solid var(--fiducia)}
+.t-mem .cmd{color:#FFF}
+.t-asc .et{color:var(--grigio)}
+.t-asc .faccia{display:flex; gap:3px; margin-top:2px}
+.t-asc button{flex:1; padding:7px 0; border-radius:8px; border:none; background:#222226; font-size:.95rem; cursor:pointer}
+.t-asc button:active{background:#2E2E34}
+.t-asc .cmd{color:var(--gravita)}
+.t-parola .et{color:var(--grigio)}
+.t-parola p{font-family:'Cormorant Garamond',serif; font-style:italic; font-size:.86rem; line-height:1.25; color:var(--bianco)}
+.t-parola .cmd{color:var(--fiducia)}
+.t-corda .et{color:var(--grigio)}
+.t-corda .big{font-size:1.05rem; color:var(--cordata)}
+.t-corda .cmd{color:var(--cordata)}
+
+.toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); background:#222226; color:#fff;
+  padding:12px 22px; border-radius:12px; font-size:.85rem; font-weight:700; opacity:0; pointer-events:none; transition:opacity .25s; z-index:50}
+.toast.on{opacity:1}
+
+.bar{position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; display:flex;
+  background:rgba(13,13,15,.94); backdrop-filter:blur(12px); border-top:1px solid var(--velo);
+  padding:7px 0 max(9px, env(safe-area-inset-bottom)); z-index:40}
+.bar a{flex:1; text-align:center; color:var(--grigio); font-size:.62rem; letter-spacing:.05em}
+.bar a span{display:block; font-size:1.2rem; margin-bottom:2px}
+.bar a.attivo{color:var(--bianco)}
+.bar a.attivo span{color:var(--fiducia)}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>Oggi</h1>
+  <p>Per vedere il tuo quadro devi entrare dal portale.</p>
+  <a href="/portale.html">ENTRA</a>
+</div>
+
+<div id="app">
+  <div class="console" id="console"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bar">
+  <a href="/oggi.html" class="attivo"><span>◉</span>Oggi</a>
+  <a href="/agenda.html"><span>🗓</span>Agenda</a>
+  <a href="/eventi.html"><span>✈</span>Eventi</a>
+  <a href="/portale.html"><span>👤</span>Portale</a>
+</nav>
+
+<script>
+/* ─── CFG identica alle pagine live ─── */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+};
+/* Nomi Kata = copia esatta della mappa KN live del portale */
+const KN={1:'Il Pronti',2:'Atterraggio',3:'Il Gradino',4:'Lo Scorrere',5:'Il Piombo',6:"Blocco dell'Asse",7:"Angolo d'Incidenza in Parete",8:"Angolo d'Incidenza in Sospensione",9:'Fuori–Dentro–Fuori',10:'Tutto in Uno',11:'Appendersi (Fiducia)',12:'Andare su Corda',13:'Altalena',14:'Progressione Appendersi Alto',15:'Pendoli',16:'Processo di Moschettonaggio',17:'Appendersi da Primo',18:'Pendolo in Calata',19:'Setup Sicura',20:'Postura di Sicura',21:'Dare / Recuperare Corda',22:'Blocca / Sblocca',23:'Dare e Recuperare Veloce',24:'Calata',25:'Test Progressivo in Parete',26:'Accompagnare il Compagno',27:'Lettura e Individuazione Via',28:'Determinazione Punto di Volo',29:'Progressività del Volo',30:'Mini-Caduta Tecnica',31:'Postura di Sicura Dinamica',32:'Ammortizzamento del Volo',33:'Buddy Check'};
+/* Le 5 fasce del Sentiero (da index.html live) */
+const FASCE=[
+  {da:1,a:9,c:'var(--corpo)',nome:'Corpo'},
+  {da:10,a:18,c:'var(--gravita)',nome:'Gravità'},
+  {da:19,a:26,c:'var(--cordata)',nome:'Cordata'},
+  {da:27,a:32,c:'var(--vuoto)',nome:'Vuoto'},
+  {da:33,a:33,c:'var(--fiducia)',nome:'Fiducia'}
+];
+/* Parole del Kata: SOLO quelle certe dai testi ufficiali. Le altre arrivano coi testi. */
+const PAROLE={
+  1:'«Il Pronti non è il Kata più semplice. È il Kata che contiene tutti gli altri.»',
+  2:'«Ogni atterraggio ti rende più presente. Ogni atterraggio è un nuovo inizio.»'
+};
+const GIORNI=['DOM','LUN','MAR','MER','GIO','VEN','SAB'];
+const GIORNI_FULL=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
+let sb,uid,profilo={},pdata={};
+
+/* Trappola #134: date locali, MAI toISOString */
+function isoLocal(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dLoc(s){ // 'YYYY-MM-DD' -> Date locale a mezzanotte
+  const[p1,p2,p3]=String(s).slice(0,10).split('-').map(Number);
+  return new Date(p1,p2-1,p3);
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+async function init(){
+  sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){document.getElementById('gate').style.display='block';return;}
+  uid=session.user.id;
+
+  /* profilo: nome/kata_certs da profiles, corso/residue da profile_data (come agenda live) */
+  const[rp,rd]=await Promise.all([
+    sb.from('profiles').select('nome, cognome, kata_certs').eq('user_id',uid).maybeSingle(),
+    sb.from('profile_data').select('corso_attivo, lezioni_residue, frequenza_open, staff_role').eq('user_id',uid).maybeSingle()
+  ]);
+  profilo=rp.data||{};
+  pdata=rd.data||{};
+
+  document.getElementById('app').style.display='block';
+  render();
+  /* caricamenti indipendenti: ogni tessera vive da sola */
+  loadAdesso(); loadSentiero(); loadEventi();
+}
+
+function render(){
+  const oggi=new Date();
+  const c=document.getElementById('console');
+  c.innerHTML=`
+  <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'KATACLIMBER')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+
+  <div class="zona mono">Il tempo</div>
+
+  <a class="t t-adesso full" id="t-adesso" href="/agenda.html">
+    <div class="cosa"><b>UN ATTIMO…</b><span>Sto guardando la tua agenda</span></div>
+  </a>
+
+  <a class="t t-avviso" id="t-avviso" href="/agenda.html">
+    <span class="et mono">🔔 Lezioni</span>
+    <div class="big">${pdata.lezioni_residue??'—'}</div>
+    <span class="cmd mono">PRENOTA ›</span>
+  </a>
+
+  <a class="t t-malaga" id="t-ev1" href="/eventi.html">
+    <span class="et mono">✈ Eventi</span>
+    <div class="big">…</div>
+    <span class="cmd mono">GUARDA ›</span>
+  </a>
+
+  <a class="t t-uscita" id="t-ev2" href="/eventi.html">
+    <span class="et mono">⛰ In arrivo</span>
+    <div class="big">…</div>
+    <span class="cmd mono">TUTTI ›</span>
+  </a>
+
+  <div class="zona mono">La cura</div>
+
+  <a class="t t-sent" id="t-sent" href="/portale.html">
+    <span class="et mono">🌀 Sentiero</span>
+    <div class="big" id="sent-num">…<small>/33</small></div>
+    <div class="fnodi" id="sent-nodi"></div>
+    <span class="cmd mono">IL FLUSSO ›</span>
+  </a>
+
+  <a class="t t-kata3" id="t-kata" href="/portale.html">
+    <span class="et mono">🎯 Prossimo</span>
+    <div class="big" id="kata-next">…</div>
+    <span class="cmd mono">VAI. ›</span>
+  </a>
+
+  <a class="t t-mem" id="t-mem" href="/portale.html">
+    <span class="et mono">▶ Memoria</span>
+    <div class="vv" id="mem-vv"><div class="v">▶</div><div class="v">▶</div></div>
+    <span class="cmd mono">GUARDATI ›</span>
+  </a>
+
+  <div class="t t-asc">
+    <span class="et mono">Dichiarati</span>
+    <div class="faccia">
+      <button onclick="dichiara('Radicato')" title="Radicato">🌱</button>
+      <button onclick="dichiara('Carico')" title="Carico">🔥</button>
+      <button onclick="dichiara('Stanco')" title="Stanco">🌫</button>
+    </div>
+    <span class="cmd mono">UN TOCCO</span>
+  </div>
+
+  <a class="t t-parola" id="t-parola" href="/portale.html">
+    <span class="et mono">📖 La parola</span>
+    <p id="parola-txt">…</p>
+    <span class="cmd mono" id="parola-k"></span>
+  </a>
+
+  <a class="t t-corda" href="/portale.html">
+    <span class="et mono">Cordata</span>
+    <div class="big">PRESTO</div>
+    <span class="cmd mono">SULLA CORDA ›</span>
+  </a>`;
+}
+
+/* ── ADESSO: motore compiti v1 — 4 stati ── */
+async function loadAdesso(){
+  const el=document.getElementById('t-adesso');
+  try{
+    const oggiIso=isoLocal(new Date());
+    const{data,error}=await sb.from('prenotazioni_corso')
+      .select('id, data_lezione, stato, tipo_corso, corsi_attivi_settimanali(giorno_settimana, ora_inizio, ora_fine, istruttori(nome))')
+      .eq('user_id',uid).eq('stato','prenotato')
+      .gte('data_lezione',oggiIso)
+      .order('data_lezione',{ascending:true})
+      .limit(1);
+    if(error)throw error;
+    const p=(data||[])[0];
+    const residue=pdata.lezioni_residue;
+
+    if(p){
+      const cas=p.corsi_attivi_settimanali||{};
+      const ora=(cas.ora_inizio||'').slice(0,5)||'—';
+      const ist=cas.istruttori?.nome||'';
+      const d=dLoc(p.data_lezione);
+      const eOggi=isoLocal(d)===oggiIso;
+      const corso=(p.tipo_corso||pdata.corso_attivo||'').toUpperCase().replace('_',' ');
+      el.classList.add('pulsa');
+      el.innerHTML=`
+        <div class="ora">${esc(ora)}</div>
+        <div class="cosa">
+          <b>${eOggi?'PRESENTATI.':'TI ASPETTA '+GIORNI[d.getDay()]+' '+d.getDate()}</b>
+          <span>${esc(corso)}${ist?' con '+esc(ist):''} · Accademia RCC</span>
+        </div>
+        ${typeof residue==='number'?`<div class="bell">🔔 ${residue} lez</div>`:''}`;
+    }else if(pdata.corso_attivo && typeof residue==='number' && residue>0){
+      el.classList.add('pulsa');
+      el.innerHTML=`
+        <div class="ora">${residue}</div>
+        <div class="cosa">
+          <b>PRENOTA LA PROSSIMA.</b>
+          <span>Hai ${residue} ${residue===1?'lezione':'lezioni'} che ti aspettano</span>
+        </div>`;
+    }else{
+      /* stato zero: il silenzio come premio, non vuoto da riempire */
+      el.classList.add('calmo'); el.classList.remove('pulsa');
+      el.removeAttribute('href');
+      el.innerHTML=`
+        <div class="cosa">
+          <b>RESPIRA.</b>
+          <span>È tutto sotto controllo. Il Pronti, Kata 01.</span>
+        </div>`;
+    }
+  }catch(e){
+    el.innerHTML=`<div class="cosa"><b>APRI L'AGENDA</b><span>Non riesco a leggere le prenotazioni ora</span></div>`;
+    console.error('[adesso]',e);
+  }
+}
+
+/* ── SENTIERO + PROSSIMO + MEMORIA + PAROLA: una sola query kata_videos ── */
+async function loadSentiero(){
+  try{
+    const{data:v,error}=await sb.from('kata_videos').select('*').eq('user_id',uid);
+    if(error)throw error;
+    const vids=(v||[]).filter(x=>x.status!=='error');
+    const perKata={};
+    vids.forEach(x=>{ (perKata[x.kata_num]=perKata[x.kata_num]||[]).push(x); });
+    const vissuti=Object.keys(perKata).map(Number).sort((a,b)=>a-b);
+    const certs=new Set(
+      Array.isArray(profilo.kata_certs)?profilo.kata_certs.map(Number):
+      vids.filter(x=>x.status==='certified').map(x=>Number(x.kata_num))
+    );
+    /* numero */
+    document.getElementById('sent-num').innerHTML=vissuti.length+'<small>/33</small>';
+    /* nodi: un punto per fascia-campione (7 punti come nel disegno) + stato reale */
+    const nodi=[];
+    FASCE.forEach(f=>{
+      const span=f.a-f.da+1;
+      const campioni=f.da===33?[33]:[f.da, Math.floor((f.da+f.a)/2)];
+      campioni.forEach(k=>{
+        const cls=certs.has(k)?'o':(perKata[k]?'f':'');
+        nodi.push(`<span class="fn ${cls}" style="--c:${f.c}"></span>`);
+      });
+    });
+    document.getElementById('sent-nodi').innerHTML=nodi.join('');
+    /* prossimo: primo kata 1..33 senza video */
+    let next=null;
+    for(let k=1;k<=33;k++){ if(!perKata[k]){next=k;break;} }
+    document.getElementById('kata-next').textContent=next?('KATA '+String(next).padStart(2,'0')):'COMPLETO';
+    /* parola: del kata in lavorazione (= prossimo), solo se testo certo */
+    const ptxt=document.getElementById('parola-txt'), pk=document.getElementById('parola-k');
+    const kRef=next||33;
+    if(PAROLE[kRef]){ ptxt.textContent=PAROLE[kRef]; pk.textContent='KATA '+String(kRef).padStart(2,'0')+' ›'; }
+    else{ ptxt.textContent=KN[kRef]||''; pk.textContent='KATA '+String(kRef).padStart(2,'0')+' ›'; }
+    /* memoria: primo e ultimo video con thumbnail */
+    const conData=vids.filter(x=>x.uploaded_at).sort((a,b)=>new Date(a.uploaded_at)-new Date(b.uploaded_at));
+    if(conData.length){
+      const primo=conData[0], ultimo=conData[conData.length-1];
+      const cell=(x,oro)=>`<div class="v${oro?' oro':''}" ${x.thumbnail_url?`style="background-image:url('${esc(x.thumbnail_url)}')"`:''}>${x.thumbnail_url?'':'▶'}</div>`;
+      document.getElementById('mem-vv').innerHTML=cell(primo,false)+cell(ultimo,true);
+    }
+  }catch(e){ console.error('[sentiero]',e); }
+}
+
+/* ── EVENTI: stessa RPC pubblica della striscia Comunità ── */
+async function loadEventi(){
+  try{
+    const r=await fetch(CFG.SB_URL+'/rest/v1/rpc/get_eventi_calendario',{
+      method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.SB_KEY,'Authorization':'Bearer '+CFG.SB_KEY},body:'{}'});
+    if(!r.ok)throw new Error('rpc '+r.status);
+    const ev=await r.json();
+    const oggi=new Date(); oggi.setHours(0,0,0,0);
+    const fut=(ev||[]).filter(e=>dLoc(e.data_inizio)>=oggi).sort((a,b)=>dLoc(a.data_inizio)-dLoc(b.data_inizio));
+    const T={viaggio:'✈',uscita_adulti:'⛰',uscita_ragazzi:'🧗',evento:'◆'};
+    const fill=(id,e)=>{
+      const el=document.getElementById(id); if(!el)return;
+      if(!e){el.style.display='none';return;}
+      const gg=Math.max(0,Math.round((dLoc(e.data_inizio)-oggi)/86400000));
+      el.href='/evento.html?slug='+encodeURIComponent(e.slug);
+      el.innerHTML=`
+        <span class="et mono">${T[e.tipo]||'◆'} ${esc((e.nome||'').split('—')[0].trim().slice(0,14))}</span>
+        <div class="big">${gg}<small>g</small></div>
+        <span class="cmd mono">${e.n_iscritti>0?e.n_iscritti+' IN CORDATA ›':'GUARDA ›'}</span>`;
+    };
+    fill('t-ev1',fut[0]); fill('t-ev2',fut[1]);
+  }catch(e){ console.error('[eventi]',e); }
+}
+
+/* ── DICHIARATI v1: solo locale, in attesa della decisione sulla struttura DB ── */
+function dichiara(stato){
+  try{
+    const k='kc_dichiarazioni';
+    const log=JSON.parse(localStorage.getItem(k)||'[]');
+    log.push({stato,quando:new Date().toISOString()});
+    localStorage.setItem(k,JSON.stringify(log.slice(-90)));
+  }catch(_){}
+  toast('Annotato: '+stato+'. Buona pratica.');
+}
+
+init();
+</script>
+</body>
+</html>
