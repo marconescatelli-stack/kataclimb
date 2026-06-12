@@ -2,13 +2,20 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: oggi v1.1 · 2026-06-12 · Collaudo Marco: deep-link ?nav=profilo/comunita sulle tessere cura (basta home generica), dedupe eventi doppi (stesso tipo+data_inizio: doppione 73°), Dichiarati persistente (tessera mostra OGGI: stato, log locale 90gg). CUMULA v1.0 · Home console "Oggi": pagina separata (pattern agenda/monitor),
-     auth condivisa via sb.auth.getSession(), legge profile_data (corso_attivo/lezioni_residue),
-     profiles (nome/kata_certs), kata_videos, prenotazioni_corso (prossima prenotata),
-     RPC get_eventi_calendario. Legge della console: SOPRA il tempo, SOTTO la cura.
-     Tessera ADESSO = motore compiti v1 (4 stati: oggi / futura / prenota / respira).
-     Dichiarati v1 = solo locale (localStorage), struttura DB da decidere.
-     Trappola #134 rispettata: date locali, mai toISOString per data_lezione. -->
+<!-- KC-BUILD: oggi v2.0 · 2026-06-12 sera · CONSOLE A RUOLI (collaudo Marco: "tutti abbiamo la console").
+     Vista decisa da profiles.role + profile_data.staff_role (i PERMESSI restano dove sono: RLS/RPC invariati,
+     la console legge e indirizza): role in [creator,admin,segreteria] -> SEGRETERIA ·
+     staff_role in [staff_istruttore_jr/sr/tutor] -> ISTRUTTORE (pattern agenda v3.64) · altrimenti ALLIEVO.
+     Override collaudo/switch: ?vista=allievo|istruttore|segreteria.
+     ISTRUTTORE: lookup istruttori.id da user_id (T#149 come agenda), slot oggi da corsi_attivi_settimanali
+     status=attivo + prenotati da prenotazioni_corso; DA VALIDARE = kata_videos slot=2 status='ready'
+     (valori verificati su DB 12 giu: status reali = ready|certified). SEGRETERIA: CHIAMA = righe
+     get_leads_da_contattare() · OGGI IN SALA = count prenotazioni oggi stato=prenotato · code lead_data
+     coda IN (commerciale|riacciuffo|segreteria) (valori verificati su DB 12 giu) con fallback crm_leads.
+     + DESKTOP >=900px: console 760px, tipografia maggiorata (era colonna telefono persa nel nero).
+     + t-ev2 fallback: con UN solo evento futuro niente buco, diventa scorciatoia EVENTI.
+     CUMULA v1.1 (deep-link ?nav, dedupe eventi stessa data+tipo, Dichiarati persistente) e v1.0
+     (motore compiti 4 stati, fonti copiate dal live, T#134 date locali, caricamenti indipendenti). -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oggi · KataClimb</title>
@@ -44,6 +51,7 @@ a{color:inherit; text-decoration:none}
 #app{display:none}
 .console{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:0 12px}
 .full{grid-column:1/-1}
+.due{grid-column:span 2}
 .zona{grid-column:1/-1; padding:4px 2px 0; color:var(--grigio); font-weight:800; font-size:.56rem; display:flex; align-items:center; gap:8px}
 .zona::after{content:''; flex:1; height:1px; background:var(--velo)}
 .saluto{grid-column:1/-1; padding:2px 2px 4px; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.82rem; letter-spacing:.05em}
@@ -112,6 +120,39 @@ a{color:inherit; text-decoration:none}
 .t-corda .big{font-size:1.05rem; color:var(--cordata)}
 .t-corda .cmd{color:var(--cordata)}
 
+/* ── tessere staff ── */
+.t-sala .et{color:var(--grigio)}
+.t-sala .big{color:var(--cordata)}
+.t-sala .cmd{color:var(--cordata)}
+.t-valida{background:linear-gradient(140deg,#BF5AF2,#7A1FA8); border:none}
+.t-valida .et{color:#EFD9FF}
+.t-valida .cmd{color:#FFF}
+.t-lez{border-color:rgba(255,255,255,.14)}
+.t-lez .et{color:var(--grigio)}
+.t-lez .riga{display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--velo); font-size:.78rem}
+.t-lez .riga:last-of-type{border-bottom:none}
+.t-lez .riga .h{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.8rem; width:48px; flex:none}
+.t-lez .riga .n{margin-left:auto; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.7rem; color:var(--cordata)}
+.t-lez .vuota{color:var(--grigio); font-size:.78rem; padding:8px 0}
+.tag{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.5rem; letter-spacing:.08em; padding:3px 7px; border-radius:999px; flex:none; text-transform:uppercase}
+.tag.open{background:rgba(255,214,10,.16); color:var(--fiducia)}
+.tag.advance{background:rgba(10,132,255,.16); color:var(--gravita)}
+.tag.intro_corda{background:rgba(48,209,88,.16); color:var(--cordata)}
+.tag.evo_corda{background:rgba(191,90,242,.16); color:var(--vuoto)}
+.tag.prima_lezione{background:rgba(48,209,88,.16); color:var(--cordata)}
+.tag.altro{background:rgba(255,255,255,.1); color:var(--grigio)}
+.t-coda .et{color:var(--grigio)}
+.t-coda .cmd{color:var(--gravita)}
+.t-nuovo{border-style:dashed; border-color:rgba(255,255,255,.25); align-items:center; justify-content:center; text-align:center}
+.t-nuovo .big{font-size:1.5rem; color:var(--grigio)}
+.t-nuovo .cmd{color:var(--grigio)}
+.t-fasc .et{color:var(--grigio)}
+.t-fasc .cmd{color:var(--fiducia)}
+.t-switch{border-color:rgba(255,214,10,.35)}
+.t-switch .et{color:var(--grigio)}
+.t-switch .big{font-size:.95rem; color:var(--fiducia)}
+.t-switch .cmd{color:var(--fiducia)}
+
 .toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); background:#222226; color:#fff;
   padding:12px 22px; border-radius:12px; font-size:.85rem; font-weight:700; opacity:0; pointer-events:none; transition:opacity .25s; z-index:50}
 .toast.on{opacity:1}
@@ -123,6 +164,26 @@ a{color:inherit; text-decoration:none}
 .bar a span{display:block; font-size:1.2rem; margin-bottom:2px}
 .bar a.attivo{color:var(--bianco)}
 .bar a.attivo span{color:var(--fiducia)}
+
+/* ── v2.0 DESKTOP: la console respira, non resta colonna-telefono nel nero ── */
+@media (min-width:900px){
+  body{max-width:760px; padding-top:28px; font-size:17px}
+  .console{gap:12px; padding:0 16px}
+  .saluto{font-size:1.05rem; padding-bottom:8px}
+  .zona{font-size:.66rem; padding-top:10px}
+  .t{min-height:112px; padding:14px; border-radius:20px}
+  .t .et{font-size:.6rem}
+  .t .big{font-size:1.7rem}
+  .t .cmd{font-size:.64rem}
+  .t-adesso .ora{font-size:2.2rem}
+  .t-adesso .cosa b{font-size:1.05rem}
+  .t-adesso .cosa span{font-size:.8rem}
+  .fn{width:10px; height:10px}
+  .t-mem .v{height:44px}
+  .t-parola p{font-size:1rem}
+  .bar{max-width:760px}
+  .bar a{font-size:.7rem}
+}
 </style>
 </head>
 <body>
@@ -152,6 +213,9 @@ const CFG={
   SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
   SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
 };
+/* Ruoli — stesse liste del portale live (v3.84+) */
+const SEG_ROLES=['creator','admin','segreteria'];
+const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istruttore_tutor'];
 /* Nomi Kata = copia esatta della mappa KN live del portale */
 const KN={1:'Il Pronti',2:'Atterraggio',3:'Il Gradino',4:'Lo Scorrere',5:'Il Piombo',6:"Blocco dell'Asse",7:"Angolo d'Incidenza in Parete",8:"Angolo d'Incidenza in Sospensione",9:'Fuori–Dentro–Fuori',10:'Tutto in Uno',11:'Appendersi (Fiducia)',12:'Andare su Corda',13:'Altalena',14:'Progressione Appendersi Alto',15:'Pendoli',16:'Processo di Moschettonaggio',17:'Appendersi da Primo',18:'Pendolo in Calata',19:'Setup Sicura',20:'Postura di Sicura',21:'Dare / Recuperare Corda',22:'Blocca / Sblocca',23:'Dare e Recuperare Veloce',24:'Calata',25:'Test Progressivo in Parete',26:'Accompagnare il Compagno',27:'Lettura e Individuazione Via',28:'Determinazione Punto di Volo',29:'Progressività del Volo',30:'Mini-Caduta Tecnica',31:'Postura di Sicura Dinamica',32:'Ammortizzamento del Volo',33:'Buddy Check'};
 /* Le 5 fasce del Sentiero (da index.html live) */
@@ -170,8 +234,9 @@ const PAROLE={
 const GIORNI=['DOM','LUN','MAR','MER','GIO','VEN','SAB'];
 const GIORNI_FULL=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
 const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const TIPO_LBL={open:'Open',advance:'Advance',intro_corda:'Intro',evo_corda:'Evo',prima_lezione:'Prima',bambini:'Bambini',lab:'Lab',fly:'Fly'};
 
-let sb,uid,profilo={},pdata={};
+let sb,uid,profilo={},pdata={},vista='allievo';
 
 /* Trappola #134: date locali, MAI toISOString */
 function isoLocal(d){
@@ -183,6 +248,8 @@ function dLoc(s){ // 'YYYY-MM-DD' -> Date locale a mezzanotte
 }
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+/* giorno_settimana DB: 1=Lun … 7=Dom (convenzione agenda live) */
+function gsOggi(d){const g=d.getDay();return g===0?7:g;}
 
 async function init(){
   sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
@@ -190,23 +257,35 @@ async function init(){
   if(!session){document.getElementById('gate').style.display='block';return;}
   uid=session.user.id;
 
-  /* profilo: nome/kata_certs da profiles, corso/residue da profile_data (come agenda live) */
+  /* profilo: nome/role/kata_certs da profiles, corso/residue/staff_role da profile_data (come agenda live) */
   const[rp,rd]=await Promise.all([
-    sb.from('profiles').select('nome, cognome, kata_certs').eq('user_id',uid).maybeSingle(),
+    sb.from('profiles').select('nome, cognome, role, kata_certs').eq('user_id',uid).maybeSingle(),
     sb.from('profile_data').select('corso_attivo, lezioni_residue, frequenza_open, staff_role').eq('user_id',uid).maybeSingle()
   ]);
   profilo=rp.data||{};
   pdata=rd.data||{};
 
+  /* vista: override ?vista= (collaudo/switch creator), poi ruolo */
+  const vParam=new URLSearchParams(window.location.search).get('vista');
+  if(['allievo','istruttore','segreteria'].includes(vParam)) vista=vParam;
+  else if(SEG_ROLES.includes(profilo.role)) vista='segreteria';
+  else if(STAFF_ISTRUTTORI.includes(pdata.staff_role)) vista='istruttore';
+  else vista='allievo';
+
   document.getElementById('app').style.display='block';
-  render();
-  /* caricamenti indipendenti: ogni tessera vive da sola */
-  loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione();
+
+  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); loadEventi(); }
+  else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadIstrValida(); loadEventi(); }
+  else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); }
 }
 
-function render(){
+/* ════════════════════════ CONSOLE ALLIEVO (v1.1 invariata) ════════════════════════ */
+function renderAllievo(){
   const oggi=new Date();
   const c=document.getElementById('console');
+  /* tessera rientro per staff che guarda la vista allievo via ?vista= */
+  const back=(SEG_ROLES.includes(profilo.role)||STAFF_ISTRUTTORI.includes(pdata.staff_role))
+    ?`<a class="t t-switch" href="/oggi.html"><span class="et mono">Console</span><div class="big">STAFF</div><span class="cmd mono">TORNA ›</span></a>`:'';
   c.innerHTML=`
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'KATACLIMBER')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
 
@@ -275,10 +354,11 @@ function render(){
     <span class="et mono">Cordata</span>
     <div class="big">PRESTO</div>
     <span class="cmd mono">SULLA CORDA ›</span>
-  </a>`;
+  </a>
+  ${back}`;
 }
 
-/* ── ADESSO: motore compiti v1 — 4 stati ── */
+/* ── ADESSO allievo: motore compiti v1 — 4 stati ── */
 async function loadAdesso(){
   const el=document.getElementById('t-adesso');
   try{
@@ -317,7 +397,6 @@ async function loadAdesso(){
           <span>Hai ${residue} ${residue===1?'lezione':'lezioni'} che ti aspettano</span>
         </div>`;
     }else{
-      /* stato zero: il silenzio come premio, non vuoto da riempire */
       el.classList.add('calmo'); el.classList.remove('pulsa');
       el.removeAttribute('href');
       el.innerHTML=`
@@ -345,12 +424,9 @@ async function loadSentiero(){
       Array.isArray(profilo.kata_certs)?profilo.kata_certs.map(Number):
       vids.filter(x=>x.status==='certified').map(x=>Number(x.kata_num))
     );
-    /* numero */
     document.getElementById('sent-num').innerHTML=vissuti.length+'<small>/33</small>';
-    /* nodi: un punto per fascia-campione (7 punti come nel disegno) + stato reale */
     const nodi=[];
     FASCE.forEach(f=>{
-      const span=f.a-f.da+1;
       const campioni=f.da===33?[33]:[f.da, Math.floor((f.da+f.a)/2)];
       campioni.forEach(k=>{
         const cls=certs.has(k)?'o':(perKata[k]?'f':'');
@@ -358,26 +434,301 @@ async function loadSentiero(){
       });
     });
     document.getElementById('sent-nodi').innerHTML=nodi.join('');
-    /* prossimo: primo kata 1..33 senza video */
     let next=null;
     for(let k=1;k<=33;k++){ if(!perKata[k]){next=k;break;} }
     document.getElementById('kata-next').textContent=next?('KATA '+String(next).padStart(2,'0')):'COMPLETO';
-    /* parola: del kata in lavorazione (= prossimo), solo se testo certo */
     const ptxt=document.getElementById('parola-txt'), pk=document.getElementById('parola-k');
     const kRef=next||33;
     if(PAROLE[kRef]){ ptxt.textContent=PAROLE[kRef]; pk.textContent='KATA '+String(kRef).padStart(2,'0')+' ›'; }
     else{ ptxt.textContent=KN[kRef]||''; pk.textContent='KATA '+String(kRef).padStart(2,'0')+' ›'; }
-    /* memoria: primo e ultimo video con thumbnail */
     const conData=vids.filter(x=>x.uploaded_at).sort((a,b)=>new Date(a.uploaded_at)-new Date(b.uploaded_at));
     if(conData.length){
       const primo=conData[0], ultimo=conData[conData.length-1];
-      const cell=(x,oro)=>`<div class="v${oro?' oro':''}" ${x.thumbnail_url?`style="background-image:url('${esc(x.thumbnail_url)}')"`:''}>${x.thumbnail_url?'':'▶'}</div>`;
+      const cell=(x,oro)=>`<div class="v${oro?' oro':''}" ${x.thumbnail_url?`style="background-image:url('${esc(x.thumbnail_url)}')`+`"`:''}>${x.thumbnail_url?'':'▶'}</div>`;
       document.getElementById('mem-vv').innerHTML=cell(primo,false)+cell(ultimo,true);
     }
   }catch(e){ console.error('[sentiero]',e); }
 }
 
-/* ── EVENTI: stessa RPC pubblica della striscia Comunità ── */
+/* ════════════════════════ CONSOLE ISTRUTTORE ════════════════════════ */
+function renderIstruttore(){
+  const oggi=new Date();
+  const c=document.getElementById('console');
+  c.innerHTML=`
+  <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'ISTRUTTORE')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+
+  <div class="zona mono">Il tempo</div>
+
+  <a class="t t-adesso full" id="t-adesso" href="/agenda.html">
+    <div class="cosa"><b>UN ATTIMO…</b><span>Sto guardando le tue lezioni</span></div>
+  </a>
+
+  <div class="t t-lez due" id="t-lez" style="min-height:0">
+    <span class="et mono">Le tue lezioni · oggi</span>
+    <div id="lez-righe"><div class="vuota">…</div></div>
+  </div>
+
+  <a class="t t-malaga" id="t-ev1" href="/eventi.html">
+    <span class="et mono">✈ Eventi</span>
+    <div class="big">…</div>
+    <span class="cmd mono">GUARDA ›</span>
+  </a>
+
+  <div class="zona mono">La cura</div>
+
+  <a class="t t-valida due" id="t-valida" href="/monitor.html">
+    <span class="et mono">▶ Da validare</span>
+    <div class="big" id="valida-num">…<small> video Kata</small></div>
+    <span class="cmd mono">GUARDALI. ›</span>
+  </a>
+
+  <a class="t t-fasc" href="/monitor.html">
+    <span class="et mono">Monitor</span>
+    <div class="big">🎬</div>
+    <span class="cmd mono">APRI ›</span>
+  </a>
+
+  <a class="t t-uscita due" id="t-ev2" href="/eventi.html">
+    <span class="et mono">⛰ In arrivo</span>
+    <div class="big">…</div>
+    <span class="cmd mono">TUTTI ›</span>
+  </a>
+
+  <a class="t t-fasc" href="/agenda.html">
+    <span class="et mono">Agenda</span>
+    <div class="big">🗓</div>
+    <span class="cmd mono">APRI ›</span>
+  </a>`;
+}
+
+async function loadIstrLezioni(){
+  const adesso=document.getElementById('t-adesso');
+  const righe=document.getElementById('lez-righe');
+  try{
+    /* T#149: corsi_attivi_settimanali.istruttore_id -> istruttori.id, lookup da user_id (come agenda live) */
+    const{data:istr}=await sb.from('istruttori').select('id').eq('user_id',uid).maybeSingle();
+    const iid=istr?.id||null;
+    if(!iid){
+      adesso.classList.add('calmo');
+      adesso.innerHTML=`<div class="cosa"><b>RESPIRA.</b><span>Nessuna riga istruttore collegata al tuo profilo</span></div>`;
+      righe.innerHTML=`<div class="vuota">—</div>`;
+      return;
+    }
+    const{data:slots,error}=await sb.from('corsi_attivi_settimanali')
+      .select('id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, capienza_max')
+      .eq('status','attivo').eq('istruttore_id',iid);
+    if(error)throw error;
+
+    const now=new Date();
+    const gOggi=gsOggi(now);
+    const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const oggiIso=isoLocal(now);
+    const slotsOggi=(slots||[]).filter(s=>s.giorno_settimana===gOggi)
+      .sort((a,b)=>String(a.ora_inizio).localeCompare(String(b.ora_inizio)));
+
+    /* prenotati di oggi sui miei slot */
+    const conteggi={};
+    if(slotsOggi.length){
+      const ids=slotsOggi.map(s=>s.id);
+      const{data:pr}=await sb.from('prenotazioni_corso')
+        .select('slot_id').eq('data_lezione',oggiIso).eq('stato','prenotato').in('slot_id',ids);
+      (pr||[]).forEach(x=>{conteggi[x.slot_id]=(conteggi[x.slot_id]||0)+1;});
+    }
+
+    /* righe di oggi */
+    if(slotsOggi.length){
+      righe.innerHTML=slotsOggi.map(s=>{
+        const tipo=s.tipo_corso||'';
+        const cls=TIPO_LBL[tipo]?tipo:'altro';
+        return `<div class="riga"><span class="h">${esc(String(s.ora_inizio).slice(0,5))}</span>`+
+          `<span class="tag ${cls}">${esc(TIPO_LBL[tipo]||tipo)}</span>`+
+          `<span class="n">${conteggi[s.id]||0}/${s.capienza_max??'—'}</span></div>`;
+      }).join('');
+    }else{
+      righe.innerHTML=`<div class="vuota">Oggi nessuna lezione tua.</div>`;
+    }
+
+    /* ADESSO: prossima lezione di oggi non ancora finita, altrimenti prossimo giorno con slot */
+    const prossOggi=slotsOggi.find(s=>String(s.ora_fine).slice(0,5)>hhmm);
+    if(prossOggi){
+      adesso.classList.add('pulsa');
+      adesso.innerHTML=`
+        <div class="ora">${esc(String(prossOggi.ora_inizio).slice(0,5))}</div>
+        <div class="cosa">
+          <b>IN SALA.</b>
+          <span>${esc(TIPO_LBL[prossOggi.tipo_corso]||prossOggi.tipo_corso||'')} · ${conteggi[prossOggi.id]||0} prenotati · Accademia RCC</span>
+        </div>
+        <div class="bell">${slotsOggi.length} lez oggi</div>`;
+    }else{
+      /* prossimo giorno con uno slot (entro 7) */
+      let trovato=null;
+      for(let i=1;i<=7 && !trovato;i++){
+        const d=new Date(now); d.setDate(d.getDate()+i);
+        const g=gsOggi(d);
+        const s=(slots||[]).filter(x=>x.giorno_settimana===g)
+          .sort((a,b)=>String(a.ora_inizio).localeCompare(String(b.ora_inizio)))[0];
+        if(s)trovato={s,d};
+      }
+      if(trovato){
+        adesso.classList.add('pulsa');
+        adesso.innerHTML=`
+          <div class="ora">${esc(String(trovato.s.ora_inizio).slice(0,5))}</div>
+          <div class="cosa">
+            <b>TI ASPETTANO ${GIORNI[trovato.d.getDay()]} ${trovato.d.getDate()}</b>
+            <span>${esc(TIPO_LBL[trovato.s.tipo_corso]||trovato.s.tipo_corso||'')} · Accademia RCC</span>
+          </div>`;
+      }else{
+        adesso.classList.add('calmo');
+        adesso.innerHTML=`<div class="cosa"><b>RESPIRA.</b><span>Nessuna lezione in calendario</span></div>`;
+      }
+    }
+  }catch(e){
+    adesso.innerHTML=`<div class="cosa"><b>APRI L'AGENDA</b><span>Non riesco a leggere le lezioni ora</span></div>`;
+    righe.innerHTML=`<div class="vuota">—</div>`;
+    console.error('[istr-lezioni]',e);
+  }
+}
+
+async function loadIstrValida(){
+  try{
+    /* "da validare" = slot 2 ancora 'ready' (status reali su DB: ready|certified; error/uploading transitori) */
+    const{count,error}=await sb.from('kata_videos')
+      .select('id',{count:'exact',head:true})
+      .eq('slot',2).eq('status','ready');
+    if(error)throw error;
+    document.getElementById('valida-num').innerHTML=(count??0)+'<small> video Kata</small>';
+  }catch(e){
+    document.getElementById('valida-num').innerHTML='—';
+    console.error('[istr-valida]',e);
+  }
+}
+
+/* ════════════════════════ CONSOLE SEGRETERIA (creator = questa) ════════════════════════ */
+function renderSegreteria(){
+  const oggi=new Date();
+  const c=document.getElementById('console');
+  const mia=(pdata.corso_attivo)
+    ?`<a class="t t-switch" href="/oggi.html?vista=allievo"><span class="et mono">La tua console</span><div class="big">ALLIEVO</div><span class="cmd mono">VEDI ›</span></a>`:'';
+  c.innerHTML=`
+  <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'SEGRETERIA')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+
+  <div class="zona mono">Il tempo</div>
+
+  <a class="t t-adesso full" id="t-adesso" href="/portale.html?nav=segreteria">
+    <div class="cosa"><b>UN ATTIMO…</b><span>Sto guardando i contatti</span></div>
+  </a>
+
+  <a class="t t-sala" id="t-sala" href="/agenda.html">
+    <span class="et mono">Oggi in sala</span>
+    <div class="big" id="sala-num">…</div>
+    <span class="cmd mono">PRENOTATI ›</span>
+  </a>
+
+  <a class="t t-malaga" id="t-ev1" href="/eventi.html">
+    <span class="et mono">✈ Eventi</span>
+    <div class="big">…</div>
+    <span class="cmd mono">GUARDA ›</span>
+  </a>
+
+  <a class="t t-nuovo" href="/portale.html?nav=segreteria">
+    <div class="big">🗓</div>
+    <span class="cmd mono">NUOVO EVENTO ›</span>
+  </a>
+
+  <div class="zona mono">La cura</div>
+
+  <a class="t t-coda" href="/portale.html?nav=segreteria">
+    <span class="et mono">Commerciale</span>
+    <div class="big" id="coda-comm">…</div>
+    <span class="cmd mono">≤14 GIORNI ›</span>
+  </a>
+
+  <a class="t t-coda" href="/portale.html?nav=segreteria">
+    <span class="et mono">Riacciuffo</span>
+    <div class="big" id="coda-riac">…</div>
+    <span class="cmd mono">RIPRENDILI ›</span>
+  </a>
+
+  <a class="t t-coda" href="/portale.html?nav=segreteria">
+    <span class="et mono">Chiamate</span>
+    <div class="big" id="coda-segr">…</div>
+    <span class="cmd mono">SEGRETERIA ›</span>
+  </a>
+
+  <a class="t t-uscita due" id="t-ev2" href="/eventi.html">
+    <span class="et mono">⛰ In arrivo</span>
+    <div class="big">…</div>
+    <span class="cmd mono">TUTTI ›</span>
+  </a>
+
+  <a class="t t-fasc" href="/portale.html?nav=segreteria">
+    <span class="et mono">Fascicoli</span>
+    <div class="big">👤</div>
+    <span class="cmd mono">CERCA ›</span>
+  </a>
+  ${mia}`;
+}
+
+async function loadSegAdesso(){
+  const el=document.getElementById('t-adesso');
+  try{
+    const{data,error}=await sb.rpc('get_leads_da_contattare');
+    if(error)throw error;
+    const n=(data||[]).length;
+    if(n>0){
+      el.classList.add('pulsa');
+      el.innerHTML=`
+        <div class="ora">${n}</div>
+        <div class="cosa">
+          <b>CHIAMA.</b>
+          <span>${n===1?'1 contatto ti aspetta':n+' contatti ti aspettano'} oggi</span>
+        </div>
+        <div class="bell">🔥 ADS</div>`;
+    }else{
+      el.classList.add('calmo'); el.classList.remove('pulsa');
+      el.innerHTML=`<div class="cosa"><b>RESPIRA.</b><span>Nessuna chiamata urgente. Tutto sotto controllo.</span></div>`;
+    }
+  }catch(e){
+    el.innerHTML=`<div class="cosa"><b>APRI LA SEGRETERIA</b><span>Non riesco a leggere i contatti ora</span></div>`;
+    console.error('[seg-adesso]',e);
+  }
+}
+
+async function loadSegSala(){
+  try{
+    const{count,error}=await sb.from('prenotazioni_corso')
+      .select('id',{count:'exact',head:true})
+      .eq('data_lezione',isoLocal(new Date())).eq('stato','prenotato');
+    if(error)throw error;
+    document.getElementById('sala-num').textContent=count??0;
+  }catch(e){
+    document.getElementById('sala-num').textContent='—';
+    console.error('[seg-sala]',e);
+  }
+}
+
+async function loadSegCode(){
+  /* valori coda verificati su DB 12 giu: commerciale | riacciuffo | segreteria.
+     Prova lead_data (fonte), in fallback la view crm_leads. */
+  const code=[['commerciale','coda-comm'],['riacciuffo','coda-riac'],['segreteria','coda-segr']];
+  for(const[val,id]of code){
+    let n=null;
+    try{
+      const{count,error}=await sb.from('lead_data').select('id',{count:'exact',head:true}).eq('coda',val);
+      if(error)throw error;
+      n=count;
+    }catch(_){
+      try{
+        const{count,error}=await sb.from('crm_leads').select('id',{count:'exact',head:true}).eq('coda',val);
+        if(error)throw error;
+        n=count;
+      }catch(e2){ console.error('[seg-code]',val,e2); }
+    }
+    document.getElementById(id).textContent=(n??'—');
+  }
+}
+
+/* ════════════════════════ EVENTI: condivisa da tutte le viste ════════════════════════ */
 async function loadEventi(){
   try{
     const r=await fetch(CFG.SB_URL+'/rest/v1/rpc/get_eventi_calendario',{
@@ -386,14 +737,21 @@ async function loadEventi(){
     const ev=await r.json();
     const oggi=new Date(); oggi.setHours(0,0,0,0);
     let fut=(ev||[]).filter(e=>dLoc(e.data_inizio)>=oggi).sort((a,b)=>dLoc(a.data_inizio)-dLoc(b.data_inizio));
-    /* v1.1 — dedupe: due righe evento con stessa data_inizio+tipo sono lo stesso evento
-       (doppione 73° noto, rendiconto DA-FARE #1: decisione editoriale pendente) */
+    /* dedupe v1.1: stessa data_inizio+tipo = stesso evento */
     const visti=new Set();
     fut=fut.filter(e=>{const k=e.data_inizio+'|'+e.tipo; if(visti.has(k))return false; visti.add(k); return true;});
     const T={viaggio:'✈',uscita_adulti:'⛰',uscita_ragazzi:'🧗',evento:'◆'};
     const fill=(id,e)=>{
       const el=document.getElementById(id); if(!el)return;
-      if(!e){el.style.display='none';return;}
+      if(!e){
+        /* v2.0: niente buco — con un solo evento la seconda tessera diventa la scorciatoia EVENTI */
+        el.href='/eventi.html';
+        el.innerHTML=`
+          <span class="et mono">✈ Eventi</span>
+          <div class="big">◆</div>
+          <span class="cmd mono">TUTTI ›</span>`;
+        return;
+      }
       const gg=Math.max(0,Math.round((dLoc(e.data_inizio)-oggi)/86400000));
       el.href='/evento.html?slug='+encodeURIComponent(e.slug);
       el.innerHTML=`
@@ -416,7 +774,6 @@ function dichiara(stato,emo){
   mostraDichiarazione();
   toast(emo+' '+stato+'. Annotato — resta sul tuo telefono.');
 }
-/* v1.1 — la tessera RICORDA la dichiarazione di oggi (effetto visibile, non svanisce) */
 function mostraDichiarazione(){
   try{
     const log=JSON.parse(localStorage.getItem('kc_dichiarazioni')||'[]');
