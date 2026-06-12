@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: portale v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
+<!-- KC-BUILD: portale v3.86 · 2026-06-12 sera · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
 <!-- KC-BUILD-PREV: portale v3.77 · 2026-06-11 19:10 · Registra contatto: checkbox "Sposta in Chiamate segreteria" (coda=segreteria via RPC imposta_coda_fascia, in un atto col follow-up) -->
 <!-- KC-BUILD-PREV: portale v3.76 · 2026-06-11 17:50 · Da contattare oggi (campagna attiva 7gg) + Gestione contatti 4 pulsanti (Commerciale ≤14gg/Segreteria/Riacciuffo/Campagna attiva) -->
@@ -1089,6 +1089,9 @@ m225 -56 c0 -50 0 -50 -77 -53 -78 -3 -78 -3 -78 53 0 56 0 56 78 53 77 -3 77
 <!-- ═══════════════════════════════════════
      LANDING / DEMO (non autenticato)
      ═══════════════════════════════════════ -->
+<style>html.kc-boot #screen-landing{display:none!important}</style>
+<script>/* v3.86 anti-flash: se c'è già una sessione in localStorage, la landing parte nascosta (sincrono, prima del paint). showScreen() toglie il velo appena init decide. */
+try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token'))document.documentElement.classList.add('kc-boot')}catch(e){}</script>
 <div id="screen-landing">
   <div class="landing-glow"></div>
   <div style="position:relative;z-index:2;padding:14px 20px">
@@ -3166,6 +3169,7 @@ function renderCerts(certs){
 /* ═══ SCREEN MANAGEMENT ═══ */
 
 function showScreen(id){
+  document.documentElement.classList.remove('kc-boot'); // v3.86 anti-flash
   ['screen-landing','screen-login','screen-app'].forEach(s=>{
     const el=document.getElementById(s);
     if(s===id){el.classList.remove('hidden');if(s==='screen-login')el.style.display='flex';else el.style.display='';}
@@ -6427,7 +6431,7 @@ function renderApp(){
   av.innerHTML=profile.foto_url?`<img src="${profile.foto_url}" alt="foto">`:ini;
   // Info
   document.getElementById('my-profile-info').innerHTML=`<div class="profile-name-row"><h1>${pn} <em>${pc}</em></h1>${rankBadgesHtml(profile,'lg')}</div>
-    <div class="profile-level"><div class="dot" style="background:${si.color}"></div><span>${si.label} · ${profile.struttura||'KataClimb'}</span></div>${(isDidattico()||isStaffIstruttore()||isSegreteria()||profile.corso_attivo)?`<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${isDidattico()?'<a href="monitor.html" target="_blank" class="profile-action-btn" style="display:inline-block;font-size:14px;color:#fff;text-decoration:none;padding:10px 18px;background:var(--accent);border:none;border-radius:8px;font-weight:600;letter-spacing:.2px">🎬 Vai a Monitor</a>':''}${(isStaffIstruttore()||isSegreteria()||profile.corso_attivo)?'<a href="agenda.html" target="_blank" class="profile-action-btn" style="display:inline-block;font-size:14px;color:#fff;text-decoration:none;padding:10px 18px;background:var(--accent);border:none;border-radius:8px;font-weight:600;letter-spacing:.2px">📅 Agenda</a>':''}</div>`:''}`;
+    <div class="profile-level"><div class="dot" style="background:${si.color}"></div><span>${si.label} · ${profile.struttura||'KataClimb'}</span></div>${(isDidattico()||isStaffIstruttore()||isSegreteria()||profile.corso_attivo)?`<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${isDidattico()?'<a href="monitor.html" target="_blank" class="profile-action-btn" style="display:inline-block;font-size:14px;color:#fff;text-decoration:none;padding:10px 18px;background:var(--accent);border:none;border-radius:8px;font-weight:600;letter-spacing:.2px">🎬 Vai a Monitor</a>':''}${(isStaffIstruttore()||isSegreteria()||profile.corso_attivo)?'<a href="oggi.html" class="profile-action-btn" style="display:inline-block;font-size:14px;color:#000;text-decoration:none;padding:10px 18px;background:#FFD60A;border:none;border-radius:8px;font-weight:800;letter-spacing:.2px">◉ Oggi</a><a href="agenda.html" target="_blank" class="profile-action-btn" style="display:inline-block;font-size:14px;color:#fff;text-decoration:none;padding:10px 18px;background:var(--accent);border:none;border-radius:8px;font-weight:600;letter-spacing:.2px">📅 Agenda</a>':''}</div>`:''}`;
   renderTabs('my-course-tabs',myTabIdx,'my');
   renderPhase('my-phase-label',CT[myTabIdx]);
   renderKataGrid('my-kata-grid',kataVids,profile.step||0,false,myTabIdx,profile.kata_certs||{});
@@ -7684,6 +7688,11 @@ async function init(){
     if(session){
       user=session.user;
       await loadAll();
+      // v3.86 — atterraggio allievo: URL nudo (niente ?nav/?lead_id) + corso attivo + non staff -> console Oggi.
+      // La barra di oggi.html rientra con ?nav=profilo: il parametro disinnesca il redirect (niente loop).
+      if(!window.location.search && profile && profile.corso_attivo && !(typeof isStaff==='function'&&isStaff())){
+        window.location.replace('oggi.html');return;
+      }
       showScreen('screen-app');
       renderApp();
       const params=new URLSearchParams(window.location.search);

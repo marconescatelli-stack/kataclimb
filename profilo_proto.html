@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: profilo-proto v0.1 · 2026-06-12 · PROTOTIPO STATICO (dati finti, zero Supabase).
+     Metodo prototipo-prima (Master v3.75): collaudo Marco -> iterazioni -> integrazione.
+     Legge del fascicolo: CHI SEI (identità) / DOVE SEI ORA (stato vivo) / QUANTO SEI ANDATO (flusso+memoria).
+     Linguaggio congelato v1.0: nero + saturi watchOS, JetBrains Mono + Cormorant Garamond,
+     copy imperativo, rosso SOLO urgenze MAI i Kata (Kata = 🌀), niente logo in-app.
+     Firma della pagina: il SENTIERO INTERO — 33 nodi nelle 5 fasce (non i 7 campioni della home). -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profilo · KataClimb — PROTOTIPO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
+  --rosso:#FF3B30; --rosso2:#C81E1E;
+  --corpo:#FF5A1F; --gravita:#0A84FF; --cordata:#30D158; --vuoto:#BF5AF2; --fiducia:#FFD60A;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--nero); color:var(--bianco);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.4;
+  max-width:480px; margin:0 auto; padding:10px 0 88px;
+}
+.mono{font-family:'JetBrains Mono',monospace; letter-spacing:.14em; text-transform:uppercase}
+a{color:inherit; text-decoration:none}
+
+.console{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:0 12px}
+.full{grid-column:1/-1}
+.due{grid-column:span 2}
+.zona{grid-column:1/-1; padding:4px 2px 0; color:var(--grigio); font-weight:800; font-size:.56rem; display:flex; align-items:center; gap:8px}
+.zona::after{content:''; flex:1; height:1px; background:var(--velo)}
+
+.t{
+  border-radius:var(--r); padding:10px; min-height:88px; display:flex; flex-direction:column;
+  background:var(--tile); border:1px solid var(--velo); position:relative; overflow:hidden;
+  transition:transform .1s;
+}
+.t:active{transform:scale(.96)}
+.t .et{font-weight:800; font-size:.52rem; margin-bottom:auto; opacity:.95}
+.t .big{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.3rem; line-height:1.05}
+.t .big small{font-size:.75rem; opacity:.7}
+.t .cmd{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.56rem; letter-spacing:.08em; margin-top:3px}
+
+/* ───────── CHI SEI ───────── */
+.chi{grid-column:1/-1; padding:6px 2px 2px; display:flex; align-items:center; gap:12px}
+.chi .iniz{
+  width:54px; height:54px; border-radius:16px; flex:none;
+  background:linear-gradient(140deg,#222226,#0E0E10); border:1px solid var(--velo);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.15rem; color:var(--fiducia);
+}
+.chi .nome{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.05rem; letter-spacing:.05em}
+.chi .da{color:var(--grigio); font-size:.68rem; margin-top:2px}
+.chi .grado{
+  margin-left:auto; flex:none; font-family:'JetBrains Mono',monospace; font-weight:800;
+  font-size:.56rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:6px 10px; border-radius:999px; border:1.5px solid var(--cordata); color:var(--cordata);
+}
+
+/* ───────── DOVE SEI ORA ───────── */
+.t-corso{background:linear-gradient(140deg,#1C1C1F,#0C0C0E); border-color:rgba(255,214,10,.4)}
+.t-corso .et{color:var(--grigio)}
+.t-corso .big{color:var(--fiducia); font-size:1.1rem}
+.t-corso .cmd{color:var(--fiducia)}
+.t-credito{border-color:rgba(255,59,48,.5)}
+.t-credito .et{color:#FF8A84}
+.t-credito .cmd{color:var(--rosso)}
+.t-asd .et{color:var(--grigio)}
+.t-asd .big{color:var(--cordata); font-size:1.05rem}
+.t-asd .cmd{color:var(--cordata)}
+.t-val .et{color:var(--grigio)}
+.t-val .cmd{color:var(--grigio)}
+
+/* ───────── IL SENTIERO (firma) ───────── */
+.t-sentiero{padding:14px 12px 12px}
+.t-sentiero .testa{display:flex; align-items:baseline; gap:10px; margin-bottom:10px}
+.t-sentiero .testa .et{margin:0; color:var(--grigio)}
+.t-sentiero .testa .big{font-size:1.7rem; margin-left:auto}
+.fascia{margin-bottom:10px}
+.fascia:last-of-type{margin-bottom:0}
+.fascia .fnome{
+  font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.52rem;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--fc); margin-bottom:5px;
+  display:flex; align-items:center; gap:6px;
+}
+.fascia .fnome::after{content:''; flex:1; height:1px; background:var(--fc); opacity:.18}
+.fnodi{display:flex; gap:6px; flex-wrap:wrap}
+.fn{
+  width:26px; height:26px; border-radius:50%; border:1.6px solid var(--fc); flex:none;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.5rem; color:var(--fc);
+  opacity:.45;
+}
+.fn.vissuto{background:var(--fc); color:#000; opacity:1}
+.fn.oro{background:var(--fiducia); border-color:var(--fiducia); color:#000; opacity:1}
+.fn.next{opacity:1; border-width:2.2px; box-shadow:0 0 0 3px rgba(255,255,255,.07)}
+.t-sentiero .leg{display:flex; gap:12px; margin-top:12px; color:var(--grigio); font-size:.58rem}
+.t-sentiero .leg b{font-weight:800}
+.t-sentiero .leg .d{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px; vertical-align:-1px}
+
+.t-kata3{border-color:rgba(255,90,31,.5)}
+.t-kata3 .et{color:#FF9A73}
+.t-kata3 .big{font-size:.95rem}
+.t-kata3 .cmd{color:var(--corpo)}
+.t-parola .et{color:var(--grigio)}
+.t-parola p{font-family:'Cormorant Garamond',serif; font-style:italic; font-size:.86rem; line-height:1.25}
+.t-parola .cmd{color:var(--fiducia)}
+
+/* ───────── SCUDETTI / MEMORIA / PERCORSO / CORDATA ───────── */
+.t-scudi .et{color:var(--grigio)}
+.scudi{display:flex; gap:8px; margin-top:4px; flex-wrap:wrap}
+.scudo{
+  width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:1.05rem; background:#222226; border:1px solid var(--velo);
+}
+.scudo.preso{background:linear-gradient(140deg,#2A2400,#191500); border-color:var(--fiducia)}
+.scudo.vuoto{opacity:.3}
+.t-scudi .cmd{color:var(--fiducia)}
+
+.t-mem{background:linear-gradient(140deg,#BF5AF2,#7A1FA8); border:none}
+.t-mem .et{color:#EFD9FF}
+.t-mem .vv{display:flex; gap:5px; margin-top:4px}
+.t-mem .v{flex:1; height:44px; border-radius:10px; background:rgba(0,0,0,.32); display:flex; align-items:center; justify-content:center; font-size:.9rem}
+.t-mem .v.oro{outline:1.5px solid var(--fiducia)}
+.t-mem .cmd{color:#FFF}
+
+.t-perc .et{color:var(--grigio)}
+.tappe{display:flex; align-items:center; gap:0; margin-top:6px}
+.tappa{
+  flex:1; text-align:center; font-family:'JetBrains Mono',monospace; font-weight:800;
+  font-size:.52rem; letter-spacing:.08em; text-transform:uppercase;
+  padding:8px 0; border-top:2.5px solid #2A2A2E; color:#4A4A50;
+}
+.tappa.fatta{border-color:var(--cordata); color:var(--cordata)}
+.tappa.qui{border-color:var(--fiducia); color:var(--fiducia)}
+.t-perc .cmd{color:var(--grigio)}
+
+.t-corda .et{color:var(--grigio)}
+.t-corda .big{font-size:1.05rem; color:var(--cordata)}
+.t-corda .cmd{color:var(--cordata)}
+
+/* barra */
+.bar{position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; display:flex;
+  background:rgba(13,13,15,.94); backdrop-filter:blur(12px); border-top:1px solid var(--velo);
+  padding:7px 0 max(9px, env(safe-area-inset-bottom)); z-index:40}
+.bar a{flex:1; text-align:center; color:var(--grigio); font-size:.62rem; letter-spacing:.05em}
+.bar a span{display:block; font-size:1.2rem; margin-bottom:2px}
+.bar a.attivo{color:var(--bianco)}
+.bar a.attivo span{color:var(--fiducia)}
+
+.proto{
+  grid-column:1/-1; text-align:center; color:#5A5A60; font-size:.6rem;
+  font-family:'JetBrains Mono',monospace; letter-spacing:.14em; padding:8px 0 2px;
+}
+</style>
+</head>
+<body>
+
+<div class="console">
+
+  <p class="proto">PROTOTIPO · DATI FINTI · v0.1</p>
+
+  <!-- ═══════════ CHI SEI ═══════════ -->
+  <div class="chi">
+    <div class="iniz">MN</div>
+    <div>
+      <div class="nome">MARCO N.</div>
+      <div class="da">In cordata dal marzo 2026 · Accademia RCC</div>
+    </div>
+    <div class="grado">Kataclimber</div>
+  </div>
+
+  <!-- ═══════════ DOVE SEI ORA ═══════════ -->
+  <div class="zona mono">Dove sei ora</div>
+
+  <a class="t t-corso due" href="#">
+    <span class="et mono">⛰ Corso</span>
+    <div class="big">OPEN</div>
+    <span class="cmd mono">CON MELLO · MAR 19:00 ›</span>
+  </a>
+
+  <a class="t t-credito" href="#">
+    <span class="et mono">🔔 Lezioni</span>
+    <div class="big">7</div>
+    <span class="cmd mono">PRENOTA ›</span>
+  </a>
+
+  <a class="t t-asd" href="#">
+    <span class="et mono">Tessera ASD</span>
+    <div class="big">2026 ✓</div>
+    <span class="cmd mono">VALE TUTTO L'ANNO</span>
+  </a>
+
+  <div class="t t-val due">
+    <span class="et mono">Validità pacchetto</span>
+    <div class="big">31<small> giorni</small></div>
+    <span class="cmd mono">FINO AL 13 LUGLIO</span>
+  </div>
+
+  <!-- ═══════════ QUANTO SEI ANDATO ═══════════ -->
+  <div class="zona mono">Quanto sei andato</div>
+
+  <!-- LA FIRMA: il Sentiero intero, 33 nodi nelle 5 fasce -->
+  <div class="t t-sentiero full">
+    <div class="testa">
+      <span class="et mono">🌀 Il Sentiero</span>
+      <div class="big">3<small>/33</small></div>
+    </div>
+
+    <div class="fascia" style="--fc:var(--corpo)">
+      <div class="fnome">Corpo · 1–9</div>
+      <div class="fnodi">
+        <span class="fn oro">1</span><span class="fn vissuto">2</span><span class="fn vissuto">3</span>
+        <span class="fn next">4</span><span class="fn">5</span><span class="fn">6</span>
+        <span class="fn">7</span><span class="fn">8</span><span class="fn">9</span>
+      </div>
+    </div>
+    <div class="fascia" style="--fc:var(--gravita)">
+      <div class="fnome">Gravità · 10–18</div>
+      <div class="fnodi">
+        <span class="fn">10</span><span class="fn">11</span><span class="fn">12</span>
+        <span class="fn">13</span><span class="fn">14</span><span class="fn">15</span>
+        <span class="fn">16</span><span class="fn">17</span><span class="fn">18</span>
+      </div>
+    </div>
+    <div class="fascia" style="--fc:var(--cordata)">
+      <div class="fnome">Cordata · 19–26</div>
+      <div class="fnodi">
+        <span class="fn">19</span><span class="fn">20</span><span class="fn">21</span><span class="fn">22</span>
+        <span class="fn">23</span><span class="fn">24</span><span class="fn">25</span><span class="fn">26</span>
+      </div>
+    </div>
+    <div class="fascia" style="--fc:var(--vuoto)">
+      <div class="fnome">Vuoto · 27–32</div>
+      <div class="fnodi">
+        <span class="fn">27</span><span class="fn">28</span><span class="fn">29</span>
+        <span class="fn">30</span><span class="fn">31</span><span class="fn">32</span>
+      </div>
+    </div>
+    <div class="fascia" style="--fc:var(--fiducia)">
+      <div class="fnome">Fiducia · 33</div>
+      <div class="fnodi"><span class="fn">33</span></div>
+    </div>
+
+    <div class="leg">
+      <span><span class="d" style="background:var(--fiducia)"></span><b>ORO</b> certificato</span>
+      <span><span class="d" style="background:var(--corpo)"></span><b>PIENO</b> vissuto</span>
+      <span><span class="d" style="border:1.4px solid var(--grigio)"></span>davanti a te</span>
+    </div>
+  </div>
+
+  <a class="t t-kata3" href="#">
+    <span class="et mono">🎯 Prossimo</span>
+    <div class="big">KATA 04</div>
+    <span class="cmd mono">VAI. ›</span>
+  </a>
+
+  <a class="t t-parola due" href="#">
+    <span class="et mono">📖 La parola</span>
+    <p>«Lo Scorrere non si impara. Si smette di impedirlo.»</p>
+    <span class="cmd mono">KATA 04 ›</span>
+  </a>
+
+  <a class="t t-scudi due" href="#">
+    <span class="et mono">🛡 Scudetti</span>
+    <div class="scudi">
+      <div class="scudo preso">🛡</div>
+      <div class="scudo preso">🛡</div>
+      <div class="scudo vuoto">·</div>
+      <div class="scudo vuoto">·</div>
+      <div class="scudo vuoto">·</div>
+    </div>
+    <span class="cmd mono">2 CONQUISTATI ›</span>
+  </a>
+
+  <a class="t t-mem" href="#">
+    <span class="et mono">▶ Memoria</span>
+    <div class="vv"><div class="v">▶</div><div class="v oro">▶</div></div>
+    <span class="cmd mono">GUARDATI ›</span>
+  </a>
+
+  <div class="t t-perc full" style="min-height:0">
+    <span class="et mono">Il percorso dei corsi</span>
+    <div class="tappe">
+      <div class="tappa fatta">Prima</div>
+      <div class="tappa qui">Open</div>
+      <div class="tappa">Advance</div>
+      <div class="tappa">Intro</div>
+      <div class="tappa">Evo</div>
+    </div>
+    <span class="cmd mono">SEI QUI: OPEN</span>
+  </div>
+
+  <a class="t t-corda full" href="#" style="min-height:0; flex-direction:row; align-items:center; gap:10px; padding:12px 14px">
+    <span class="et mono" style="margin:0">Cordata</span>
+    <div class="big" style="margin-left:auto">PRESTO</div>
+    <span class="cmd mono">SULLA CORDA ›</span>
+  </a>
+
+</div>
+
+<nav class="bar">
+  <a href="#"><span>◉</span>Oggi</a>
+  <a href="#"><span>🗓</span>Agenda</a>
+  <a href="#"><span>✈</span>Eventi</a>
+  <a href="#" class="attivo"><span>👤</span>Profilo</a>
+</nav>
+
+</body>
+</html>
