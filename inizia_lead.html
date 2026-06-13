@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia_lead v1 · 2026-06-13 · Landing LEAD-FIRST per campagna Meta obiettivo "Leads". Azione primaria = lascia contatto -> worker kc-lead + evento Pixel Lead. Prezzo 25€ dichiarato (coerenza col video). Azione secondaria = prenota subito su inizia.html (UTM passthrough). Pixel + consenso GDPR identici a inizia.html v2. -->
+<!-- KC-BUILD: inizia_lead v4 · 2026-06-13 · Landing LEAD-FIRST campagna Meta "Leads". Azione UNICA: form lead. Telefono OBBLIGATORIO con prefisso +39 fisso; email FACOLTATIVA (serve solo per prenotare online). Via di scampo rimossa (caso estero trascurabile). Azione secondaria "prenota subito" smorzata per non bucare il funnel. Worker kc-lead v1.2 + RPC find_or_create v2 (lead solo-telefono). Pixel Lead con event_id condiviso per dedup CAPI. Prezzo 25€ dichiarato. Pixel + consenso GDPR come inizia.html v2. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -137,6 +137,16 @@ body{
 }
 .opt{font-weight:500;color:var(--ink3);font-size:12px}
 
+.tel-wrap{display:flex;align-items:stretch}
+.tel-prefix{
+  display:flex;align-items:center;
+  padding:0 12px;
+  background:var(--bg2); border:2px solid var(--border2); border-right:none;
+  border-radius:var(--r) 0 0 var(--r);
+  font-size:15px; font-weight:800; color:var(--ink2);
+}
+.tel-wrap input[type=tel]{ border-radius:0 var(--r) var(--r) 0 !important; }
+
 .chip-block{margin:14px 0 2px}
 .chip-q{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:9px}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px}
@@ -178,14 +188,14 @@ body{
 
 /* ── Azione secondaria: prenota subito ──────────────────────── */
 .secondary{
-  max-width:480px; margin:18px auto 0; text-align:center;
-  font-size:14px; color:var(--ink2);
+  max-width:480px; margin:16px auto 0; text-align:center;
+  font-size:12.5px; color:var(--ink3);
 }
 .secondary a{
-  color:var(--sky-dark); font-weight:800; text-decoration:none;
-  border-bottom:2px solid rgba(14,165,233,.35); padding-bottom:1px;
+  color:var(--ink2); font-weight:600; text-decoration:underline;
+  text-decoration-color:var(--border2); text-underline-offset:2px;
 }
-.secondary a:hover{border-bottom-color:var(--sky-dark)}
+.secondary a:hover{text-decoration-color:var(--ink3)}
 
 .lead-done{text-align:center;padding:8px 4px}
 .lead-done h2{font-size:22px;font-weight:900;margin-bottom:8px}
@@ -289,10 +299,13 @@ body{
       </div>
       <div class="field">
         <label for="i-telefono">Telefono</label>
-        <input id="i-telefono" name="telefono" type="tel" autocomplete="tel" inputmode="tel" required>
+        <div class="tel-wrap">
+          <span class="tel-prefix">+39</span>
+          <input id="i-telefono" name="telefono" type="tel" autocomplete="tel" inputmode="tel" placeholder="333 123 4567" required>
+        </div>
       </div>
       <div class="field">
-        <label for="i-email">Email <span class="opt">(facoltativa)</span></label>
+        <label for="i-email">Email <span class="opt">(se vuoi prenotare online)</span></label>
         <input id="i-email" name="email" type="email" autocomplete="email" inputmode="email">
       </div>
 
@@ -332,7 +345,7 @@ body{
   </div>
 
   <div class="secondary fu fu4">
-    Hai gi&agrave; scelto la data? <a id="link-prenota" href="/inizia.html">Prenota subito la tua prima lezione &middot; 25&nbsp;€ &rarr;</a>
+    Hai gi&agrave; scelto la data? <a id="link-prenota" href="/inizia.html">prenota subito &middot; 25&nbsp;€</a>
   </div>
 </div>
 
@@ -387,12 +400,18 @@ body{
     var nome     = document.getElementById('i-nome').value.trim();
     var cognome  = document.getElementById('i-cognome').value.trim();
     var email    = document.getElementById('i-email').value.trim();
-    var telefono = document.getElementById('i-telefono').value.trim();
     var consenso = document.getElementById('i-consenso').checked;
 
+    // Telefono: prefisso +39 fisso. Tolgo SOLO +39/0039 espliciti se riscritti
+    // (NON un "39" nudo: i cellulari IT iniziano legittimamente con 39x).
+    var telRaw    = document.getElementById('i-telefono').value.trim();
+    var telNaz    = telRaw.replace(/^(\+39|0039)\s*/, '');
+    var telDigits = telNaz.replace(/\D/g, '');
+    var telefono  = telDigits ? ('+39 ' + telDigits) : '';
+
     if(!nome){ showInfoError('Inserisci il tuo nome.'); return; }
+    if(!telDigits || telDigits.length < 6){ showInfoError('Inserisci un numero di telefono valido.'); return; }
     if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showInfoError('Email non valida (puoi anche lasciarla vuota).'); return; }
-    if(!telefono || telefono.length < 6){ showInfoError('Inserisci un numero di telefono valido.'); return; }
     if(!consenso){ showInfoError('Spunta il consenso per procedere.'); return; }
 
     var btn = document.getElementById('btn-info-send');
@@ -407,9 +426,30 @@ body{
       if(infoExtra.desiderio) noteParts.push('Desiderio: ' + infoExtra.desiderio);
       var note = noteParts.join(' | ') || null;
 
+      // event_id condiviso browser <-> CAPI server (deduplica lato Meta)
+      var eventId = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : ('lead-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+
+      // _fbp / _fbc dai cookie del Pixel; _fbc costruito da fbclid se assente
+      function getCookie(n){
+        var m = document.cookie.match('(^|; )' + n + '=([^;]+)');
+        return m ? decodeURIComponent(m[2]) : null;
+      }
+      var fbp = getCookie('_fbp');
+      var fbc = getCookie('_fbc');
+      if(!fbc && utm.fbclid){ fbc = 'fb.1.' + Date.now() + '.' + utm.fbclid; }
+
+      var consent = null;
+      try { consent = localStorage.getItem('kc_consent'); } catch(e){}
+
       var body = Object.assign({
         nome: nome, cognome: cognome, email: email, telefono: telefono,
-        pagina: 'inizia_lead.html', orario: infoExtra.orario, note: note
+        pagina: 'inizia_lead.html', orario: infoExtra.orario, note: note,
+        event_id: eventId,
+        event_source_url: window.location.href,
+        fbp: fbp, fbc: fbc,
+        consent: consent
       }, utm);
 
       var res = await fetch(WORKER_LEAD_URL + '/', {
@@ -423,7 +463,8 @@ body{
         throw new Error(errBody.error || ('Errore server (' + res.status + ')'));
       }
 
-      if (window.kcTrack) window.kcTrack('Lead', { content_name: 'Richiesta info Prima Lezione' });
+      // Pixel browser con LO STESSO event_id -> Meta deduplica con l'evento CAPI
+      if (window.kcTrack) window.kcTrack('Lead', { content_name: 'Richiesta info Prima Lezione' }, { eventID: eventId });
 
       document.getElementById('lead-card').innerHTML =
         '<div class="lead-done">' +
