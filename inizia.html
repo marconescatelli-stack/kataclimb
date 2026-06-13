@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia v2 · 2026-06-12 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno -->
+<!-- KC-BUILD: inizia v3 · 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -1024,10 +1024,31 @@ body{
       if(infoExtra.orario) noteParts.push('Richiamo: ' + infoExtra.orario);
       if(infoExtra.desiderio) noteParts.push('Desiderio: ' + infoExtra.desiderio);
       const note = noteParts.join(' | ') || null;
+
+      // event_id condiviso browser <-> CAPI server (deduplica lato Meta)
+      const eventId = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : ('lead-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+      const getCookie = (n) => {
+        const m = document.cookie.match('(^|; )' + n + '=([^;]+)');
+        return m ? decodeURIComponent(m[2]) : null;
+      };
+      const fbp = getCookie('_fbp');
+      let   fbc = getCookie('_fbc');
+      if(!fbc && utm.fbclid){ fbc = 'fb.1.' + Date.now() + '.' + utm.fbclid; }
+      let consent = null;
+      try { consent = localStorage.getItem('kc_consent'); } catch(e){}
+
       const res = await fetch(`${WORKER_LEAD_URL}/`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ nome, cognome, email, telefono, pagina: 'inizia.html', orario: infoExtra.orario, note, ...utm }),
+        body:    JSON.stringify({
+          nome, cognome, email, telefono, pagina: 'inizia.html',
+          orario: infoExtra.orario, note,
+          event_id: eventId, event_source_url: window.location.href,
+          fbp, fbc, consent,
+          ...utm
+        }),
       });
 
       if(!res.ok){
@@ -1035,7 +1056,8 @@ body{
         throw new Error(errBody.error || `Errore server (${res.status})`);
       }
 
-      if (window.kcTrack) window.kcTrack('Lead', { content_name: 'Richiesta info Prima Lezione' });
+      // Pixel browser con LO STESSO event_id -> Meta deduplica con l'evento CAPI
+      if (window.kcTrack) window.kcTrack('Lead', { content_name: 'Richiesta info Prima Lezione' }, { eventID: eventId });
 
       document.querySelector('#modal-info .modal').innerHTML =
         '<h3>Grazie, <span class="accent">ci sentiamo presto</span>.</h3>' +
