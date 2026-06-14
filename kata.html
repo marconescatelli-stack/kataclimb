@@ -79,6 +79,13 @@ a{color:inherit;text-decoration:none}
 .kcorr-b{font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
 .kcorr-d{font-size:10px;color:var(--text3);margin-top:5px}
 
+/* BLOCCO ESEMPIO DEL MAESTRO */
+.kex{flex-basis:100%;width:100%;margin-top:9px;padding:9px 11px;border-radius:9px;background:rgba(10,127,75,.07);border:1px dashed rgba(10,127,75,.32);display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .15s}
+.kex:hover{background:rgba(10,127,75,.12)}
+.kex:active{transform:scale(.99)}
+.kex-i{color:var(--open);font-size:15px}
+.kex-t{font-size:12.5px;color:#0A6B40;font-weight:600}
+
 /* MODALE */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:60}
 .mo-box{background:#fff;border-radius:20px;padding:24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
@@ -123,6 +130,7 @@ a{color:inherit;text-decoration:none}
 </style>
 </head>
 <body>
+<button aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
 
 <div id="gate">
   <h1>I miei Kata</h1>
@@ -131,7 +139,6 @@ a{color:inherit;text-decoration:none}
 </div>
 
 <div id="app" style="display:none">
-  <div class="topbar"><button class="back-arrow" onclick="goBack()" title="Torna indietro">←</button></div>
   <div class="testa"><h1>I miei Kata</h1><span class="step" id="step-lbl"></span></div>
   <div class="sotto">Carica i tuoi video, slot per slot. Quando il maestro rivede un Kata e chiede di rifarlo, trovi le sue correzioni qui sotto, accanto al Kata.</div>
   <div class="tabs" id="course-tabs"></div>
@@ -208,9 +215,11 @@ const CT=[
 const KATA_MAX_DURATION=20;
 const VIDEO_SIZE_PARACADUTE=500*1024*1024;
 const MAX_VIDEO_SHORT_SIDE=1080;
+/* user_id del creator (Marco): i suoi kata_videos fanno da Kata-esempio per gli allievi */
+const CREATOR_ID='27b04151-93a7-4ecc-824c-fe337cc631a6';
 
 /* ═══ STATE ═══ */
-let sb=null,user=null,profile=null,kataVids={},myTabIdx=0;
+let sb=null,user=null,profile=null,kataVids={},esempiMaestro={},myTabIdx=0;
 let uploadKind='kata',uploadTgt=null,selFile=null;
 
 /* ═══ HELPERS ═══ */
@@ -276,6 +285,10 @@ function renderKataGrid(){
     const s2=slots[1];
     const showCorr=s2&&s2.status==='rejected'&&s2.feedback_validazione;
     const corrBlock=showCorr?`<div class="kcorr"><div class="kcorr-h">↻ Da rifare — correzioni del maestro</div><div class="kcorr-b">${esc(s2.feedback_validazione)}</div>${s2.feedback_at?`<div class="kcorr-d">${fmtDate(s2.feedback_at)}</div>`:''}</div>`:'';
+    // Kata-esempio del maestro: riferimento finché lo slot 2 non è validato (poi sparisce).
+    const slot2Cert=s2&&s2.status==='certified';
+    const ex=esempiMaestro[k];
+    const exBlock=(ex&&!slot2Cert)?`<div class="kex" onclick="openVideoPreview('${ex.stream_uid}',${k},0,true)"><span class="kex-i">▶</span><span class="kex-t">Esempio del maestro — guardalo prima di registrare</span></div>`:'';
     const certStat=kataCertStatus(certs,k);
     const certBadge=certStat==='attivo'?' · 🏆':(certStat==='in_scadenza'?' · 🚩':(certStat==='scaduto'?' · 🔴':''));
     h+=`<div class="kr ${done?'done':''} ${locked?'locked':''}">
@@ -315,7 +328,7 @@ function renderKataGrid(){
           ${ie?'<span class="si" style="color:rgba(0,0,0,.18)">+</span>':''}
           <span class="sl">${i===0?'MEMORIA':'VALIDAZIONE'}</span>
         </div>`;
-      }).join('')}</div>${corrBlock}</div>`;
+      }).join('')}</div>${exBlock}${corrBlock}</div>`;
   });
   document.getElementById('kata-grid').innerHTML=h||'<div class="empty-st">Nessun Kata in questo corso.</div>';
 }
@@ -323,9 +336,10 @@ function renderKataGrid(){
 function myTab(i){myTabIdx=i;renderTabs();renderPhase();renderKataGrid();}
 
 /* ═══ PLAYER ═══ */
-function openVideoPreview(streamUid,kataNum,slotNum){
+function openVideoPreview(streamUid,kataNum,slotNum,isExample){
   if(!streamUid)return;
-  document.getElementById('player-title').textContent=`Kata ${String(kataNum).padStart(2,'0')} · ${slotNum===1?'Memoria':'Validazione'}`;
+  const pad=String(kataNum).padStart(2,'0');
+  document.getElementById('player-title').textContent=isExample?`Kata ${pad} · Esempio del maestro`:`Kata ${pad} · ${slotNum===1?'Memoria':'Validazione'}`;
   document.getElementById('player-box').innerHTML=`<iframe src="${esc(CF_STREAM_BASE+streamUid+'/iframe')}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" allowfullscreen></iframe>`;
   openModal('mo-player');
 }
@@ -493,6 +507,18 @@ async function loadAll(){
   const{data:v}=await sb.from('kata_videos').select('*').eq('user_id',user.id);
   kataVids={};
   (v||[]).forEach(row=>{(kataVids[row.kata_num]=kataVids[row.kata_num]||[]).push(row);});
+  // Kata-esempio del maestro (creator): riga separata, mostrata come riferimento. Non per il creator stesso.
+  esempiMaestro={};
+  if(user.id!==CREATOR_ID){
+    const{data:ex}=await sb.from('kata_videos').select('kata_num,slot,status,stream_uid').eq('user_id',CREATOR_ID).in('status',['ready','certified']);
+    (ex||[]).forEach(row=>{
+      if(!row.stream_uid)return;
+      const cur=esempiMaestro[row.kata_num];
+      // preferisci certified, poi slot più alto
+      const better=!cur||(row.status==='certified'&&cur.status!=='certified')||(row.status===cur.status&&row.slot>cur.slot);
+      if(better)esempiMaestro[row.kata_num]={stream_uid:row.stream_uid,status:row.status,slot:row.slot};
+    });
+  }
   const lbl=document.getElementById('step-lbl');
   if(lbl)lbl.textContent=(profile.nome?profile.nome+' · ':'')+'Step '+(profile.step||0);
 }
