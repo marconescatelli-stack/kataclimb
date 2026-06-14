@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: kata v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
+     Tab corsi (CT) + griglia 2-slot (Memoria/Validazione) con TUTTI gli stati incl. 'rejected'.
+     NOVITA': slot 2 'rejected' reso visibile (Da rifare ↻) e RICARICABILE (openUpload → il worker stream-bridge
+     v2.12 fa il replace dello slot non-certificato), + blocco CORREZIONI del maestro (feedback_validazione)
+     sotto il Kata. Upload TUS resumable identico al portale live v3.91. Solo profilo proprio (readonly=false).
+     NON include: segreteria, comunità, certifica/sposta/elimina staff, toggle pubblico (restano nel portale). -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>I miei Kata · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#EBF4FF; --text:#000000; --text2:#262626; --text3:#65676B;
+  --border:rgba(0,0,0,.08); --open:#0A7F4B; --gold:#A77E11; --warn:#E11D48; --rej:#D8870C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  max-width:920px; margin:0 auto; padding:18px 16px 96px;
+}
+a{color:inherit;text-decoration:none}
+.hidden{display:none!important}
+
+/* GATE */
+#gate{display:none;padding:80px 24px;text-align:center}
+#gate h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:2rem;margin-bottom:10px}
+#gate p{color:var(--text3);font-size:.95rem;margin-bottom:24px}
+#gate a{display:inline-block;padding:14px 30px;border-radius:12px;background:var(--open);color:#fff;font-weight:700}
+
+/* HEADER */
+.testa{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.testa h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.7rem}
+.testa .step{font-size:.78rem;color:var(--text3);margin-left:auto}
+.sotto{color:var(--text3);font-size:.84rem;margin-bottom:18px;line-height:1.5}
+
+/* TAB CORSI */
+.tabs{display:flex;gap:7px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.tab-btn{flex:1;min-width:96px;display:flex;flex-direction:column;gap:3px;padding:12px 10px;border-radius:13px;background:rgba(255,255,255,.6);border:1px solid var(--border);cursor:pointer;text-align:left;transition:all .2s}
+.tab-btn.active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.tab-btn .tl{font-size:15px;font-weight:700}
+.tab-btn .ts{font-size:11px}
+.tab-btn .tc{font-size:11px;color:var(--text3)}
+.phase{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+
+/* GRIGLIA KATA */
+.kr{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:10px 12px;border-radius:13px;background:rgba(255,255,255,.55);border:1px solid var(--border);position:relative;transition:all .3s;margin-bottom:7px}
+.kr.locked{opacity:.25}
+.kr.locked .lock-ov{position:absolute;inset:0;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(44,36,24,.12);backdrop-filter:blur(1px);z-index:2;font-size:15px}
+.kr.done{background:rgba(10,127,75,.06);border-color:rgba(10,127,75,.2)}
+.kr.done .knum{background:linear-gradient(135deg,#0A7F4B,#064E2F);color:#fff}
+.ki{min-width:170px;flex:1}
+.ki-inner{display:flex;align-items:center;gap:11px}
+.knum{width:30px;height:30px;border-radius:9px;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.kname{font-size:15px;font-weight:600;line-height:1.2}
+.kcount{font-size:12px;color:var(--text3);margin-top:1px}
+.kslots{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+.vs{width:80px;aspect-ratio:1.6/1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;transition:all .2s}
+.vs .si{font-size:16px}
+.vs .sl{font-size:9px;letter-spacing:.04em;color:var(--text3);margin-top:2px;text-transform:uppercase}
+.vs.empty{border:1.5px dashed rgba(0,0,0,.1);background:rgba(0,0,0,.02);cursor:pointer}
+.vs.empty:hover{border-color:rgba(0,0,0,.18)}
+.vs.cert{border:2px solid var(--open);background:rgba(10,127,75,.1)}
+.vs.ready{border:2px solid var(--text);background:rgba(0,0,0,.06);cursor:pointer}
+.vs.pend{border:2px solid var(--gold);background:rgba(255,200,87,.08);cursor:pointer}
+.vs.err{border:2px solid var(--warn);background:rgba(225,29,72,.08);cursor:pointer}
+.vs.rej{border:2px solid var(--rej);background:rgba(216,135,12,.12);cursor:pointer}
+.vs.rej:active,.vs.empty:active{transform:scale(.97)}
+
+/* BLOCCO CORREZIONI */
+.kcorr{flex-basis:100%;width:100%;margin-top:9px;padding:10px 12px;border-radius:9px;background:rgba(216,135,12,.08);border:1px solid rgba(216,135,12,.28)}
+.kcorr-h{font-size:11px;font-weight:700;color:#A8650A;letter-spacing:.02em;margin-bottom:3px}
+.kcorr-b{font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.kcorr-d{font-size:10px;color:var(--text3);margin-top:5px}
+
+/* MODALE */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:60}
+.mo-box{background:#fff;border-radius:20px;padding:24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
+.mo-box h3{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.4rem;margin-bottom:8px}
+.dz{border:1.5px dashed rgba(0,0,0,.14);border-radius:14px;padding:30px 18px;text-align:center;cursor:pointer;transition:all .2s;color:var(--text2);font-size:14px}
+.dz.dragover{border-color:var(--open);background:rgba(10,127,75,.05)}
+.dz .sub{margin-top:4px}
+.ib{font-size:12.5px;padding:11px 14px;border-radius:10px;margin-top:12px;line-height:1.5}
+.ib.info{background:rgba(27,116,228,.08);color:#1B74E4}
+.ib.warn{background:rgba(225,29,72,.08);color:var(--warn)}
+.loader{width:18px;height:18px;border:2px solid rgba(0,0,0,.15);border-top-color:var(--open);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#upload-prog-fill{height:100%;width:0;background:var(--open);border-radius:99px;transition:width .2s}
+.btn{padding:13px 0;border:none;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700}
+.btn-p{background:var(--open);color:#fff}
+.btn-g{background:rgba(0,0,0,.06);color:var(--text2)}
+.player{position:relative;width:100%;aspect-ratio:9/16;max-height:64vh;border-radius:12px;overflow:hidden;background:#000;margin:0 auto}
+.player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
+/* FEEDBACK CENTRALE */
+#mo-feedback .mo-box{max-width:340px;text-align:center}
+.fb-ico{font-size:38px;margin-bottom:8px}
+.fb-msg{font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:16px}
+
+/* TOAST */
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#222;color:#fff;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s;z-index:70}
+.toast.on{opacity:1}
+
+/* BARRA */
+.bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:920px;display:flex;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:7px 0 max(9px,env(safe-area-inset-bottom));z-index:40}
+.bar a{flex:1;text-align:center;color:var(--text3);font-size:.62rem;letter-spacing:.03em}
+.bar a span{display:block;font-size:1.2rem;margin-bottom:2px}
+.bar a.attivo{color:var(--text)}
+.bar a.attivo span{color:var(--open)}
+.empty-st{padding:50px 0;text-align:center;color:var(--text3);font-size:14px}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>I miei Kata</h1>
+  <p id="gate-msg">Per vedere i tuoi Kata devi entrare dal portale.</p>
+  <a href="/portale.html">ENTRA</a>
+</div>
+
+<div id="app" style="display:none">
+  <div class="testa"><h1>I miei Kata</h1><span class="step" id="step-lbl"></span></div>
+  <div class="sotto">Carica i tuoi video, slot per slot. Quando il maestro rivede un Kata e chiede di rifarlo, trovi le sue correzioni qui sotto, accanto al Kata.</div>
+  <div class="tabs" id="course-tabs"></div>
+  <div class="phase" id="phase-label"></div>
+  <div id="kata-grid"></div>
+</div>
+
+<!-- MODALE UPLOAD -->
+<div id="mo-upload" class="mo hidden">
+  <div class="mo-box">
+    <h3 id="upload-title">Carica Video</h3>
+    <p id="upload-info" style="font-size:12.5px;color:var(--text2);margin-bottom:18px"></p>
+    <div class="dz" id="upload-dz" onclick="document.getElementById('vid-input').click()">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style="margin:0 auto 8px;display:block"><rect x="3" y="7" width="26" height="18" rx="3" stroke="rgba(0,0,0,.12)" stroke-width="1.5"/><path d="M12 14L16 10L20 14" stroke="rgba(0,0,0,.18)" stroke-width="1.5" stroke-linecap="round"/><path d="M16 10V21" stroke="rgba(0,0,0,.18)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <p>Trascina il video o clicca</p>
+      <p class="sub" id="upload-dz-sub" style="font-size:13px;color:var(--text3)">MP4/MOV · 1080p (no 4K)</p>
+      <p id="upload-fname" style="margin-top:8px;font-size:13px;color:var(--open);display:none"></p>
+    </div>
+    <input id="vid-input" type="file" accept="video/mp4,video/quicktime,video/webm" style="display:none" onchange="handleVideoSelect(event)">
+    <div class="ib info">ℹ Il video viene caricato su Cloudflare Stream. L'elaborazione richiede ~30 secondi.</div>
+    <div id="upload-warn" class="ib warn hidden">⚠ Slot permanente — non eliminabile</div>
+    <div id="upload-prog" class="hidden" style="margin:14px 0;align-items:center;gap:8px"><div style="flex:1;height:8px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div id="upload-prog-fill"></div></div><span style="font-size:12px;color:var(--text2)">…</span></div>
+    <div style="display:flex;gap:7px;margin-top:14px">
+      <button class="btn btn-p" style="flex:1" onclick="submitUpload()">Carica</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-upload')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE PLAYER -->
+<div id="mo-player" class="mo hidden">
+  <div class="mo-box" style="max-width:420px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+      <h3 id="player-title" style="font-size:1.2rem"></h3>
+      <button onclick="closeModal('mo-player')" style="background:none;border:none;font-size:26px;cursor:pointer;color:var(--text3);line-height:1">×</button>
+    </div>
+    <div class="player" id="player-box"></div>
+  </div>
+</div>
+
+<!-- MODALE FEEDBACK -->
+<div id="mo-feedback" class="mo hidden">
+  <div class="mo-box">
+    <div id="fb-state-ok" style="display:none"><div class="fb-ico">✓</div><div class="fb-msg" id="fb-msg-ok"></div><button class="btn btn-p" style="width:100%" onclick="feedbackClose()">Ok</button></div>
+    <div id="fb-state-err" style="display:none"><div class="fb-ico">⚠</div><div class="fb-msg" id="fb-msg-err"></div><button class="btn btn-g" style="width:100%" onclick="feedbackClose()">Chiudi</button></div>
+    <div id="fb-state-busy" style="display:none"><div class="fb-ico"><div class="loader" style="margin:0 auto"></div></div><div class="fb-msg" id="fb-msg-busy"></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast-el"></div>
+
+<nav class="bar">
+  <a href="/oggi.html"><span>◉</span>Oggi</a>
+  <a href="/agenda.html"><span>🗓</span>Agenda</a>
+  <a href="/eventi.html"><span>✈</span>Eventi</a>
+  <a href="/portale.html"><span>👤</span>Portale</a>
+</nav>
+
+<script>
+/* ═══ CONFIG (copiato dal portale live) ═══ */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+  WORKER:'https://kataclimb-stream-bridge.marconescatelli.workers.dev',
+};
+const CF_STREAM_BASE='https://customer-w6v58fe3qv5tc0m4.cloudflarestream.com/';
+const KN={1:'Il Pronti',2:'Atterraggio',3:'Il Gradino',4:'Lo Scorrere',5:'Il Piombo',6:"Blocco dell'Asse",7:"Angolo d'Incidenza in Parete",8:"Angolo d'Incidenza in Sospensione",9:'Fuori–Dentro–Fuori',10:'Tutto in Uno',11:'Appendersi (Fiducia)',12:'Andare su Corda',13:'Altalena',14:'Progressione Appendersi Alto',15:'Pendoli',16:'Processo di Moschettonaggio',17:'Appendersi da Primo',18:'Pendolo in Calata',19:'Setup Sicura',20:'Postura di Sicura',21:'Dare / Recuperare Corda',22:'Blocca / Sblocca',23:'Dare e Recuperare Veloce',24:'Calata',25:'Test Progressivo in Parete',26:'Accompagnare il Compagno',27:'Lettura e Individuazione Via',28:'Determinazione Punto di Volo',29:'Progressività del Volo',30:'Mini-Caduta Tecnica',31:'Postura di Sicura Dinamica',32:'Ammortizzamento del Volo',33:'Buddy Check'};
+const CT=[
+  {id:'open',label:'Open',sub:'Linguaggio del Corpo',color:'#0A7F4B',katas:[1,2,3,4,5,6,7,11,12,13,14,15],phase:'Corpo + Gravità'},
+  {id:'advance',label:'Advance',sub:'Corpo in Azione',color:'#064E2F',katas:[8,9,10],extra:'+ Prep. Kata 27 + ripasso',phase:'Corpo avanzato'},
+  {id:'intro',label:'Intro Corda',sub:'Legami',color:'#2E86AB',katas:[16,17,18,19,20,21,22,23,24,25,26],phase:'Sistema + Cordata'},
+  {id:'evo',label:'Evo Corda',sub:'Fly',color:'#7B2D8E',katas:[27,28,29,30,31,32,33],phase:'Vuoto + Fiducia'},
+];
+const KATA_MAX_DURATION=20;
+const VIDEO_SIZE_PARACADUTE=500*1024*1024;
+const MAX_VIDEO_SHORT_SIDE=1080;
+
+/* ═══ STATE ═══ */
+let sb=null,user=null,profile=null,kataVids={},myTabIdx=0;
+let uploadKind='kata',uploadTgt=null,selFile=null;
+
+/* ═══ HELPERS ═══ */
+function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fmtDate(d){if(!d)return'';const dt=new Date(d);return dt.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}
+function openModal(id){document.getElementById(id).classList.remove('hidden')}
+function closeModal(id){document.getElementById(id).classList.add('hidden');if(id==='mo-player')document.getElementById('player-box').innerHTML=''}
+function toast(m){const e=document.getElementById('toast-el');e.textContent=m;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2400)}
+function gate(msg){if(msg)document.getElementById('gate-msg').textContent=msg;document.getElementById('gate').style.display='block'}
+
+function _fbShow(state,msg){
+  const m=document.getElementById('mo-feedback');
+  ['ok','err','busy'].forEach(s=>{const el=document.getElementById('fb-state-'+s);if(el)el.style.display=(s===state)?'block':'none';});
+  const t=document.getElementById('fb-msg-'+state);if(t)t.textContent=msg||'';
+  m.classList.remove('hidden');
+}
+function feedbackOk(msg){_fbShow('ok',msg)}
+function feedbackErr(msg){_fbShow('err',msg)}
+function feedbackBusy(msg){_fbShow('busy',msg)}
+function feedbackClose(){document.getElementById('mo-feedback').classList.add('hidden')}
+
+function kataCertStatus(certs,kataNum){
+  if(!certs||typeof certs!=='object')return null;
+  const c=certs[String(kataNum)];
+  if(!c||!c.certified_at)return null;
+  const cert=new Date(c.certified_at);
+  if(isNaN(cert.getTime()))return null;
+  const giorni=(new Date()-cert)/(24*60*60*1000);
+  if(giorni>365)return 'scaduto';
+  if(giorni>305)return 'in_scadenza';
+  return 'attivo';
+}
+
+/* ═══ RENDER ═══ */
+function renderTabs(){
+  document.getElementById('course-tabs').innerHTML=CT.map((c,i)=>`
+    <button class="tab-btn ${i===myTabIdx?'active':''}" onclick="myTab(${i})">
+      <span class="tl" style="color:${i===myTabIdx?c.color:'rgba(0,0,0,.28)'}">${c.label}</span>
+      <span class="ts" style="color:${i===myTabIdx?'rgba(0,0,0,.4)':'rgba(0,0,0,.12)'}">${c.sub}</span>
+      <span class="tc">${c.katas.length} Kata</span>
+    </button>`).join('');
+}
+function renderPhase(){
+  const tab=CT[myTabIdx];
+  document.getElementById('phase-label').innerHTML=`<div style="width:3px;height:14px;border-radius:2px;background:${tab.color}"></div>
+    <span style="font-size:13px;font-weight:700;color:${tab.color};text-transform:uppercase;letter-spacing:1.5px">${tab.phase}</span>
+    ${tab.extra?`<span style="font-size:13px;color:var(--text2);font-style:italic">${tab.extra}</span>`:''}`;
+}
+
+function renderKataGrid(){
+  const tab=CT[myTabIdx];
+  const step=profile&&profile.step?profile.step:0;
+  const certs=(profile&&profile.kata_certs)||{};
+  let h='';
+  tab.katas.forEach(k=>{
+    const v=kataVids[k]||[];
+    const cert=v.filter(x=>x.status==='certified').length;
+    const present=v.filter(x=>x.status==='ready'||x.status==='certified').length;
+    const done=cert>=1,locked=k>=12&&step<2;
+    const slots=Array.from({length:2},(_,i)=>{const f=v.find(x=>x.slot===i+1);return f||null});
+    // Correzioni del maestro: slot 2 rifiutato con feedback. Visibile sempre qui (profilo proprio).
+    const s2=slots[1];
+    const showCorr=s2&&s2.status==='rejected'&&s2.feedback_validazione;
+    const corrBlock=showCorr?`<div class="kcorr"><div class="kcorr-h">↻ Da rifare — correzioni del maestro</div><div class="kcorr-b">${esc(s2.feedback_validazione)}</div>${s2.feedback_at?`<div class="kcorr-d">${fmtDate(s2.feedback_at)}</div>`:''}</div>`:'';
+    const certStat=kataCertStatus(certs,k);
+    const certBadge=certStat==='attivo'?' · 🏆':(certStat==='in_scadenza'?' · 🚩':(certStat==='scaduto'?' · 🔴':''));
+    h+=`<div class="kr ${done?'done':''} ${locked?'locked':''}">
+      ${locked?'<div class="lock-ov">🔒</div>':''}
+      <div class="ki"><div class="ki-inner">
+        <div class="knum">${String(k).padStart(2,'0')}</div>
+        <div><div class="kname">${KN[k]}</div><div class="kcount">${present}/2${done?' · ✓':''}${certBadge}</div></div>
+      </div></div>
+      <div class="kslots">${slots.map((s,i)=>{
+        const ic=s&&s.status==='certified';
+        const ir=s&&s.status==='ready';
+        const ip=s&&(s.status==='pending'||s.status==='uploading');
+        const ier=s&&s.status==='error';
+        const irj=s&&s.status==='rejected';
+        const ie=!s;
+        let cls='vs';
+        if(ic)cls+=' cert';
+        else if(ir)cls+=' ready';
+        else if(ip)cls+=' pend';
+        else if(ier)cls+=' err';
+        else if(irj)cls+=' rej';
+        else cls+=' empty';
+        const thumbBg=((ir||ic)&&s&&s.thumbnail_url)?`background-image:url('${(s.thumbnail_url||'').replace(/'/g,'')}');background-size:cover;background-position:center;`:'';
+        let click='';
+        if(!locked){
+          if(ie) click=` onclick="openUpload(${k},${i})"${thumbBg?` style="${thumbBg}"`:''}`;
+          else if(s&&s.id&&s.stream_uid&&(ir||ic)) click=` onclick="openVideoPreview('${s.stream_uid}',${k},${i+1})" style="cursor:pointer;${thumbBg}" title="Apri video"`;
+          else if(irj) click=` onclick="openUpload(${k},${i})" style="cursor:pointer" title="Da rifare — leggi le correzioni qui sotto e ricarica il video"`;
+          else if(ip||ier) click=` onclick="apriSlotProblema('${s.id||''}',${k},${i},'${s.status||''}')" style="cursor:pointer;${thumbBg}" title="In elaborazione / errore — clicca per gestire"`;
+        }
+        return`<div class="${cls}"${click}>
+          ${ic&&(!s||!s.thumbnail_url)?'<span class="si" style="color:var(--open)">✓</span>':''}
+          ${ir&&(!s||!s.thumbnail_url)?'<span class="si" style="color:var(--text)">▶</span>':''}
+          ${ip?'<span class="si" style="color:var(--gold)">⏳</span>':''}
+          ${ier?'<span class="si" style="color:var(--warn)">!</span>':''}
+          ${irj?'<span class="si" style="color:var(--rej)">↻</span>':''}
+          ${ie?'<span class="si" style="color:rgba(0,0,0,.18)">+</span>':''}
+          <span class="sl">${i===0?'MEMORIA':'VALIDAZIONE'}</span>
+        </div>`;
+      }).join('')}</div>${corrBlock}</div>`;
+  });
+  document.getElementById('kata-grid').innerHTML=h||'<div class="empty-st">Nessun Kata in questo corso.</div>';
+}
+
+function myTab(i){myTabIdx=i;renderTabs();renderPhase();renderKataGrid();}
+
+/* ═══ PLAYER ═══ */
+function openVideoPreview(streamUid,kataNum,slotNum){
+  if(!streamUid)return;
+  document.getElementById('player-title').textContent=`Kata ${String(kataNum).padStart(2,'0')} · ${slotNum===1?'Memoria':'Validazione'}`;
+  document.getElementById('player-box').innerHTML=`<iframe src="${esc(CF_STREAM_BASE+streamUid+'/iframe')}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" allowfullscreen></iframe>`;
+  openModal('mo-player');
+}
+
+/* ═══ GESTIONE SLOT PROBLEMA (fantasmi uploading/error) ═══ */
+async function apriSlotProblema(videoId,kataNum,slotIdx,status){
+  if(!videoId)return;
+  if(!confirm(`Lo slot ${slotIdx+1} del Kata ${String(kataNum).padStart(2,'0')} è in stato '${status}'.\n\nProbabile upload non andato a buon fine. Vuoi liberarlo per ricaricare?`))return;
+  try{
+    const{error}=await sb.from('kata_videos').delete().eq('id',videoId);
+    if(error)throw error;
+    await loadAll();
+    toast(`Slot ${slotIdx+1} liberato — ora puoi ricaricare`);
+  }catch(e){toast('Errore: '+(e.message||e));console.error('[apriSlotProblema]',e);}
+}
+
+/* ═══ UPLOAD ═══ */
+function openUpload(k,s){
+  uploadKind='kata';uploadTgt={kata:k,slot:s};selFile=null;
+  document.getElementById('upload-fname').style.display='none';
+  document.getElementById('upload-prog').classList.add('hidden');
+  document.getElementById('upload-title').textContent='Carica Video';
+  document.getElementById('upload-dz-sub').textContent='MP4/MOV · max 20s · 1080p (no 4K)';
+  document.getElementById('upload-info').innerHTML=`Kata ${String(k).padStart(2,'0')} — ${KN[k]}<br>${s===0?'Memoria (permanente 🔒)':'Validazione (sostituibile)'}`;
+  document.getElementById('upload-warn').classList.toggle('hidden',s>=1);
+  openModal('mo-upload');
+}
+
+async function handleVideoSelect(e){
+  const f=e.target.files[0];
+  if(!f)return;
+  if(f.size>VIDEO_SIZE_PARACADUTE){feedbackErr('File enorme (oltre 500MB). Registra in 1080p — il 4K è inutile.');return;}
+  let meta=null;
+  try{meta=await readVideoMeta(f);}catch(_){meta=null;}
+  if(meta){
+    if(meta.duration>KATA_MAX_DURATION+0.5){feedbackErr('Il video dura '+Math.round(meta.duration)+'s — il massimo è '+KATA_MAX_DURATION+'s. Accorcialo e riprova.');return;}
+    if(Math.min(meta.w,meta.h)>MAX_VIDEO_SHORT_SIDE){feedbackErr('Risoluzione '+meta.w+'×'+meta.h+' troppo alta. Registra in 1080p.');return;}
+  }
+  selFile=f;
+  const el=document.getElementById('upload-fname');
+  el.textContent='📹 '+f.name+(meta?'  ·  '+Math.round(meta.duration)+'s · '+meta.w+'×'+meta.h:'');
+  el.style.display='block';
+}
+function readVideoMeta(file){
+  return new Promise((resolve,reject)=>{
+    const v=document.createElement('video');v.preload='metadata';
+    v.onloadedmetadata=()=>{const r={duration:v.duration,w:v.videoWidth,h:v.videoHeight};URL.revokeObjectURL(v.src);resolve(r);};
+    v.onerror=()=>{URL.revokeObjectURL(v.src);reject(new Error('meta-illeggibile'));};
+    v.src=URL.createObjectURL(file);
+  });
+}
+
+// ── client tus minimale (riprendibile) — identico al portale live v3.79 ──
+const TUS_CHUNK=5242880;
+const TUS_RETRY_DELAYS=[2000,4000,8000,15000,30000];
+let tusSession=null;
+function tusFileKey(prefix,file){return prefix+'|'+file.name+'|'+file.size+'|'+file.lastModified;}
+function tusPatchChunk(url,offset,blob,onBytes){
+  return new Promise((resolve,reject)=>{
+    const x=new XMLHttpRequest();
+    x.open('PATCH',url);
+    x.setRequestHeader('Tus-Resumable','1.0.0');
+    x.setRequestHeader('Upload-Offset',String(offset));
+    x.setRequestHeader('Content-Type','application/offset+octet-stream');
+    x.upload.onprogress=(e)=>{if(e.lengthComputable&&onBytes)onBytes(e.loaded);};
+    x.onload=()=>{
+      if(x.status>=200&&x.status<300){
+        const o=parseInt(x.getResponseHeader('Upload-Offset')||'',10);
+        resolve(isNaN(o)?offset+blob.size:o);
+      }else reject(new Error('HTTP '+x.status));
+    };
+    x.onerror=()=>reject(new Error('rete'));
+    x.send(blob);
+  });
+}
+async function tusHeadOffset(url){
+  const r=await fetch(url,{method:'HEAD',headers:{'Tus-Resumable':'1.0.0'}});
+  if(!r.ok)throw new Error('HEAD HTTP '+r.status);
+  const o=parseInt(r.headers.get('Upload-Offset')||'',10);
+  return isNaN(o)?null:o;
+}
+async function tusUpload(file,url,onProgress){
+  let offset=0,attempt=0;
+  try{const o=await tusHeadOffset(url);if(o!==null)offset=o;}catch(_){}
+  while(offset<file.size){
+    try{
+      const base=offset;
+      const chunk=file.slice(offset,Math.min(offset+TUS_CHUNK,file.size));
+      offset=await tusPatchChunk(url,offset,chunk,(sent)=>{if(onProgress)onProgress((base+sent)/file.size);});
+      attempt=0;
+      if(onProgress)onProgress(offset/file.size);
+    }catch(e){
+      if(attempt>=TUS_RETRY_DELAYS.length){
+        throw new Error('Connessione instabile: upload interrotto. Premi di nuovo Carica: riprenderà da dove era arrivato.');
+      }
+      await new Promise(res=>setTimeout(res,TUS_RETRY_DELAYS[attempt++]));
+      try{const o=await tusHeadOffset(url);if(o!==null)offset=o;}catch(_){}
+    }
+  }
+}
+
+async function submitUpload(){
+  if(!selFile)return toast('Seleziona un video');
+  if(!sb||!user)return toast('Login richiesto');
+  if(!uploadTgt)return toast('Target mancante');
+  const prog=document.getElementById('upload-prog');
+  prog.classList.remove('hidden');prog.style.display='flex';
+  let createdStreamUid=null,isTusAttempt=false;
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session)throw new Error('Sessione scaduta — fai logout e rientra');
+    const tusKey=tusFileKey('kata|'+uploadTgt.kata+'|'+user.id,selFile);
+    let uploadUrl=null,isTus=false;
+    if(tusSession&&tusSession.key===tusKey){
+      uploadUrl=tusSession.url;isTus=true;
+    }else{
+      tusSession=null;
+      const r=await fetch(CFG.WORKER+'/upload-url',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+        body:JSON.stringify({user_id:user.id,kata_num:uploadTgt.kata,upload_length:selFile.size})
+      });
+      const data=await r.json();
+      if(!r.ok)throw new Error(data.error||data.detail||'Worker error');
+      createdStreamUid=data.stream_uid;
+      uploadUrl=data.upload_url;
+      isTus=(data.protocol==='tus');
+      if(isTus)tusSession={key:tusKey,url:uploadUrl,stream_uid:data.stream_uid};
+    }
+    isTusAttempt=isTus;
+    const fill=document.getElementById('upload-prog-fill');
+    if(isTus){
+      await tusUpload(selFile,uploadUrl,(frac)=>{if(fill)fill.style.width=Math.round(frac*100)+'%';});
+      tusSession=null;
+    }else{
+      const fd=new FormData();fd.append('file',selFile);
+      const xhr=new XMLHttpRequest();
+      await new Promise((resolve,reject)=>{
+        xhr.upload.addEventListener('progress',(ev)=>{if(ev.lengthComputable&&fill)fill.style.width=Math.round((ev.loaded/ev.total)*100)+'%';});
+        xhr.addEventListener('load',()=>{if(xhr.status>=200&&xhr.status<300)resolve();else reject(new Error('Upload Stream fallito (HTTP '+xhr.status+')'));});
+        xhr.addEventListener('error',()=>reject(new Error('Errore di rete durante upload')));
+        xhr.open('POST',uploadUrl);xhr.send(fd);
+      });
+    }
+    createdStreamUid=null;
+    await loadAll();
+    feedbackOk('Video caricato — elaborazione ~30s');
+    closeModal('mo-upload');
+    myTab(myTabIdx);
+  }catch(e){
+    console.error('[submitUpload]',e);
+    if(createdStreamUid&&!(isTusAttempt&&tusSession)){
+      try{await sb.from('kata_videos').delete().eq('stream_uid',createdStreamUid);}catch(_){}
+    }
+    feedbackErr('Errore: '+(e.message||'sconosciuto'));
+  }finally{
+    document.getElementById('upload-prog').classList.add('hidden');
+  }
+}
+
+/* ═══ LOAD ═══ */
+async function loadAll(){
+  const{data:p}=await sb.from('profiles').select('user_id,nome,cognome,step,kata_certs,role').eq('user_id',user.id).maybeSingle();
+  profile=p||{step:0,kata_certs:{}};
+  const{data:v}=await sb.from('kata_videos').select('*').eq('user_id',user.id);
+  kataVids={};
+  (v||[]).forEach(row=>{(kataVids[row.kata_num]=kataVids[row.kata_num]||[]).push(row);});
+  const lbl=document.getElementById('step-lbl');
+  if(lbl)lbl.textContent=(profile.nome?profile.nome+' · ':'')+'Step '+(profile.step||0);
+}
+
+async function init(){
+  sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){gate();return;}
+  user=session.user;
+  try{
+    await loadAll();
+    document.getElementById('app').style.display='block';
+    myTab(0);
+  }catch(e){
+    console.error('[init]',e);
+    gate('Non riesco a leggere i tuoi Kata ora. Riprova dal portale.');
+  }
+}
+
+/* Dropzone */
+const dz=document.getElementById('upload-dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f){const i=document.getElementById('vid-input');const dt=new DataTransfer();dt.items.add(f);i.files=dt.files;handleVideoSelect({target:i})}});
+
+init();
+</script>
+</body>
+</html>
