@@ -2,14 +2,12 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: valida v1.0 · 2026-06-13 notte · SALA DI REVISIONE KATA (solo creator, decisione Marco 13 giu).
-     Lista video in attesa (kata_videos slot=2 status='ready') con nome allievo, Kata, player Stream
-     (pattern CF_STREAM_BASE+uid+'/iframe' copiato dal portale live), CERTIFICA -> rpc certifica_kata v3
-     (guardia solo-creator in DB) · DA RIFARE -> rpc rifiuta_kata (status 'rejected' dal vocabolario CHECK
-     esistente + feedback_validazione/feedback_at, colonne aggiunte 13 giu). Guardia anche lato pagina:
-     profiles.role==='creator', gli altri vedono il cancello. Pagina separata, pattern oggi/agenda.
-     PROSSIMI PEZZI COLLEGATI (non qui): lato allievo "Leggi le correzioni" + Ricarica Kata nel portale;
-     worker stream-bridge: slot 'rejected' riusabile per il re-upload. -->
+<!-- KC-BUILD: valida v1.1 · 2026-06-15 · SALA DI REVISIONE KATA (solo creator).
+     v1.1: tre schede — DA VALIDARE (slot 2 'ready', certifica/rifiuta, invariato da v1.0),
+     RIMANDATI (slot 2 'rejected': rivedi video + la correzione lasciata, sola lettura),
+     ESPLORA ALLIEVO (scegli un allievo e guarda TUTTI i suoi video slot1+slot2 con player e stato,
+     per individuare i Kata caricati nel posto sbagliato — il giudizio sul contenuto è del creator,
+     i video non si leggono dai dati). Freccia back P-NAV-BACK. certifica_kata v3 / rifiuta_kata invariati. -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Valida · KataClimb</title>
@@ -19,7 +17,7 @@
 <style>
 :root{
   --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
-  --rosso:#FF3B30; --cordata:#30D158; --vuoto:#BF5AF2; --fiducia:#FFD60A;
+  --rosso:#FF3B30; --cordata:#30D158; --vuoto:#BF5AF2; --fiducia:#FFD60A; --ambra:#FF9F0A;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -35,9 +33,14 @@ a{color:inherit; text-decoration:none}
 #gate p{color:var(--grigio); font-size:.92rem; margin-bottom:24px}
 #gate a{display:inline-block; padding:14px 28px; border-radius:12px; background:var(--fiducia); color:#000; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:.9rem}
 
-.testa{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.95rem; letter-spacing:.05em; margin-bottom:4px}
-.testa b{color:var(--vuoto)}
+.testa{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.95rem; letter-spacing:.05em; margin:2px 0 12px; padding-left:46px}
 .sotto{color:var(--grigio); font-size:.78rem; margin-bottom:14px}
+
+.tabs{display:flex; gap:6px; margin-bottom:16px}
+.tb{flex:1; padding:11px 6px; border:1px solid var(--velo); border-radius:12px; background:var(--tile); color:var(--grigio);
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.62rem; letter-spacing:.04em; cursor:pointer; text-transform:uppercase}
+.tb.active{background:var(--bianco); color:#000}
+.tb b{font-weight:800}
 
 .card{
   background:var(--tile); border:1px solid var(--velo); border-radius:18px;
@@ -67,6 +70,24 @@ a{color:inherit; text-decoration:none}
   background:var(--rosso); color:#fff; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.74rem; letter-spacing:.1em}
 .fb .hint{color:var(--grigio); font-size:.7rem; margin-top:6px}
 
+/* nota correzione (Rimandati / Esplora) */
+.nota{background:rgba(255,159,10,.1); border:1px solid rgba(255,159,10,.3); border-radius:12px; padding:10px 12px}
+.nota .nh{font-family:'JetBrains Mono',monospace; font-size:.62rem; font-weight:800; letter-spacing:.06em; color:var(--ambra); margin-bottom:4px}
+.nota .nb{font-size:.9rem; line-height:1.5; white-space:pre-wrap; word-break:break-word}
+
+/* badge stato (Esplora) */
+.badge{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:.58rem; font-weight:800; letter-spacing:.06em;
+  padding:3px 7px; border-radius:6px; text-transform:uppercase}
+.badge.ready{background:rgba(255,214,10,.16); color:var(--fiducia)}
+.badge.certified{background:rgba(48,209,88,.16); color:var(--cordata)}
+.badge.rejected{background:rgba(255,59,48,.16); color:#FF8A84}
+.badge.uploading,.badge.pending{background:rgba(154,154,160,.16); color:var(--grigio)}
+.badge.error{background:rgba(255,59,48,.22); color:#FF6058}
+.slotlbl{font-family:'JetBrains Mono',monospace; font-size:.6rem; font-weight:700; color:var(--grigio); letter-spacing:.06em}
+
+select#sel-allievo{width:100%; padding:13px 12px; border-radius:12px; border:1px solid var(--velo);
+  background:#0E0E10; color:#fff; font-size:.92rem; font-family:inherit; margin-bottom:16px}
+
 .vuoto-box{
   border:1px dashed rgba(255,255,255,.2); border-radius:18px; padding:38px 16px; text-align:center; color:var(--grigio);
 }
@@ -86,8 +107,8 @@ a{color:inherit; text-decoration:none}
 
 @media (min-width:900px){
   body{max-width:880px}
-  #lista{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-  .card{margin-bottom:0}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .grid .card{margin-bottom:0}
   .bar{max-width:880px}
 }
 </style>
@@ -102,9 +123,28 @@ a{color:inherit; text-decoration:none}
 </div>
 
 <div id="app" style="display:none">
-  <div class="testa mono">▶ DA VALIDARE <b id="n-tot"></b></div>
-  <div class="sotto">I video di validazione in attesa del tuo sguardo. Certifica, o rimanda con le correzioni.</div>
-  <div id="lista"></div>
+  <div class="testa mono">SALA DI REVISIONE</div>
+  <div class="tabs">
+    <button class="tb active" data-tab="validare" onclick="setTab('validare')">▶ Validare <b id="n-val"></b></button>
+    <button class="tb" data-tab="rimandati" onclick="setTab('rimandati')">↻ Rimandati <b id="n-rim"></b></button>
+    <button class="tb" data-tab="esplora" onclick="setTab('esplora')">🔍 Esplora</button>
+  </div>
+
+  <div id="pane-validare" class="pane">
+    <div class="sotto">I video di validazione in attesa del tuo sguardo. Certifica, o rimanda con le correzioni.</div>
+    <div id="lista" class="grid"></div>
+  </div>
+
+  <div id="pane-rimandati" class="pane" style="display:none">
+    <div class="sotto">I Kata che hai rimandato: rivedi il video e la correzione che hai lasciato. L'allievo li rifà dal suo portale.</div>
+    <div id="lista-rim" class="grid"></div>
+  </div>
+
+  <div id="pane-esplora" class="pane" style="display:none">
+    <div class="sotto">Scegli un allievo e guarda tutti i suoi video, slot per slot — per vedere se un Kata è caricato nel posto sbagliato. Il giudizio sul video è tuo.</div>
+    <select id="sel-allievo" onchange="caricaAllievo(this.value)"><option value="">— scegli un allievo —</option></select>
+    <div id="lista-esp" class="grid"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -125,13 +165,19 @@ const CFG={
 const CF_STREAM_BASE='https://customer-w6v58fe3qv5tc0m4.cloudflarestream.com/';
 const KN={1:'Il Pronti',2:'Atterraggio',3:'Il Gradino',4:'Lo Scorrere',5:'Il Piombo',6:"Blocco dell'Asse",7:"Angolo d'Incidenza in Parete",8:"Angolo d'Incidenza in Sospensione",9:'Fuori–Dentro–Fuori',10:'Tutto in Uno',11:'Appendersi (Fiducia)',12:'Andare su Corda',13:'Altalena',14:'Progressione Appendersi Alto',15:'Pendoli',16:'Processo di Moschettonaggio',17:'Appendersi da Primo',18:'Pendolo in Calata',19:'Setup Sicura',20:'Postura di Sicura',21:'Dare / Recuperare Corda',22:'Blocca / Sblocca',23:'Dare e Recuperare Veloce',24:'Calata',25:'Test Progressivo in Parete',26:'Accompagnare il Compagno',27:'Lettura e Individuazione Via',28:'Determinazione Punto di Volo',29:'Progressività del Volo',30:'Mini-Caduta Tecnica',31:'Postura di Sicura Dinamica',32:'Ammortizzamento del Volo',33:'Buddy Check'};
 
-let sb,uid,righe=[];
+let sb,uid,righe=[],rimandati=[],nomiCache={},curTab='validare';
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2400);}
 function gate(msg){
   if(msg)document.getElementById('gate-msg').textContent=msg;
   document.getElementById('gate').style.display='block';
+}
+function dataBreve(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'numeric',month:'short'}):'';}
+function playerHtml(stream_uid){
+  return stream_uid
+    ? `<iframe src="${esc(CF_STREAM_BASE+stream_uid+'/iframe')}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" allowfullscreen loading="lazy"></iframe>`
+    : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--grigio)">Video non disponibile</div>';
 }
 
 async function init(){
@@ -147,10 +193,20 @@ async function init(){
   }
   document.getElementById('app').style.display='block';
   await carica();
+  await popolaAllievi();
+}
+
+function setTab(t){
+  curTab=t;
+  ['validare','rimandati','esplora'].forEach(x=>{
+    document.getElementById('pane-'+x).style.display=(x===t)?'block':'none';
+  });
+  document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
 }
 
 async function carica(){
   try{
+    /* DA VALIDARE: slot 2 ready */
     const{data:v,error}=await sb.from('kata_videos')
       .select('id, user_id, kata_num, stream_uid, uploaded_at')
       .eq('slot',2).eq('status','ready')
@@ -158,37 +214,42 @@ async function carica(){
     if(error)throw error;
     righe=v||[];
 
-    /* nomi allievi in un colpo solo */
-    const ids=[...new Set(righe.map(r=>r.user_id))];
-    const nomi={};
+    /* RIMANDATI: slot 2 rejected (con feedback) */
+    const{data:rj}=await sb.from('kata_videos')
+      .select('id, user_id, kata_num, stream_uid, feedback_validazione, feedback_at')
+      .eq('slot',2).eq('status','rejected')
+      .order('feedback_at',{ascending:false});
+    rimandati=rj||[];
+
+    /* nomi allievi (entrambe le liste) */
+    const ids=[...new Set([...righe,...rimandati].map(r=>r.user_id))];
     if(ids.length){
       const{data:profs}=await sb.from('profiles').select('user_id, nome, cognome').in('user_id',ids);
-      (profs||[]).forEach(p=>{nomi[p.user_id]=((p.nome||'')+' '+(p.cognome||'')).trim()||'—';});
+      (profs||[]).forEach(p=>{nomiCache[p.user_id]=((p.nome||'')+' '+(p.cognome||'')).trim()||'—';});
     }
-    render(nomi);
+    render(); renderRimandati();
   }catch(e){
-    console.error('[valida]',e);
+    console.error('[valida carica]',e);
     document.getElementById('lista').innerHTML='<div class="vuoto-box">Non riesco a leggere i video ora. Riprova.</div>';
   }
 }
 
-function render(nomi){
-  document.getElementById('n-tot').textContent=righe.length||'';
+function render(){
+  document.getElementById('n-val').textContent=righe.length||'';
   const box=document.getElementById('lista');
   if(!righe.length){
     box.innerHTML=`<div class="vuoto-box"><b>RESPIRA.</b>Nessun video in attesa. Tutto validato.</div>`;
     return;
   }
-  box.innerHTML=righe.map(r=>{
-    const quando=r.uploaded_at?new Date(r.uploaded_at).toLocaleDateString('it-IT',{day:'numeric',month:'short'}):'';
-    return `<div class="card" id="card-${r.id}">
+  box.innerHTML=righe.map(r=>`
+    <div class="card" id="card-${r.id}">
       <div class="chi">
-        <span class="nome">${esc(nomi[r.user_id]||'—')}</span>
+        <span class="nome">${esc(nomiCache[r.user_id]||'—')}</span>
         <span class="kata mono">KATA ${String(r.kata_num).padStart(2,'0')}</span>
-        <span class="quando">${esc(quando)}</span>
+        <span class="quando">${esc(dataBreve(r.uploaded_at))}</span>
       </div>
       <div class="knome">${esc(KN[r.kata_num]||'')}</div>
-      <div class="player">${r.stream_uid?`<iframe src="${esc(CF_STREAM_BASE+r.stream_uid+'/iframe')}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" allowfullscreen loading="lazy"></iframe>`:'<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--grigio)">Video non disponibile</div>'}</div>
+      <div class="player">${playerHtml(r.stream_uid)}</div>
       <div class="azioni">
         <button class="b-ok" onclick="certifica('${r.id}')">✓ CERTIFICA</button>
         <button class="b-no" onclick="apriFb('${r.id}')">✕ DA RIFARE</button>
@@ -198,8 +259,75 @@ function render(nomi){
         <button class="invia" onclick="rifiuta('${r.id}')">INVIA LE CORREZIONI E RIMANDA ›</button>
         <div class="hint">L'allievo leggerà queste parole accanto al suo Kata, con l'invito a ricaricarlo.</div>
       </div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
+}
+
+function renderRimandati(){
+  document.getElementById('n-rim').textContent=rimandati.length||'';
+  const box=document.getElementById('lista-rim');
+  if(!rimandati.length){
+    box.innerHTML=`<div class="vuoto-box"><b>NIENTE IN SOSPESO.</b>Nessun Kata rimandato.</div>`;
+    return;
+  }
+  box.innerHTML=rimandati.map(r=>`
+    <div class="card">
+      <div class="chi">
+        <span class="nome">${esc(nomiCache[r.user_id]||'—')}</span>
+        <span class="kata mono">KATA ${String(r.kata_num).padStart(2,'0')}</span>
+        <span class="quando">${esc(dataBreve(r.feedback_at))}</span>
+      </div>
+      <div class="knome">${esc(KN[r.kata_num]||'')}</div>
+      <div class="player">${playerHtml(r.stream_uid)}</div>
+      <div class="nota">
+        <div class="nh">↻ CORREZIONE LASCIATA</div>
+        <div class="nb">${esc(r.feedback_validazione||'—')}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ESPLORA ALLIEVO */
+async function popolaAllievi(){
+  try{
+    const{data:v}=await sb.from('kata_videos').select('user_id');
+    const ids=[...new Set((v||[]).map(r=>r.user_id))];
+    if(!ids.length)return;
+    const{data:profs}=await sb.from('profiles').select('user_id, nome, cognome').in('user_id',ids);
+    const opts=(profs||[])
+      .map(p=>({id:p.user_id, nome:((p.nome||'')+' '+(p.cognome||'')).trim()||'—'}))
+      .sort((a,b)=>a.nome.localeCompare(b.nome));
+    const sel=document.getElementById('sel-allievo');
+    opts.forEach(o=>{const op=document.createElement('option');op.value=o.id;op.textContent=o.nome;sel.appendChild(op);
+      nomiCache[o.id]=nomiCache[o.id]||o.nome;});
+  }catch(e){console.error('[popolaAllievi]',e);}
+}
+
+async function caricaAllievo(userId){
+  const box=document.getElementById('lista-esp');
+  if(!userId){box.innerHTML='';return;}
+  box.innerHTML='<div class="vuoto-box">Carico i video…</div>';
+  try{
+    const{data:v,error}=await sb.from('kata_videos')
+      .select('id, kata_num, slot, status, stream_uid, feedback_validazione, uploaded_at')
+      .eq('user_id',userId)
+      .order('kata_num',{ascending:true}).order('slot',{ascending:true});
+    if(error)throw error;
+    const vids=v||[];
+    if(!vids.length){box.innerHTML='<div class="vuoto-box">Questo allievo non ha ancora caricato video.</div>';return;}
+    box.innerHTML=vids.map(r=>`
+      <div class="card">
+        <div class="chi">
+          <span class="kata mono">KATA ${String(r.kata_num).padStart(2,'0')}</span>
+          <span class="slotlbl">${r.slot===1?'MEMORIA':'VALIDAZIONE'}</span>
+          <span class="quando" style="margin-left:auto"><span class="badge ${esc(r.status)}">${esc(r.status)}</span></span>
+        </div>
+        <div class="knome">${esc(KN[r.kata_num]||'')}</div>
+        <div class="player">${playerHtml(r.stream_uid)}</div>
+        ${r.feedback_validazione?`<div class="nota"><div class="nh">↻ CORREZIONE LASCIATA</div><div class="nb">${esc(r.feedback_validazione)}</div></div>`:''}
+      </div>`).join('');
+  }catch(e){
+    console.error('[caricaAllievo]',e);
+    box.innerHTML='<div class="vuoto-box">Non riesco a leggere i video di questo allievo.</div>';
+  }
 }
 
 function riga(id){return righe.find(r=>r.id===id);}
@@ -210,11 +338,8 @@ async function certifica(id){
   try{
     const{data,error}=await sb.rpc('certifica_kata',{p_user_id:r.user_id,p_kata_num:r.kata_num});
     if(error)throw error;
-    document.getElementById('card-'+id)?.remove();
-    righe=righe.filter(x=>x.id!==id);
-    document.getElementById('n-tot').textContent=righe.length||'';
-    if(!righe.length)render({});
     toast('✓ Kata '+String(r.kata_num).padStart(2,'0')+' certificato.');
+    await carica();
   }catch(e){ toast('Errore: '+(e.message||e)); console.error('[certifica]',e); }
 }
 
@@ -231,11 +356,8 @@ async function rifiuta(id){
   try{
     const{data,error}=await sb.rpc('rifiuta_kata',{p_user_id:r.user_id,p_kata_num:r.kata_num,p_feedback:txt});
     if(error)throw error;
-    document.getElementById('card-'+id)?.remove();
-    righe=righe.filter(x=>x.id!==id);
-    document.getElementById('n-tot').textContent=righe.length||'';
-    if(!righe.length)render({});
     toast('✕ Kata rimandato con le correzioni.');
+    await carica();
   }catch(e){ toast('Errore: '+(e.message||e)); console.error('[rifiuta]',e); }
 }
 
