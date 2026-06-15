@@ -18,7 +18,7 @@ html.kc-boot body::before{
 <script>/* v3.87 anti-flash con velo visibile + paracadute: se init non finisce entro 8s il velo cade e la landing riappare. */
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
-<!-- KC-BUILD: portale v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
+<!-- KC-BUILD: portale v3.93 · 2026-06-15 · DEBITO-187-B: Comunità legge profiles_community (niente email/telefono/CF/persona_id al browser) - falla recapiti CHIUSA (richiede fix_falla_recapiti_community.sql). CUMULA v3.92 · Note dal modulo (orario richiamo + desiderio, fonte lead_richieste) ora visibili in segreteria: chip sotto il nome nella card "Da contattare oggi" + blocco "📩 Dal modulo" nella scheda lead. Richiede RPC get_leads_da_contattare con colonna ultima_nota + nuova RPC get_richieste_lead (fix_note_modulo_lead.sql). CUMULA v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
 <!-- KC-BUILD-PREV: portale v3.77 · 2026-06-11 19:10 · Registra contatto: checkbox "Sposta in Chiamate segreteria" (coda=segreteria via RPC imposta_coda_fascia, in un atto col follow-up) -->
 <!-- KC-BUILD-PREV: portale v3.76 · 2026-06-11 17:50 · Da contattare oggi (campagna attiva 7gg) + Gestione contatti 4 pulsanti (Commerciale ≤14gg/Segreteria/Riacciuffo/Campagna attiva) -->
@@ -3403,9 +3403,9 @@ async function loadAll(){
   let coins=0;Object.values(kataVids).forEach(vs=>vs.forEach(x=>{if(x.status==='certified'&&x.is_public)coins+=5}));
   profile.coins=coins;
   // Load community
-  // §v3.52 — Trappola #110 CHIUSA: la view profiles ora espone tutti i campi corso.
-  // Eliminata la query extra su profile_data per i membri community.
-  const{data:members}=await sb.from('profiles').select('*').neq('user_id',user.id);
+  // §v3.93 — DEBITO-187-B: legge profiles_community (SENZA email/telefono/CF/persona_id).
+  // Chiusa la falla recapiti: i dati sensibili non arrivano più al browser degli utenti.
+  const{data:members}=await sb.from('profiles_community').select('*').neq('user_id',user.id);
   const memberIds=(members||[]).map(m=>m.user_id);
   let prenotMapByUser={};
   if(memberIds.length){
@@ -4261,6 +4261,22 @@ async function loadDaContattare(){
   renderSmistamento();
 }
 
+// Parsa la nota del modulo ("Richiamo: X | Desiderio: Y") in chip leggibili.
+// Fonte: lead_richieste.note — usata in card "Da contattare oggi" e nella scheda.
+function kcModuloChips(note){
+  if(!note) return '';
+  const parts=String(note).split('|').map(s=>s.trim()).filter(Boolean);
+  if(!parts.length) return '';
+  const chip=(txt)=>{
+    const i=txt.indexOf(':');
+    const k=i>=0?txt.slice(0,i).trim():'';
+    const v=i>=0?txt.slice(i+1).trim():txt;
+    const ico=/richiam/i.test(k)?'🕐':/desider/i.test(k)?'🎯':'📩';
+    return '<span style="display:inline-flex;align-items:center;gap:5px;background:#2E9BFF1f;border:1px solid #2E9BFF55;color:var(--text);border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600">'+ico+' '+v.replace(/</g,'&lt;')+'</span>';
+  };
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px">'+parts.map(chip).join('')+'</div>';
+}
+
 // Card "Da contattare oggi": freschi della campagna attiva ancora da chiamare
 function renderDaContattareOggi(){
   const list=document.getElementById('dc-list');
@@ -4287,6 +4303,7 @@ function renderDaContattareOggi(){
     +badge
     +'<div class="dc-card-name" onclick="showLeadDetail(\''+l.id+'\')">'+nome+'</div>'
     +'<div class="dc-card-meta">Campagna attiva · '+data+'</div>'
+    +kcModuloChips(l.ultima_nota)
     +callBtn
     +'<div class="dc-card-actions">'
       +'<button class="dc-card-done" onclick="segnaContattato(\''+l.id+'\')">✓ Ha risposto</button>'
@@ -4484,6 +4501,7 @@ let currentLeadPrenot=[];
 let currentLeadIscrizioni=[];
 let currentLeadTesseramenti=[];
 let currentLeadFollowUps=[];
+let currentLeadRichieste=[]; // note dal modulo (lead_richieste): orario richiamo + desiderio
 let editFollowUpId=null;
 let currentAnnullaPrenotId=null;
 let currentAnnullaIsAssenza=false;
@@ -4498,11 +4516,13 @@ function showLeadDetail(id){
   currentLeadIscrizioni=[];
   currentLeadTesseramenti=[];
   currentLeadFollowUps=[];
+  currentLeadRichieste=[];
   document.getElementById('seg-lead-list-wrap').style.display='none';
   document.getElementById('seg-lead-detail').classList.remove('hidden');
   renderLeadDetail();
   loadLeadPrenotazioni(lead.id);
   loadLeadFollowUps(lead.id);
+  loadLeadRichieste(lead.id); // note dal modulo (orario richiamo + desiderio)
   loadLeadProfileData(lead); // v3.36 — campi corso Open per bottoni segreteria
   loadLeadIscrizioni(lead); // v3.68 — iscrizioni_corso per il blocco Percorso
   loadLeadTesseramenti(lead); // v3.71 — tesseramenti ASD per il blocco Tesseramento
@@ -4667,6 +4687,15 @@ async function loadLeadFollowUps(leadId){
   renderLeadDetail();
 }
 
+// Note dal modulo (lead_richieste): orario richiamo + desiderio. RPC get_richieste_lead.
+async function loadLeadRichieste(leadId){
+  const{data,error}=await sb.rpc('get_richieste_lead',{p_lead_id:leadId});
+  if(error){console.warn('[loadLeadRichieste]',error.message);return}
+  if(!currentLeadDetail||currentLeadDetail.id!==leadId)return;
+  currentLeadRichieste=data||[];
+  renderLeadDetail();
+}
+
 function closeLeadDetail(){
   // v3.44 Sessione 8a — staccare subscription Realtime quando si chiude il dettaglio
   if(leadRealtimeChannel){
@@ -4678,6 +4707,7 @@ function closeLeadDetail(){
   currentLeadIscrizioni=[];
   currentLeadTesseramenti=[];
   currentLeadFollowUps=[];
+  currentLeadRichieste=[];
   document.getElementById('seg-lead-detail').classList.add('hidden');
   document.getElementById('seg-lead-list-wrap').style.display='block';
 }
@@ -4879,6 +4909,26 @@ function renderLeadDetail(){
       ${rows}
     </div>`;
   }
+  // 📩 Blocco "Dal modulo": orario richiamo + desiderio lasciati nella landing.
+  // Fonte: lead_richieste (RPC get_richieste_lead). Nessuna duplicazione su lead_data.
+  let moduloBlock='';
+  if(currentLeadRichieste&&currentLeadRichieste.length){
+    const conNota=currentLeadRichieste.filter(r=>r.note);
+    if(conNota.length){
+      const items=conNota.map(r=>{
+        const d=r.created_at?fmtDate(r.created_at):'';
+        const prov=[r.pagina,r.campagna].filter(Boolean).join(' · ');
+        return `<div style="margin-bottom:8px">
+          ${kcModuloChips(r.note)}
+          ${(d||prov)?`<div style="font-size:11.5px;color:var(--text2);margin-top:2px">${d}${prov?' · '+prov:''}</div>`:''}
+        </div>`;
+      }).join('');
+      moduloBlock=`<div class="ld-section">
+        <div class="ld-section-h">📩 Dal modulo</div>
+        ${items}
+      </div>`;
+    }
+  }
   document.getElementById('seg-lead-detail-body').innerHTML=`
     <div style="margin-bottom:8px">
       <h2 style="font-family:var(--serif);font-size:19px;font-weight:400;margin-bottom:2px">${nomeCompleto}</h2>
@@ -4895,6 +4945,7 @@ function renderLeadDetail(){
       ${l.prossima_azione_il?`<span class="lbl">Prossima azione</span><span class="val strong">${fmtDate(l.prossima_azione_il)}</span>`:''}
     </div>
     ${l.note?`<div class="ld-note">${l.note}</div>`:''}
+    ${moduloBlock}
     ${esitoBlock}
     ${percorsoBlock}
     ${tessBlock}
