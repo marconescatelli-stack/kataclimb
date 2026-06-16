@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Impostazioni profilo — KataClimb</title>
+<!-- KC-BUILD: impostazioni-profilo v1 · 2026-06-16 · Pagina autonoma e leggera (stampo imposta-password.html). Elenco video presentazione + kata con switch visibile/nascosto (RLS own: legge/scrive solo i propri). Cambia password (sb.auth.updateUser). Esci. Niente player/thumbnail/conteggi: solo on/off. -->
+<style>
+  :root{ --beige:#F5F0E8; --navy:#0B2E42; --coral:#C45D3E; --gold:#D4A03C; --sage:#5A7A5E; --warm-gray:#A89B8C; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; background:var(--beige); color:var(--navy); line-height:1.6; min-height:100vh; padding:32px 16px; }
+  .wrap{ width:100%; max-width:520px; margin:0 auto; }
+  .card{ background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 16px rgba(11,46,66,.08); margin-bottom:18px; }
+  .content{ padding:26px 28px; }
+  .brand{ font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--coral); border-bottom:2px solid var(--coral); padding-bottom:9px; margin-bottom:16px; }
+  h1{ margin:0 0 6px 0; font-size:22px; }
+  h2{ margin:0 0 4px 0; font-size:15px; font-weight:700; }
+  .sub{ font-size:13px; color:var(--warm-gray); margin:0 0 16px 0; }
+  .intro{ font-size:13px; line-height:1.6; color:var(--navy); background:var(--beige); border-radius:12px; padding:12px 14px; margin-bottom:18px; }
+  .vrow{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 13px; background:var(--beige); border-radius:10px; margin-bottom:8px; }
+  .vrow .vlabel{ font-size:14px; font-weight:500; }
+  .vtoggle{ background:#fff; border:1.5px solid #e0d8cc; border-radius:999px; padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .12s; }
+  .vtoggle.on{ color:var(--sage); border-color:var(--sage); }
+  .vtoggle.off{ color:var(--warm-gray); }
+  .vempty{ font-size:13px; color:var(--warm-gray); padding:4px 2px; }
+  .field{ margin-bottom:12px; }
+  label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+  input[type=password]{ width:100%; padding:12px 14px; font-size:16px; border:2px solid #e0d8cc; border-radius:10px; background:var(--beige); color:var(--navy); font-family:inherit; }
+  input[type=password]:focus{ outline:none; border-color:var(--gold); }
+  button.primary{ width:100%; padding:13px; background:var(--navy); color:var(--beige); border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+  button.primary:disabled{ opacity:.5; cursor:not-allowed; }
+  button.ghost{ width:100%; padding:12px; background:none; border:1px solid #e0d8cc; border-radius:10px; font-size:14px; cursor:pointer; font-family:inherit; color:var(--coral); }
+  .msg{ font-size:13px; margin-top:10px; display:none; }
+  .msg.show{ display:block; }
+  .loading{ text-align:center; padding:50px 20px; color:var(--warm-gray); font-size:14px; }
+  .topbar{ max-width:520px; margin:0 auto 14px; }
+  .back{ display:inline-flex; align-items:center; gap:6px; font-size:14px; color:var(--navy); text-decoration:none; font-weight:600; }
+  .foot{ text-align:center; font-size:11px; color:var(--warm-gray); margin-top:8px; }
+  .foot a{ color:var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="https://kataclimb.com/portale.html">← Torna al portale</a>
+</div>
+
+<div class="wrap">
+
+  <!-- loading -->
+  <div id="state-loading" class="card"><div class="loading">Carico le tue impostazioni…</div></div>
+
+  <!-- not logged -->
+  <div id="state-nologin" class="card" style="display:none">
+    <div class="content">
+      <div class="brand">KataClimb · Accademia RCC</div>
+      <h1>Accesso richiesto</h1>
+      <p class="sub">Per gestire le tue impostazioni devi prima entrare nel portale.</p>
+      <a href="https://kataclimb.com/portale.html"><button class="primary">Vai al portale</button></a>
+    </div>
+  </div>
+
+  <!-- main -->
+  <div id="state-main" style="display:none">
+
+    <div class="card">
+      <div class="content">
+        <div class="brand">KataClimb · Accademia RCC</div>
+        <h1>Impostazioni profilo</h1>
+        <div class="intro">
+          Tu decidi di condividere con la Comunità il tuo livello per farti sostenere e trovare i tuoi pari.<br>
+          Il tuo percorso, le progressioni e le validazioni sono sempre visibili: qui scegli solo quali <strong>video</strong> mostrare.
+        </div>
+
+        <h2>🎬 Video di presentazione</h2>
+        <p class="sub">I più personali. Decidi quali mostrare.</p>
+        <div id="list-pres"></div>
+
+        <h2 style="margin-top:18px">🧗 Video dei Kata</h2>
+        <p class="sub">Il tuo gesto tecnico, parte del percorso.</p>
+        <div id="list-kata"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="content">
+        <h2>🔒 Cambia password</h2>
+        <p class="sub">Così entri con email e password, senza dover chiedere il link ogni volta.</p>
+        <div class="field">
+          <label for="pwd1">Nuova password</label>
+          <input type="password" id="pwd1" minlength="8" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label for="pwd2">Conferma password</label>
+          <input type="password" id="pwd2" minlength="8" autocomplete="new-password">
+        </div>
+        <button class="primary" id="btn-pwd" onclick="salvaPassword()">Salva password</button>
+        <div id="pwd-msg" class="msg"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="content">
+        <button class="ghost" onclick="esci()">Esci dal portale</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    KataClimb® · Syncrolink Ltd · <a href="https://kataclimb.com">kataclimb.com</a>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://wbtougychlhnlcnonqge.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { detectSessionInUrl:true, persistSession:true, autoRefreshToken:true }
+});
+
+let me = null;
+let presVids = [];
+let kataVids = [];
+
+const $ = id => document.getElementById(id);
+function show(state){
+  ['state-loading','state-nologin','state-main'].forEach(s => $(s).style.display = (s===state?'':'none'));
+}
+
+(async () => {
+  await new Promise(r => setTimeout(r, 300));
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session || !session.user){ show('state-nologin'); return; }
+  me = session.user;
+  await caricaVideo();
+  render();
+  show('state-main');
+})();
+
+async function caricaVideo(){
+  try{
+    const { data:pres } = await sb.from('video_presentazione')
+      .select('id,slot,status,is_public').eq('user_id', me.id).order('slot',{ascending:true});
+    presVids = (pres||[]).filter(v => v && v.id);
+  }catch(e){ console.warn('pres load', e); presVids = []; }
+  try{
+    const { data:kata } = await sb.from('kata_videos')
+      .select('id,kata_num,slot,status,is_public').eq('user_id', me.id).order('kata_num',{ascending:true});
+    kataVids = (kata||[]).filter(v => v && v.id && (v.status==='ready' || v.status==='certified'));
+  }catch(e){ console.warn('kata load', e); kataVids = []; }
+}
+
+function render(){
+  // presentazione
+  const pe = $('list-pres');
+  pe.innerHTML = presVids.length
+    ? presVids.map(v => row('pres', v.id, `Presentazione ${v.slot||''}`.trim(), !!v.is_public)).join('')
+    : '<div class="vempty">Nessun video di presentazione caricato.</div>';
+  // kata
+  const ke = $('list-kata');
+  ke.innerHTML = kataVids.length
+    ? kataVids.map(v => row('kata', v.id, `Kata ${String(v.kata_num).padStart(2,'0')}${v.status==='certified'?' ✓':''}`, !!v.is_public)).join('')
+    : '<div class="vempty">Nessun video kata da mostrare.</div>';
+}
+
+function row(tipo, id, label, isPub){
+  return `<div class="vrow">
+    <span class="vlabel">${label}</span>
+    <button class="vtoggle ${isPub?'on':'off'}" data-tipo="${tipo}" data-id="${id}">${isPub?'🌍 Visibile':'🔒 Nascosto'}</button>
+  </div>`;
+}
+
+// delega click sui toggle
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('.vtoggle');
+  if(!b) return;
+  const tipo = b.dataset.tipo, id = b.dataset.id;
+  const arr = tipo==='pres' ? presVids : kataVids;
+  const v = arr.find(x => x.id === id);
+  if(!v) return;
+  const nuovo = !v.is_public;
+  const tabella = tipo==='pres' ? 'video_presentazione' : 'kata_videos';
+  b.disabled = true;
+  try{
+    const { error } = await sb.from(tabella).update({ is_public: nuovo }).eq('id', id);
+    if(error) throw new Error(error.message);
+    v.is_public = nuovo;
+    b.className = 'vtoggle ' + (nuovo?'on':'off');
+    b.textContent = nuovo ? '🌍 Visibile' : '🔒 Nascosto';
+  }catch(err){
+    alert('Errore: ' + err.message);
+  }finally{
+    b.disabled = false;
+  }
+});
+
+window.salvaPassword = async function(){
+  const p1 = $('pwd1').value, p2 = $('pwd2').value;
+  const msg = $('pwd-msg'), btn = $('btn-pwd');
+  function m(t, ok){ msg.className = 'msg show'; msg.textContent = t; msg.style.color = ok ? 'var(--sage)' : 'var(--coral)'; }
+  if(p1.length < 8) return m('La password deve avere almeno 8 caratteri.', false);
+  if(p1 !== p2) return m('Le due password non coincidono.', false);
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session) return m('Sessione scaduta. Torna al portale ed entra di nuovo.', false);
+  btn.disabled = true; const old = btn.textContent; btn.textContent = 'Salvataggio…';
+  try{
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if(error) throw new Error(error.message);
+    $('pwd1').value = ''; $('pwd2').value = '';
+    m('Password aggiornata. Da ora entri con email e password ✓', true);
+  }catch(e){
+    m('Errore: ' + e.message, false);
+  }finally{
+    btn.disabled = false; btn.textContent = old;
+  }
+};
+
+window.esci = async function(){
+  await sb.auth.signOut();
+  window.location.href = 'https://kataclimb.com/portale.html';
+};
+</script>
+
+</body>
+</html>
