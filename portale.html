@@ -18,7 +18,7 @@ html.kc-boot body::before{
 <script>/* v3.87 anti-flash con velo visibile + paracadute: se init non finisce entro 8s il velo cade e la landing riappare. */
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
-<!-- KC-BUILD: portale v3.95 · 2026-06-16 · FIX modali coperte dalla barra in fondo su mobile (feedback Marco): .mo z-index 100->950, ora sopra #kc-bar (900). I bottoni "Crea evento" (modale Nuovo evento) e "Salva" (scheda Registra contatto / note lead) non sono piu nascosti dalla barra. CUMULA v3.94 · 2026-06-15 · "Ha risposto"/"Contattato" ora aprono il fascicolo + modale Registra contatto precompilata (chiamata·ha risposto): esito e nota in un atto, niente note perse. CUMULA v3.93 · DEBITO-187-B: Comunità legge profiles_community (niente email/telefono/CF/persona_id al browser) - falla recapiti CHIUSA (richiede fix_falla_recapiti_community.sql). CUMULA v3.92 · Note dal modulo (orario richiamo + desiderio, fonte lead_richieste) ora visibili in segreteria: chip sotto il nome nella card "Da contattare oggi" + blocco "📩 Dal modulo" nella scheda lead. Richiede RPC get_leads_da_contattare con colonna ultima_nota + nuova RPC get_richieste_lead (fix_note_modulo_lead.sql). CUMULA v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
+<!-- KC-BUILD: portale v3.97 · 2026-06-16 · CODA: "Non risponde" -> resta ROSSO (da sentire), traccia tentativo (segnaNonRisponde); +1/+3/+7 ora = "ti ha chiesto di richiamare" (esito positivo), non piu su chi non risponde. + Pulsante "Salva in rubrica" (.vcf: nome · campagna · data nel nome, fonte/desiderio in nota) su ogni card chiamata. CUMULA v3.96 · 2026-06-16 · CODA CHIAMATE rifatta (feedback Marco): 2 alert ROSSO=mai sentiti / ARANCIONE=da richiamare; ordina per fascia oraria preferita (Mattina/Pomeriggio/Sera da ultima_nota) vs ora corrente; "Non risponde"->richiama tra +1/+3/+7gg (prossima_azione_il data LOCALE T#134) -> esce dal rosso, rientra arancione alla scadenza con la nota; chi viene sentito esce subito (sync dcData + nuovo->contattato). Tutto client-side, get_leads_da_contattare INVARIATA. CUMULA v3.95 · 2026-06-16 · FIX modali coperte dalla barra in fondo su mobile (feedback Marco): .mo z-index 100->950, ora sopra #kc-bar (900). I bottoni "Crea evento" (modale Nuovo evento) e "Salva" (scheda Registra contatto / note lead) non sono piu nascosti dalla barra. CUMULA v3.94 · 2026-06-15 · "Ha risposto"/"Contattato" ora aprono il fascicolo + modale Registra contatto precompilata (chiamata·ha risposto): esito e nota in un atto, niente note perse. CUMULA v3.93 · DEBITO-187-B: Comunità legge profiles_community (niente email/telefono/CF/persona_id al browser) - falla recapiti CHIUSA (richiede fix_falla_recapiti_community.sql). CUMULA v3.92 · Note dal modulo (orario richiamo + desiderio, fonte lead_richieste) ora visibili in segreteria: chip sotto il nome nella card "Da contattare oggi" + blocco "📩 Dal modulo" nella scheda lead. Richiede RPC get_leads_da_contattare con colonna ultima_nota + nuova RPC get_richieste_lead (fix_note_modulo_lead.sql). CUMULA v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
 <!-- KC-BUILD-PREV: portale v3.77 · 2026-06-11 19:10 · Registra contatto: checkbox "Sposta in Chiamate segreteria" (coda=segreteria via RPC imposta_coda_fascia, in un atto col follow-up) -->
 <!-- KC-BUILD-PREV: portale v3.76 · 2026-06-11 17:50 · Da contattare oggi (campagna attiva 7gg) + Gestione contatti 4 pulsanti (Commerciale ≤14gg/Segreteria/Riacciuffo/Campagna attiva) -->
@@ -4248,7 +4248,16 @@ function smBucket(l){
   return 'commerciale';
 }
 function isCampAttiva(l){ return l.fonte==='ads_meta' && dcDays(l)<=14; }
-function isDaChiamare(l){ return l.funnel_stage==='nuovo' || l.stato_gestione==='da_richiamare'; }
+// v3.96 — date locali (T#134: niente toISOString sui DATE)
+function kcAddDaysLocal(n){ const d=new Date(); d.setDate(d.getDate()+(n||0)); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// v3.96 — fascia oraria preferita dal modulo (ultima_nota: "Richiamo: Mattina | ...") + fascia corrente
+function kcFasciaPref(nota){ if(!nota)return null; const m=String(nota).match(/richiam[^:]*:\s*([A-Za-zàèéìòù]+)/i); if(!m)return null; const v=m[1].toLowerCase(); if(v.indexOf('matt')===0)return'mattina'; if(v.indexOf('pome')===0)return'pomeriggio'; if(v.indexOf('sera')===0)return'sera'; return null; }
+function kcFasciaNow(){ const h=new Date().getHours(); return h<13?'mattina':(h<18?'pomeriggio':'sera'); }
+const FASCIA_LBL={mattina:'Mattina',pomeriggio:'Pomeriggio',sera:'Sera'};
+// v3.96 — due alert: ROSSO = mai sentiti · ARANCIONE = da richiamare a scadenza (futuri spariscono finché non scadono)
+function isRosso(l){ return l.funnel_stage==='nuovo' && l.stato_gestione!=='da_richiamare'; }
+function isArancio(l){ const oggi=kcAddDaysLocal(0); return l.stato_gestione==='da_richiamare' && (!l.prossima_azione_il || String(l.prossima_azione_il).slice(0,10)<=oggi); }
+function isDaChiamare(l){ return isRosso(l) || isArancio(l); }
 
 async function loadDaContattare(){
   const list=document.getElementById('dc-list');
@@ -4277,37 +4286,67 @@ function kcModuloChips(note){
   return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px">'+parts.map(chip).join('')+'</div>';
 }
 
-// Card "Da contattare oggi": freschi della campagna attiva ancora da chiamare
+// Card "Da contattare oggi": ROSSO mai sentiti · ARANCIONE da richiamare scaduti.
+// Ordine: fascia oraria preferita vs ora corrente, poi categoria, poi scadenza/ingresso.
 function renderDaContattareOggi(){
   const list=document.getElementById('dc-list');
   const cnt=document.getElementById('dc-count');
   if(!list)return;
-  const rows=dcData.filter(l=>isCampAttiva(l)&&isDaChiamare(l));
+  let rows=dcData.filter(l=>isCampAttiva(l)&&isDaChiamare(l));
+  const nRossi=rows.filter(isRosso).length, nArancio=rows.filter(isArancio).length;
+  const fNow=kcFasciaNow();
+  rows=rows.slice().sort((a,b)=>{
+    const fa=(kcFasciaPref(a.ultima_nota)===fNow)?0:1;
+    const fb=(kcFasciaPref(b.ultima_nota)===fNow)?0:1;
+    if(fa!==fb)return fa-fb;                          // chi preferisce questa fascia, prima
+    const ca=isArancio(a)?0:1, cb=isArancio(b)?0:1;
+    if(ca!==cb)return ca-cb;                          // promesse scadute prima dei freschi
+    if(ca===0)return String(a.prossima_azione_il||'').localeCompare(String(b.prossima_azione_il||'')); // arancio: più scaduto prima
+    return String(b.ultimo_ingresso||b.lead_creato_il||'').localeCompare(String(a.ultimo_ingresso||a.lead_creato_il||'')); // rosso: più fresco prima
+  });
   if(cnt)cnt.textContent=rows.length;
-  if(!rows.length){list.innerHTML='<div class="dc-empty">🎉 Nessuna chiamata fresca di campagna oggi.</div>';return;}
+  const header='<div class="dc-alerts" style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;font-size:12.5px;font-weight:700">'
+    +'<span style="background:#EF444422;color:#B91C1C;border:1px solid #EF444455;border-radius:999px;padding:4px 11px">🔴 '+nRossi+' mai sentiti</span>'
+    +'<span style="background:#FB923C22;color:#C2410C;border:1px solid #FB923C55;border-radius:999px;padding:4px 11px">🟠 '+nArancio+' da richiamare</span>'
+    +'</div>';
+  if(!rows.length){list.innerHTML=header+'<div class="dc-empty">🎉 Nessuna chiamata in coda adesso.</div>';return;}
   if(dcoIdx>=rows.length){
-    list.innerHTML='<div class="dc-empty">Fatte tutte.<br><button class="dc-card-skip" style="margin-top:12px" onclick="dcoRestart()">↺ Ricomincia</button></div>';
+    list.innerHTML=header+'<div class="dc-empty">Fatte tutte.<br><button class="dc-card-skip" style="margin-top:12px" onclick="dcoRestart()">↺ Ricomincia</button></div>';
     return;
   }
   const l=rows[dcoIdx];
   const nome=((l.nome||'')+' '+(l.cognome||'')).trim()||'(senza nome)';
   const data=dcFmt(l.ultimo_ingresso||l.lead_creato_il);
   const tel=(l.telefono||'').replace(/\s/g,'');
-  const richiama=l.stato_gestione==='da_richiamare';
-  const badge=richiama?'<div class="dc-card-badge">🔁 Già provato — da richiamare</div>':'';
+  const arancio=isArancio(l);
+  const badge=arancio
+    ? '<div class="dc-card-badge" style="background:#FB923C22;color:#C2410C;border:1px solid #FB923C55">🟠 Da richiamare'+(l.prossima_azione_il?(' · promesso per '+dcFmt(l.prossima_azione_il)):'')+'</div>'
+    : '<div class="dc-card-badge" style="background:#EF444422;color:#B91C1C;border:1px solid #EF444455">🔴 Mai sentito</div>';
+  const pref=kcFasciaPref(l.ultima_nota);
+  const prefTag=pref?('<div style="text-align:center;margin:6px 0;font-size:12.5px;font-weight:700;color:'+(pref===fNow?'#0F6E56':'var(--text)')+'">🕐 Preferisce: '+FASCIA_LBL[pref]+(pref===fNow?' · è la sua fascia ora':'')+'</div>'):'';
   const callBtn=tel
     ? '<a class="dc-card-call" href="tel:'+tel+'">📞 Chiama '+tel+'</a>'
     : '<div class="dc-card-call off">Nessun numero in archivio</div>';
-  list.innerHTML=
+  list.innerHTML=header+
     '<div class="dc-card">'
     +badge
     +'<div class="dc-card-name" onclick="showLeadDetail(\''+l.id+'\')">'+nome+'</div>'
     +'<div class="dc-card-meta">Campagna attiva · '+data+'</div>'
+    +prefTag
     +kcModuloChips(l.ultima_nota)
     +callBtn
+    +'<button class="dc-card-skip" style="width:100%;margin-top:8px" onclick="salvaContattoVCard(\''+l.id+'\')">📇 Salva in rubrica (nome · campagna · data)</button>'
+    +'<div class="dc-card-actions" style="margin-top:10px">'
+      +'<button class="dc-card-done" style="flex:1" onclick="rispostaContatto(\''+l.id+'\')">✓ Ha risposto</button>'
+    +'</div>'
+    +'<div style="font-size:12px;opacity:.7;margin:12px 0 4px;text-align:center">Ti ha chiesto di richiamare? Fissa tra:</div>'
     +'<div class="dc-card-actions">'
-      +'<button class="dc-card-done" onclick="rispostaContatto(\''+l.id+'\')">✓ Ha risposto</button>'
-      +'<button class="dc-card-recall" onclick="segnaRichiama(\''+l.id+'\')">🔁 Non risponde</button>'
+      +'<button class="dc-card-recall" style="flex:1" onclick="segnaRichiama(\''+l.id+'\',1)">+1 giorno</button>'
+      +'<button class="dc-card-recall" style="flex:1" onclick="segnaRichiama(\''+l.id+'\',3)">+3 giorni</button>'
+      +'<button class="dc-card-recall" style="flex:1" onclick="segnaRichiama(\''+l.id+'\',7)">+7 giorni</button>'
+    +'</div>'
+    +'<div class="dc-card-actions" style="margin-top:10px">'
+      +'<button class="dc-card-recall" style="flex:1;background:#FCEBEB;color:#A32D2D;border-color:#F7C1C1" onclick="segnaNonRisponde(\''+l.id+'\')">✗ Non risponde — resta da sentire</button>'
     +'</div>'
     +'<div class="dc-card-actions" style="margin-top:8px;justify-content:center">'
       +'<button class="dc-card-skip" style="flex:1" onclick="dcoSkip()">Salta →</button>'
@@ -4425,14 +4464,42 @@ function rispostaContatto(id){
   if(eB) selectPill('contatto-esito', eB);
   setTimeout(function(){var n=document.getElementById('contatto-nota');if(n)n.focus();},60);
 }
-async function segnaRichiama(id){
-  const oggi=new Date().toISOString().slice(0,10);
-  const{error}=await sb.from('crm_leads').update({stato_gestione:'da_richiamare',prossima_azione_il:oggi,updated_at:new Date().toISOString()}).eq('id',id);
+async function segnaRichiama(id,giorni){
+  giorni=giorni||1;
+  const quando=kcAddDaysLocal(giorni); // data locale (T#134)
+  const{error}=await sb.from('crm_leads').update({stato_gestione:'da_richiamare',prossima_azione_il:quando,updated_at:new Date().toISOString()}).eq('id',id);
   if(error){alert('Errore: '+error.message);return;}
-  const l=dcData.find(x=>x.id===id); if(l)l.stato_gestione='da_richiamare';
-  dcoIdx++;
-  renderDaContattareOggi(); renderSmistamento();
+  const l=dcData.find(x=>x.id===id); if(l){l.stato_gestione='da_richiamare';l.prossima_azione_il=quando;}
+  toast('Richiamo fissato tra '+giorni+(giorni===1?' giorno':' giorni'));
+  renderDaContattareOggi(); renderSmistamento(); // esce dalla coda: prossima azione nel futuro, rientra alla scadenza
   if(typeof loadCrmLeads==='function') loadCrmLeads();
+}
+// v3.97 — "Non risponde": NON l'hai sentito → resta rosso (da sentire). Traccia solo il tentativo.
+async function segnaNonRisponde(id){
+  try{ const r={lead_id:id,tipo:'chiamata',esito:'non_risposto'}; if(user&&user.id)r.created_by=user.id; await sb.from('crm_follow_ups').insert(r); }catch(e){ console.warn('[nonRisponde]',e&&e.message); }
+  toast('Segnato: non risponde — resta da sentire');
+  dcoIdx++; renderDaContattareOggi();
+}
+// v3.97 — Salva contatto in rubrica (.vcf): nome · campagna · data nel nome, desiderio/orario in nota.
+function salvaContattoVCard(id){
+  const l=(Array.isArray(dcData)?dcData.find(x=>x.id===id):null) || (currentLeadDetail&&currentLeadDetail.id===id?currentLeadDetail:null);
+  if(!l){alert('Contatto non trovato');return;}
+  const nome=(l.nome||'').trim(), cognome=(l.cognome||'').trim();
+  const tel=(l.telefono||'').replace(/\s/g,'');
+  const camp=l.ultima_campagna||(l.fonte==='ads_meta'?'KC Ads':'KC');
+  const dataIng=(typeof dcFmt==='function'?dcFmt(l.lead_creato_il||l.ultimo_ingresso):'')||'';
+  const base=((nome+' '+cognome).trim())||'Contatto';
+  const fn=[base,camp,dataIng].filter(Boolean).join(' · ');
+  const note=[l.fonte?('Fonte: '+l.fonte):'',dataIng?('Entrato: '+dataIng):'',(l.ultima_nota||'')].filter(Boolean).join(' | ').replace(/[\r\n]+/g,' ');
+  const vcf=['BEGIN:VCARD','VERSION:3.0','N:'+cognome+';'+nome+';;;','FN:'+fn,(tel?'TEL;TYPE=CELL:'+tel:''),(note?'NOTE:'+note:''),'END:VCARD'].filter(Boolean).join('\r\n');
+  try{
+    const blob=new Blob([vcf],{type:'text/vcard;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=(base.replace(/\s+/g,'_'))+'.vcf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1500);
+    if(typeof toast==='function')toast('Contatto pronto per la rubrica');
+  }catch(e){ alert('Errore salvataggio contatto: '+(e&&e.message)); }
 }
 
 function renderCrmLeads(){
@@ -5380,6 +5447,10 @@ async function submitContatto(){
     const update={tentativi_contatto:(currentLeadDetail.tentativi_contatto||0)+1,updated_at:new Date().toISOString()};
     if(nuovoStage)update.funnel_stage=nuovoStage;
     if(prossima)update.prossima_azione_il=prossima;
+    // v3.96 — uscita dal rosso: chi è stato sentito non resta "mai sentito".
+    // Se fissi una prossima azione → "da richiamare" (rientra arancione alla scadenza con la nota).
+    if(prossima){ update.stato_gestione='da_richiamare'; }
+    else if(!nuovoStage && currentLeadDetail.funnel_stage==='nuovo'){ update.funnel_stage='contattato'; }
     const{error:e2}=await sb.from('crm_leads').update(update).eq('id',currentLeadDetail.id);
     if(e2)throw new Error('Lead: '+e2.message);
 
@@ -5396,6 +5467,9 @@ async function submitContatto(){
     Object.assign(currentLeadDetail,update);
     const idx=crmLeadsData.findIndex(x=>x.id===currentLeadDetail.id);
     if(idx>=0)Object.assign(crmLeadsData[idx],update);
+    // v3.96 — aggiorna anche la coda "Da contattare oggi" (dcData) così la carta esce subito
+    const di2=Array.isArray(dcData)?dcData.findIndex(x=>x.id===currentLeadDetail.id):-1;
+    if(di2>=0){Object.assign(dcData[di2],update); if(typeof renderDaContattareOggi==='function')renderDaContattareOggi();}
 
     closeModal('mo-contatto');
     loadLeadFollowUps(currentLeadDetail.id);
