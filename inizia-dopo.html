@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-dopo v1 · 2026-06-15 · Variante di inizia.html con finestra 2 SETTIMANE (14gg) invece di 7. Da girare via WhatsApp ai lead caldi che chiedono la settimana prossima. Stesso flusso Stripe/Worker/Pixel di inizia.html. -->
-<!-- KC-BUILD: inizia v3 · 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: inizia-dopo v2 · 2026-06-16 · = inizia v4 (GRUPPO 1-6) + finestra 2 SETTIMANE. Da girare via WhatsApp. · base inizia v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -353,6 +352,15 @@ body{
 }
 .btn-pay:hover:not(:disabled){background:var(--sky-dark);transform:translateY(-1px)}
 .btn-pay:disabled{background:#A3A3A3;cursor:not-allowed;transform:none}
+.grp-pick{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid #ece6db}
+.grp-q{font-size:14px;font-weight:700;color:#2C2418;margin-bottom:10px}
+.grp-chips{display:flex;gap:8px;flex-wrap:wrap}
+.grp-chip{width:44px;height:44px;font-size:16px;font-weight:700;color:#3a342b;background:#fff;border:1.5px solid #d9d2c6;border-radius:12px;cursor:pointer;transition:all .12s}
+.grp-chip.on{background:#1E8FE6;border-color:#1E8FE6;color:#fff}
+.grp-note{font-size:12px;color:#9a9486;margin-top:9px}
+.grp-person-label{font-size:13px;font-weight:700;color:#1E8FE6;margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+.grp-privata{font-size:12.5px;color:#6f685c;background:#faf7f1;border:1px solid #ece6db;border-radius:10px;padding:10px 12px;margin:14px 0 4px}
+.grp-privata a{color:#1E8FE6;font-weight:600;text-decoration:none}
 .field-spinner{
   display:inline-block; width:14px; height:14px;
   border:2px solid rgba(255,255,255,.3); border-top-color:#fff;
@@ -596,6 +604,20 @@ body{
     <div class="slot-summary" id="modal-slot-summary">—</div>
 
     <form class="modal-form" id="form-prenota" autocomplete="on" novalidate>
+      <div class="grp-pick">
+        <div class="grp-q">Quante persone partecipano?</div>
+        <div class="grp-chips" id="grp-chips">
+          <button type="button" class="grp-chip on" data-n="1">1</button>
+          <button type="button" class="grp-chip" data-n="2">2</button>
+          <button type="button" class="grp-chip" data-n="3">3</button>
+          <button type="button" class="grp-chip" data-n="4">4</button>
+          <button type="button" class="grp-chip" data-n="5">5</button>
+          <button type="button" class="grp-chip" data-n="6">6</button>
+        </div>
+        <div class="grp-note">Ogni partecipante avrà il suo profilo personale e il suo accesso al portale.</div>
+      </div>
+
+      <div class="grp-person-label" id="grp-label-1" style="display:none">Persona 1</div>
       <div class="row-pair">
         <div class="field">
           <label for="f-nome">Nome</label>
@@ -614,6 +636,14 @@ body{
         <label for="f-telefono">Telefono</label>
         <input id="f-telefono" name="telefono" type="tel" autocomplete="tel" inputmode="tel" required>
       </div>
+
+      <div id="grp-extra"></div>
+
+      <div class="grp-privata">
+        Vuoi lo slot tutto per te (lezione privata) o devi iscrivere minori?
+        <a href="https://wa.me/393318743953?text=Ciao%2C%20vorrei%20info%20su%20una%20prenotazione%20speciale%20(privata%2Fminori)" target="_blank" rel="noopener">Scrivici su WhatsApp</a>.
+      </div>
+
       <label class="terms">
         <input id="f-terms" type="checkbox" required>
         <span>
@@ -868,6 +898,56 @@ body{
   }
 
   let modalCtx = null;
+  let nPersone = 1;
+
+  // genera/aggiorna i blocchi profilo dei partecipanti extra (2..N)
+  function renderPartecipanti(){
+    const extra = document.getElementById('grp-extra');
+    const lbl1  = document.getElementById('grp-label-1');
+    // label "Persona 1" visibile solo in modalità gruppo
+    lbl1.style.display = nPersone >= 2 ? 'block' : 'none';
+    let html = '';
+    for(let i = 2; i <= nPersone; i++){
+      html += `
+        <div class="grp-person-label">Persona ${i}</div>
+        <div class="row-pair">
+          <div class="field">
+            <label for="g${i}-nome">Nome</label>
+            <input id="g${i}-nome" type="text" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="g${i}-cognome">Cognome</label>
+            <input id="g${i}-cognome" type="text" autocomplete="off" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="g${i}-email">Email</label>
+          <input id="g${i}-email" type="email" inputmode="email" autocomplete="off" required>
+        </div>
+        <div class="field">
+          <label for="g${i}-telefono">Telefono</label>
+          <input id="g${i}-telefono" type="tel" inputmode="tel" autocomplete="off" required>
+        </div>`;
+    }
+    extra.innerHTML = html;
+    aggiornaBottone();
+  }
+
+  function aggiornaBottone(){
+    const btn = document.getElementById('btn-pay');
+    const tot = nPersone * 25;
+    btn.textContent = nPersone === 1
+      ? 'Paga e prenota · 25€'
+      : `Paga e prenota · ${nPersone}×25€ = ${tot}€`;
+  }
+
+  document.getElementById('grp-chips').addEventListener('click', (e) => {
+    const chip = e.target.closest('.grp-chip');
+    if(!chip) return;
+    nPersone = parseInt(chip.dataset.n, 10);
+    document.querySelectorAll('.grp-chip').forEach(c => c.classList.toggle('on', c === chip));
+    renderPartecipanti();
+  });
 
   function apriModal(ctx){
     modalCtx = ctx;
@@ -880,6 +960,10 @@ body{
   function chiudiModal(){
     document.getElementById('modal').classList.remove('show');
     document.getElementById('form-prenota').reset();
+    // reset gruppo a 1 persona
+    nPersone = 1;
+    document.querySelectorAll('.grp-chip').forEach(c => c.classList.toggle('on', c.dataset.n === '1'));
+    renderPartecipanti();
     modalCtx = null;
   }
 
@@ -897,6 +981,12 @@ body{
   document.getElementById('form-prenota').addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!modalCtx) return;
+
+    // ===== RAMO GRUPPO (2+ persone) — il singolo resta sotto, invariato =====
+    if(nPersone >= 2){
+      await submitGruppo();
+      return;
+    }
 
     const nome     = document.getElementById('f-nome').value.trim();
     const cognome  = document.getElementById('f-cognome').value.trim();
@@ -949,9 +1039,69 @@ body{
     }
   });
 
-  // ----- Form "Chiedi informazioni" (lead generator, DEBITO-189) -----
-  function getUTM(){
-    const p = new URLSearchParams(window.location.search);
+  // ===== INVIO GRUPPO (2-6 persone) =====
+  async function submitGruppo(){
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const terms = document.getElementById('f-terms').checked;
+    if(!terms){ showError('Devi accettare i Termini della Prima Lezione.'); return; }
+
+    // Persona 1 = campi principali; Persone 2..N = campi g{i}-*
+    const partecipanti = [];
+    const emailsViste = new Set();
+    for(let i = 1; i <= nPersone; i++){
+      const pref = (i === 1)
+        ? { n:'f-nome', c:'f-cognome', e:'f-email', t:'f-telefono' }
+        : { n:`g${i}-nome`, c:`g${i}-cognome`, e:`g${i}-email`, t:`g${i}-telefono` };
+      const nome     = document.getElementById(pref.n).value.trim();
+      const cognome  = document.getElementById(pref.c).value.trim();
+      const email    = document.getElementById(pref.e).value.trim().toLowerCase();
+      const telefono = document.getElementById(pref.t).value.trim();
+
+      if(!nome || !cognome){ showError(`Persona ${i}: inserisci nome e cognome.`); return; }
+      if(!emailRe.test(email)){ showError(`Persona ${i}: inserisci una email valida.`); return; }
+      if(!telefono || telefono.length < 6){ showError(`Persona ${i}: inserisci un telefono valido.`); return; }
+      if(emailsViste.has(email)){ showError(`Email ripetuta (${email}). Ogni persona deve avere la sua.`); return; }
+      emailsViste.add(email);
+      partecipanti.push({ nome, cognome, email, telefono });
+    }
+
+    const btn = document.getElementById('btn-pay');
+    const tot = nPersone * 25;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="field-spinner"></span> Apro pagamento…';
+    document.getElementById('modal-error').classList.remove('show');
+
+    try {
+      const res = await fetch(`${WORKER_URL}/create-checkout-session`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          prodotto:     'prima_lezione',
+          slot_id:      modalCtx.slot_id,
+          data_lezione: modalCtx.data_lezione,
+          partecipanti,
+          accept_terms: true,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok){
+        // messaggio del Worker (posti insufficienti, ecc.) con eventuale WhatsApp
+        throw new Error(data.message || data.error || `Errore server (${res.status})`);
+      }
+      if(!data.url) throw new Error('URL pagamento non ricevuto.');
+
+      if (window.kcTrack) window.kcTrack('InitiateCheckout', { value: tot, currency: 'EUR', content_name: 'Prima Lezione Gruppo', num_items: nPersone });
+
+      window.location.href = data.url;
+
+    } catch(err){
+      console.error('Pagamento gruppo errore:', err);
+      showError(err.message || 'Errore di comunicazione. Riprova fra qualche istante.');
+      btn.disabled = false;
+      aggiornaBottone();
+    }
+  }
     return {
       campagna:     p.get('utm_campaign') || null,
       utm_source:   p.get('utm_source')   || null,
