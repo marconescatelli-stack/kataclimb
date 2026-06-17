@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Commerciale · KataClimb</title>
+<link rel="canonical" href="https://kataclimb.com/commerciale">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- KC-BUILD: commerciale v1.0 · 2026-06-17 · Console commerciale standalone. Legge get_leads_da_contattare + crm_follow_ups (no embed created_by_profile). Impatto generale + registro a fasi + alert fermo>24h + STORICO NOTE visibile per contatto + Manda link prenotazione. Sequenze msg + dettato profilo caratteriale = roadmap (dipendono da RPC link_inviato_at/memo_wa_at/profilo_caratteriale). -->
+<style>
+:root{
+  --bg:#000; --card:#111214; --card2:#1a1b1e; --line:#2a2c30;
+  --txt:#fff; --txt2:#a1a4ab; --txt3:#6c6f76;
+  --green:#30D158; --orange:#FF9F0A; --red:#FF453A; --blue:#0A84FF;
+  --teal:#64D2FF; --yellow:#FFD60A; --purple:#BF5AF2; --wa:#25D366;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+body{padding:0 0 60px}
+.wrap{max-width:680px;margin:0 auto;padding:0 14px}
+header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
+  backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);
+  border-bottom:1px solid var(--line)}
+.hd{max-width:680px;margin:0 auto;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.back{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card2);
+  color:var(--txt);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.hd h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-.3px}
+.hd .sub{font-size:11.5px;color:var(--txt3);margin-top:1px}
+.campflag{margin-left:auto;font-size:11px;font-weight:700;color:#000;background:var(--green);
+  border-radius:999px;padding:3px 10px}
+
+#stato{padding:60px 20px;text-align:center;color:var(--txt2);font-size:15px}
+
+/* impatto */
+.impatto{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 6px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 12px 11px;min-height:78px;
+  display:flex;flex-direction:column;justify-content:space-between}
+.tile .n{font-size:30px;font-weight:800;line-height:1;letter-spacing:-1px}
+.tile .l{font-size:11px;color:var(--txt2);font-weight:600;line-height:1.2;margin-top:6px}
+.tile.red{background:linear-gradient(160deg,#3a0f0d,#1a0b0a);border-color:#5c1714}
+.tile.red .n{color:var(--red)} .tile.red .l{color:#ffb3ad}
+.tile.green .n{color:var(--green)} .tile.orange .n{color:var(--orange)}
+.tile.blue .n{color:var(--blue)} .tile.teal .n{color:var(--teal)}
+
+/* toggle */
+.toggle{display:flex;gap:8px;margin:14px 0 6px}
+.toggle button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);
+  background:transparent;color:var(--txt2);font-weight:700;font-size:14px;cursor:pointer}
+.toggle button.on{background:var(--txt);color:#000;border-color:var(--txt)}
+
+/* sezioni fase */
+.sec{margin-top:22px}
+.sec-h{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.sec-h .t{font-weight:800;font-size:15px;letter-spacing:-.2px}
+.sec-h .c{margin-left:auto;font-size:12px;color:var(--txt2);background:var(--card2);
+  border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:700}
+.sec-h .hint{font-size:11px;color:var(--txt3)}
+.empty{color:var(--txt3);font-size:12.5px;padding:4px 2px 2px}
+
+/* riga contatto */
+.row{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:9px;overflow:hidden}
+.row-top{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;cursor:pointer}
+.dot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:0 0 auto}
+.row .nm{font-weight:700;font-size:15px;letter-spacing:-.2px}
+.row .meta{font-size:11.5px;color:var(--txt3);margin-top:2px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.chip{font-size:10.5px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--card2);color:var(--txt2)}
+.chip.fascia{background:#1c2230;color:var(--teal)}
+.fermo{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 7px;background:#3a0f0d;color:var(--red)}
+.notepv{font-size:12.5px;color:var(--txt2);margin-top:7px;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.notepv.none{color:var(--txt3);font-style:italic}
+.exp{margin-left:auto;color:var(--txt3);font-size:13px;flex:0 0 auto;margin-top:2px}
+
+/* azioni */
+.acts{display:flex;gap:8px;padding:0 14px 13px}
+.btn-wa{flex:1;padding:10px;border-radius:11px;border:none;background:var(--wa);color:#fff;
+  font-weight:700;font-size:13px;cursor:pointer}
+
+/* storico note */
+.hist{border-top:1px solid var(--line);background:var(--card2);padding:4px 14px 12px;display:none}
+.hist.open{display:block}
+.hist .hh{font-size:11px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 8px}
+.note{border-left:2px solid var(--line);padding:0 0 0 11px;margin:0 0 12px}
+.note .when{font-size:11px;color:var(--txt3);font-weight:700}
+.note .lab{font-size:11px;color:var(--blue);font-weight:700;margin-left:6px}
+.note .tx{font-size:13.5px;color:var(--txt);line-height:1.5;margin-top:3px;white-space:pre-wrap}
+.note.empty .tx{color:var(--txt3);font-style:italic}
+
+.foot{margin:30px 0 0;padding:16px;border:1px dashed var(--line);border-radius:14px;
+  font-size:12px;color:var(--txt3);line-height:1.6}
+.foot b{color:var(--txt2)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <div class="back" onclick="goBack()" aria-label="Indietro">←</div>
+    <div>
+      <h1>Commerciale</h1>
+      <div class="sub">la campagna, a colpo d'occhio</div>
+    </div>
+    <div id="campflag" class="campflag" style="display:none"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="stato">Carico…</div>
+  <div id="app" style="display:none">
+    <div id="impatto" class="impatto"></div>
+    <div class="toggle">
+      <button id="t-adulti" class="on" onclick="setFascia('adulti')">🧑 Adulti</button>
+      <button id="t-bambini" onclick="setFascia('bambini')">👶 Bambini</button>
+    </div>
+    <div id="fasi"></div>
+    <div class="foot">
+      <b>Prossimi passi (roadmap):</b><br>
+      • <b>Sequenze di messaggi</b> automatiche (msg 1 → +24h msg 2 …) e <b>fascicolo caratteriale dettato</b> arrivano quando è pronto lo strato RPC (colonne <code>link_inviato_at</code> / <code>memo_wa_at</code> / <code>profilo_caratteriale</code>, già create sul DB).<br>
+      • "Prenotato" = pagamento Stripe confermato, mai un click manuale → niente no-show.
+    </div>
+  </div>
+</div>
+
+<script>
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E'
+};
+const KC_INIZIA_URL='https://kataclimb.com/inizia.html';
+const DAY_MS=86400000;
+const ROLES_STAFF=['creator','admin','segreteria','istruttore','monitor','assistente','istruttore_jr','istruttore_senior','istruttore_tutor','maestro'];
+const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istruttore_tutor'];
+const TIPO_LBL={chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉️ Email',incontro:'🤝 Incontro',altro:'• Altro',nota:'📝 Nota'};
+const ESITO_LBL={ha_risposto:'Ha risposto',non_risposto:'Non ha risposto',messaggio_lasciato:'Messaggio lasciato',appuntamento_preso:'Appuntamento preso',da_ricontattare:'Da ricontattare',rifiutato:'Ha rifiutato'};
+
+let sb=null, leads=[], notesByLead={}, lastTouch={}, fascia='adulti';
+
+function goBack(){ if(history.length>1){history.back();} else {location.href='/oggi.html';} }
+
+// ── helper data/fasi (stessi del portale) ──
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isPrenotato(l){ return l.funnel_stage==='prenotato_prima_lezione'||l.funnel_stage==='fatta_prima_lezione'; }
+function isRosso(l){ return l.funnel_stage==='nuovo' && l.stato_gestione!=='da_richiamare'; }
+function isArancio(l){ return l.stato_gestione==='da_richiamare' && (!l.prossima_azione_il || String(l.prossima_azione_il).slice(0,10)<=todayStr()); }
+function futureRichiamo(l){ return l.prossima_azione_il && String(l.prossima_azione_il).slice(0,10)>todayStr(); }
+function phase(l){
+  if(isPrenotato(l)) return 'prenotati';
+  if(isRosso(l)) return 'sentire';
+  if(isArancio(l)) return 'richiami';
+  if(l.funnel_stage==='contattato') return 'prenotare';
+  return null;
+}
+function inFascia(l){
+  if(fascia==='bambini') return l.fascia==='bambino'||l.fascia==='ragazzo';
+  return l.fascia==='adulto'||!l.fascia;
+}
+function oreFermo(l){
+  if(isPrenotato(l)||futureRichiamo(l)||l.funnel_stage==='nuovo') return null;
+  const ts=lastTouch[l.id]||l.ultimo_ingresso||l.lead_creato_il;
+  if(!ts) return null;
+  return (Date.now()-new Date(ts).getTime())/3600000;
+}
+function isFermo(l){ const h=oreFermo(l); return h!=null && h>=24; }
+function gg(ts){ return ts?((Date.now()-new Date(ts).getTime())/DAY_MS):null; }
+
+function waNum(tel){ let n=(tel||'').replace(/[^\d]/g,''); if(n.length===10 && n.charAt(0)==='3') n='39'+n; return n; }
+function mandaLink(id){
+  const l=leads.find(x=>x.id===id); if(!l)return;
+  const num=waNum(l.telefono);
+  if(!num){ alert('Numero mancante per questo contatto.'); return; }
+  const nome=(l.nome||'').trim();
+  const msg='Ciao '+nome+' 😄 come d\'accordo, qui prenoti la tua prima lezione in un minuto, con calma quando vuoi 👇\n'+KC_INIZIA_URL+'\nQualsiasi cosa scrivimi, ci sono 🌀 Marco';
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+}
+function toggleHist(id){
+  const h=document.getElementById('hist-'+id);
+  const e=document.getElementById('exp-'+id);
+  if(!h)return;
+  const open=h.classList.toggle('open');
+  if(e)e.textContent=open?'▲':'▾';
+}
+
+// ── render ──
+const PHASES=[
+  {k:'sentire',  dot:'var(--red)',    emoji:'🔴', t:'Da sentire',                hint:'mai contattati'},
+  {k:'prenotare',dot:'var(--green)',  emoji:'🟢', t:'Sentiti · da far prenotare', hint:'manda il link e accompagna'},
+  {k:'richiami', dot:'var(--orange)', emoji:'🟠', t:'Richiami di oggi',           hint:'scaduti, da riprendere'},
+  {k:'prenotati',dot:'var(--blue)',   emoji:'✅', t:'Prenotati',                  hint:'hanno preso la prima lezione'}
+];
+
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function histHtml(id){
+  const ns=notesByLead[id]||[];
+  let inner='<div class="hh">Storico contatto</div>';
+  if(!ns.length){ inner+='<div class="note empty"><div class="tx">Nessuna nota ancora. Dopo la chiamata, registra cosa è successo nel portale.</div></div>'; }
+  else inner+=ns.map(n=>{
+    const d=new Date(n.created_at);
+    const when=d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    const lab=(TIPO_LBL[n.tipo]||n.tipo||'')+(n.esito?(' · '+(ESITO_LBL[n.esito]||n.esito)):'');
+    const empty=!n.testo;
+    return '<div class="note'+(empty?' empty':'')+'"><span class="when">'+when+'</span><span class="lab">'+esc(lab)+'</span>'
+      +'<div class="tx">'+(empty?'(senza testo)':esc(n.testo))+'</div></div>';
+  }).join('');
+  return '<div class="hist" id="hist-'+id+'">'+inner+'</div>';
+}
+
+function rowHtml(l,dot){
+  const ns=notesByLead[l.id]||[];
+  const last=ns.find(n=>n.testo);
+  const fermoH=oreFermo(l);
+  const fermoBadge=isFermo(l)?'<span class="fermo">⏰ fermo da '+Math.floor(fermoH)+'h</span>':'';
+  const fasciaChip=l.fascia?'<span class="chip fascia">'+esc(l.fascia)+'</span>':'';
+  let metaExtra='';
+  if(l.funnel_stage==='nuovo'){ const d=gg(l.lead_creato_il); if(d!=null&&d>=2) metaExtra='<span class="chip">in coda da '+Math.floor(d)+'g</span>'; }
+  if(futureRichiamo(l)) metaExtra+='<span class="chip">richiamo '+String(l.prossima_azione_il).slice(8,10)+'/'+String(l.prossima_azione_il).slice(5,7)+'</span>';
+  const notePv=last
+    ? '<div class="notepv">'+esc(last.testo)+'</div>'
+    : '<div class="notepv none">nessuna nota — registra dopo la chiamata</div>';
+  const showLink=l.funnel_stage!=='prenotato_prima_lezione'&&l.funnel_stage!=='fatta_prima_lezione';
+  return '<div class="row">'
+    +'<div class="row-top" onclick="toggleHist(\''+l.id+'\')">'
+      +'<span class="dot" style="background:'+dot+'"></span>'
+      +'<div style="min-width:0;flex:1">'
+        +'<div class="nm">'+esc((l.nome||'')+' '+(l.cognome||'')).trim()+'</div>'
+        +'<div class="meta">'+fasciaChip+fermoBadge+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
+        +notePv
+      +'</div>'
+      +'<span class="exp" id="exp-'+l.id+'">▾</span>'
+    +'</div>'
+    +(showLink?('<div class="acts"><button class="btn-wa" onclick="mandaLink(\''+l.id+'\')">💬 Manda link prenotazione</button></div>'):'')
+    +histHtml(l.id)
+  +'</div>';
+}
+
+function render(){
+  const rows=leads.filter(l=>phase(l)&&inFascia(l));
+  // impatto
+  const cnt=k=>rows.filter(l=>phase(l)===k).length;
+  const fermi=leads.filter(l=>inFascia(l)&&isFermo(l)).length;
+  const imp=document.getElementById('impatto');
+  imp.innerHTML=
+     tile(cnt('sentire'),'Da sentire','red0')
+    +tile(cnt('prenotare'),'Da prenotare','green')
+    +tile(cnt('richiami'),'Richiami oggi','orange')
+    +tile(cnt('prenotati'),'Prenotati','blue')
+    +tile(fermi,'Fermi >24h','red')
+    +tile(rows.length,'Totale attivi','teal');
+  // fasi
+  const fasi=document.getElementById('fasi');
+  fasi.innerHTML=PHASES.map(ph=>{
+    const items=rows.filter(l=>phase(l)===ph.k);
+    const body=items.length?items.map(l=>rowHtml(l,ph.dot)).join(''):'<div class="empty">— nessuno —</div>';
+    return '<div class="sec"><div class="sec-h">'
+      +'<span class="t">'+ph.emoji+' '+ph.t+'</span>'
+      +'<span class="c">'+items.length+'</span></div>'
+      +'<div class="hint" style="font-size:11px;color:var(--txt3);margin:-4px 0 9px">'+ph.hint+'</div>'
+      +body+'</div>';
+  }).join('');
+}
+function tile(n,label,cls){
+  const c=(cls==='red0')?'':cls;
+  return '<div class="tile '+c+'"><div class="n">'+n+'</div><div class="l">'+label+'</div></div>';
+}
+
+function setFascia(f){
+  fascia=f;
+  document.getElementById('t-adulti').classList.toggle('on',f==='adulti');
+  document.getElementById('t-bambini').classList.toggle('on',f==='bambini');
+  render();
+}
+
+// ── init ──
+async function init(){
+  sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){ location.href='/portale.html'; return; }
+  const user=session.user;
+  const{data:prof}=await sb.from('profiles').select('role,staff_role').eq('user_id',user.id).single();
+  const staff=!!prof && (ROLES_STAFF.includes(prof.role)||STAFF_ISTRUTTORI.includes(prof.staff_role));
+  if(!staff){ document.getElementById('stato').textContent='Accesso riservato allo staff.'; return; }
+
+  // leads
+  const{data:ld,error:e1}=await sb.rpc('get_leads_da_contattare');
+  if(e1){ document.getElementById('stato').textContent='Errore lead: '+e1.message; return; }
+  leads=ld||[];
+
+  // storico note (no embed: solo colonne reali) + last touch
+  const{data:fu}=await sb.from('crm_follow_ups')
+    .select('id,lead_id,tipo,esito,testo,created_at')
+    .order('created_at',{ascending:false});
+  (fu||[]).forEach(n=>{
+    (notesByLead[n.lead_id]=notesByLead[n.lead_id]||[]).push(n);
+    if(!lastTouch[n.lead_id]) lastTouch[n.lead_id]=n.created_at; // fu è ordinato desc → primo = più recente
+  });
+
+  // campagna attiva?
+  const camp=leads.filter(l=>l.fonte==='ads_meta').length;
+  const cf=document.getElementById('campflag');
+  if(camp){ cf.style.display=''; cf.textContent='● '+camp+' da campagna'; }
+
+  document.getElementById('stato').style.display='none';
+  document.getElementById('app').style.display='';
+  render();
+}
+init().catch(e=>{ document.getElementById('stato').textContent='Errore: '+(e&&e.message||e); });
+</script>
+</body>
+</html>
