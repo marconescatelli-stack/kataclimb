@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: profilo v1.2 · 2026-06-17 · + tessera ⚙ Impostazioni (link impostazioni-profilo.html): cambio password + privacy raggiungibile dal profilo utente vero (la barra Profilo atterra qui, non sul vecchio header portale). CUMULA v1.1 · 2026-06-13 notte · Tessera ASD e Scudetti cablate su colonne VERIFICATE (query Marco): tesseramenti(persona_id, anno, data_scadenza, stato) -> anno corrente + vale-fino-al; scudetti_persona(persona_id, evento_nome, conquistato_at) -> conteggio reale, nome evento nel tooltip. Chiave unica persona_id, niente piu tentativi alla cieca. CUMULA v1.0 · INTEGRAZIONE del prototipo approvato (profilo-proto v0.2).
+<!-- KC-BUILD: profilo v1.3 · 2026-06-17 · Impostazioni: da tessera a icona ⚙ FISSA in alto a destra (speculare alla freccia indietro, z-index sopra tutto) -> impostazioni-profilo.html. CUMULA v1.2 · 2026-06-17 · + tessera ⚙ Impostazioni (link impostazioni-profilo.html): cambio password + privacy raggiungibile dal profilo utente vero (la barra Profilo atterra qui, non sul vecchio header portale). CUMULA v1.1 · 2026-06-13 notte · Tessera ASD e Scudetti cablate su colonne VERIFICATE (query Marco): tesseramenti(persona_id, anno, data_scadenza, stato) -> anno corrente + vale-fino-al; scudetti_persona(persona_id, evento_nome, conquistato_at) -> conteggio reale, nome evento nel tooltip. Chiave unica persona_id, niente piu tentativi alla cieca. CUMULA v1.0 · INTEGRAZIONE del prototipo approvato (profilo-proto v0.2).
      Pagina SEPARATA (pattern oggi/agenda/monitor): auth condivisa, zero righe a rischio sul portale.
      Legge del fascicolo: CHI SEI / DOVE SEI ORA / QUANTO SEI ANDATO. Firma: Sentiero intero 33 nodi.
      Fonti VERIFICATE: profiles(*), profile_data(*), kata_videos (slot/status reali: ready|certified),
@@ -185,6 +185,7 @@ a{color:inherit; text-decoration:none}
 </head>
 <body>
 <button aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
+<button aria-label="Impostazioni" onclick="location.href='/impostazioni-profilo.html'" style="position:fixed;top:10px;right:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:18px/1 sans-serif;cursor:pointer">⚙</button>
 
 <div id="gate">
   <h1>Profilo</h1>
@@ -359,11 +360,6 @@ function render(){
     <span class="et mono">Portale</span>
     <div class="big">▦</div>
     <span class="cmd mono">COMPLETO ›</span>
-  </a>
-  <a class="t" href="/impostazioni-profilo.html" style="min-height:0">
-    <span class="et mono">Impostazioni</span>
-    <div class="big">⚙</div>
-    <span class="cmd mono">PASSWORD · PRIVACY ›</span>
   </a>`;
 }
 
