@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-dopo v2 · 2026-06-16 · = inizia v4 (GRUPPO 1-6) + finestra 2 SETTIMANE. Da girare via WhatsApp. · base inizia v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: inizia-dopo v3 · 2026-06-17 · FIX getUTM() (stesso bug di inizia v4): intestazione persa -> return orfano -> SyntaxError -> spinner date infinito. Ripristinata. CUMULA v2 · 2026-06-16 · = inizia v4 (GRUPPO 1-6) + finestra 2 SETTIMANE. Da girare via WhatsApp. · base inizia v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -1102,6 +1102,8 @@ body{
       aggiornaBottone();
     }
   }
+  function getUTM(){
+    const p = new URLSearchParams(window.location.search);
     return {
       campagna:     p.get('utm_campaign') || null,
       utm_source:   p.get('utm_source')   || null,
