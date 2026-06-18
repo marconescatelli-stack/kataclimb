@@ -6,6 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- KC-BUILD: commerciale v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -28,8 +29,11 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
   color:var(--txt);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
 .hd h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-.3px}
 .hd .sub{font-size:11.5px;color:var(--txt3);margin-top:1px}
-.campflag{margin-left:auto;font-size:11px;font-weight:700;color:#000;background:var(--green);
-  border-radius:999px;padding:3px 10px}
+.campflag{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.campitem{font-size:11px;font-weight:700;color:#000;background:var(--green);
+  border-radius:999px;padding:3px 10px;cursor:pointer;border:1px solid transparent;white-space:nowrap}
+.campitem.on{outline:2px solid #fff;outline-offset:1px}
+.campitem.dim{background:var(--card2);color:var(--txt2)}
 
 #stato{padding:60px 20px;text-align:center;color:var(--txt2);font-size:15px}
 
@@ -66,6 +70,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 .row .meta{font-size:11.5px;color:var(--txt3);margin-top:2px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
 .chip{font-size:10.5px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--card2);color:var(--txt2)}
 .chip.fascia{background:#1c2230;color:var(--teal)}
+.chip.camp{background:#241a30;color:#c9a8ff}
 .fermo{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 7px;background:#3a0f0d;color:var(--red)}
 .notepv{font-size:12.5px;color:var(--txt2);margin-top:7px;line-height:1.45;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -276,6 +281,17 @@ function toggleHist(id){
   if(e)e.textContent=open?'▲':'▾';
 }
 
+// ── campagne: finestre bisettimanali (14gg) numerate da DATA_ZERO = lun 9 giu 2026 ──
+const DATA_ZERO_CAMP=new Date('2026-06-09T00:00:00');
+let filtroCamp=null;
+function campNum(l){
+  if(!l||l.fonte!=='ads_meta') return null;
+  const raw=l.lead_creato_il; if(!raw) return null;
+  const giorni=Math.floor((new Date(raw)-DATA_ZERO_CAMP)/86400000);
+  return giorni<0 ? null : Math.floor(giorni/14)+1;
+}
+function toggleCamp(n){ filtroCamp=(filtroCamp===n)?null:n; render(); }
+
 // ── render ──
 const PHASES=[
   {k:'sentire',  dot:'var(--red)',    emoji:'🔴', t:'Da sentire',                hint:'mai contattati'},
@@ -312,6 +328,8 @@ function rowHtml(l,dot){
      (l.link_inviato_at?'<span class="chip done">🔗 link '+fa(l.link_inviato_at)+'</span>':'')
     +(l.memo_wa_at?'<span class="chip done">💬 WA '+fa(l.memo_wa_at)+'</span>':'')
     +(figliCreati[l.id]?'<span class="chip done">👶 '+figliCreati[l.id]+' in segreteria</span>':'');
+  const cn=campNum(l);
+  const campChip=cn?('<span class="chip camp">📣 Camp #'+cn+'</span>'):'';
   let metaExtra='';
   if(l.funnel_stage==='nuovo'){ const d=gg(l.lead_creato_il); if(d!=null&&d>=2) metaExtra='<span class="chip">in coda da '+Math.floor(d)+'g</span>'; }
   if(futureRichiamo(l)) metaExtra+='<span class="chip">richiamo '+String(l.prossima_azione_il).slice(8,10)+'/'+String(l.prossima_azione_il).slice(5,7)+'</span>';
@@ -352,7 +370,7 @@ function rowHtml(l,dot){
       +'<span class="dot" style="background:'+dot+'"></span>'
       +'<div style="min-width:0;flex:1">'
         +'<div class="nm">'+esc((l.nome||'')+' '+(l.cognome||'')).trim()+'</div>'
-        +'<div class="meta">'+fasciaChip+fermoBadge+doneBadges+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
+        +'<div class="meta">'+fasciaChip+fermoBadge+doneBadges+campChip+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
         +notePv
       +'</div>'
       +'<span class="exp" id="exp-'+l.id+'">▾</span>'
@@ -365,7 +383,21 @@ function rowHtml(l,dot){
 }
 
 function render(){
-  const rows=leads.filter(l=>phase(l)&&isCommerciale(l));
+  const rows=leads.filter(l=>phase(l)&&isCommerciale(l)&&(!filtroCamp||campNum(l)===filtroCamp));
+  // campagne: finestre bisettimanali numerate (clic = filtra l'elenco)
+  const adsAttivi=leads.filter(l=>l.fonte==='ads_meta'&&isCommerciale(l));
+  const byCamp={}; let preCamp=0;
+  adsAttivi.forEach(l=>{ const n=campNum(l); if(n){byCamp[n]=(byCamp[n]||0)+1;} else {preCamp++;} });
+  const cf=document.getElementById('campflag');
+  if(cf){
+    const nums=Object.keys(byCamp).map(Number).sort((a,b)=>b-a);
+    if(nums.length||preCamp){
+      cf.style.display='';
+      let h=nums.map(n=>'<span class="campitem'+(filtroCamp===n?' on':'')+'" onclick="toggleCamp('+n+')">📣 Camp #'+n+' · '+byCamp[n]+'</span>').join('');
+      if(preCamp) h+='<span class="campitem dim">pre-campagna · '+preCamp+'</span>';
+      cf.innerHTML=h;
+    } else { cf.style.display='none'; }
+  }
   // impatto
   const cnt=k=>rows.filter(l=>phase(l)===k).length;
   const fermi=rows.filter(l=>isFermo(l)).length;
@@ -435,10 +467,7 @@ async function init(){
     if(!lastTouch[n.lead_id]) lastTouch[n.lead_id]=n.created_at; // fu è ordinato desc → primo = più recente
   });
 
-  // campagna attiva?
-  const camp=leads.filter(l=>l.fonte==='ads_meta'&&isCommerciale(l)).length;
-  const cf=document.getElementById('campflag');
-  if(camp){ cf.style.display=''; cf.textContent='● '+camp+' da campagna'; }
+  // (le campagne sono disegnate da render(), divise per finestra bisettimanale)
 
   document.getElementById('stato').style.display='none';
   document.getElementById('app').style.display='';
