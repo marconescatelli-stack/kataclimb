@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.0 · 2026-06-17 · Console commerciale standalone. Legge get_leads_da_contattare + crm_follow_ups (no embed created_by_profile). Impatto generale + registro a fasi + alert fermo>24h + STORICO NOTE visibile per contatto + Manda link prenotazione. Sequenze msg + dettato profilo caratteriale = roadmap (dipendono da RPC link_inviato_at/memo_wa_at/profilo_caratteriale). -->
+<!-- KC-BUILD: commerciale v1.1 · 2026-06-18 · 6 azioni per card (Link inviato · WhatsApp · Nota · Bambini · Ragazzi · Gira in segreteria). Bambini/Ragazzi = tag fascia + coda='segreteria' (escono dal commerciale). Azioni gia' fatte visibili sulla card (link_inviato_at/memo_wa_at, RPC get_leads v4). Nota inline -> aggiungi_nota_lead. Filtro coda='commerciale' attivo. Tolto toggle Adulti/Bambini (i minori vivono in segreteria). RPC: segna_link_inviato / segna_memo_wa / aggiungi_nota_lead / imposta_coda_fascia. -->
 <style>
 :root{
   --bg:#000; --card:#111214; --card2:#1a1b1e; --line:#2a2c30;
@@ -44,11 +44,8 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 .tile.green .n{color:var(--green)} .tile.orange .n{color:var(--orange)}
 .tile.blue .n{color:var(--blue)} .tile.teal .n{color:var(--teal)}
 
-/* toggle */
-.toggle{display:flex;gap:8px;margin:14px 0 6px}
-.toggle button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);
-  background:transparent;color:var(--txt2);font-weight:700;font-size:14px;cursor:pointer}
-.toggle button.on{background:var(--txt);color:#000;border-color:var(--txt)}
+/* chip azione fatta */
+.chip.done{background:#0f2417;color:var(--green)}
 
 /* sezioni fase */
 .sec{margin-top:22px}
@@ -73,10 +70,22 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 .notepv.none{color:var(--txt3);font-style:italic}
 .exp{margin-left:auto;color:var(--txt3);font-size:13px;flex:0 0 auto;margin-top:2px}
 
-/* azioni */
-.acts{display:flex;gap:8px;padding:0 14px 13px}
-.btn-wa{flex:1;padding:10px;border-radius:11px;border:none;background:var(--wa);color:#fff;
-  font-weight:700;font-size:13px;cursor:pointer}
+/* azioni: 6 bottoni 3x2 */
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:0 14px 13px}
+.ab{padding:9px 5px;border-radius:10px;border:1px solid var(--line);background:var(--card2);
+  color:var(--txt);font-weight:700;font-size:12px;cursor:pointer;text-align:center;line-height:1.25}
+.ab:active{opacity:.7}
+.ab.wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.ab.seg{color:var(--orange);border-color:#4a3208}
+.ab.kid{color:var(--teal);border-color:#1c3a44}
+.ab.on{border-color:var(--green);color:var(--green)}
+/* form nota inline */
+.noteform{padding:0 14px 13px;display:none}
+.noteform.open{display:block}
+.noteform textarea{width:100%;min-height:64px;background:var(--card2);border:1px solid var(--line);
+  border-radius:10px;color:var(--txt);font-size:14px;padding:10px;resize:vertical;font-family:inherit}
+.noteform .nbtn{margin-top:7px;padding:9px 16px;border-radius:10px;border:none;background:var(--blue);
+  color:#fff;font-weight:700;font-size:13px;cursor:pointer}
 
 /* storico note */
 .hist{border-top:1px solid var(--line);background:var(--card2);padding:4px 14px 12px;display:none}
@@ -109,10 +118,6 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
   <div id="stato">Carico…</div>
   <div id="app" style="display:none">
     <div id="impatto" class="impatto"></div>
-    <div class="toggle">
-      <button id="t-adulti" class="on" onclick="setFascia('adulti')">🧑 Adulti</button>
-      <button id="t-bambini" onclick="setFascia('bambini')">👶 Bambini</button>
-    </div>
     <div id="fasi"></div>
     <div class="foot">
       <b>Prossimi passi (roadmap):</b><br>
@@ -134,7 +139,7 @@ const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istru
 const TIPO_LBL={chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉️ Email',incontro:'🤝 Incontro',altro:'• Altro',nota:'📝 Nota'};
 const ESITO_LBL={ha_risposto:'Ha risposto',non_risposto:'Non ha risposto',messaggio_lasciato:'Messaggio lasciato',appuntamento_preso:'Appuntamento preso',da_ricontattare:'Da ricontattare',rifiutato:'Ha rifiutato'};
 
-let sb=null, leads=[], notesByLead={}, lastTouch={}, fascia='adulti';
+let sb=null, leads=[], notesByLead={}, lastTouch={};
 
 function goBack(){ if(history.length>1){history.back();} else {location.href='/oggi.html';} }
 
@@ -151,10 +156,7 @@ function phase(l){
   if(l.funnel_stage==='contattato') return 'prenotare';
   return null;
 }
-function inFascia(l){
-  if(fascia==='bambini') return l.fascia==='bambino'||l.fascia==='ragazzo';
-  return l.fascia==='adulto'||!l.fascia;
-}
+function isCommerciale(l){ return (l.coda||'commerciale')==='commerciale'; }
 function oreFermo(l){
   if(isPrenotato(l)||futureRichiamo(l)||l.funnel_stage==='nuovo') return null;
   const ts=lastTouch[l.id]||l.ultimo_ingresso||l.lead_creato_il;
@@ -165,14 +167,79 @@ function isFermo(l){ const h=oreFermo(l); return h!=null && h>=24; }
 function gg(ts){ return ts?((Date.now()-new Date(ts).getTime())/DAY_MS):null; }
 
 function waNum(tel){ let n=(tel||'').replace(/[^\d]/g,''); if(n.length===10 && n.charAt(0)==='3') n='39'+n; return n; }
-function mandaLink(id){
-  const l=leads.find(x=>x.id===id); if(!l)return;
+
+// "quanto tempo fa" compatto
+function fa(ts){
+  if(!ts) return '';
+  const h=(Date.now()-new Date(ts).getTime())/3600000;
+  if(h<1) return 'ora';
+  if(h<24) return Math.floor(h)+'h';
+  const d=Math.floor(h/24);
+  if(d===1) return 'ieri';
+  if(d<30) return d+'g';
+  return Math.floor(d/30)+'m';
+}
+
+function localUpdate(id,patch){
+  const l=leads.find(x=>x.id===id);
+  if(l) Object.assign(l,patch);
+}
+
+// 1) Link inviato
+async function azLink(id){
+  const{error}=await sb.rpc('segna_link_inviato',{p_lead_id:id});
+  if(error){ alert('Errore: '+error.message); return; }
+  const now=new Date().toISOString();
+  localUpdate(id,{link_inviato_at:now,ultima_interazione:now});
+  render();
+}
+// 2) WhatsApp (apre il filo col link + segna)
+async function azWa(id){
+  const l=leads.find(x=>x.id===id); if(!l) return;
   const num=waNum(l.telefono);
   if(!num){ alert('Numero mancante per questo contatto.'); return; }
   const nome=(l.nome||'').trim();
   const msg='Ciao '+nome+' 😄 come d\'accordo, qui prenoti la tua prima lezione in un minuto, con calma quando vuoi 👇\n'+KC_INIZIA_URL+'\nQualsiasi cosa scrivimi, ci sono 🌀 Marco';
   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  const{error}=await sb.rpc('segna_memo_wa',{p_lead_id:id});
+  if(!error){ const now=new Date().toISOString(); localUpdate(id,{memo_wa_at:now,ultima_interazione:now}); render(); }
 }
+// 3) Nota — apre/chiude il form inline
+function azNota(id){
+  const f=document.getElementById('nf-'+id);
+  if(!f) return;
+  const open=f.classList.toggle('open');
+  if(open){ const ta=document.getElementById('nt-'+id); if(ta) ta.focus(); }
+}
+async function salvaNota(id){
+  const ta=document.getElementById('nt-'+id);
+  const testo=(ta&&ta.value||'').trim();
+  if(!testo){ alert('Scrivi qualcosa prima di salvare.'); return; }
+  const{data,error}=await sb.rpc('aggiungi_nota_lead',{p_lead_id:id,p_testo:testo,p_tipo:'nota'});
+  if(error){ alert('Errore: '+error.message); return; }
+  const now=new Date().toISOString();
+  (notesByLead[id]=notesByLead[id]||[]).unshift({id:data,lead_id:id,tipo:'nota',esito:null,testo:testo,created_at:now});
+  lastTouch[id]=now;
+  localUpdate(id,{ultima_interazione:now});
+  render();
+  // tieni aperto lo storico del lead appena annotato
+  const h=document.getElementById('hist-'+id); if(h) h.classList.add('open');
+}
+// 4) Gira in segreteria (coda, fascia invariata)
+async function azGira(id){
+  const{error}=await sb.rpc('imposta_coda_fascia',{p_lead_id:id,p_coda:'segreteria',p_fascia:null});
+  if(error){ alert('Errore: '+error.message); return; }
+  localUpdate(id,{coda:'segreteria'});
+  render();
+}
+// 5+6) Bambini / Ragazzi = tag fascia + manda in segreteria
+async function azTag(id,fasciaVal){
+  const{error}=await sb.rpc('imposta_coda_fascia',{p_lead_id:id,p_coda:'segreteria',p_fascia:fasciaVal});
+  if(error){ alert('Errore: '+error.message); return; }
+  localUpdate(id,{coda:'segreteria',fascia:fasciaVal});
+  render();
+}
+
 function toggleHist(id){
   const h=document.getElementById('hist-'+id);
   const e=document.getElementById('exp-'+id);
@@ -212,33 +279,59 @@ function rowHtml(l,dot){
   const fermoH=oreFermo(l);
   const fermoBadge=isFermo(l)?'<span class="fermo">⏰ fermo da '+Math.floor(fermoH)+'h</span>':'';
   const fasciaChip=l.fascia?'<span class="chip fascia">'+esc(l.fascia)+'</span>':'';
+  // azioni gia' fatte, a colpo d'occhio
+  const doneBadges=
+     (l.link_inviato_at?'<span class="chip done">🔗 link '+fa(l.link_inviato_at)+'</span>':'')
+    +(l.memo_wa_at?'<span class="chip done">💬 WA '+fa(l.memo_wa_at)+'</span>':'');
   let metaExtra='';
   if(l.funnel_stage==='nuovo'){ const d=gg(l.lead_creato_il); if(d!=null&&d>=2) metaExtra='<span class="chip">in coda da '+Math.floor(d)+'g</span>'; }
   if(futureRichiamo(l)) metaExtra+='<span class="chip">richiamo '+String(l.prossima_azione_il).slice(8,10)+'/'+String(l.prossima_azione_il).slice(5,7)+'</span>';
   const notePv=last
     ? '<div class="notepv">'+esc(last.testo)+'</div>'
     : '<div class="notepv none">nessuna nota — registra dopo la chiamata</div>';
-  const showLink=l.funnel_stage!=='prenotato_prima_lezione'&&l.funnel_stage!=='fatta_prima_lezione';
+  const prenotato=isPrenotato(l);
+  const I="'"+l.id+"'";
+  let acts;
+  if(prenotato){
+    // gia' oltre il confine: solo contatto + memoria
+    acts='<div class="acts" style="grid-template-columns:repeat(2,1fr)">'
+      +'<button class="ab wa" onclick="azWa('+I+')">💬 WhatsApp</button>'
+      +'<button class="ab" onclick="azNota('+I+')">📝 Nota</button>'
+      +'</div>';
+  } else {
+    acts='<div class="acts">'
+      +'<button class="ab wa" onclick="azWa('+I+')">💬 WhatsApp</button>'
+      +'<button class="ab'+(l.link_inviato_at?' on':'')+'" onclick="azLink('+I+')">🔗 Link inviato</button>'
+      +'<button class="ab" onclick="azNota('+I+')">📝 Nota</button>'
+      +'<button class="ab kid" onclick="azTag('+I+',\'bambino\')">👶 Bambini</button>'
+      +'<button class="ab kid" onclick="azTag('+I+',\'ragazzo\')">🧒 Ragazzi</button>'
+      +'<button class="ab seg" onclick="azGira('+I+')">➡️ Segreteria</button>'
+      +'</div>';
+  }
+  const noteform='<div class="noteform" id="nf-'+l.id+'">'
+    +'<textarea id="nt-'+l.id+'" placeholder="Cosa è successo…"></textarea>'
+    +'<button class="nbtn" onclick="salvaNota('+I+')">Salva nota</button></div>';
   return '<div class="row">'
-    +'<div class="row-top" onclick="toggleHist(\''+l.id+'\')">'
+    +'<div class="row-top" onclick="toggleHist('+I+')">'
       +'<span class="dot" style="background:'+dot+'"></span>'
       +'<div style="min-width:0;flex:1">'
         +'<div class="nm">'+esc((l.nome||'')+' '+(l.cognome||'')).trim()+'</div>'
-        +'<div class="meta">'+fasciaChip+fermoBadge+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
+        +'<div class="meta">'+fasciaChip+fermoBadge+doneBadges+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
         +notePv
       +'</div>'
       +'<span class="exp" id="exp-'+l.id+'">▾</span>'
     +'</div>'
-    +(showLink?('<div class="acts"><button class="btn-wa" onclick="mandaLink(\''+l.id+'\')">💬 Manda link prenotazione</button></div>'):'')
+    +acts
+    +noteform
     +histHtml(l.id)
   +'</div>';
 }
 
 function render(){
-  const rows=leads.filter(l=>phase(l)&&inFascia(l));
+  const rows=leads.filter(l=>phase(l)&&isCommerciale(l));
   // impatto
   const cnt=k=>rows.filter(l=>phase(l)===k).length;
-  const fermi=leads.filter(l=>inFascia(l)&&isFermo(l)).length;
+  const fermi=rows.filter(l=>isFermo(l)).length;
   const imp=document.getElementById('impatto');
   imp.innerHTML=
      tile(cnt('sentire'),'Da sentire','red0')
@@ -262,13 +355,6 @@ function render(){
 function tile(n,label,cls){
   const c=(cls==='red0')?'':cls;
   return '<div class="tile '+c+'"><div class="n">'+n+'</div><div class="l">'+label+'</div></div>';
-}
-
-function setFascia(f){
-  fascia=f;
-  document.getElementById('t-adulti').classList.toggle('on',f==='adulti');
-  document.getElementById('t-bambini').classList.toggle('on',f==='bambini');
-  render();
 }
 
 // ── init ──
@@ -296,7 +382,7 @@ async function init(){
   });
 
   // campagna attiva?
-  const camp=leads.filter(l=>l.fonte==='ads_meta').length;
+  const camp=leads.filter(l=>l.fonte==='ads_meta'&&isCommerciale(l)).length;
   const cf=document.getElementById('campflag');
   if(camp){ cf.style.display=''; cf.textContent='● '+camp+' da campagna'; }
 
