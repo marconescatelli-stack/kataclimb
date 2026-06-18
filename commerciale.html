@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.1 · 2026-06-18 · 6 azioni per card (Link inviato · WhatsApp · Nota · Bambini · Ragazzi · Gira in segreteria). Bambini/Ragazzi = tag fascia + coda='segreteria' (escono dal commerciale). Azioni gia' fatte visibili sulla card (link_inviato_at/memo_wa_at, RPC get_leads v4). Nota inline -> aggiungi_nota_lead. Filtro coda='commerciale' attivo. Tolto toggle Adulti/Bambini (i minori vivono in segreteria). RPC: segna_link_inviato / segna_memo_wa / aggiungi_nota_lead / imposta_coda_fascia. -->
+<!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
   --bg:#000; --card:#111214; --card2:#1a1b1e; --line:#2a2c30;
@@ -36,7 +36,9 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 /* impatto */
 .impatto{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 6px}
 .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 12px 11px;min-height:78px;
-  display:flex;flex-direction:column;justify-content:space-between}
+  display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:border-color .12s}
+.tile:active{opacity:.75}
+.tile.active{border-color:var(--txt);box-shadow:inset 0 0 0 1px var(--txt)}
 .tile .n{font-size:30px;font-weight:800;line-height:1;letter-spacing:-1px}
 .tile .l{font-size:11px;color:var(--txt2);font-weight:600;line-height:1.2;margin-top:6px}
 .tile.red{background:linear-gradient(160deg,#3a0f0d,#1a0b0a);border-color:#5c1714}
@@ -86,6 +88,14 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
   border-radius:10px;color:var(--txt);font-size:14px;padding:10px;resize:vertical;font-family:inherit}
 .noteform .nbtn{margin-top:7px;padding:9px 16px;border-radius:10px;border:none;background:var(--blue);
   color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+/* aggiungi figlio/a */
+.ab.add{grid-column:1/-1;background:#0f2417;border-color:#1f5c38;color:var(--green)}
+.childform{padding:0 14px 13px;display:none}
+.childform.open{display:block}
+.childform input,.childform select{width:100%;margin-bottom:7px;background:var(--card2);
+  border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:14px;padding:10px;font-family:inherit}
+.childform .nbtn{padding:9px 16px;border-radius:10px;border:none;background:var(--green);
+  color:#000;font-weight:800;font-size:13px;cursor:pointer}
 
 /* storico note */
 .hist{border-top:1px solid var(--line);background:var(--card2);padding:4px 14px 12px;display:none}
@@ -139,7 +149,7 @@ const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istru
 const TIPO_LBL={chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉️ Email',incontro:'🤝 Incontro',altro:'• Altro',nota:'📝 Nota'};
 const ESITO_LBL={ha_risposto:'Ha risposto',non_risposto:'Non ha risposto',messaggio_lasciato:'Messaggio lasciato',appuntamento_preso:'Appuntamento preso',da_ricontattare:'Da ricontattare',rifiutato:'Ha rifiutato'};
 
-let sb=null, leads=[], notesByLead={}, lastTouch={};
+let sb=null, leads=[], notesByLead={}, lastTouch={}, filtroImpatto=null, figliCreati={};
 
 function goBack(){ if(history.length>1){history.back();} else {location.href='/oggi.html';} }
 
@@ -240,6 +250,24 @@ async function azTag(id,fasciaVal){
   render();
 }
 
+// + Aggiungi figlio/a (il genitore resta adulto in commerciale)
+function azFiglio(id){
+  const f=document.getElementById('cf-'+id); if(!f) return;
+  const open=f.classList.toggle('open');
+  if(open){ const n=document.getElementById('cfn-'+id); if(n) n.focus(); }
+}
+async function creaFiglio(id){
+  const nome=((document.getElementById('cfn-'+id)||{}).value||'').trim();
+  const cog =((document.getElementById('cfc-'+id)||{}).value||'').trim();
+  const fascia=((document.getElementById('cff-'+id)||{}).value||'bambino');
+  if(!nome){ alert('Scrivi il nome del figlio/a.'); return; }
+  const{error}=await sb.rpc('crea_figlio_lead',{p_genitore_lead_id:id,p_nome:nome,p_cognome:cog,p_fascia:fascia});
+  if(error){ alert('Errore: '+error.message); return; }
+  figliCreati[id]=(figliCreati[id]||0)+1;
+  const f=document.getElementById('cf-'+id); if(f) f.classList.remove('open');
+  render();
+}
+
 function toggleHist(id){
   const h=document.getElementById('hist-'+id);
   const e=document.getElementById('exp-'+id);
@@ -282,7 +310,8 @@ function rowHtml(l,dot){
   // azioni gia' fatte, a colpo d'occhio
   const doneBadges=
      (l.link_inviato_at?'<span class="chip done">🔗 link '+fa(l.link_inviato_at)+'</span>':'')
-    +(l.memo_wa_at?'<span class="chip done">💬 WA '+fa(l.memo_wa_at)+'</span>':'');
+    +(l.memo_wa_at?'<span class="chip done">💬 WA '+fa(l.memo_wa_at)+'</span>':'')
+    +(figliCreati[l.id]?'<span class="chip done">👶 '+figliCreati[l.id]+' in segreteria</span>':'');
   let metaExtra='';
   if(l.funnel_stage==='nuovo'){ const d=gg(l.lead_creato_il); if(d!=null&&d>=2) metaExtra='<span class="chip">in coda da '+Math.floor(d)+'g</span>'; }
   if(futureRichiamo(l)) metaExtra+='<span class="chip">richiamo '+String(l.prossima_azione_il).slice(8,10)+'/'+String(l.prossima_azione_il).slice(5,7)+'</span>';
@@ -306,8 +335,15 @@ function rowHtml(l,dot){
       +'<button class="ab kid" onclick="azTag('+I+',\'bambino\')">👶 Bambini</button>'
       +'<button class="ab kid" onclick="azTag('+I+',\'ragazzo\')">🧒 Ragazzi</button>'
       +'<button class="ab seg" onclick="azGira('+I+')">➡️ Segreteria</button>'
+      +'<button class="ab add" onclick="azFiglio('+I+')">➕ Aggiungi figlio/a</button>'
       +'</div>';
   }
+  const childform=prenotato?'':('<div class="childform" id="cf-'+l.id+'">'
+    +'<input id="cfn-'+l.id+'" placeholder="Nome del figlio/a">'
+    +'<input id="cfc-'+l.id+'" placeholder="Cognome" value="'+esc(l.cognome||'')+'">'
+    +'<select id="cff-'+l.id+'"><option value="bambino">👶 Bambino (6–12)</option><option value="ragazzo">🧒 Ragazzo (13–17)</option></select>'
+    +'<button class="nbtn" onclick="creaFiglio('+I+')">Crea e manda in segreteria</button>'
+    +'</div>');
   const noteform='<div class="noteform" id="nf-'+l.id+'">'
     +'<textarea id="nt-'+l.id+'" placeholder="Cosa è successo…"></textarea>'
     +'<button class="nbtn" onclick="salvaNota('+I+')">Salva nota</button></div>';
@@ -323,6 +359,7 @@ function rowHtml(l,dot){
     +'</div>'
     +acts
     +noteform
+    +childform
     +histHtml(l.id)
   +'</div>';
 }
@@ -334,15 +371,25 @@ function render(){
   const fermi=rows.filter(l=>isFermo(l)).length;
   const imp=document.getElementById('impatto');
   imp.innerHTML=
-     tile(cnt('sentire'),'Da sentire','red0')
-    +tile(cnt('prenotare'),'Da prenotare','green')
-    +tile(cnt('richiami'),'Richiami oggi','orange')
-    +tile(cnt('prenotati'),'Prenotati','blue')
-    +tile(fermi,'Fermi >24h','red')
-    +tile(rows.length,'Totale attivi','teal');
-  // fasi
+     tile(cnt('sentire'),'Da sentire','red0','sentire')
+    +tile(cnt('prenotare'),'Da prenotare','green','prenotare')
+    +tile(cnt('richiami'),'Richiami oggi','orange','richiami')
+    +tile(cnt('prenotati'),'Prenotati','blue','prenotati')
+    +tile(fermi,'Fermi >24h','red','fermi')
+    +tile(rows.length,'Totale attivi','teal',null);
+  // fasi (filtrate dalla tessera attiva)
   const fasi=document.getElementById('fasi');
-  fasi.innerHTML=PHASES.map(ph=>{
+  if(filtroImpatto==='fermi'){
+    const items=rows.filter(l=>isFermo(l));
+    const body=items.length?items.map(l=>rowHtml(l,'var(--red)')).join(''):'<div class="empty">— nessuno —</div>';
+    fasi.innerHTML='<div class="sec"><div class="sec-h"><span class="t">⏰ Fermi &gt;24h</span>'
+      +'<span class="c">'+items.length+'</span></div>'
+      +'<div class="hint" style="font-size:11px;color:var(--txt3);margin:-4px 0 9px">contatti senza azione da oltre un giorno</div>'
+      +body+'</div>';
+    return;
+  }
+  const show=filtroImpatto?PHASES.filter(ph=>ph.k===filtroImpatto):PHASES;
+  fasi.innerHTML=show.map(ph=>{
     const items=rows.filter(l=>phase(l)===ph.k);
     const body=items.length?items.map(l=>rowHtml(l,ph.dot)).join(''):'<div class="empty">— nessuno —</div>';
     return '<div class="sec"><div class="sec-h">'
@@ -352,9 +399,16 @@ function render(){
       +body+'</div>';
   }).join('');
 }
-function tile(n,label,cls){
+function tile(n,label,cls,key){
   const c=(cls==='red0')?'':cls;
-  return '<div class="tile '+c+'"><div class="n">'+n+'</div><div class="l">'+label+'</div></div>';
+  const active=(filtroImpatto===key)?' active':'';
+  const arg=(key===null)?'null':("'"+key+"'");
+  return '<div class="tile '+c+active+'" onclick="setImpatto('+arg+')"><div class="n">'+n+'</div><div class="l">'+label+'</div></div>';
+}
+function setImpatto(k){
+  filtroImpatto=(filtroImpatto===k)?null:k;  // ritap = azzera
+  render();
+  document.getElementById('fasi').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 // ── init ──
