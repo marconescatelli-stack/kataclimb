@@ -394,6 +394,7 @@
 
     <div class="modal-actions">
       <button class="btn-ann" id="allievo-annulla">Annulla</button>
+      <button class="btn-ok" id="allievo-conferma" disabled>Prenota</button>
     </div>
   </div>
 </div>
@@ -502,6 +503,7 @@
   let currentPrenotForDisdici = null;
   let currentSlotForLead = null;   // {slotId, dataIso, label}
   let currentSlotForAllievo = null; // {slotId, dataIso, label}
+  let allievoScelto = null; // {uid, nome} — scelto col tap, prenotato col bottone
   let currentPrenotForSposta = null;// {prenotId, label}
   let fontiCache = [];
   let allieviSearchDebounce = null;
@@ -828,6 +830,7 @@
       document.getElementById('nuovo-lead').style.display = e.target.value === '__new__' ? 'block' : 'none';
     };
     document.getElementById('allievo-annulla').onclick = () => closeModal('modal-allievo');
+    document.getElementById('allievo-conferma').onclick = confermaPrenotazione;
     document.getElementById('allievo-search').oninput = onAllievoSearch;
     document.getElementById('sposta-annulla').onclick = () => closeModal('modal-sposta');
     document.getElementById('sposta-conferma').onclick = onSpostaConferma;
@@ -1807,6 +1810,9 @@
 
   function apriAllievoPicker(slotId, dataIso, label) {
     currentSlotForAllievo = { slotId, dataIso, label };
+    allievoScelto = null;
+    const cbtn = document.getElementById('allievo-conferma');
+    cbtn.disabled = true; cbtn.textContent = 'Prenota';
     document.getElementById('allievo-slot-info').textContent = label;
     document.getElementById('allievo-search').value = '';
     document.getElementById('allievo-results').innerHTML =
@@ -1884,9 +1890,9 @@
 
       // Hover effect via inline (semplice)
       resultsEl.querySelectorAll('.allievo-row').forEach(row => {
-        row.onmouseenter = () => row.style.background = 'rgba(167,126,17,.08)';
-        row.onmouseleave = () => row.style.background = '';
-        row.onclick = () => selezionaAllievo(row.dataset.uid, row.dataset.nome);
+        row.onmouseenter = () => { if (row.dataset.uid !== (allievoScelto&&allievoScelto.uid)) row.style.background = 'rgba(167,126,17,.08)'; };
+        row.onmouseleave = () => { if (row.dataset.uid !== (allievoScelto&&allievoScelto.uid)) row.style.background = ''; };
+        row.onclick = () => scegliAllievo(row.dataset.uid, row.dataset.nome);
       });
 
     } catch (err) {
@@ -1894,11 +1900,31 @@
     }
   }
 
-  async function selezionaAllievo(userId, nome) {
-    if (!currentSlotForAllievo) return;
-    if (!confirm(`Prenotare ${nome} su ${currentSlotForAllievo.label}?`)) return;
+  function scegliAllievo(userId, nome) {
+    allievoScelto = { uid: userId, nome };
+    // chiude la tastiera su iPhone così la modale e il bottone Prenota tornano visibili
+    const inp = document.getElementById('allievo-search');
+    if (inp) inp.blur();
+    // evidenzia la riga scelta
+    document.querySelectorAll('#allievo-results .allievo-row').forEach(r => {
+      r.style.background = (r.dataset.uid === userId) ? 'rgba(167,126,17,.18)' : '';
+    });
+    // attiva il bottone Prenota (sempre visibile in fondo, niente dialog nativo)
+    const btn = document.getElementById('allievo-conferma');
+    btn.disabled = false;
+    btn.textContent = 'Prenota ' + nome;
+    const msgEl = document.getElementById('allievo-msg');
+    msgEl.className = 'modal-msg'; msgEl.textContent = '';
+    btn.scrollIntoView({ block: 'nearest' });
+  }
+
+  async function confermaPrenotazione() {
+    if (!currentSlotForAllievo || !allievoScelto) return;
+    const { uid: userId, nome } = allievoScelto;
 
     const msgEl = document.getElementById('allievo-msg');
+    const btn = document.getElementById('allievo-conferma');
+    btn.disabled = true;
     msgEl.className = 'modal-msg';
     msgEl.textContent = 'Prenotazione in corso…';
 
@@ -1914,6 +1940,7 @@
     if (error) {
       msgEl.className = 'modal-msg err';
       msgEl.textContent = error.message.replace(/^.*ERROR:\s*/i, '').replace(/^P0001:\s*/i, '');
+      btn.disabled = false;
       return;
     }
 
