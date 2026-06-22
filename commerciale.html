@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -115,6 +115,14 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 .foot{margin:30px 0 0;padding:16px;border:1px dashed var(--line);border-radius:14px;
   font-size:12px;color:var(--txt3);line-height:1.6}
 .foot b{color:var(--txt2)}
+/* preferenza oraria + funnel freddo */
+.chip.pref{background:#2a2410;color:var(--yellow)}
+.statochip{font-size:11.5px;font-weight:800;border-radius:7px;padding:2px 9px;border:1px solid;background:rgba(255,255,255,.03)}
+.sec.cold{margin-top:26px;border-top:1px dashed var(--line);padding-top:16px}
+.cold-head{display:flex;align-items:center;gap:9px;cursor:pointer;padding:6px 0}
+.cold-head .t{font-weight:800;font-size:15px;color:var(--txt2)}
+.cold-head .c{font-size:12px;color:var(--txt3);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:700}
+.cold-head .cold-exp{margin-left:auto;color:var(--txt3);font-size:13px}
 </style>
 </head>
 <body>
@@ -154,7 +162,7 @@ const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istru
 const TIPO_LBL={chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉️ Email',incontro:'🤝 Incontro',altro:'• Altro',nota:'📝 Nota'};
 const ESITO_LBL={ha_risposto:'Ha risposto',non_risposto:'Non ha risposto',messaggio_lasciato:'Messaggio lasciato',appuntamento_preso:'Appuntamento preso',da_ricontattare:'Da ricontattare',rifiutato:'Ha rifiutato'};
 
-let sb=null, leads=[], notesByLead={}, lastTouch={}, filtroImpatto=null, figliCreati={};
+let sb=null, leads=[], notesByLead={}, lastTouch={}, filtroImpatto=null, figliCreati={}, freddiAperti=false;
 
 function goBack(){ if(history.length>1){history.back();} else {location.href='/oggi.html';} }
 
@@ -180,6 +188,23 @@ function oreFermo(l){
 }
 function isFermo(l){ const h=oreFermo(l); return h!=null && h>=24; }
 function gg(ts){ return ts?((Date.now()-new Date(ts).getTime())/DAY_MS):null; }
+// preferenza oraria dal modulo (ultima_nota: "Richiamo: Mattina | ...")
+function kcFasciaPref(nota){ if(!nota)return null; const m=String(nota).match(/richiam[^:]*:\s*([A-Za-zàèéìòù]+)/i); if(!m)return null; const v=m[1].toLowerCase(); if(v.indexOf('matt')===0)return'mattina'; if(v.indexOf('pome')===0)return'pomeriggio'; if(v.indexOf('sera')===0)return'sera'; return null; }
+const FASCIA_LBL={mattina:'Mattina',pomeriggio:'Pomeriggio',sera:'Sera'};
+const FASCIA_EMO={mattina:'☀️',pomeriggio:'🌤️',sera:'🌙'};
+// ultima attività -> ordinamento recente→vecchio + soglia freddo
+function lastAct(l){ return lastTouch[l.id]||l.ultima_interazione||l.ultimo_ingresso||l.lead_creato_il||null; }
+function ordRecente(a,b){ const ta=lastAct(a),tb=lastAct(b); return (tb?new Date(tb).getTime():0)-(ta?new Date(ta).getTime():0); }
+const FREDDO_GG=21;
+function isFreddo(l){ const a=lastAct(l); if(!a) return false; return (Date.now()-new Date(a).getTime())/DAY_MS > FREDDO_GG; }
+// stato scritto sulla scheda (a colpo d'occhio): Chiama / Da richiamare / Da risentire / Prenotato
+function statoLead(l){
+  if(l.funnel_stage==='prenotato_prima_lezione'||l.funnel_stage==='fatta_prima_lezione') return ['✅ Prenotato','var(--blue)'];
+  if(l.stato_gestione==='da_richiamare'){ const d=l.prossima_azione_il?(' '+String(l.prossima_azione_il).slice(8,10)+'/'+String(l.prossima_azione_il).slice(5,7)):''; return ['🟠 Da richiamare'+d,'var(--orange)']; }
+  if(l.funnel_stage==='nuovo') return ['🔴 Chiama','var(--red)'];
+  if(l.funnel_stage==='contattato') return ['🟢 Da risentire · messaggia','var(--green)'];
+  return null;
+}
 
 function waNum(tel){ let n=(tel||'').replace(/[^\d]/g,''); if(n.length===10 && n.charAt(0)==='3') n='39'+n; return n; }
 
@@ -291,6 +316,19 @@ function campNum(l){
   return giorni<0 ? null : Math.floor(giorni/14)+1;
 }
 function toggleCamp(n){ filtroCamp=(filtroCamp===n)?null:n; render(); }
+function toggleFreddi(){ freddiAperti=!freddiAperti; render(); }
+function freddiHtml(freddi){
+  if(!freddi.length) return '';
+  freddi.sort(ordRecente);
+  const body=freddiAperti
+    ? '<div class="hint" style="font-size:11px;color:var(--txt3);margin:2px 0 12px">fermi da oltre 3 settimane — qui si lavorano a freddo (mail / messaggio WhatsApp), non in chiamata</div>'+freddi.map(l=>rowHtml(l,'var(--txt3)')).join('')
+    : '';
+  return '<div class="sec cold"><div class="cold-head" onclick="toggleFreddi()">'
+    +'<span class="t">🧊 Funnel freddo</span>'
+    +'<span class="c">'+freddi.length+'</span>'
+    +'<span class="cold-exp">'+(freddiAperti?'▲ chiudi':'▾ apri')+'</span>'
+    +'</div>'+body+'</div>';
+}
 
 // ── render ──
 const PHASES=[
@@ -322,7 +360,11 @@ function rowHtml(l,dot){
   const last=ns.find(n=>n.testo);
   const fermoH=oreFermo(l);
   const fermoBadge=isFermo(l)?'<span class="fermo">⏰ fermo da '+Math.floor(fermoH)+'h</span>':'';
+  const st=statoLead(l);
+  const statoChip=st?('<span class="statochip" style="color:'+st[1]+';border-color:'+st[1]+'66">'+st[0]+'</span>'):'';
   const fasciaChip=l.fascia?'<span class="chip fascia">'+esc(l.fascia)+'</span>':'';
+  const pf=kcFasciaPref(l.ultima_nota);
+  const prefChip=pf?('<span class="chip pref">'+FASCIA_EMO[pf]+' '+FASCIA_LBL[pf]+'</span>'):'';
   // azioni gia' fatte, a colpo d'occhio
   const doneBadges=
      (l.link_inviato_at?'<span class="chip done">🔗 link '+fa(l.link_inviato_at)+'</span>':'')
@@ -370,7 +412,7 @@ function rowHtml(l,dot){
       +'<span class="dot" style="background:'+dot+'"></span>'
       +'<div style="min-width:0;flex:1">'
         +'<div class="nm">'+esc((l.nome||'')+' '+(l.cognome||'')).trim()+'</div>'
-        +'<div class="meta">'+fasciaChip+fermoBadge+doneBadges+campChip+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
+        +'<div class="meta">'+statoChip+fasciaChip+prefChip+fermoBadge+doneBadges+campChip+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
         +notePv
       +'</div>'
       +'<span class="exp" id="exp-'+l.id+'">▾</span>'
@@ -384,6 +426,8 @@ function rowHtml(l,dot){
 
 function render(){
   const rows=leads.filter(l=>phase(l)&&isCommerciale(l)&&(!filtroCamp||campNum(l)===filtroCamp));
+  const caldi=rows.filter(l=>!isFreddo(l));
+  const freddi=rows.filter(l=>isFreddo(l));
   // campagne: finestre bisettimanali numerate (clic = filtra l'elenco)
   const adsAttivi=leads.filter(l=>l.fonte==='ads_meta'&&isCommerciale(l));
   const byCamp={}; let preCamp=0;
@@ -399,8 +443,8 @@ function render(){
     } else { cf.style.display='none'; }
   }
   // impatto
-  const cnt=k=>rows.filter(l=>phase(l)===k).length;
-  const fermi=rows.filter(l=>isFermo(l)).length;
+  const cnt=k=>caldi.filter(l=>phase(l)===k).length;
+  const fermi=caldi.filter(l=>isFermo(l)).length;
   const imp=document.getElementById('impatto');
   imp.innerHTML=
      tile(cnt('sentire'),'Da sentire','red0','sentire')
@@ -408,11 +452,11 @@ function render(){
     +tile(cnt('richiami'),'Richiami oggi','orange','richiami')
     +tile(cnt('prenotati'),'Prenotati','blue','prenotati')
     +tile(fermi,'Fermi >24h','red','fermi')
-    +tile(rows.length,'Totale attivi','teal',null);
+    +tile(caldi.length,'Totale attivi','teal',null);
   // fasi (filtrate dalla tessera attiva)
   const fasi=document.getElementById('fasi');
   if(filtroImpatto==='fermi'){
-    const items=rows.filter(l=>isFermo(l));
+    const items=caldi.filter(l=>isFermo(l)).sort(ordRecente);
     const body=items.length?items.map(l=>rowHtml(l,'var(--red)')).join(''):'<div class="empty">— nessuno —</div>';
     fasi.innerHTML='<div class="sec"><div class="sec-h"><span class="t">⏰ Fermi &gt;24h</span>'
       +'<span class="c">'+items.length+'</span></div>'
@@ -422,14 +466,14 @@ function render(){
   }
   const show=filtroImpatto?PHASES.filter(ph=>ph.k===filtroImpatto):PHASES;
   fasi.innerHTML=show.map(ph=>{
-    const items=rows.filter(l=>phase(l)===ph.k);
+    const items=caldi.filter(l=>phase(l)===ph.k).sort(ordRecente);
     const body=items.length?items.map(l=>rowHtml(l,ph.dot)).join(''):'<div class="empty">— nessuno —</div>';
     return '<div class="sec"><div class="sec-h">'
       +'<span class="t">'+ph.emoji+' '+ph.t+'</span>'
       +'<span class="c">'+items.length+'</span></div>'
       +'<div class="hint" style="font-size:11px;color:var(--txt3);margin:-4px 0 9px">'+ph.hint+'</div>'
       +body+'</div>';
-  }).join('');
+  }).join('')+freddiHtml(freddi);
 }
 function tile(n,label,cls,key){
   const c=(cls==='red0')?'':cls;

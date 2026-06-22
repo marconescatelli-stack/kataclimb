@@ -18,7 +18,7 @@ html.kc-boot body::before{
 <script>/* v3.87 anti-flash con velo visibile + paracadute: se init non finisce entro 8s il velo cade e la landing riappare. */
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
-<!-- KC-BUILD: portale v3.104 · 2026-06-18 · SCALA STEP 1-BASED (Marco imperativo: il primo gradino e 1, lo 0 solo = nullo/nessun gradino). STEPS con placeholder a [0]; Prima=1, Open=2, Advance=3, Intro=4, Evo=5, Lavorato=6..Istruttore=9. Aggiornati: calcolaStepDerivato, renderProg (iterazione+gap+nodo corrente), renderKataGrid (sblocco kata avanzati da step 3), calcolaSubPallini, calcolaMemoRiga, DEMO. Allineato al trigger DB che impone la stessa scala su profile_data.step. -->
+<!-- KC-BUILD: portale v3.106 · 2026-06-22 · DA CONTATTARE OGGI a 3 stati: oltre a 🔴 Mai sentito·chiama e 🟠 Da richiamare, ora include e distingue 🟢 Da risentire·messaggia (contattato non ancora prenotato, prima escluso da isDaChiamare). +alert verde nel conteggio header. Il gia-sentito non sembra piu nuovo. CUMULA v3.105 · 2026-06-22 · LEAD FREDDI IN CONTENITORE: la lista contatti Segreteria non NASCONDE piu i lead freddi (commerciale pre-prima non convertiti) ma li raccoglie in un box collassabile "Lead freddi" sotto la lista (apri/chiudi, ricerca applicata). Estratto crmCardHtml riusato per caldi e freddi. CUMULA v3.104 · 2026-06-18 · SCALA STEP 1-BASED (Marco imperativo: il primo gradino e 1, lo 0 solo = nullo/nessun gradino). STEPS con placeholder a [0]; Prima=1, Open=2, Advance=3, Intro=4, Evo=5, Lavorato=6..Istruttore=9. Aggiornati: calcolaStepDerivato, renderProg (iterazione+gap+nodo corrente), renderKataGrid (sblocco kata avanzati da step 3), calcolaSubPallini, calcolaMemoRiga, DEMO. Allineato al trigger DB che impone la stessa scala su profile_data.step. -->
 <!-- KC-BUILD: portale v3.103 · 2026-06-18 · LEVA COMMERCIALE DA SEGRETERIA: la lista contatti di Segreteria nasconde i lead FREDDI (funnel_stage pre-prima + NON convertiti + coda commerciale/null) -> si lavorano nella console Commerciale. Restano allievi convertiti, chi è oltre la prima lezione, e coda segreteria/riacciuffo (es. minori da "+ figlio"). NB: coda='commerciale' è il default anche per ~34 allievi, quindi il filtro NON è sulla sola coda. La VIEW crm_leads ora espone coda+fascia (CREATE OR REPLACE, security_invoker preservato). Effetto: lista segreteria da 202 a ~57. CUMULA v3.102 · 2026-06-17 · FIX DIARIO NOTE: loadLeadFollowUps non mostrava nessuna nota (embed created_by_profile senza FK -> SELECT in errore silenzioso). Tolto embed, ordina per created_at, render data con fallback avvenuto_il||created_at. Le note c'erano sempre in crm_follow_ups, ora si VEDONO nel fascicolo. CUMULA v3.101 · 2026-06-17 · REGISTRO COMMERCIALE A FASI: rimpiazzati i 4 bottoni-coda di 'Gestione contatti' con 4 fasi (Da sentire / Sentiti-da far prenotare / Richiami di oggi / Prenotati) + toggle Adulti/Bambini (bambino+ragazzo). Bottone 'Manda link prenotazione' su ogni card (WhatsApp precompilato + link inizia.html, niente prenotazione fantasma -> no no-show). Zero RPC nuove, stessi filtri (isRosso/isArancio/funnel_stage), riusa smItem. CUMULA v3.100 · 2026-06-17 · Contatto sistemico: 'Salva in rubrica' via foglio di condivisione iOS (navigator.share -> Aggiungi ai contatti, no 'salva nei file'), fallback download desktop; + WhatsApp diretto. Bottoni Salva-in-rubrica + WhatsApp AGGIUNTI nel fascicolo lead di SEGRETERIA (oltre al registro chiamate). + Voce barra Portale -> Profilo (coerenza con oggi.html/profilo.html). CUMULA v3.99 · 2026-06-17 · Bottone ⚙️ Impostazioni sempre visibile nel blocco profilo (link impostazioni-profilo.html): cambio password + privacy per OGNI allievo loggato, non solo staff/corso_attivo. CUMULA v3.98 · 2026-06-16 · SCHEDA DI CONDUZIONE (livello 1): modale "Traccia chiamata" con le 4 domande leggere (lavoro / esperienza sport / perché ora / cosa ti frena) su ogni card chiamata. Legge e scrive su lead_data via RPC get_qualifica_lead + salva_qualifica_lead (COALESCE: salvataggi parziali non cancellano). Le 4 domande profonde restano per la scheda persona (livello 2). Richiede le 4 colonne lavoro/esperienza_sport/motivo_ora/freno + le 2 RPC. CUMULA v3.97 · 2026-06-16 · CODA: "Non risponde" -> resta ROSSO (da sentire), traccia tentativo (segnaNonRisponde); +1/+3/+7 ora = "ti ha chiesto di richiamare" (esito positivo), non piu su chi non risponde. + Pulsante "Salva in rubrica" (.vcf: nome · campagna · data nel nome, fonte/desiderio in nota) su ogni card chiamata. CUMULA v3.96 · 2026-06-16 · CODA CHIAMATE rifatta (feedback Marco): 2 alert ROSSO=mai sentiti / ARANCIONE=da richiamare; ordina per fascia oraria preferita (Mattina/Pomeriggio/Sera da ultima_nota) vs ora corrente; "Non risponde"->richiama tra +1/+3/+7gg (prossima_azione_il data LOCALE T#134) -> esce dal rosso, rientra arancione alla scadenza con la nota; chi viene sentito esce subito (sync dcData + nuovo->contattato). Tutto client-side, get_leads_da_contattare INVARIATA. CUMULA v3.95 · 2026-06-16 · FIX modali coperte dalla barra in fondo su mobile (feedback Marco): .mo z-index 100->950, ora sopra #kc-bar (900). I bottoni "Crea evento" (modale Nuovo evento) e "Salva" (scheda Registra contatto / note lead) non sono piu nascosti dalla barra. CUMULA v3.94 · 2026-06-15 · "Ha risposto"/"Contattato" ora aprono il fascicolo + modale Registra contatto precompilata (chiamata·ha risposto): esito e nota in un atto, niente note perse. CUMULA v3.93 · DEBITO-187-B: Comunità legge profiles_community (niente email/telefono/CF/persona_id al browser) - falla recapiti CHIUSA (richiede fix_falla_recapiti_community.sql). CUMULA v3.92 · Note dal modulo (orario richiamo + desiderio, fonte lead_richieste) ora visibili in segreteria: chip sotto il nome nella card "Da contattare oggi" + blocco "📩 Dal modulo" nella scheda lead. Richiede RPC get_leads_da_contattare con colonna ultima_nota + nuova RPC get_richieste_lead (fix_note_modulo_lead.sql). CUMULA v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
 <!-- KC-BUILD-PREV: portale v3.77 · 2026-06-11 19:10 · Registra contatto: checkbox "Sposta in Chiamate segreteria" (coda=segreteria via RPC imposta_coda_fascia, in un atto col follow-up) -->
@@ -4315,8 +4315,8 @@ function renderDaContattareOggi(){
   const list=document.getElementById('dc-list');
   const cnt=document.getElementById('dc-count');
   if(!list)return;
-  let rows=dcData.filter(l=>isCampAttiva(l)&&isDaChiamare(l));
-  const nRossi=rows.filter(isRosso).length, nArancio=rows.filter(isArancio).length;
+  let rows=dcData.filter(l=>isCampAttiva(l)&&(isDaChiamare(l)||l.funnel_stage==='contattato'));
+  const nRossi=rows.filter(isRosso).length, nArancio=rows.filter(isArancio).length, nRisentire=rows.filter(l=>l.funnel_stage==='contattato'&&!isArancio(l)).length;
   const fNow=kcFasciaNow();
   rows=rows.slice().sort((a,b)=>{
     const fa=(kcFasciaPref(a.ultima_nota)===fNow)?0:1;
@@ -4331,6 +4331,7 @@ function renderDaContattareOggi(){
   const header='<div class="dc-alerts" style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;font-size:12.5px;font-weight:700">'
     +'<span style="background:#EF444422;color:#B91C1C;border:1px solid #EF444455;border-radius:999px;padding:4px 11px">🔴 '+nRossi+' mai sentiti</span>'
     +'<span style="background:#FB923C22;color:#C2410C;border:1px solid #FB923C55;border-radius:999px;padding:4px 11px">🟠 '+nArancio+' da richiamare</span>'
+    +'<span style="background:#22C55E22;color:#15803D;border:1px solid #22C55E55;border-radius:999px;padding:4px 11px">🟢 '+nRisentire+' da risentire</span>'
     +'</div>';
   if(!rows.length){list.innerHTML=header+'<div class="dc-empty">🎉 Nessuna chiamata in coda adesso.</div>';return;}
   if(dcoIdx>=rows.length){
@@ -4342,9 +4343,10 @@ function renderDaContattareOggi(){
   const data=dcFmt(l.ultimo_ingresso||l.lead_creato_il);
   const tel=(l.telefono||'').replace(/\s/g,'');
   const arancio=isArancio(l);
-  const badge=arancio
-    ? '<div class="dc-card-badge" style="background:#FB923C22;color:#C2410C;border:1px solid #FB923C55">🟠 Da richiamare'+(l.prossima_azione_il?(' · promesso per '+dcFmt(l.prossima_azione_il)):'')+'</div>'
-    : '<div class="dc-card-badge" style="background:#EF444422;color:#B91C1C;border:1px solid #EF444455">🔴 Mai sentito</div>';
+  let badge;
+  if(arancio) badge='<div class="dc-card-badge" style="background:#FB923C22;color:#C2410C;border:1px solid #FB923C55">🟠 Da richiamare'+(l.prossima_azione_il?(' · promesso per '+dcFmt(l.prossima_azione_il)):'')+'</div>';
+  else if(l.funnel_stage==='contattato') badge='<div class="dc-card-badge" style="background:#22C55E22;color:#15803D;border:1px solid #22C55E55">🟢 Da risentire · messaggia · non ha ancora prenotato</div>';
+  else badge='<div class="dc-card-badge" style="background:#EF444422;color:#B91C1C;border:1px solid #EF444455">🔴 Mai sentito · chiama</div>';
   const pref=kcFasciaPref(l.ultima_nota);
   const prefTag=pref?('<div style="text-align:center;margin:6px 0;font-size:12.5px;font-weight:700;color:'+(pref===fNow?'#0F6E56':'var(--text)')+'">🕐 Preferisce: '+FASCIA_LBL[pref]+(pref===fNow?' · è la sua fascia ora':'')+'</div>'):'';
   const callBtn=tel
@@ -4603,6 +4605,7 @@ async function salvaTraccia(){
   closeModal('mo-traccia');
 }
 
+let segFreddiAperti=false;
 function renderCrmLeads(){
   const list=document.getElementById('seg-leads-list');
   const cnt=document.getElementById('seg-leads-count');
@@ -4638,8 +4641,14 @@ function renderCrmLeads(){
     return db_.localeCompare(da);
   });
   if(cnt)cnt.textContent=filtered.length+(filtered.length===baseLeads.length?' lead':' di '+baseLeads.length+' lead');
-  if(!filtered.length){list.innerHTML='<div class="card sl-empty">Nessun lead in questa fascia.</div>';return}
-  list.innerHTML=filtered.map(l=>{
+  // v3.105 — i lead freddi (commerciale pre-prima, non convertiti) NON spariscono: vanno in un box apribile
+  let coldList=crmLeadsData.filter(isCommercialeFreddo);
+  if(crmSearchQuery){ coldList=coldList.filter(l=>(((l.nome||'')+' '+(l.cognome||'')).toLowerCase()).includes(crmSearchQuery)); }
+  coldList.sort((a,b)=>{const da=a.created_at,db_=b.created_at; if(!da&&!db_)return 0; if(!da)return 1; if(!db_)return -1; return db_.localeCompare(da);});
+  const warmHtml=filtered.length?filtered.map(crmCardHtml).join(''):'<div class="card sl-empty">Nessun lead in questa fascia.</div>';
+  list.innerHTML=warmHtml+coldContainerHtml(coldList);
+}
+function crmCardHtml(l){
     // Lead perso/ibernato: nessuna urgenza mostrata (principio Uniformità)
     const inattivo=(l.funnel_stage==='perso'||l.funnel_stage==='ibernato');
     const delta=inattivo?null:dayDelta(l.prossima_azione_il);
@@ -4675,8 +4684,18 @@ function renderCrmLeads(){
       </div>
       ${l.note?`<p class="sl-card-note">${l.note}</p>`:''}
     </div>`;
-  }).join('');
+  }
+function coldContainerHtml(freddi){
+  if(!freddi.length) return '';
+  const head='<div onclick="toggleSegFreddi()" style="display:flex;align-items:center;gap:9px;cursor:pointer;padding:13px 14px;margin-top:16px;border-top:1px dashed var(--border);font-weight:800;font-size:15px;color:var(--text2)">\u{1F9CA} Lead freddi'
+    +'<span style="font-size:12px;color:var(--text2);background:rgba(0,0,0,.06);border-radius:999px;padding:2px 10px;font-weight:700">'+freddi.length+'</span>'
+    +'<span style="margin-left:auto;color:var(--text2);font-size:13px">'+(segFreddiAperti?'\u25B2 chiudi':'\u25BE apri')+'</span></div>';
+  const body=segFreddiAperti
+    ? '<div style="font-size:12px;color:var(--text2);padding:2px 14px 10px;line-height:1.5">Lead commerciali freddi (prima della prima lezione, non convertiti). Si lavorano nella console Commerciale — qui sono solo consultabili.</div>'+freddi.map(crmCardHtml).join('')
+    : '';
+  return head+body;
 }
+function toggleSegFreddi(){ segFreddiAperti=!segFreddiAperti; renderCrmLeads(); }
 
 /* ═══ LEAD DETAIL (Fase 3.2.3) ═══ */
 const ESITO_LABEL={vuole_continuare:'Vuole continuare',da_ricontattare:'Da ricontattare',ha_deciso:'Ha deciso',non_continua:'Non continua'};
