@@ -257,6 +257,9 @@ const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','ag
 const TIPO_LBL={open:'Open',advance:'Advance',intro_corda:'Intro',evo_corda:'Evo',prima_lezione:'Prima',bambini:'Bambini',lab:'Lab',fly:'Fly'};
 
 let sb,uid,profilo={},pdata={},vista='allievo';
+// §fix 22 giu — credito del corso_attivo reale (non solo Open). Mappa corso → colonna.
+const _COLCRED={open:'lezioni_residue',advance:'advance_lezioni_residue',intro_corda:'intro_lezioni_residue',evo_corda:'evo_lezioni_residue'};
+const creditoCorso=()=>pdata[_COLCRED[pdata.corso_attivo]||'lezioni_residue'];
 
 /* Trappola #134: date locali, MAI toISOString */
 function isoLocal(d){
@@ -280,7 +283,7 @@ async function init(){
   /* profilo: nome/role/kata_certs da profiles, corso/residue/staff_role da profile_data (come agenda live) */
   const[rp,rd]=await Promise.all([
     sb.from('profiles').select('nome, cognome, role, kata_certs').eq('user_id',uid).maybeSingle(),
-    sb.from('profile_data').select('corso_attivo, lezioni_residue, frequenza_open, staff_role').eq('user_id',uid).maybeSingle()
+    sb.from('profile_data').select('corso_attivo, lezioni_residue, advance_lezioni_residue, intro_lezioni_residue, evo_lezioni_residue, frequenza_open, staff_role').eq('user_id',uid).maybeSingle()
   ]);
   profilo=rp.data||{};
   pdata=rd.data||{};
@@ -317,7 +320,7 @@ function renderAllievo(){
 
   <a class="t t-avviso" id="t-avviso" href="/agenda.html">
     <span class="et mono">🔔 Lezioni</span>
-    <div class="big">${pdata.lezioni_residue??'—'}</div>
+    <div class="big">${creditoCorso()??'—'}</div>
     <span class="cmd mono">PRENOTA ›</span>
   </a>
 
@@ -391,7 +394,7 @@ async function loadAdesso(){
       .limit(1);
     if(error)throw error;
     const p=(data||[])[0];
-    const residue=pdata.lezioni_residue;
+    const residue=creditoCorso();
 
     if(p){
       const cas=p.corsi_attivi_settimanali||{};

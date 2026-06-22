@@ -226,6 +226,9 @@ const TIPO_LBL={open:'Open',advance:'Advance',intro_corda:'Intro',evo_corda:'Evo
 const RUOLO_LBL={creator:'Creator',admin:'Admin',segreteria:'Segreteria',staff_istruttore_jr:'Istruttore Jr',staff_istruttore_sr:'Istruttore Sr',staff_istruttore_tutor:'Istruttore Tutor'};
 
 let sb,uid,profilo={},pdata={};
+// §fix 22 giu — credito del corso_attivo reale (non solo Open). Mappa corso → colonna.
+const _COLCRED={open:'lezioni_residue',advance:'advance_lezioni_residue',intro_corda:'intro_lezioni_residue',evo_corda:'evo_lezioni_residue'};
+const creditoCorso=()=>pdata[_COLCRED[pdata.corso_attivo]||'lezioni_residue'];
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function dLoc(s){const[a,b,c]=String(s).slice(0,10).split('-').map(Number);return new Date(a,b-1,c);}
@@ -293,7 +296,7 @@ function render(){
 
   <a class="t t-credito" href="/agenda.html">
     <span class="et mono">🔔 Lezioni</span>
-    <div class="big">${pdata.lezioni_residue??'—'}</div>
+    <div class="big">${creditoCorso()??'—'}</div>
     <span class="cmd mono">PRENOTA ›</span>
   </a>
 
