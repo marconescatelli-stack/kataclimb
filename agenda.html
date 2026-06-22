@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: agenda v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
+<!-- KC-BUILD: agenda v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
 <!-- KC-BUILD-PREV: agenda v3.64 · 2026-06-04 -->
 <!-- KC-BUILD-PREV: agenda v3.63 · 2026-06-04 -->
 <meta charset="UTF-8">
@@ -512,6 +512,15 @@
   const isStaffIstruttore = () => STAFF_ISTRUTTORE.includes(userStaffRole);
   const isStaff = () => isStaffCompleto() || isStaffIstruttore();
 
+  // §fix 22 giu — Vista allievo corso-aware (non più solo Open).
+  // Il counter "lezioni rimaste", la guardia "Credito esaurito" e lo scalo
+  // post-prenotazione leggevano sempre lezioni_residue (colonna Open) → falso
+  // "credito esaurito" per allievi Advance/Intro/Evo (es. Sofia D'Uva: Advance
+  // con 2 lezioni residue ma lezioni_residue Open = 0). Mappa corso_attivo → colonna.
+  const _COL_CREDITO = { open:'lezioni_residue', advance:'advance_lezioni_residue', intro_corda:'intro_lezioni_residue', evo_corda:'evo_lezioni_residue' };
+  const colCredito   = () => _COL_CREDITO[userProfile.corso_attivo] || 'lezioni_residue';
+  const creditoCorso = () => userProfile[colCredito()] ?? 0;
+
   /* ═══════════════════════════════════════════════════════════════════
      HELPER DATE
      ═══════════════════════════════════════════════════════════════════ */
@@ -562,7 +571,7 @@
 
     const { data: pd, error: pdErr } = await sb
       .from('profile_data')
-      .select('staff_role, corso_attivo, lezioni_residue, lezioni_iniziali_residue, scadenza_consumo_open, freeze_inizio, freeze_fine, spostamenti_open_residui, meta_open_paid, mezza2_paid, no_show_count, frequenza_open')
+      .select('staff_role, corso_attivo, lezioni_residue, lezioni_iniziali_residue, advance_lezioni_residue, intro_lezioni_residue, evo_lezioni_residue, scadenza_consumo_open, freeze_inizio, freeze_fine, spostamenti_open_residui, meta_open_paid, mezza2_paid, no_show_count, frequenza_open')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -719,7 +728,7 @@
     if (viewMode !== 'allievo') return;
     const counterEl = document.getElementById('counter');
     counterEl.style.display = '';
-    const R = userProfile.lezioni_residue || 0;
+    const R = creditoCorso();
     document.getElementById('counter-num').textContent = R;
     document.getElementById('counter-label').textContent =
       R === 1 ? 'lezione rimasta' : 'lezioni rimaste';
@@ -1393,7 +1402,7 @@
       return `<div><span class="stato-label chiuso">Chiusa</span></div>`;
     }
 
-    const R = userProfile.lezioni_residue || 0;
+    const R = creditoCorso();
     if (R <= 0) {
       return `<div><span class="stato-label chiuso">Credito esaurito</span></div>`;
     }
@@ -1505,7 +1514,8 @@
 
     closeModal('modal-prenota');
     toast('✓ Lezione prenotata');
-    userProfile.lezioni_residue = Math.max(0, (userProfile.lezioni_residue || 0) - 1);
+    const _cc = colCredito();
+    userProfile[_cc] = Math.max(0, (userProfile[_cc] || 0) - 1);
     updateCounter();
     notifyParent('prenota');
     await render();
