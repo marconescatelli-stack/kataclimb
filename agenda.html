@@ -342,6 +342,20 @@
   </div>
 </div>
 
+<!-- Modale Correzione marcatura (DEBITO-178) -->
+<div id="modal-rimarca" class="modal-bg">
+  <div class="modal">
+    <h3>Correggi marcatura</h3>
+    <div class="slot-info" style="text-align:center;font-size:1.1rem;margin:.6rem 0" id="rimarca-transizione"></div>
+    <p style="font-size:13px;color:var(--muted);margin:.5rem 0 0 0">I conti dell'allievo (presenze, no-show, lezioni) vengono ricalcolati automaticamente, in un solo atto.</p>
+    <div id="rimarca-msg" class="modal-msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ann" id="rimarca-annulla">Ripensaci</button>
+      <button class="btn-warn" id="rimarca-conferma">Sì, correggi</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modale Lead Picker (segreteria, Prima lezione) -->
 <div id="modal-lead" class="modal-bg">
   <div class="modal">
@@ -1277,8 +1291,8 @@
             const paP = p.stato === 'presente' ? ' attivo-p' : '';
             const paA = p.stato === 'assente'  ? ' attivo-a' : '';
             paLabels = `
-              <button class="pa-btn${paP}" data-prenot="${p.id}" data-action="presente" data-tipo="corso">P</button>
-              <button class="pa-btn${paA}" data-prenot="${p.id}" data-action="assente" data-tipo="corso">A</button>`;
+              <button class="pa-btn${paP}" data-prenot="${p.id}" data-action="presente" data-tipo="corso" data-stato="${p.stato}">P</button>
+              <button class="pa-btn${paA}" data-prenot="${p.id}" data-action="assente" data-tipo="corso" data-stato="${p.stato}">A</button>`;
           }
           // Solo segreteria può marcare prima_lezione (istruttore solo lettura per Prima lezione)
           const showPA = (currentTipo === 'tutti') ? false : ((tipoEff === 'prima_lezione') ? isStaffCompleto() : isStaff());
@@ -1445,9 +1459,9 @@
     document.querySelectorAll('.btn-disdici').forEach(b => {
       b.onclick = () => apriDisdici(b.dataset.prenot, b.dataset.info);
     });
-    // Marca P/A
+    // Marca P/A (DEBITO-178: onClickPA instrada marca vs rimarca)
     document.querySelectorAll('.pa-btn[data-action]').forEach(b => {
-      b.onclick = () => onMarcaPresenza(b.dataset.prenot, b.dataset.action, b.dataset.tipo, b);
+      b.onclick = () => onClickPA(b.dataset.prenot, b.dataset.action, b.dataset.tipo, b.dataset.stato || '', b);
     });
     // Sposta/Annulla segreteria
     document.querySelectorAll('.pa-btn[data-act="sposta"]').forEach(b => {
@@ -1683,6 +1697,65 @@
 
     const lab = action === 'presente' || action === 'fatto' ? 'presente' : (action === 'no_show' ? 'no-show' : 'assente');
     toast(`✓ Segnato ${lab}`);
+    notifyParent('marca_presenza');
+    await render();
+  }
+
+  // ─── DEBITO-178: instradamento marca vs correzione (rimarca) ───────
+  function onClickPA(prenotId, action, tipo, statoCorrente, btn) {
+    // Correzione: solo CORSO gia' in stato finale, quando si cambia stato
+    if (tipo === 'corso' && (statoCorrente === 'presente' || statoCorrente === 'assente')) {
+      if (statoCorrente === action) return;           // click sul gia'-attivo: no-op
+      if (!isStaffCompleto()) {
+        toast('Solo segreteria o creator possono correggere una marcatura', true);
+        return;
+      }
+      apriRimarca(prenotId, action, statoCorrente);
+      return;
+    }
+    // Marcatura normale (da 'prenotato', o prima_lezione invariata)
+    onMarcaPresenza(prenotId, action, tipo, btn);
+  }
+
+  let rimarcaCtx = null;
+  function apriRimarca(prenotId, action, statoCorrente) {
+    rimarcaCtx = { prenotId, action };
+    const labelDa = statoCorrente === 'presente' ? 'Presente' : 'Assente';
+    const labelA  = action === 'presente' ? 'Presente' : 'Assente';
+    document.getElementById('rimarca-transizione').innerHTML =
+      '<strong>' + labelDa + '</strong> &rarr; <strong>' + labelA + '</strong>';
+    const msg = document.getElementById('rimarca-msg');
+    msg.innerHTML = ''; msg.className = 'modal-msg';
+    const btn = document.getElementById('rimarca-conferma');
+    btn.disabled = false; btn.textContent = 'Sì, correggi';
+    document.getElementById('rimarca-annulla').onclick = () => closeModal('modal-rimarca');
+    btn.onclick = confermaRimarca;
+    openModal('modal-rimarca');
+  }
+
+  async function confermaRimarca() {
+    if (!rimarcaCtx) return;
+    const btn = document.getElementById('rimarca-conferma');
+    btn.disabled = true; btn.textContent = 'Correggo…';
+    const { data, error } = await sb.rpc('rimarca_presenza_corso', {
+      p_prenotazione_id: rimarcaCtx.prenotId,
+      p_nuovo_stato: rimarcaCtx.action
+    });
+    if (error) {
+      const msg = document.getElementById('rimarca-msg');
+      msg.className = 'modal-msg err';
+      msg.textContent = error.message.replace(/^.*ERROR:\s*/i, '').replace(/^P0001:\s*/i, '');
+      btn.disabled = false; btn.textContent = 'Sì, correggi';
+      return;
+    }
+    closeModal('modal-rimarca');
+    const lab = rimarcaCtx.action === 'presente' ? 'Presente' : 'Assente';
+    if (data && data.impreciso) {
+      toast('✓ Corretto: ' + lab + ' — ⚠ verifica a mano i conti (marcatura pre-fix)', true);
+    } else {
+      toast('✓ Corretto: ' + lab);
+    }
+    rimarcaCtx = null;
     notifyParent('marca_presenza');
     await render();
   }
