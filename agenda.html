@@ -1175,7 +1175,7 @@
           const tipo = s.tipo_corso;
           // Stessa logica di conteggio di renderSlot, così i numeri coincidono col drill-in.
           const cfg = tipiConfig[tipo] || { capienza_max: 8 };
-          const statiAttivi = tipo === 'prima_lezione' ? ['prenotato','fatto','no_show'] : ['prenotato','presente'];
+          const statiAttivi = tipo === 'prima_lezione' ? ['prenotato','fatto','no_show'] : ['prenotato','presente','assente'];
           const occ = lez.prenotazioni.filter(p => statiAttivi.includes(p.stato)).length;
           const cap = cfg.capienza_max;
           const oi = s.ora_inizio.slice(0,5);
@@ -1216,7 +1216,7 @@
     card.className = 'slot ' + tipoEff + (passato ? ' passato' : '');
 
     // Stati che contano come "occupato slot"
-    const STATI_ATTIVI_CORSO = ['prenotato', 'presente'];
+    const STATI_ATTIVI_CORSO = ['prenotato', 'presente', 'assente']; // DEBITO-178: l'assente occupava il posto (lo si scopre al momento) e resta visibile/correggibile
     const STATI_ATTIVI_PRIMA = ['prenotato', 'fatto', 'no_show'];
     const statiAttivi = tipoEff === 'prima_lezione' ? STATI_ATTIVI_PRIMA : STATI_ATTIVI_CORSO;
 
