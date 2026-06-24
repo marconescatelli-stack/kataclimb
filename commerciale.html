@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -176,7 +176,11 @@ function phase(l){
   if(isPrenotato(l)) return 'prenotati';
   if(isRosso(l)) return 'sentire';
   if(isArancio(l)) return 'richiami';
-  if(l.funnel_stage==='contattato') return 'prenotare';
+  if(l.funnel_stage==='contattato'){
+    if(!l.ricordo1_inviato_at) return 'ricordo1';
+    if(!l.ricordo2_inviato_at) return 'ricordo2';
+    return 'motivazionale';
+  }
   return null;
 }
 function isCommerciale(l){ return (l.coda||'commerciale')==='commerciale'; }
@@ -195,6 +199,7 @@ const FASCIA_EMO={mattina:'☀️',pomeriggio:'🌤️',sera:'🌙'};
 // ultima attività -> ordinamento recente→vecchio + soglia freddo
 function lastAct(l){ return lastTouch[l.id]||l.ultima_interazione||l.ultimo_ingresso||l.lead_creato_il||null; }
 function ordRecente(a,b){ const ta=lastAct(a),tb=lastAct(b); return (tb?new Date(tb).getTime():0)-(ta?new Date(ta).getTime():0); }
+function ordIngresso(a,b){ const ta=a.lead_creato_il,tb=b.lead_creato_il; return (tb?new Date(tb).getTime():0)-(ta?new Date(ta).getTime():0); }
 const FREDDO_GG=21;
 function isFreddo(l){ const a=lastAct(l); if(!a) return false; return (Date.now()-new Date(a).getTime())/DAY_MS > FREDDO_GG; }
 // stato scritto sulla scheda (a colpo d'occhio): Chiama / Da richiamare / Da risentire / Prenotato
@@ -231,6 +236,15 @@ async function azLink(id){
   if(error){ alert('Errore: '+error.message); return; }
   const now=new Date().toISOString();
   localUpdate(id,{link_inviato_at:now,ultima_interazione:now});
+  render();
+}
+// step messaggi (Ricordo 1 / Ricordo 2 / Motivazionale) — segna inviato e fa avanzare di gruppo
+async function azMsg(id,step){
+  const{error}=await sb.rpc('segna_step_messaggio',{p_lead_id:id,p_step:step});
+  if(error){ alert('Errore: '+error.message); return; }
+  const now=new Date().toISOString();
+  const patch={ultima_interazione:now}; patch[step+'_inviato_at']=now;
+  localUpdate(id,patch);
   render();
 }
 // 2) WhatsApp (apre il filo col link + segna)
@@ -332,10 +346,12 @@ function freddiHtml(freddi){
 
 // ── render ──
 const PHASES=[
-  {k:'sentire',  dot:'var(--red)',    emoji:'🔴', t:'Da sentire',                hint:'mai contattati'},
-  {k:'prenotare',dot:'var(--green)',  emoji:'🟢', t:'Sentiti · da far prenotare', hint:'manda il link e accompagna'},
-  {k:'richiami', dot:'var(--orange)', emoji:'🟠', t:'Richiami di oggi',           hint:'scaduti, da riprendere'},
-  {k:'prenotati',dot:'var(--blue)',   emoji:'✅', t:'Prenotati',                  hint:'hanno preso la prima lezione'}
+  {k:'sentire',      dot:'var(--red)',    emoji:'📞', t:'Ultimi arrivi da chiamare', hint:'mai contattati · ultimo entrato in cima'},
+  {k:'richiami',     dot:'var(--orange)', emoji:'🔁', t:'Da richiamare',             hint:'scaduti, da riprendere'},
+  {k:'ricordo1',     dot:'var(--green)',  emoji:'✉️', t:'Da inviare Ricordo 1',      hint:'sentiti — primo promemoria'},
+  {k:'ricordo2',     dot:'var(--green)',  emoji:'✉️', t:'Da inviare Ricordo 2',      hint:'Ricordo 1 già inviato'},
+  {k:'motivazionale',dot:'var(--green)',  emoji:'💪', t:'Messaggio motivazionale',   hint:'Ricordo 1 e 2 inviati'},
+  {k:'prenotati',    dot:'var(--blue)',   emoji:'✅', t:'Prenotati',                 hint:'hanno preso la prima lezione'}
 ];
 
 function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -361,12 +377,17 @@ async function salvaContattoVCard(id){
   if(!l){alert('Contatto non trovato');return;}
   const nome=(l.nome||'').trim(), cognome=(l.cognome||'').trim();
   const tel=(l.telefono||'').replace(/\s/g,'');
-  const camp=l.ultima_campagna||(l.fonte==='ads_meta'?'KC Ads':'KC');
-  const dataIng=l.lead_creato_il?String(l.lead_creato_il).slice(0,10):'';
+  // provenienza leggibile sul telefono: RCC + campagna + data ingresso (gg/mm)
+  const cn=(typeof campNum==='function')?campNum(l):null;
+  const camp=cn?('Camp#'+cn):(l.ultima_campagna||(l.fonte==='ads_meta'?'Ads':(l.fonte||'')));
+  let dd='';
+  if(l.lead_creato_il){ const d=new Date(l.lead_creato_il); dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2); }
+  const prov=['RCC',camp,dd].filter(Boolean).join(' ');           // es. "RCC Camp#3 19/06"
   const base=((nome+' '+cognome).trim())||'Contatto';
-  const fn=[base,camp,dataIng].filter(Boolean).join(' \u00b7 ');
-  const note=[l.fonte?('Fonte: '+l.fonte):'',dataIng?('Entrato: '+dataIng):'',(l.ultima_nota||'')].filter(Boolean).join(' | ').replace(/[\r\n]+/g,' ');
-  const vcf=['BEGIN:VCARD','VERSION:3.0','N:'+cognome+';'+nome+';;;','FN:'+fn,(tel?'TEL;TYPE=CELL:'+tel:''),(note?'NOTE:'+note:''),'END:VCARD'].filter(Boolean).join('\r\n');
+  const cognomeProv=[cognome,prov].filter(Boolean).join(' \u00b7 '); // va nel campo N (quello che iPhone mostra)
+  const fn=[base,prov].filter(Boolean).join(' \u00b7 ');
+  const note=[l.fonte?('Fonte: '+l.fonte):'',dd?('Entrato: '+dd):'',(l.ultima_nota||'')].filter(Boolean).join(' | ').replace(/[\r\n]+/g,' ');
+  const vcf=['BEGIN:VCARD','VERSION:3.0','N:'+cognomeProv+';'+nome+';;;','FN:'+fn,(tel?'TEL;TYPE=CELL:'+tel:''),(note?'NOTE:'+note:''),'END:VCARD'].filter(Boolean).join('\r\n');
   try{
     const fileV=new File([vcf],(base.replace(/\s+/g,'_'))+'.vcf',{type:'text/vcard'});
     if(navigator.canShare && navigator.canShare({files:[fileV]})){ await navigator.share({files:[fileV],title:base}); return; }
@@ -404,6 +425,11 @@ function rowHtml(l,dot){
     : '<div class="notepv none">nessuna nota — registra dopo la chiamata</div>';
   const prenotato=isPrenotato(l);
   const I="'"+l.id+"'";
+  const msgBtns=(l.funnel_stage==='contattato')
+    ?'<button class="ab'+(l.ricordo1_inviato_at?' on':'')+'" onclick="azMsg('+I+',\'ricordo1\')">✉️ Ricordo 1'+(l.ricordo1_inviato_at?' ✓':'')+'</button>'
+    +'<button class="ab'+(l.ricordo2_inviato_at?' on':'')+'" onclick="azMsg('+I+',\'ricordo2\')">✉️ Ricordo 2'+(l.ricordo2_inviato_at?' ✓':'')+'</button>'
+    +'<button class="ab'+(l.motivazionale_inviato_at?' on':'')+'" onclick="azMsg('+I+',\'motivazionale\')">💪 Motivazionale'+(l.motivazionale_inviato_at?' ✓':'')+'</button>'
+    :'';
   let acts;
   if(prenotato){
     // gia' oltre il confine: solo contatto + memoria
@@ -416,6 +442,7 @@ function rowHtml(l,dot){
     acts='<div class="acts">'
       +'<button class="ab wa" onclick="azWa('+I+')">💬 WhatsApp</button>'
       +'<button class="ab'+(l.link_inviato_at?' on':'')+'" onclick="azLink('+I+')">🔗 Link inviato</button>'
+      +msgBtns
       +'<button class="ab" onclick="azNota('+I+')">📝 Nota</button>'
       +'<button class="ab kid" onclick="azTag('+I+',\'bambino\')">👶 Bambini</button>'
       +'<button class="ab kid" onclick="azTag('+I+',\'ragazzo\')">🧒 Ragazzi</button>'
@@ -492,7 +519,7 @@ function render(){
   }
   const show=filtroImpatto?PHASES.filter(ph=>ph.k===filtroImpatto):PHASES;
   fasi.innerHTML=show.map(ph=>{
-    const items=caldi.filter(l=>phase(l)===ph.k).sort(ordRecente);
+    const items=caldi.filter(l=>phase(l)===ph.k).sort(ph.k==='sentire'?ordIngresso:ordRecente);
     const body=items.length?items.map(l=>rowHtml(l,ph.dot)).join(''):'<div class="empty">— nessuno —</div>';
     return '<div class="sec"><div class="sec-h">'
       +'<span class="t">'+ph.emoji+' '+ph.t+'</span>'
