@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -140,6 +140,10 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 <div class="wrap">
   <div id="stato">Carico…</div>
   <div id="app" style="display:none">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="cs-comm" onclick="setCoda('commerciale')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:var(--accent,#111);color:#fff;font-weight:600;cursor:pointer;font-size:14px">📞 Commerciali</button>
+      <button id="cs-segr" onclick="setCoda('segreteria')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🗂 Segreteria</button>
+    </div>
     <div id="impatto" class="impatto"></div>
     <div id="fasi"></div>
     <div class="foot">
@@ -163,6 +167,7 @@ const TIPO_LBL={chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉️ 
 const ESITO_LBL={ha_risposto:'Ha risposto',non_risposto:'Non ha risposto',messaggio_lasciato:'Messaggio lasciato',appuntamento_preso:'Appuntamento preso',da_ricontattare:'Da ricontattare',rifiutato:'Ha rifiutato'};
 
 let sb=null, leads=[], notesByLead={}, lastTouch={}, filtroImpatto=null, figliCreati={}, freddiAperti=false;
+let codaAttiva=(new URLSearchParams(location.search).get('coda')==='segreteria')?'segreteria':'commerciale';
 
 function goBack(){ if(history.length>1){history.back();} else {location.href='/oggi.html';} }
 
@@ -183,7 +188,7 @@ function phase(l){
   }
   return null;
 }
-function isCommerciale(l){ return (l.coda||'commerciale')==='commerciale'; }
+function isCommerciale(l){ return (l.coda||'commerciale')===codaAttiva; }
 function oreFermo(l){
   if(isPrenotato(l)||futureRichiamo(l)||l.funnel_stage==='nuovo') return null;
   const ts=lastTouch[l.id]||l.ultimo_ingresso||l.lead_creato_il;
@@ -566,6 +571,18 @@ function setImpatto(k){
 }
 
 // ── init ──
+function setCoda(c){
+  codaAttiva=c;
+  const comm=document.getElementById('cs-comm'), segr=document.getElementById('cs-segr');
+  if(comm&&segr){
+    const on=b=>{b.style.background='var(--accent,#111)';b.style.color='#fff';b.style.opacity='1';};
+    const off=b=>{b.style.background='transparent';b.style.color='var(--txt,#444)';b.style.opacity='.7';};
+    if(c==='segreteria'){on(segr);off(comm);}else{on(comm);off(segr);}
+  }
+  const h1=document.querySelector('header h1'); if(h1) h1.textContent=(c==='segreteria'?'Segreteria · da chiamare':'Commerciale');
+  filtroImpatto=null;
+  render();
+}
 async function init(){
   sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
   const{data:{session}}=await sb.auth.getSession();
@@ -574,6 +591,7 @@ async function init(){
   const{data:prof}=await sb.from('profiles').select('role,staff_role').eq('user_id',user.id).single();
   const staff=!!prof && (ROLES_STAFF.includes(prof.role)||STAFF_ISTRUTTORI.includes(prof.staff_role));
   if(!staff){ document.getElementById('stato').textContent='Accesso riservato allo staff.'; return; }
+  if(!(new URLSearchParams(location.search).has('coda')) && (prof.role==='segreteria'||prof.staff_role==='segreteria')) codaAttiva='segreteria';
 
   // leads
   const{data:ld,error:e1}=await sb.rpc('get_leads_da_contattare');
@@ -593,7 +611,7 @@ async function init(){
 
   document.getElementById('stato').style.display='none';
   document.getElementById('app').style.display='';
-  render();
+  setCoda(codaAttiva);
 }
 init().catch(e=>{ document.getElementById('stato').textContent='Errore: '+(e&&e.message||e); });
 </script>
