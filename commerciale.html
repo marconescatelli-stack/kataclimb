@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -247,6 +247,19 @@ async function azMsg(id,step){
   localUpdate(id,patch);
   render();
 }
+// modifica dati lead (nome/cognome/tel/email) — apre form inline e salva via crm_leads
+function azEdit(id){ const f=document.getElementById('ef-'+id); if(f) f.style.display=(f.style.display==='none'?'block':'none'); }
+async function salvaEdit(id){
+  const g=k=>((document.getElementById('ed-'+k+'-'+id)||{}).value||'').trim();
+  const nome=g('nome'), cognome=g('cog'), tel=g('tel'), email=g('eml');
+  if(!nome){ alert('Il nome è obbligatorio'); return; }
+  const update={nome,cognome:cognome||null,telefono:tel||null,email:email||null,updated_at:new Date().toISOString()};
+  const{error}=await sb.from('crm_leads').update(update).eq('id',id);
+  if(error){ alert('Errore: '+error.message); return; }
+  localUpdate(id,update);
+  const f=document.getElementById('ef-'+id); if(f) f.style.display='none';
+  render();
+}
 // 2) WhatsApp (apre il filo col link + segna)
 async function azWa(id){
   const l=leads.find(x=>x.id===id); if(!l) return;
@@ -430,16 +443,20 @@ function rowHtml(l,dot){
     +'<button class="ab'+(l.ricordo2_inviato_at?' on':'')+'" onclick="azMsg('+I+',\'ricordo2\')">✉️ Ricordo 2'+(l.ricordo2_inviato_at?' ✓':'')+'</button>'
     +'<button class="ab'+(l.motivazionale_inviato_at?' on':'')+'" onclick="azMsg('+I+',\'motivazionale\')">💪 Motivazionale'+(l.motivazionale_inviato_at?' ✓':'')+'</button>'
     :'';
+  const callBtn=(l.telefono)?'<a class="ab" href="tel:'+(l.telefono).replace(/\s/g,'')+'">📞 Chiama</a>':'';
   let acts;
   if(prenotato){
     // gia' oltre il confine: solo contatto + memoria
     acts='<div class="acts" style="grid-template-columns:repeat(3,1fr)">'
+      +callBtn
       +'<button class="ab wa" onclick="azWa('+I+')">💬 WhatsApp</button>'
       +'<button class="ab" onclick="azNota('+I+')">📝 Nota</button>'
+      +'<button class="ab" onclick="azEdit('+I+')">✏️ Dati</button>'
       +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
       +'</div>';
   } else {
     acts='<div class="acts">'
+      +callBtn
       +'<button class="ab wa" onclick="azWa('+I+')">💬 WhatsApp</button>'
       +'<button class="ab'+(l.link_inviato_at?' on':'')+'" onclick="azLink('+I+')">🔗 Link inviato</button>'
       +msgBtns
@@ -448,6 +465,7 @@ function rowHtml(l,dot){
       +'<button class="ab kid" onclick="azTag('+I+',\'ragazzo\')">🧒 Ragazzi</button>'
       +'<button class="ab seg" onclick="azGira('+I+')">➡️ Segreteria</button>'
       +'<button class="ab add" onclick="azFiglio('+I+')">➕ Aggiungi figlio/a</button>'
+      +'<button class="ab" onclick="azEdit('+I+')">✏️ Dati</button>'
       +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
       +'</div>';
   }
@@ -460,6 +478,12 @@ function rowHtml(l,dot){
   const noteform='<div class="noteform" id="nf-'+l.id+'">'
     +'<textarea id="nt-'+l.id+'" placeholder="Cosa è successo…"></textarea>'
     +'<button class="nbtn" onclick="salvaNota('+I+')">Salva nota</button></div>';
+  const editform='<div class="noteform" id="ef-'+l.id+'" style="display:none">'
+    +'<input id="ed-nome-'+l.id+'" placeholder="Nome" value="'+esc(l.nome||'')+'">'
+    +'<input id="ed-cog-'+l.id+'" placeholder="Cognome" value="'+esc(l.cognome||'')+'">'
+    +'<input id="ed-tel-'+l.id+'" placeholder="Telefono" value="'+esc(l.telefono||'')+'">'
+    +'<input id="ed-eml-'+l.id+'" placeholder="Email" value="'+esc(l.email||'')+'">'
+    +'<button class="nbtn" onclick="salvaEdit('+I+')">Salva dati</button></div>';
   return '<div class="row">'
     +'<div class="row-top" onclick="toggleHist('+I+')">'
       +'<span class="dot" style="background:'+dot+'"></span>'
@@ -472,6 +496,7 @@ function rowHtml(l,dot){
     +'</div>'
     +acts
     +noteform
+    +editform
     +childform
     +histHtml(l.id)
   +'</div>';
