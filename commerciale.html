@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -355,6 +355,30 @@ function histHtml(id){
   return '<div class="hist" id="hist-'+id+'">'+inner+'</div>';
 }
 
+// vCard — Salva contatto in rubrica (.vcf) via foglio iOS, fallback download
+async function salvaContattoVCard(id){
+  const l=(Array.isArray(leads)?leads.find(x=>x.id===id):null);
+  if(!l){alert('Contatto non trovato');return;}
+  const nome=(l.nome||'').trim(), cognome=(l.cognome||'').trim();
+  const tel=(l.telefono||'').replace(/\s/g,'');
+  const camp=l.ultima_campagna||(l.fonte==='ads_meta'?'KC Ads':'KC');
+  const dataIng=l.lead_creato_il?String(l.lead_creato_il).slice(0,10):'';
+  const base=((nome+' '+cognome).trim())||'Contatto';
+  const fn=[base,camp,dataIng].filter(Boolean).join(' \u00b7 ');
+  const note=[l.fonte?('Fonte: '+l.fonte):'',dataIng?('Entrato: '+dataIng):'',(l.ultima_nota||'')].filter(Boolean).join(' | ').replace(/[\r\n]+/g,' ');
+  const vcf=['BEGIN:VCARD','VERSION:3.0','N:'+cognome+';'+nome+';;;','FN:'+fn,(tel?'TEL;TYPE=CELL:'+tel:''),(note?'NOTE:'+note:''),'END:VCARD'].filter(Boolean).join('\r\n');
+  try{
+    const fileV=new File([vcf],(base.replace(/\s+/g,'_'))+'.vcf',{type:'text/vcard'});
+    if(navigator.canShare && navigator.canShare({files:[fileV]})){ await navigator.share({files:[fileV],title:base}); return; }
+  }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{
+    const blob=new Blob([vcf],{type:'text/vcard;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=(base.replace(/\s+/g,'_'))+'.vcf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  }catch(e){ alert('Errore salvataggio contatto: '+(e&&e.message)); }
+}
 function rowHtml(l,dot){
   const ns=notesByLead[l.id]||[];
   const last=ns.find(n=>n.testo);
@@ -383,9 +407,10 @@ function rowHtml(l,dot){
   let acts;
   if(prenotato){
     // gia' oltre il confine: solo contatto + memoria
-    acts='<div class="acts" style="grid-template-columns:repeat(2,1fr)">'
+    acts='<div class="acts" style="grid-template-columns:repeat(3,1fr)">'
       +'<button class="ab wa" onclick="azWa('+I+')">💬 WhatsApp</button>'
       +'<button class="ab" onclick="azNota('+I+')">📝 Nota</button>'
+      +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
       +'</div>';
   } else {
     acts='<div class="acts">'
@@ -396,6 +421,7 @@ function rowHtml(l,dot){
       +'<button class="ab kid" onclick="azTag('+I+',\'ragazzo\')">🧒 Ragazzi</button>'
       +'<button class="ab seg" onclick="azGira('+I+')">➡️ Segreteria</button>'
       +'<button class="ab add" onclick="azFiglio('+I+')">➕ Aggiungi figlio/a</button>'
+      +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
       +'</div>';
   }
   const childform=prenotato?'':('<div class="childform" id="cf-'+l.id+'">'
