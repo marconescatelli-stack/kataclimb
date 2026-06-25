@@ -5712,6 +5712,7 @@ async function openFissaLezioneModal(tipoCorso){
       const dowISO=((data.getDay()+6)%7)+1;
       (slots||[]).filter(s=>s.giorno_settimana===dowISO).forEach(s=>{
         const di=isoD(data);
+        if(window.GIORNI_CHIUSI && window.GIORNI_CHIUSI.has(di)) return; // giorno chiuso
         const nPrenot=(prenot||[]).filter(p=>p.slot_id===s.id&&p.data_lezione===di).length;
         const liberi=s.capienza_max-nPrenot;
         if(liberi>0){occorrenze.push({slot:s,data:di,dataObj:data,liberi})}
@@ -6114,6 +6115,7 @@ async function openSpostaPrenotModal(prenotId){
       const dowISO=((data.getDay()+6)%7)+1;
       (slots||[]).filter(s=>s.giorno_settimana===dowISO).forEach(s=>{
         const di=isoD(data);
+        if(window.GIORNI_CHIUSI && window.GIORNI_CHIUSI.has(di)) return; // giorno chiuso
         // escludi lo slot corrente (= stessa prenotazione da spostare)
         const nPrenot=(prenot||[]).filter(pp=>pp.slot_id===s.id&&pp.data_lezione===di&&pp.id!==currentSpostaPrenotId).length;
         const liberi=s.capienza_max-nPrenot;
@@ -7944,6 +7946,13 @@ async function init(){
   try{
     sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
 
+    // Giorni di chiusura Accademia (festività) — fonte unica: tabella giorni_chiusi
+    window.GIORNI_CHIUSI = window.GIORNI_CHIUSI || new Set();
+    try{
+      const { data:_gc } = await sb.from('giorni_chiusi').select('data');
+      (_gc||[]).forEach(r => window.GIORNI_CHIUSI.add(r.data));
+    }catch(e){ console.warn('giorni_chiusi non caricati', e); }
+
     // Gestisci callback da link conferma email / magic link / Google OAuth (tokens nel hash URL)
     const hash=window.location.hash;
     if(hash&&(hash.includes('access_token')||hash.includes('type=signup')||hash.includes('type=recovery')||hash.includes('type=magiclink'))){
@@ -8113,6 +8122,7 @@ async function caricaSlotPerTipo(tipoCorso){
       const dowISO=((data.getDay()+6)%7)+1;
       (slots||[]).filter(s=>s.giorno_settimana===dowISO).forEach(s=>{
         const di=isoD(data);
+        if(window.GIORNI_CHIUSI && window.GIORNI_CHIUSI.has(di)) return; // giorno chiuso
         const nP=(prenot||[]).filter(p=>p.slot_id===s.id&&p.data_lezione===di).length;
         const liberi=s.capienza_max-nP;
         if(liberi>0)occorrenze.push({slot:s,data:di,dataObj:data,liberi});

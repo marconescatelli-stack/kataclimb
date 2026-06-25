@@ -577,6 +577,12 @@
      ═══════════════════════════════════════════════════════════════════ */
 
   async function init() {
+    // Giorni di chiusura Accademia (festività) — fonte unica: tabella giorni_chiusi
+    window.GIORNI_CHIUSI = window.GIORNI_CHIUSI || new Set();
+    try{
+      const { data:_gc } = await sb.from('giorni_chiusi').select('data');
+      (_gc||[]).forEach(r => window.GIORNI_CHIUSI.add(r.data));
+    }catch(e){ console.warn('giorni_chiusi non caricati', e); }
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { showLogin(); return; }
 
@@ -1109,6 +1115,7 @@
         const dtFine   = slotDateTime(dataIso, s.ora_fine);
         const passato  = dtFine < now;
         const pSlot    = prenot.filter(x => x.slot_id === s.id && x.data_lezione === dataIso);
+        if (window.GIORNI_CHIUSI && window.GIORNI_CHIUSI.has(dataIso)) continue; // giorno chiuso: niente slot prenotabili
         lezioni.push({ slot:s, data, dataIso, dtInizio, dtFine, passato, prenotazioni:pSlot });
       }
 

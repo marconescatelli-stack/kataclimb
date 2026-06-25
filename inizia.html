@@ -762,6 +762,15 @@ body{
 
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+  // Giorni di chiusura Accademia (festività) — fonte unica: tabella giorni_chiusi
+  const GIORNI_CHIUSI = new Set();
+  async function caricaGiorniChiusi(){
+    try{
+      const { data } = await sb.from('giorni_chiusi').select('data');
+      (data||[]).forEach(r => GIORNI_CHIUSI.add(r.data));
+    }catch(e){ console.warn('giorni_chiusi non caricati', e); }
+  }
+
   function pickVideoVariant(){
     let v = localStorage.getItem('kc_video_variant');
     if(v !== 'A' && v !== 'B'){
@@ -805,7 +814,9 @@ body{
       const d = new Date(oggi);
       d.setDate(d.getDate()+i);
       const gs = ((d.getDay()+6)%7)+1;
-      giorni.push({ data:d, iso:isoDate(d), giorno_settimana:gs });
+      const isoG = isoDate(d);
+      if(GIORNI_CHIUSI.has(isoG)) continue; // giorno chiuso: non proponibile
+      giorni.push({ data:d, iso:isoG, giorno_settimana:gs });
     }
     return giorni;
   }
@@ -1231,6 +1242,7 @@ body{
     maybeShowCancelBanner();
 
     try {
+      await caricaGiorniChiusi();
       const slots = await caricaSlotAttivi();
       if(slots.length === 0){
         document.getElementById('slot-grid').innerHTML =
