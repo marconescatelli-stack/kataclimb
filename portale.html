@@ -5222,6 +5222,9 @@ function renderLeadDetail(){
   const btnPropostaOpen = showPropostaOpen
     ? `<button class="btn" style="background:#2563EB;color:#fff;font-weight:700" onclick="inviaPropostaOpen()">📧 Invia proposta Open</button>`
     : '';
+  const btnPropostaOpenWA = showPropostaOpen
+    ? `<button class="btn" style="background:#25D366;color:#fff;font-weight:700" onclick="mandaPropostaOpenWA()">💬 Proposta Open</button>`
+    : '';
   // Freeze attivo o programmato → mostra Annulla. Nessun freeze + corso Open attivo → mostra Imposta.
   const oggiF = new Date();
   const freezeAttivoOProgrammato = pdL.freeze_fine && new Date(pdL.freeze_fine) >= oggiF;
@@ -5250,7 +5253,7 @@ function renderLeadDetail(){
   const btnWhatsApp=(isStaff()&&l.telefono)?`<button class="btn" style="background:#25D366;color:#fff;font-weight:700" onclick="apriWhatsAppLead('${l.id}')">💬 WhatsApp</button>`:'';
   document.getElementById('seg-lead-detail-actions').innerHTML = soloRegistra
     ? btnPagamentoManuale
-    : (btnContatto+btnFissa+btnProv+btnEsito+btnIscrivi+btnPagamentoManuale+btnPropostaOpen+btnImpostaFreeze+btnAnnullaFreeze+btnCreditoEsaurito+btnConfermaStato+btnAggiungiLez+btnBulkRetro+btnRiconosciPregr+btnTesseramento+btnStatoManuale+btnModificaDati+btnSalvaContatto+btnWhatsApp);
+    : (btnContatto+btnFissa+btnProv+btnEsito+btnIscrivi+btnPagamentoManuale+btnPropostaOpen+btnPropostaOpenWA+btnImpostaFreeze+btnAnnullaFreeze+btnCreditoEsaurito+btnConfermaStato+btnAggiungiLez+btnBulkRetro+btnRiconosciPregr+btnTesseramento+btnStatoManuale+btnModificaDati+btnSalvaContatto+btnWhatsApp);
 }
 
 function openEsitoModal(){
@@ -8913,6 +8916,44 @@ async function inviaPropostaOpen(){
     feedbackErr('Errore: '+e.message);
     console.error('[inviaPropostaOpen]',e);
   }
+}
+
+/* v3.104 — Manda la proposta Open su WhatsApp (link diretto).
+   Riusa /invia-proposta-open: manda la mail E, se il Worker restituisce url_proposta,
+   lo infila nel messaggio WhatsApp. Altrimenti degrada (rimanda alla mail). */
+async function mandaPropostaOpenWA(){
+  if(!currentLeadDetail)return;
+  const l=currentLeadDetail;
+  if(!l.converted_profile_id)return feedbackErr('Lead non ancora convertito in profilo');
+  const num=regWaNum(l.telefono);
+  if(!num)return feedbackErr('Numero mancante per questo lead');
+  const nome=(l.nome||'').trim();
+  feedbackBusy('Preparo la proposta Open…');
+  let url='';
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session)throw new Error('Sessione scaduta — fai logout e rientra');
+    const r=await fetch(STRIPE_WORKER_BASE+'/invia-proposta-open',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+      body:JSON.stringify({user_id:l.converted_profile_id,email:l.email||'',nome:nome})
+    });
+    const res=await r.json().catch(function(){return {};});
+    if(!r.ok)throw new Error(res.error||res.detail||'HTTP '+r.status);
+    url=res.url_proposta||res.url||'';
+    feedbackOk('Proposta pronta'+(l.email?' (inviata anche via email a '+l.email+')':''));
+    const fuRow={lead_id:l.id,tipo:'whatsapp',esito:'messaggio_lasciato',testo:'Proposta Open mandata su WhatsApp'};
+    if(typeof user!=='undefined'&&user&&user.id)fuRow.created_by=user.id;
+    sb.from('crm_follow_ups').insert(fuRow).then(function(){loadLeadFollowUps(l.id);});
+  }catch(e){
+    feedbackErr('Errore: '+e.message);
+    console.error('[mandaPropostaOpenWA]',e);
+    return;
+  }
+  const msg = url
+    ? 'Ciao '+nome+' \ud83c\udf00 come d\'accordo, qui trovi la tua proposta Open: scegli con calma come vuoi iniziare \ud83d\udc47\n'+url+'\nQualsiasi cosa scrivimi, ci sono \ud83c\udf00 Marco'
+    : 'Ciao '+nome+' \ud83c\udf00 come d\'accordo, ti ho appena mandato la proposta Open via email: trovi i link per iscriverti \ud83d\udc47 Qualsiasi cosa scrivimi, ci sono \ud83c\udf00 Marco';
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
 }
 
 /* Invia mail "credito esaurito" — template Brevo #8. */
