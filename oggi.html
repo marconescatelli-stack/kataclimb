@@ -708,6 +708,7 @@ async function loadSegAdesso(){
     const{count,error}=await sb.from('lead_data')
       .select('id',{count:'exact',head:true})
       .eq('fonte','ads_meta')
+      .eq('funnel_stage','nuovo')   /* v2.10 — sul ROSSO solo i mai-sentiti: chi e' gia' contattato/venuto/perso esce */
       .gte('created_at',da.toISOString());
     if(error)throw error;
     const n=count||0;
