@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.12 · 2026-06-24 · SCHEDA RIACCIUFFO: i mai-sentiti oltre 45gg escono dal commerciale e vanno in coda dedicata 'riacciuffo' (toggle 🔁 Riacciuffo + tessera oggi.html ?coda=riacciuffo). codaEff() calcola la coda effettiva; isFreddo non riguarda piu i nuovi. I contatti vecchi/import non intasano piu da-chiamare ma restano lavorabili a freddo. CUMULA v1.11 · 2026-06-24 · MAI-SENTITI per DATA INGRESSO: 📞 Ultimi arrivi (<=3gg) + 📅 fasce 4-15 / 16-30 / 31-45 gg; oltre 45gg -> isFreddo (box Lead freddi, fuori vista). Risolve i lead vecchi/import che intasavano da-chiamare. CUMULA v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v1.13 · 2026-06-30 · BUCKETING ETA 30/60 + LEAD VECCHI: codaEff banda TUTTI i lead aperti per eta (lead_creato_il) -> Freschi 0-30 (commerciale) · Riacciuffo 31-60 · Lead vecchi >60 (4o tab separato). Prenotati e richiami-futuri esclusi dall'invecchiamento. RPC get_leads_da_contattare: ultima_nota = COALESCE(lead_data.note, lead_richieste.note) -> note operative visibili. CUMULA v1.12 · 2026-06-24 · SCHEDA RIACCIUFFO: i mai-sentiti oltre 45gg escono dal commerciale e vanno in coda dedicata 'riacciuffo' (toggle 🔁 Riacciuffo + tessera oggi.html ?coda=riacciuffo). codaEff() calcola la coda effettiva; isFreddo non riguarda piu i nuovi. I contatti vecchi/import non intasano piu da-chiamare ma restano lavorabili a freddo. CUMULA v1.11 · 2026-06-24 · MAI-SENTITI per DATA INGRESSO: 📞 Ultimi arrivi (<=3gg) + 📅 fasce 4-15 / 16-30 / 31-45 gg; oltre 45gg -> isFreddo (box Lead freddi, fuori vista). Risolve i lead vecchi/import che intasavano da-chiamare. CUMULA v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -140,10 +140,11 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 <div class="wrap">
   <div id="stato">Carico…</div>
   <div id="app" style="display:none">
-    <div style="display:flex;gap:8px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <button id="cs-comm" onclick="setCoda('commerciale')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:var(--accent,#111);color:#fff;font-weight:600;cursor:pointer;font-size:14px">📞 Commerciali</button>
       <button id="cs-riac" onclick="setCoda('riacciuffo')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🔁 Riacciuffo</button>
       <button id="cs-segr" onclick="setCoda('segreteria')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🗂 Segreteria</button>
+      <button id="cs-vecc" onclick="setCoda('vecchi')" style="padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🗄️ Vecchi</button>
     </div>
     <div id="impatto" class="impatto"></div>
     <div id="fasi"></div>
@@ -168,7 +169,7 @@ const TIPO_LBL={chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉️ 
 const ESITO_LBL={ha_risposto:'Ha risposto',non_risposto:'Non ha risposto',messaggio_lasciato:'Messaggio lasciato',appuntamento_preso:'Appuntamento preso',da_ricontattare:'Da ricontattare',rifiutato:'Ha rifiutato'};
 
 let sb=null, leads=[], notesByLead={}, lastTouch={}, filtroImpatto=null, figliCreati={}, freddiAperti=false;
-let codaAttiva=(()=>{const c=new URLSearchParams(location.search).get('coda');return (c==='segreteria'||c==='riacciuffo')?c:'commerciale';})();
+let codaAttiva=(()=>{const c=new URLSearchParams(location.search).get('coda');return (c==='segreteria'||c==='riacciuffo'||c==='vecchi')?c:'commerciale';})();
 
 function goBack(){ if(history.length>1){history.back();} else {location.href='/oggi.html';} }
 
@@ -180,13 +181,13 @@ function isArancio(l){ return l.stato_gestione==='da_richiamare' && (!l.prossima
 function futureRichiamo(l){ return l.prossima_azione_il && String(l.prossima_azione_il).slice(0,10)>todayStr(); }
 function phase(l){
   if(isPrenotato(l)) return 'prenotati';
+  if(codaEff(l)==='vecchi') return 'vecchi';
   if(codaEff(l)==='riacciuffo') return 'riacciuffo';
   if(isRosso(l)){
     const d=gg(l.lead_creato_il)||0;
     if(d<=3) return 'sentire';
     if(d<=15) return 'nuovo_f1';
-    if(d<=30) return 'nuovo_f2';
-    return 'nuovo_f3';            // 31-45 gg (oltre 45 -> codaEff='riacciuffo')
+    return 'nuovo_f2';            // 16-30 gg (oltre 30 -> riacciuffo/vecchi)
   }
   if(isArancio(l)) return 'richiami';
   if(l.funnel_stage==='contattato'){
@@ -198,7 +199,11 @@ function phase(l){
 }
 function codaEff(l){
   const c=l.coda||'commerciale';
-  if(c==='commerciale' && l.funnel_stage==='nuovo' && (gg(l.lead_creato_il)||0)>45) return 'riacciuffo';
+  if(c==='commerciale' && !isPrenotato(l) && !futureRichiamo(l)){
+    const d=gg(l.lead_creato_il)||0;
+    if(d>60) return 'vecchi';
+    if(d>30) return 'riacciuffo';
+  }
   return c;
 }
 function isCommerciale(l){ return codaEff(l)===codaAttiva; }
@@ -383,13 +388,13 @@ const PHASES=[
   {k:'sentire',      dot:'var(--red)',    emoji:'📞', t:'Ultimi arrivi da chiamare', hint:'mai contattati · ultimi 3 giorni'},
   {k:'nuovo_f1',     dot:'var(--red)',    emoji:'📅', t:'Entrati 4–15 giorni fa',   hint:'mai contattati'},
   {k:'nuovo_f2',     dot:'var(--red)',    emoji:'📅', t:'Entrati 16–30 giorni fa',  hint:'mai contattati'},
-  {k:'nuovo_f3',     dot:'var(--red)',    emoji:'📅', t:'Entrati 31–45 giorni fa',  hint:'mai contattati · oltre vanno nei freddi'},
   {k:'richiami',     dot:'var(--orange)', emoji:'🔁', t:'Da richiamare',             hint:'scaduti, da riprendere'},
   {k:'ricordo1',     dot:'var(--green)',  emoji:'✉️', t:'Da inviare Ricordo 1',      hint:'sentiti — primo promemoria'},
   {k:'ricordo2',     dot:'var(--green)',  emoji:'✉️', t:'Da inviare Ricordo 2',      hint:'Ricordo 1 già inviato'},
   {k:'motivazionale',dot:'var(--green)',  emoji:'💪', t:'Messaggio motivazionale',   hint:'Ricordo 1 e 2 inviati'},
   {k:'prenotati',    dot:'var(--blue)',   emoji:'✅', t:'Prenotati',                 hint:'hanno preso la prima lezione'},
-  {k:'riacciuffo',   dot:'var(--orange)', emoji:'🔁', t:'Da riacciuffare',           hint:'mai sentiti da oltre 45 giorni · contatti vecchi/import'}
+  {k:'riacciuffo',   dot:'var(--orange)', emoji:'🔁', t:'Da riacciuffare',           hint:'lead fermi 31–60 giorni · da riscaldare (mail/messaggio)'},
+  {k:'vecchi',       dot:'var(--txt3)',   emoji:'🗄️', t:'Lead vecchi',               hint:'oltre 60 giorni · archivio, riscaldamento a freddo'}
 ];
 
 function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -529,8 +534,8 @@ function rowHtml(l,dot){
 
 function render(){
   const rows=leads.filter(l=>phase(l)&&isCommerciale(l)&&(!filtroCamp||campNum(l)===filtroCamp));
-  const caldi=rows.filter(l=>!isFreddo(l));
-  const freddi=rows.filter(l=>isFreddo(l));
+  const caldi=(codaAttiva==='commerciale')?rows.filter(l=>!isFreddo(l)):rows;
+  const freddi=(codaAttiva==='commerciale')?rows.filter(l=>isFreddo(l)):[];
   // campagne: finestre bisettimanali numerate (clic = filtra l'elenco)
   const adsAttivi=leads.filter(l=>l.fonte==='ads_meta'&&isCommerciale(l));
   const byCamp={}; let preCamp=0;
@@ -568,9 +573,9 @@ function render(){
     return;
   }
   let show=filtroImpatto?PHASES.filter(ph=>ph.k===filtroImpatto):PHASES;
-  show=show.filter(ph=> codaAttiva==='riacciuffo' ? ph.k==='riacciuffo' : ph.k!=='riacciuffo');
+  show=show.filter(ph=> codaAttiva==='riacciuffo' ? ph.k==='riacciuffo' : (codaAttiva==='vecchi' ? ph.k==='vecchi' : (ph.k!=='riacciuffo'&&ph.k!=='vecchi')));
   fasi.innerHTML=show.map(ph=>{
-    const items=caldi.filter(l=>phase(l)===ph.k).sort((ph.k==='sentire'||ph.k.indexOf('nuovo_')===0||ph.k==='riacciuffo')?ordIngresso:ordRecente);
+    const items=caldi.filter(l=>phase(l)===ph.k).sort((ph.k==='sentire'||ph.k.indexOf('nuovo_')===0||ph.k==='riacciuffo'||ph.k==='vecchi')?ordIngresso:ordRecente);
     const body=items.length?items.map(l=>rowHtml(l,ph.dot)).join(''):'<div class="empty">— nessuno —</div>';
     return '<div class="sec"><div class="sec-h">'
       +'<span class="t">'+ph.emoji+' '+ph.t+'</span>'
@@ -594,12 +599,12 @@ function setImpatto(k){
 // ── init ──
 function setCoda(c){
   codaAttiva=c;
-  const comm=document.getElementById('cs-comm'), segr=document.getElementById('cs-segr'), riac=document.getElementById('cs-riac');
+  const comm=document.getElementById('cs-comm'), segr=document.getElementById('cs-segr'), riac=document.getElementById('cs-riac'), vecc=document.getElementById('cs-vecc');
   const on=b=>{if(b){b.style.background='var(--accent,#111)';b.style.color='#fff';b.style.opacity='1';}};
   const off=b=>{if(b){b.style.background='transparent';b.style.color='var(--txt,#444)';b.style.opacity='.7';}};
-  off(comm);off(segr);off(riac);
-  on(c==='segreteria'?segr:(c==='riacciuffo'?riac:comm));
-  const h1=document.querySelector('header h1'); if(h1) h1.textContent=(c==='segreteria'?'Segreteria · da chiamare':(c==='riacciuffo'?'Riacciuffo · mai sentiti vecchi':'Commerciale'));
+  off(comm);off(segr);off(riac);off(vecc);
+  on(c==='segreteria'?segr:(c==='riacciuffo'?riac:(c==='vecchi'?vecc:comm)));
+  const h1=document.querySelector('header h1'); if(h1) h1.textContent=(c==='segreteria'?'Segreteria · da chiamare':(c==='riacciuffo'?'Riacciuffo · 31–60 giorni':(c==='vecchi'?'Lead vecchi · oltre 60 giorni':'Commerciale')));
   filtroImpatto=null;
   render();
 }
