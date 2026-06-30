@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: oggi v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
+<!-- KC-BUILD: oggi v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
      tessere span 2 (tre per riga, grandi), due=span 4, ADESSO full. Collaudo Marco: "non si adatta al desktop".
      CUMULA v2.0 · CONSOLE A RUOLI (collaudo Marco: "tutti abbiamo la console").
      Vista decisa da profiles.role + profile_data.staff_role (i PERMESSI restano dove sono: RLS/RPC invariati,
@@ -663,13 +663,19 @@ function renderSegreteria(){
   <a class="t t-coda" href="/commerciale.html?coda=commerciale">
     <span class="et mono">Commerciale</span>
     <div class="big" id="coda-comm">…</div>
-    <span class="cmd mono">≤14 GIORNI ›</span>
+    <span class="cmd mono">≤30 GIORNI ›</span>
   </a>
 
   <a class="t t-coda" href="/commerciale.html?coda=riacciuffo">
     <span class="et mono">Riacciuffo</span>
     <div class="big" id="coda-riac">…</div>
     <span class="cmd mono">RIPRENDILI ›</span>
+  </a>
+
+  <a class="t t-coda" href="/commerciale.html?coda=vecchi">
+    <span class="et mono">Lead vecchi</span>
+    <div class="big" id="coda-vecc">…</div>
+    <span class="cmd mono">OLTRE 60GG ›</span>
   </a>
 
   <a class="t t-coda" href="/commerciale.html?coda=segreteria">
@@ -745,23 +751,22 @@ async function loadSegSala(){
 }
 
 async function loadSegCode(){
-  /* CODA EFFETTIVA (P-EVIDENZA-COERENTE con commerciale.html / codaEff):
-     i mai-sentiti (funnel_stage='nuovo') entrati da oltre 45gg vivono come coda='commerciale'
-     nel DB ma si lavorano in RIACCIUFFO. Il conteggio qui rispecchia esattamente le liste. */
-  const d45=new Date(); d45.setDate(d45.getDate()-45); const iso45=d45.toISOString();
-  const cnt=async(build)=>{
-    try{ const{count,error}=await build(sb.from('lead_data')); if(error)throw error; return count||0; }
-    catch(_){ try{ const{count,error}=await build(sb.from('crm_leads')); if(error)throw error; return count||0; }
-              catch(e){ console.error('[seg-code]',e); return null; } }
-  };
-  const commTot   = await cnt(q=>q.select('id',{count:'exact',head:true}).eq('coda','commerciale'));
-  const riacDeriv = await cnt(q=>q.select('id',{count:'exact',head:true}).eq('coda','commerciale').eq('funnel_stage','nuovo').lt('created_at',iso45));
-  const riacBase  = await cnt(q=>q.select('id',{count:'exact',head:true}).eq('coda','riacciuffo'));
-  const segr      = await cnt(q=>q.select('id',{count:'exact',head:true}).eq('coda','segreteria'));
+  /* CONTATORI CODA — fonte unica: RPC conta_code_lead() (stessa regola di codaEff
+     in commerciale.html v1.13): Commerciale <=30 · Riacciuffo 31-60 · Vecchi >60.
+     Esclude prenotati e richiami-futuri dall'invecchiamento. P-EVIDENZA-COERENTE. */
   const setN=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=(v??'—');};
-  setN('coda-comm', (commTot!=null&&riacDeriv!=null)?(commTot-riacDeriv):commTot);
-  setN('coda-riac', (riacBase!=null&&riacDeriv!=null)?(riacBase+riacDeriv):riacBase);
-  setN('coda-segr', segr);
+  try{
+    const{data,error}=await sb.rpc('conta_code_lead');
+    if(error)throw error;
+    const c=(data&&data[0])||{};
+    setN('coda-comm', c.commerciale);
+    setN('coda-riac', c.riacciuffo);
+    setN('coda-vecc', c.vecchi);
+    setN('coda-segr', c.segreteria);
+  }catch(e){
+    console.error('[seg-code]',e);
+    ['coda-comm','coda-riac','coda-vecc','coda-segr'].forEach(id=>setN(id,'—'));
+  }
 }
 
 /* ════════════════════════ EVENTI: condivisa da tutte le viste ════════════════════════ */
