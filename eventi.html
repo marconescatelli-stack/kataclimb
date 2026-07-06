@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: eventi v1.2 (03:00) + link Portale in header. CUMULA v1.1 · 2026-06-12 02:30 · + orario partenza sulle card (uscite). CUMULA v1.0: Calendario community Accademia: viste anno/mese/agenda, countdown prossimo evento, chip iscritti, memoria-oro eventi passati (foto/video), ICS, video testata desktop-only con poster. Fonte: RPC get_eventi_calendario() -->
+<!-- KC-BUILD: eventi v1.3 · 2026-07-05 · BARRA CONSOLE in fondo (5 voci: Oggi/Agenda/Eventi/Comunità/Profilo) — chiude il punto aperto Infra v1.19 (eventi era l'unica pagina senza barra, da mobile non si tornava indietro). CSS namespaced #kc-bar, body padding-bottom 88px. CUMULA v1.2 (03:00) + link Portale in header. CUMULA v1.1 · 2026-06-12 02:30 · + orario partenza sulle card (uscite). CUMULA v1.0: Calendario community Accademia: viste anno/mese/agenda, countdown prossimo evento, chip iscritti, memoria-oro eventi passati (foto/video), ICS, video testata desktop-only con poster. Fonte: RPC get_eventi_calendario() -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Eventi — Accademia ArrampiKata RCC | KataClimb</title>
@@ -115,6 +115,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 
 footer{border-top:1.5px solid var(--line);padding:26px 18px 40px;text-align:center;font-size:11.5px;opacity:.65;margin-top:30px}
 @media (prefers-reduced-motion:reduce){.evcard{transition:none}}
+
+/* v1.3 barra console in fondo (pattern kc-bar di agenda v3.67) */
+#kc-bar{position:fixed;bottom:0;left:0;right:0;display:flex;z-index:900;
+  background:rgba(13,13,15,.94);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.1);
+  padding:7px 0 max(9px, env(safe-area-inset-bottom));}
+#kc-bar a{flex:1;text-align:center;color:#9A9AA0;font-size:.66rem;letter-spacing:.05em;text-decoration:none;font-weight:600}
+#kc-bar a span{display:block;font-size:1.25rem;margin-bottom:2px}
+#kc-bar a.kc-on{color:#fff}
+#kc-bar a.kc-on span{color:#FFD60A}
+body{padding-bottom:88px}
 </style>
 </head>
 <body>
@@ -306,5 +316,12 @@ document.getElementById('yNext').onclick=()=>{curY++;renderAnno();};
 
 load();
 </script>
+<nav id="kc-bar">
+  <a href="oggi.html"><span>◉</span>Oggi</a>
+  <a href="agenda.html"><span>🗓</span>Agenda</a>
+  <a href="eventi.html" class="kc-on"><span>✈</span>Eventi</a>
+  <a href="portale.html?nav=comunita"><span>👥</span>Comunità</a>
+  <a href="portale.html?nav=profilo"><span>👤</span>Profilo</a>
+</nav>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: agenda v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
+<!-- KC-BUILD: agenda v3.69 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) + etichetta 'Portale'→'Profilo' (allineamento P v3.78: voce profilo = Profilo ovunque). CUMULA v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
 <!-- KC-BUILD-PREV: agenda v3.64 · 2026-06-04 -->
 <!-- KC-BUILD-PREV: agenda v3.63 · 2026-06-04 -->
 <meta charset="UTF-8">
@@ -2161,7 +2161,8 @@ body{padding-bottom:88px}
   <a href="oggi.html"><span>◉</span>Oggi</a>
   <a href="agenda.html" class="kc-on"><span>🗓</span>Agenda</a>
   <a href="eventi.html"><span>✈</span>Eventi</a>
-  <a href="portale.html?nav=profilo"><span>👤</span>Portale</a>
+  <a href="portale.html?nav=comunita"><span>👥</span>Comunità</a>
+  <a href="portale.html?nav=profilo"><span>👤</span>Profilo</a>
 </nav>
 </body>
 </html>
