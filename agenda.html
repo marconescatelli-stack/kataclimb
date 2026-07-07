@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: agenda v3.70 · 2026-07-08 · PRIMA LEZIONE VISIBILE ALL'ISTRUTTORE (decisione Marco): tolto il nascondimento dell'opzione Prima lezione dal dropdown in vista istruttore (chi le tiene deve vederle). Sola visibilita': marcatura P/A resta segreteria (gate UI riga ~1304 + RPC marca_presenza_prima_lezione INVARIATI). CUMULA v3.69 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) + etichetta 'Portale'→'Profilo' (allineamento P v3.78: voce profilo = Profilo ovunque). CUMULA v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
+<!-- KC-BUILD: agenda v3.71 · 2026-07-08 · PRIMA LEZIONE PIENA PER L'ISTRUTTORE (decisione Marco, cumulativo v3.70+v3.71 in UN deploy): (v3.70) tolto il nascondimento dell'opzione Prima lezione dal dropdown in vista istruttore; (v3.71) P/A marcabili anche dall'istruttore (showPA=isStaff() anche su prima_lezione) — allineato al gate RPC marca_presenza_prima_lezione ESTESO a tutti i ruoli staff (migration 8 lug). CUMULA v3.69 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) + etichetta 'Portale'→'Profilo' (allineamento P v3.78: voce profilo = Profilo ovunque). CUMULA v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
 <!-- KC-BUILD-PREV: agenda v3.64 · 2026-06-04 -->
 <!-- KC-BUILD-PREV: agenda v3.63 · 2026-06-04 -->
 <meta charset="UTF-8">
@@ -711,10 +711,9 @@
       }
       updateCounter();
     } else if (viewMode === 'istruttore') {
-      // v3.70 (8 lug 2026, decisione Marco): l'istruttore VEDE anche Prima lezione
-      // nel dropdown — chi le tiene (Mello) deve vederle in agenda. La marcatura
-      // P/A resta segreteria su 2 strati (gate UI piu' avanti + RPC
-      // marca_presenza_prima_lezione): qui cambia SOLO la visibilita'.
+      // v3.70+v3.71 (8 lug 2026, decisione Marco): l'istruttore VEDE anche Prima
+      // lezione nel dropdown E la puo' marcare (P/A) — chi le tiene (Mello) fa
+      // entrambe le cose. Gate RPC marca_presenza_prima_lezione esteso in pari data.
       tipoSel.style.display = '';
       currentTipo = 'open';
       tipoSel.value = currentTipo;
@@ -1301,8 +1300,10 @@
               <button class="pa-btn${paP}" data-prenot="${p.id}" data-action="presente" data-tipo="corso" data-stato="${p.stato}">P</button>
               <button class="pa-btn${paA}" data-prenot="${p.id}" data-action="assente" data-tipo="corso" data-stato="${p.stato}">A</button>`;
           }
-          // Solo segreteria può marcare prima_lezione (istruttore solo lettura per Prima lezione)
-          const showPA = (currentTipo === 'tutti') ? false : ((tipoEff === 'prima_lezione') ? isStaffCompleto() : isStaff());
+          // v3.71 (8 lug, decisione Marco): anche l'istruttore marca la Prima lezione
+          // (chi la tiene deve poterla marcare). Gate RPC marca_presenza_prima_lezione
+          // esteso in pari data a tutti i ruoli staff.
+          const showPA = (currentTipo === 'tutti') ? false : isStaff();
           const paHtml = showPA ? `<div class="pa-buttons">${paLabels}</div>` : '';
 
           // Bottoni Sposta/Annulla — segreteria su Open/Adv/Intro/Evo (NON Prima Lezione)
