@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.13 · 2026-06-30 · BUCKETING ETA 30/60 + LEAD VECCHI: codaEff banda TUTTI i lead aperti per eta (lead_creato_il) -> Freschi 0-30 (commerciale) · Riacciuffo 31-60 · Lead vecchi >60 (4o tab separato). Prenotati e richiami-futuri esclusi dall'invecchiamento. RPC get_leads_da_contattare: ultima_nota = COALESCE(lead_data.note, lead_richieste.note) -> note operative visibili. CUMULA v1.12 · 2026-06-24 · SCHEDA RIACCIUFFO: i mai-sentiti oltre 45gg escono dal commerciale e vanno in coda dedicata 'riacciuffo' (toggle 🔁 Riacciuffo + tessera oggi.html ?coda=riacciuffo). codaEff() calcola la coda effettiva; isFreddo non riguarda piu i nuovi. I contatti vecchi/import non intasano piu da-chiamare ma restano lavorabili a freddo. CUMULA v1.11 · 2026-06-24 · MAI-SENTITI per DATA INGRESSO: 📞 Ultimi arrivi (<=3gg) + 📅 fasce 4-15 / 16-30 / 31-45 gg; oltre 45gg -> isFreddo (box Lead freddi, fuori vista). Risolve i lead vecchi/import che intasavano da-chiamare. CUMULA v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v1.14 · 2026-07-08 · + ⭐ RECENSIONE su OGNI card (entrambe le code, prenotati e non): azRecensione apre WhatsApp precompilato con link recensione Google (g.page/r/...). Template per stato: prenotato -> post-Prima-Lezione, altrimenti fedelissimi/generico. Nessuna scrittura DB. CUMULA v1.13 · 2026-06-30 · BUCKETING ETA 30/60 + LEAD VECCHI: codaEff banda TUTTI i lead aperti per eta (lead_creato_il) -> Freschi 0-30 (commerciale) · Riacciuffo 31-60 · Lead vecchi >60 (4o tab separato). Prenotati e richiami-futuri esclusi dall'invecchiamento. RPC get_leads_da_contattare: ultima_nota = COALESCE(lead_data.note, lead_richieste.note) -> note operative visibili. CUMULA v1.12 · 2026-06-24 · SCHEDA RIACCIUFFO: i mai-sentiti oltre 45gg escono dal commerciale e vanno in coda dedicata 'riacciuffo' (toggle 🔁 Riacciuffo + tessera oggi.html ?coda=riacciuffo). codaEff() calcola la coda effettiva; isFreddo non riguarda piu i nuovi. I contatti vecchi/import non intasano piu da-chiamare ma restano lavorabili a freddo. CUMULA v1.11 · 2026-06-24 · MAI-SENTITI per DATA INGRESSO: 📞 Ultimi arrivi (<=3gg) + 📅 fasce 4-15 / 16-30 / 31-45 gg; oltre 45gg -> isFreddo (box Lead freddi, fuori vista). Risolve i lead vecchi/import che intasavano da-chiamare. CUMULA v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -162,6 +162,7 @@ const CFG={
   SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E'
 };
 const KC_INIZIA_URL='https://kataclimb.com/inizia.html';
+const KC_REVIEW_URL='https://g.page/r/CXdfjwdY07fOEBM/review';
 const DAY_MS=86400000;
 const ROLES_STAFF=['creator','admin','segreteria','istruttore','monitor','assistente','istruttore_jr','istruttore_senior','istruttore_tutor','maestro'];
 const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istruttore_tutor'];
@@ -296,6 +297,17 @@ async function azWa(id){
   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
   const{error}=await sb.rpc('segna_memo_wa',{p_lead_id:id});
   if(!error){ const now=new Date().toISOString(); localUpdate(id,{memo_wa_at:now,ultima_interazione:now}); render(); }
+}
+// 2b) Recensione Google — apre WhatsApp precompilato (template per stato lead), nessuna scrittura DB
+function azRecensione(id){
+  const l=leads.find(x=>x.id===id); if(!l) return;
+  const num=waNum(l.telefono);
+  if(!num){ alert('Numero mancante per questo contatto.'); return; }
+  const nome=(l.nome||'').trim();
+  const msg=isPrenotato(l)
+    ?'Ciao '+nome+'! Grazie per essere venuto/a in Accademia \u{1F9D7}\nSe la prima lezione ti \u00e8 piaciuta, ci faresti un grande regalo lasciando una recensione su Google \u2014 bastano 30 secondi e per una piccola realt\u00e0 come la nostra vale tantissimo:\n'+KC_REVIEW_URL+'\nA presto sulla parete!'
+    :'Ciao '+nome+'! Una richiesta veloce: stiamo facendo crescere l\'Accademia e le recensioni Google ci aiutano pi\u00f9 di qualsiasi pubblicit\u00e0. Se ti va di raccontare in due righe la tua esperienza:\n'+KC_REVIEW_URL+'\nGrazie di cuore \u{1F64F}';
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
 }
 // 3) Nota — apre/chiude il form inline
 function azNota(id){
@@ -483,6 +495,7 @@ function rowHtml(l,dot){
       +'<button class="ab" onclick="azNota('+I+')">📝 Nota</button>'
       +'<button class="ab" onclick="azEdit('+I+')">✏️ Dati</button>'
       +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
+      +'<button class="ab" onclick="azRecensione('+I+')">⭐ Recensione</button>'
       +'</div>';
   } else {
     acts='<div class="acts">'
@@ -497,6 +510,7 @@ function rowHtml(l,dot){
       +'<button class="ab add" onclick="azFiglio('+I+')">➕ Aggiungi figlio/a</button>'
       +'<button class="ab" onclick="azEdit('+I+')">✏️ Dati</button>'
       +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
+      +'<button class="ab" onclick="azRecensione('+I+')">⭐ Recensione</button>'
       +'</div>';
   }
   const childform=prenotato?'':('<div class="childform" id="cf-'+l.id+'">'
