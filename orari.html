@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="it">
+<head>
+<!-- KC-BUILD: orari v0.17 (PROTOTIPO) · 2026-07-09 · FIX etichetta 20:00 (la sostituzione generica v0.16 le aveva assegnato la riga del 17:00 → scritte sovrapposte in alto e 20:00 assente tra 19 e 21). CUMULA v0.16 · VIA LA RIGA VUOTA 14-17 (Marco): eliminata la fascia compressa — asse solo 17-22; Sabato (14-18) e Domenica (mattina) vivono in testa alle loro colonne con gli orari veri scritti sul blocco. CUMULA v0.15 · TAGLIO SEZIONI (Marco): via "Giorno per giorno" e via la sezione roccia separata — resta griglia → Eventi (che ora include anche le uscite domenicali, con orari stagionali nel sottotitolo) → Metodo → CTA; corsi cliccabili con schede, TESTI DESCRIZIONI DA FARE DOMANI con Marco (quelli attuali sono segnaposto). CUMULA v0.14 · NOTE DENTRO LE SCHEDE (Marco): rimossi i due banner in testa — apertura = titolo + griglia; "attivo tutto l'anno" nelle schede dei corsi adulti, "da metà settembre" resta nelle schede minori, la pausa di agosto/si-scala-in-natura vive nel sottotitolo di Eventi e viaggi. CUMULA v0.13 · CALENDARIO PRIMO PIANO (Marco: troppe parole — il centro è l'azione nello spazio-tempo, le parole dopo per chi scorre): hero compresso (titolo + indirizzo, via il paragrafo), banner mantenuti, griglia subito a tutta pagina senza titolo/sottotitolo di sezione; tutto il testo (dettaglio, roccia, eventi, metodo, CTA) resta sotto. CUMULA v0.12 · COPY CTA FINALE DI MARCO (via "mai arrampicato?"): "Vuoi iniziare a sviluppare la percezione dell'equilibrio ed imparare a muoverti in scioltezza, divertendoti e migliorando in piena sicurezza? Prenota la tua Prima Lezione ed entra nel tuo mondo con KataClimb" — titolo "Entra nel tuo mondo."; allineate le occorrenze nei blocchi Prima e nella scheda-modale. CUMULA v0.11 · CORSI TUTTI CLICCABILI CON DESCRIZIONE (Marco): ogni blocco (griglia e dettaglio) apre una scheda-modale con orari, istruttori, descrizione e CTA (Prima Lezione → inizia.html; altri corsi → invito a scrivere/passare); descrizioni BOZZA da validare al collaudo (Fly ed Expert in particolare). Un solo calendario, tre porte: sito Accademia (link/iframe), kataclimb.com, portale. CUMULA v0.10 · RESET LUCE (direzione Marco: luce, chiarezza, ordine, equilibrio, deciso ma non arrogante — il nero impastava colori e scritte): fondo carta chiara, blocchi a tinta leggera + barra colore, linee-ora tratteggiate che mostrano gli incastri; DOMENICA EQUILIBRIO: solo la mattina in falesia (estate 7-13 · inverno 9-15) e il pomeriggio dichiarato libero ("il pomeriggio è tuo: casa, famiglia, vita") — integriamo, non evadiamo; PRIMA LEZIONE A 3 FASCE (decisione Marco): Adulti 25€ cliccabile → inizia.html, Ragazzi 12-17 15€, Bambini 6-11 10€ (per ora in Accademia; acquisto online minori in cantiere domani). CUMULA v0.9 (banner agosto → #eventi) · v0.8 (orari roccia stagionali) · v0.7 (banner adulti attivi / minori da metà settembre) · v0.6 (agenda oraria: asse 17-22 reale + fascia 14-17 compressa per il sabato, semi-colonne sui paralleli) · v0.5 (lame verticali oro sui titoli) · v0.3 (sezione metodo: struttura/procedure/affidabilità/sicurezza) · v0.1 (griglia settembre decisa 9 lug: Pupi princ+int lun/gio 17-18 · Ragazzi princ+int lun/gio 18-19:30 · Evo Ragazzi mer 17-18:30 +1 giorno a scelta · Expert mer 18-19:30 Mello · minori Claudia+Mattia in contemporanea · Monitor mar 18-21 e sab 14-18 · uscite/eventi da RPC get_eventi_calendario, read-only senza numeri di occupazione). Terminologia: mai "palestra" in pagina (solo meta SEO), roccia = uscite/accompagnamenti. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orari e corsi — Accademia ArrampiKata RCC | KataClimb</title>
+<meta name="description" content="Orari corsi di arrampicata a Roma Nord (La Storta): la palestra di arrampicata per bambini, ragazzi e adulti. Corsi ogni giorno, uscite in falesia la domenica mattina, prima lezione da 10€.">
+<link rel="canonical" href="https://kataclimb.com/orari.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#fbfaf6; --carta:#ffffff; --linea:#e6e2d8; --linea2:#d8d3c6;
+  --ink:#1c1c20; --testo2:#6d6a62;
+  --oro:#e8b93c; --oro-scuro:#9c7a17;
+  --pupi:#f5862e; --ragazzi:#ef5d50; --evorag:#d84fa0; --expert:#ff9d3c;
+  --open:#2fae60; --advance:#1f8a4d; --intro:#2f97d4; --evocorda:#8a5ce0;
+  --fly:#5b74e8; --monitor:#22a893; --roccia:#b08a54;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--fondo);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:absolute;top:0;left:0;right:0;height:340px;background:linear-gradient(to bottom,rgba(232,185,60,.14),transparent);pointer-events:none}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px;position:relative}
+.display{font-family:'Anton',system-ui,sans-serif;font-weight:400;letter-spacing:.01em;text-transform:uppercase}
+
+/* ── HERO ─────────────────────────── */
+header.hero{padding:26px 0 16px;border-bottom:1px solid var(--linea)}
+.hero .brand{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--testo2)}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:.97;margin:8px 0 6px}
+.hero h1 .riga2{color:var(--oro-scuro)}
+.hero p{color:var(--testo2);max-width:48ch}
+.hero .dove{margin-top:4px;font-size:14px;color:var(--testo2)}
+.hero .dove b{color:var(--ink);font-weight:600}
+
+/* ── BANNER ───────────────────────── */
+.banner-set{display:flex;align-items:center;gap:12px;margin:14px 0 0;padding:10px 14px;background:var(--carta);border:1px solid var(--linea);border-left:4px solid var(--oro);border-radius:10px}
+.banner-set span{font-size:15px}
+.banner-set b{color:var(--oro-scuro)}
+a.banner-ago{border-left-color:var(--roccia);text-decoration:none;margin-top:10px;display:flex}
+a.banner-ago b{color:var(--roccia)}
+a.banner-ago:hover{border-color:var(--roccia)}
+a.banner-ago:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+/* ── SEZIONI ──────────────────────── */
+section{padding:52px 0}
+#settimana{padding-top:22px}
+.sez-titolo{font-size:clamp(28px,5vw,42px);margin-bottom:8px;border-left:5px solid var(--oro);padding-left:16px}
+.sez-sotto{color:var(--testo2);margin-bottom:22px;max-width:62ch}
+
+/* ── GRIGLIA AGENDA (asse 17-22 reale; righe 14-17 compresse, servono al sabato) ── */
+.ov-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:4px 16px}
+.ov-card{background:var(--carta);border:1px solid var(--linea);border-radius:14px;padding:14px;min-width:860px}
+.ov-grid{display:grid;grid-template-columns:46px repeat(14,minmax(44px,1fr));grid-template-rows:46px repeat(10,29px);gap:4px;position:relative}
+.ov-day{grid-row:1;text-align:center;align-self:end;padding-bottom:6px}
+.ov-day .g{font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.ov-day .ap{font-size:11px;font-weight:700;color:var(--testo2);margin-top:1px}
+.ov-ora{grid-column:1;font-size:11px;color:var(--testo2);display:flex;align-items:flex-start;justify-content:flex-end;padding-right:8px;line-height:1;transform:translateY(-5px)}
+.ov-line{grid-column:2/16;height:0;border-top:1px dashed var(--linea);align-self:start;pointer-events:none}
+.ov-b{border-radius:6px;padding:5px 7px 5px 9px;color:var(--ink);overflow:hidden;display:block;text-decoration:none;min-width:0;border-left:3px solid var(--c);background:var(--t)}
+.ov-b .n{font-family:'Anton',sans-serif;font-size:12.5px;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;display:block}
+.ov-b .o{font-size:10px;font-weight:700;color:var(--testo2);line-height:1.1;margin-top:1px;display:block}
+a.ov-b:hover{filter:brightness(.97)}
+.c-pupi{--c:var(--pupi);--t:rgba(245,134,46,.13)}
+.c-ragazzi{--c:var(--ragazzi);--t:rgba(239,93,80,.12)}
+.c-evorag{--c:var(--evorag);--t:rgba(216,79,160,.11)}
+.c-expert{--c:var(--expert);--t:rgba(255,157,60,.15)}
+.c-open{--c:var(--open);--t:rgba(47,174,96,.13)}
+.c-advance{--c:var(--advance);--t:rgba(31,138,77,.13)}
+.c-intro{--c:var(--intro);--t:rgba(47,151,212,.12)}
+.c-evocorda{--c:var(--evocorda);--t:rgba(138,92,224,.11)}
+.c-fly{--c:var(--fly);--t:rgba(91,116,232,.12)}
+.c-monitor{--c:var(--monitor);--t:rgba(34,168,147,.12)}
+.c-roccia{--c:var(--roccia);--t:rgba(176,138,84,.14)}
+.c-prima{--c:var(--oro-scuro);--t:var(--oro)}
+.c-prima .o{color:rgba(28,28,32,.75)}
+.ov-dom-note{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--testo2);font-style:italic;line-height:1.45;padding:6px}
+.ov-hint{font-size:12px;color:var(--testo2);margin-top:8px;display:none}
+@media(max-width:910px){.ov-hint{display:block}}
+
+/* legenda */
+.legenda{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.legenda span{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--testo2);background:var(--carta);border:1px solid var(--linea);border-radius:99px;padding:5px 12px}
+.legenda i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* ── DETTAGLIO GIORNO PER GIORNO ──── */
+.settimana{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+@media(max-width:900px){.settimana{grid-template-columns:1fr}}
+.giorno{background:var(--carta);border:1px solid var(--linea);border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;gap:8px}
+.giorno h3{font-family:'Anton',sans-serif;font-weight:400;font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:var(--testo2);padding:2px 4px 6px}
+.blocco{border-radius:8px;padding:9px 10px 9px 12px;color:var(--ink);display:block;text-decoration:none;border-left:3px solid var(--c);background:var(--t)}
+.blocco .ora{font-size:12px;font-weight:700;color:var(--testo2)}
+.blocco .nome{font-family:'Anton',sans-serif;font-size:15.5px;letter-spacing:.02em;text-transform:uppercase;line-height:1.15;margin-top:1px}
+.blocco .chi{font-size:12px;font-weight:600;color:var(--testo2);margin-top:2px}
+.blocco .nota{font-size:11.5px;font-weight:600;color:var(--testo2);margin-top:3px;line-height:1.3}
+.blocco.c-prima .ora,.blocco.c-prima .chi{color:rgba(28,28,32,.75)}
+a.blocco:hover{filter:brightness(.97)}
+
+/* ── ROCCIA / EVENTI ──────────────── */
+.sez-bordo{border-top:1px solid var(--linea)}
+.card-riga{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:6px}
+.card-ev{background:var(--carta);border:1px solid var(--linea);border-radius:14px;padding:16px;display:block;text-decoration:none}
+.card-ev:hover{border-color:var(--linea2)}
+.card-ev .tipo{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.card-ev .quando{font-family:'Anton',sans-serif;font-size:22px;text-transform:uppercase;margin:6px 0 2px}
+.card-ev .dove{color:var(--testo2);font-size:14px}
+.t-uscita{color:var(--roccia)} .t-viaggio{color:var(--oro-scuro)} .t-evento{color:var(--fly)}
+.vuoto-sez{background:var(--carta);border:1px dashed var(--linea2);border-radius:14px;padding:20px;color:var(--testo2);font-size:15px;margin-top:6px}
+.link-tutti{display:inline-block;margin-top:16px;color:var(--testo2);font-size:14px;text-decoration:none;border-bottom:1px solid var(--linea2);padding-bottom:2px}
+.link-tutti:hover{color:var(--ink)}
+
+/* ── METODO ───────────────────────── */
+.metodo-griglia{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:6px}
+.tessera{background:var(--carta);border:1px solid var(--linea);border-radius:14px;padding:18px 16px}
+.tessera .valore{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--oro-scuro)}
+.tessera h3{font-family:'Anton',sans-serif;font-weight:400;font-size:20px;letter-spacing:.02em;text-transform:uppercase;margin:8px 0 6px;line-height:1.1}
+.tessera p{color:var(--testo2);font-size:14.5px;line-height:1.5}
+
+/* ── CTA FINALE (Prima Lezione, 3 fasce) ── */
+.cta-fine{margin:28px 0 64px;background:var(--oro);border-radius:20px;padding:38px 28px;color:var(--ink)}
+.cta-fine .display{font-size:clamp(26px,5vw,42px);line-height:1.04}
+.cta-fine>p{margin-top:8px;font-weight:600;font-size:16px;color:rgba(28,28,32,.8)}
+.cta-fasce{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:20px}
+.fascia{background:rgba(255,255,255,.55);border:1px solid rgba(28,28,32,.15);border-radius:12px;padding:14px 16px;display:block;text-decoration:none}
+.fascia .eta{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(28,28,32,.65)}
+.fascia .prezzo{font-family:'Anton',sans-serif;font-size:26px;margin-top:3px}
+.fascia .azione{font-size:13.5px;font-weight:700;margin-top:5px}
+a.fascia{background:var(--ink);color:#fdf9ee;border-color:var(--ink)}
+a.fascia .eta{color:rgba(253,249,238,.7)}
+a.fascia:hover{filter:brightness(1.15)}
+
+/* ── SCHEDA CORSO (modale) ────────── */
+[data-c]{cursor:pointer}
+.mod-ov{position:fixed;inset:0;background:rgba(28,28,32,.45);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:16px}
+.mod-ov.on{display:flex}
+@media(min-width:640px){.mod-ov{align-items:center}}
+.mod{background:var(--carta);border-radius:16px;max-width:480px;width:100%;padding:24px 22px;border-top:5px solid var(--mc,var(--oro));max-height:86vh;overflow:auto}
+.mod .m-eta{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--testo2)}
+.mod h3{font-family:'Anton',sans-serif;font-weight:400;font-size:28px;letter-spacing:.02em;text-transform:uppercase;line-height:1.05;margin:6px 0 4px}
+.mod .m-ora{font-size:14px;font-weight:700}
+.mod .m-chi{font-size:13.5px;color:var(--testo2);font-weight:600;margin-top:2px}
+.mod p{color:var(--testo2);font-size:15px;line-height:1.55;margin-top:12px}
+.mod .m-nota{font-size:13px;font-weight:600;color:var(--testo2);margin-top:10px;background:var(--fondo);border:1px solid var(--linea);border-radius:8px;padding:8px 10px}
+.mod .m-cta{display:block;text-align:center;margin-top:18px;background:var(--oro);color:var(--ink);font-weight:800;font-size:16px;border-radius:10px;padding:13px;text-decoration:none}
+.mod .m-cta:hover{filter:brightness(1.05)}
+.mod .m-info{margin-top:18px;text-align:center;font-size:14px;color:var(--testo2)}
+.mod .m-chiudi{display:block;margin:14px auto 0;background:none;border:none;font:inherit;font-size:14px;color:var(--testo2);cursor:pointer;text-decoration:underline}
+
+footer{border-top:1px solid var(--linea);padding:26px 0 40px;color:var(--testo2);font-size:14px}
+footer a{color:var(--testo2)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand">Accademia ArrampiKata RCC · KataClimb</div>
+    <h1 class="display">Ogni giorno<br><span class="riga2">si scala.</span></h1>
+    <div class="dove"><b>Via Cassia 1634, La Storta — Roma</b></div>
+  </div>
+</header>
+
+
+
+<!-- ══ GRIGLIA SETTIMANALE ══ -->
+<section id="settimana">
+  <div class="wrap">
+    <h2 class="sr-only">La settimana dell'Accademia</h2>
+    <div class="ov-scroll"><div class="ov-card"><div class="ov-grid">
+      <!-- intestazioni giorni -->
+      <div class="ov-day" style="grid-column:2/4"><div class="g">Lun</div><div class="ap">apre 17–22</div></div>
+      <div class="ov-day" style="grid-column:4/6"><div class="g">Mar</div><div class="ap">apre 18–21</div></div>
+      <div class="ov-day" style="grid-column:6/8"><div class="g">Mer</div><div class="ap">apre 17–22</div></div>
+      <div class="ov-day" style="grid-column:8/10"><div class="g">Gio</div><div class="ap">apre 17–21</div></div>
+      <div class="ov-day" style="grid-column:10/12"><div class="g">Ven</div><div class="ap">apre 19–22</div></div>
+      <div class="ov-day" style="grid-column:12/14"><div class="g">Sab</div><div class="ap">apre 14–18</div></div>
+      <div class="ov-day" style="grid-column:14/16"><div class="g">Dom</div><div class="ap">mattina in falesia</div></div>
+      <!-- etichette ore (14:00 compresso; 17→21 in scala) -->
+      <div class="ov-ora" style="grid-row:2/4">17:00</div>
+      <div class="ov-ora" style="grid-row:4/6">18:00</div>
+      <div class="ov-ora" style="grid-row:6/8">19:00</div>
+      <div class="ov-ora" style="grid-row:8/10">20:00</div>
+      <div class="ov-ora" style="grid-row:10/12">21:00</div>
+      <!-- linee-ora: mostrano gli incastri -->
+      <div class="ov-line" style="grid-row:2"></div>
+      <div class="ov-line" style="grid-row:4"></div>
+      <div class="ov-line" style="grid-row:6"></div>
+      <div class="ov-line" style="grid-row:8"></div>
+      <div class="ov-line" style="grid-row:10"></div>
+      <!-- LUN -->
+      <div class="ov-b c-pupi" data-c="pupi" style="grid-column:2/4;grid-row:2/4"><span class="n">Pupi</span><span class="o">17–18</span></div>
+      <div class="ov-b c-ragazzi" data-c="ragazzi" style="grid-column:2/3;grid-row:4/7"><span class="n">Ragazzi</span><span class="o">18–19:30</span></div>
+      <div class="ov-b c-advance" data-c="advance" style="grid-column:3/4;grid-row:6/8"><span class="n">Advance</span><span class="o">19–20</span></div>
+      <div class="ov-b c-intro" data-c="intro" style="grid-column:2/4;grid-row:8/10"><span class="n">Intro Corda</span><span class="o">20–21</span></div>
+      <div class="ov-b c-open" data-c="open" style="grid-column:2/4;grid-row:10/12"><span class="n">Open</span><span class="o">21–22</span></div>
+      <!-- MAR -->
+      <div class="ov-b c-monitor" data-c="monitor" style="grid-column:4/6;grid-row:4/10"><span class="n">Sala con Monitor</span><span class="o">18–21</span></div>
+      <!-- MER -->
+      <div class="ov-b c-evorag" data-c="evorag" style="grid-column:6/7;grid-row:2/5"><span class="n">Evo Ragazzi</span><span class="o">17–18:30</span></div>
+      <div class="ov-b c-expert" data-c="expert" style="grid-column:7/8;grid-row:4/7"><span class="n">Expert</span><span class="o">18–19:30</span></div>
+      <div class="ov-b c-fly" data-c="fly" style="grid-column:6/7;grid-row:6/8"><span class="n">Fly</span><span class="o">19–20</span></div>
+      <div class="ov-b c-advance" data-c="advance" style="grid-column:6/8;grid-row:8/10"><span class="n">Advance</span><span class="o">20–21</span></div>
+      <div class="ov-b c-open" data-c="open" style="grid-column:6/8;grid-row:10/12"><span class="n">Open</span><span class="o">21–22</span></div>
+      <!-- GIO -->
+      <div class="ov-b c-pupi" data-c="pupi" style="grid-column:8/10;grid-row:2/4"><span class="n">Pupi</span><span class="o">17–18</span></div>
+      <div class="ov-b c-ragazzi" data-c="ragazzi" style="grid-column:8/9;grid-row:4/7"><span class="n">Ragazzi</span><span class="o">18–19:30</span></div>
+      <div class="ov-b c-open" data-c="open" style="grid-column:9/10;grid-row:6/8"><span class="n">Open</span><span class="o">19–20</span></div>
+      <a class="ov-b c-prima" data-c="prima" href="/inizia.html" style="grid-column:8/10;grid-row:8/10"><span class="n">Prima Lezione</span><span class="o">Adulti · 20–21 · 25€</span></a>
+      <!-- VEN -->
+      <div class="ov-b c-evocorda" data-c="evocorda" style="grid-column:10/12;grid-row:6/8"><span class="n">Evo Corda</span><span class="o">19–20</span></div>
+      <a class="ov-b c-prima" data-c="prima" href="/inizia.html" style="grid-column:10/12;grid-row:8/10"><span class="n">Prima Lezione</span><span class="o">Adulti · 20–21 · 25€</span></a>
+      <a class="ov-b c-prima" data-c="prima" href="/inizia.html" style="grid-column:10/12;grid-row:10/12"><span class="n">Prima Lezione</span><span class="o">Adulti · 21–22 · 25€</span></a>
+      <!-- SAB -->
+      <div class="ov-b c-monitor" data-c="monitor" style="grid-column:12/14;grid-row:2/4"><span class="n">Sala con Monitor</span><span class="o">14–18</span></div>
+      <!-- DOM: la mattina in falesia, il pomeriggio è tuo -->
+      <a class="ov-b c-roccia" href="#eventi" style="grid-column:14/16;grid-row:2/6"><span class="n">In falesia</span><span class="o">estate 7–13 · inverno 9–15</span></a>
+      <div class="ov-dom-note" style="grid-column:14/16;grid-row:6/12">Il pomeriggio è tuo:<br>casa, famiglia, vita.</div>
+    </div></div></div>
+    <p class="ov-hint">Scorri la griglia verso destra per vedere tutta la settimana →</p>
+
+    <div class="legenda">
+      <span><i style="background:var(--pupi)"></i>Pupi</span>
+      <span><i style="background:var(--ragazzi)"></i>Ragazzi</span>
+      <span><i style="background:var(--evorag)"></i>Evo Ragazzi</span>
+      <span><i style="background:var(--expert)"></i>Expert</span>
+      <span><i style="background:var(--open)"></i>Open</span>
+      <span><i style="background:var(--advance)"></i>Advance</span>
+      <span><i style="background:var(--intro)"></i>Intro Corda</span>
+      <span><i style="background:var(--evocorda)"></i>Evo Corda</span>
+      <span><i style="background:var(--fly)"></i>Fly</span>
+      <span><i style="background:var(--monitor)"></i>Sala con Monitor</span>
+      <span><i style="background:var(--oro)"></i>Prima Lezione</span>
+      <span><i style="background:var(--roccia)"></i>In falesia</span>
+    </div>
+
+      </div>
+</section>
+
+<!-- ══ EVENTI E VIAGGI ══ -->
+<section id="eventi" class="sez-bordo">
+  <div class="wrap">
+    <h2 class="display sez-titolo">Eventi e viaggi</h2>
+    <p class="sez-sotto">La domenica mattina si scala in falesia, per livello — estate 7:00–13:00, inverno 9:00–15:00 — e il pomeriggio è tuo. Poi feste, serate e viaggi. Ad agosto la sede è in pausa e si scala in natura: uscite e viaggi continuano.</p>
+    <div id="lista-eventi" class="card-riga" hidden></div>
+    <div id="vuoto-eventi" class="vuoto-sez" hidden>Nessun evento in programma in questo momento. Il calendario si aggiorna qui.</div>
+    <a class="link-tutti" href="/eventi.html">Il calendario completo →</a>
+  </div>
+</section>
+
+<!-- ══ METODO E PORTALE ══ -->
+<section id="metodo" class="sez-bordo">
+  <div class="wrap">
+    <h2 class="display sez-titolo">Non una sala. Un'Accademia.</h2>
+    <p class="sez-sotto">Dietro ogni lezione c'è un metodo. Sai sempre dove sei, cosa hai fatto e cosa viene dopo.</p>
+    <div class="metodo-griglia">
+      <div class="tessera">
+        <div class="valore">Struttura</div>
+        <h3>Un percorso, non lezioni sparse</h3>
+        <p>Il metodo KataClimb: 33 Kata in 5 soglie, dal primo appoggio al vuoto. Ogni corso è un gradino del percorso, ogni allievo sa a che punto è.</p>
+      </div>
+      <div class="tessera">
+        <div class="valore">Procedure</div>
+        <h3>Il tuo portale personale</h3>
+        <p>Ogni allievo ha il suo portale: prenota le lezioni dal telefono, vede calendario, lezioni rimanenti e scadenze. Regole chiare, uguali per tutti.</p>
+      </div>
+      <div class="tessera">
+        <div class="valore">Affidabilità</div>
+        <h3>Ogni progresso è registrato</h3>
+        <p>Le presenze sono tracciate lezione per lezione. I Kata si validano con l'istruttore, in video. Il tuo percorso resta: niente va perso.</p>
+      </div>
+      <div class="tessera">
+        <div class="valore">Sicurezza</div>
+        <h3>Prima la base, poi la corda</h3>
+        <p>Progressione graduale, materiale incluso, sala sempre con istruttore o monitor. Alla corda e alla roccia si arriva quando si è pronti.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA FINALE ══ -->
+<div class="wrap">
+  <div class="cta-fine">
+    <div class="display">Entra nel tuo mondo<br>con KataClimb.</div>
+    <p>Vuoi iniziare a sviluppare la percezione dell'equilibrio e imparare a muoverti in scioltezza, divertendoti e migliorando in piena sicurezza? Prenota la tua Prima Lezione: un'ora con l'istruttore, tutto il materiale incluso.</p>
+    <div class="cta-fasce">
+      <a class="fascia" href="/inizia.html">
+        <div class="eta">Adulti</div>
+        <div class="prezzo">25€</div>
+        <div class="azione">Prenota ora →</div>
+      </a>
+      <div class="fascia">
+        <div class="eta">Ragazzi 12–17</div>
+        <div class="prezzo">15€</div>
+        <div class="azione">Si prenota in Accademia</div>
+      </div>
+      <div class="fascia">
+        <div class="eta">Bambini 6–11</div>
+        <div class="prezzo">10€</div>
+        <div class="azione">Si prenota in Accademia</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    Accademia ArrampiKata RCC · Via Cassia 1634, La Storta — Roma<br>
+    <a href="/eventi.html">Eventi</a> · <a href="https://kataclimb.com">kataclimb.com</a>
+  </div>
+</footer>
+
+<div class="mod-ov" id="mod-ov" role="dialog" aria-modal="true" aria-labelledby="m-titolo">
+  <div class="mod" id="mod-box">
+    <div class="m-eta" id="m-eta"></div>
+    <h3 id="m-titolo"></h3>
+    <div class="m-ora" id="m-ora"></div>
+    <div class="m-chi" id="m-chi"></div>
+    <p id="m-desc"></p>
+    <div class="m-nota" id="m-nota" hidden></div>
+    <a class="m-cta" id="m-cta" href="/inizia.html" hidden>Prenota ora — 25€ →</a>
+    <div class="m-info" id="m-info" hidden>Per iscriverti scrivici o passa in Accademia:<br><b>Via Cassia 1634, La Storta — Roma</b></div>
+    <button class="m-chiudi" id="m-chiudi" type="button">Chiudi</button>
+  </div>
+</div>
+
+<script>
+/* Uscite + eventi futuri da RPC pubblica get_eventi_calendario (stessa fonte di eventi.html).
+   Read-only, nessun numero di occupazione. Se la rete fallisce restano gli stati vuoti. */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E'
+};
+const MESI_S=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function isoOggi(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')} /* date locali, mai toISOString (Trappola #134) */
+function labData(iso){const [y,m,g]=iso.split('-');return parseInt(g)+' '+MESI_S[parseInt(m)-1]}
+function cardEv(e){
+  const tipoLab=e.tipo==='viaggio'?['✈ Viaggio','t-viaggio']:e.tipo==='evento'?['◆ Evento','t-evento']:['⛰ Uscita '+(e.tipo==='uscita_ragazzi'?'ragazzi':'adulti'),'t-uscita'];
+  const quando=e.data_fine&&e.data_fine!==e.data_inizio?labData(e.data_inizio)+' – '+labData(e.data_fine):labData(e.data_inizio);
+  const a=document.createElement('a');
+  a.className='card-ev';a.href='/evento.html?slug='+encodeURIComponent(e.slug);
+  a.innerHTML='<div class="tipo '+tipoLab[1]+'">'+tipoLab[0]+'</div><div class="quando">'+quando+'</div><div class="dove">'+(e.luogo||'')+(e.ora_partenza?' · partenza '+e.ora_partenza.slice(0,5):'')+'</div>';
+  return a;
+}
+fetch(CFG.SB_URL+'/rest/v1/rpc/get_eventi_calendario',{method:'POST',headers:{'apikey':CFG.SB_KEY,'Authorization':'Bearer '+CFG.SB_KEY,'Content-Type':'application/json'},body:'{}'})
+.then(r=>r.json()).then(evs=>{
+  const oggi=isoOggi();
+  const futuri=(evs||[]).filter(e=>(e.data_fine||e.data_inizio)>=oggi).sort((a,b)=>a.data_inizio<b.data_inizio?-1:1);
+  const tutti=futuri.slice(0,8);
+  const le=document.getElementById('lista-eventi'),ve=document.getElementById('vuoto-eventi');
+  if(tutti.length){tutti.forEach(e=>le.appendChild(cardEv(e)));le.hidden=false}else ve.hidden=false;
+}).catch(()=>{document.getElementById('vuoto-eventi').hidden=false});
+
+/* ── Schede corso (descrizioni BOZZA, da validare) ── */
+const CORSI={
+ pupi:{eta:'Bambini 6–11 · da metà settembre',t:'Pupi',ora:'Lun e Gio 17:00–18:00',chi:'principianti e intermedi · Claudia + Mattia',c:'var(--pupi)',
+  d:'Il primo incontro con la verticale: gioco, movimento e coraggio a misura di bambino. Si impara ad arrampicare come si impara a camminare — provando, cadendo sui materassi, riprovando. Gruppi per livello, principianti e intermedi.'},
+ ragazzi:{eta:'Ragazzi 12–17 · da metà settembre',t:'Ragazzi',ora:'Lun e Gio 18:00–19:30',chi:'principianti e intermedi · Claudia + Mattia',c:'var(--ragazzi)',
+  d:'Il corso settimanale dei ragazzi: tecnica, forza e testa, in un gruppo che cresce insieme. Si può venire una o due volte a settimana, con gruppi per livello, principianti e intermedi.'},
+ evorag:{eta:'Ragazzi · da metà settembre',t:'Evo Ragazzi',ora:'Mer 17:00–18:30 + 1 giorno a scelta tra Lun e Gio',chi:'Claudia + Mattia',c:'var(--evorag)',
+  d:'Per i ragazzi che hanno già fatto la base e vogliono crescere: il mercoledì è il giorno fisso, più un giorno a scelta tra lunedì e giovedì — o tutti e due, con un piccolo supplemento. Nei giorni di corso la sala è loro: frequenza libera.',
+  nota:'Nei giorni di corso, frequenza libera in sala.'},
+ expert:{eta:'Ragazzi selezionati · da metà settembre',t:'Expert',ora:'Mer 18:00–19:30 + accesso libero',chi:'Mello',c:'var(--expert)',
+  d:'La selezione dei ragazzi forti. Allenamento vero, obiettivi veri, con accesso libero alla sala per costruire il proprio livello anche fuori dall\'ora di corso.'},
+ open:{eta:'Adulti · attivo tutto l\'anno',t:'Open',ora:'Lun 21–22 · Mer 21–22 · Gio 19–20',chi:'Mello',c:'var(--open)',
+  d:'Il corso dove si comincia. Le basi del movimento verticale: come si sta in parete, come si cade, come si sale. È il primo gradino del percorso KataClimb — dalla Prima Lezione si entra qui.'},
+ advance:{eta:'Adulti · attivo tutto l\'anno',t:'Advance',ora:'Lun 19–20 · Mer 20–21',chi:'Mello',c:'var(--advance)',
+  d:'Il passo dopo l\'Open: tecnica più fine, continuità, letture di parete. Per chi ha costruito la base e vuole salire di livello.'},
+ intro:{eta:'Adulti · attivo tutto l\'anno',t:'Intro Corda',ora:'Lun 20:00–21:00',chi:'Mello',c:'var(--intro)',
+  d:'L\'ingresso nel mondo della corda: i nodi, la sicura, la fiducia nel compagno. Da qui l\'arrampicata smette di essere solo boulder e diventa cordata.'},
+ evocorda:{eta:'Adulti · attivo tutto l\'anno',t:'Evo Corda',ora:'Ven 19:00–20:00',chi:'Mello',c:'var(--evocorda)',
+  d:'L\'evoluzione con la corda: arrampicare da primo, gestire i voli, lavorare le vie. Per chi ha fatto Intro Corda e vuole l\'arrampicata completa.'},
+ fly:{eta:'Corso accademico',t:'Fly',ora:'Mer 19:00–20:00',chi:'Mello',c:'var(--fly)',
+  d:'Corso accademico ciclico del metodo KataClimb. Chiedi in Accademia per sapere quando parte il prossimo ciclo e se fa per te.'},
+ monitor:{eta:'Accesso libero',t:'Sala con Monitor',ora:'Mar 18:00–21:00 · Sab 14:00–18:00',chi:'sala sorvegliata',c:'var(--monitor)',
+  d:'La sala aperta per arrampicare liberamente, sempre con un monitor presente. Il momento per allenarsi, ripassare, incontrare gli altri — in sicurezza, mai da soli.'},
+ prima:{eta:'Adulti · attiva tutto l\'anno',t:'Prima Lezione',ora:'Gio 20–21 · Ven 20–21 · Ven 21–22',chi:'Mello',c:'var(--oro)',
+  d:'Un\'ora con l\'istruttore per iniziare a sviluppare la percezione dell\'equilibrio e imparare a muoverti in scioltezza, divertendoti e in piena sicurezza. Tutto il materiale incluso. Per bambini (10€) e ragazzi (15€) la Prima Lezione si prenota in Accademia.',cta:true},
+};
+const mov=document.getElementById('mod-ov');
+function apriCorso(k){
+  const c=CORSI[k];if(!c)return;
+  document.getElementById('mod-box').style.setProperty('--mc',c.c);
+  document.getElementById('m-eta').textContent=c.eta;
+  document.getElementById('m-titolo').textContent=c.t;
+  document.getElementById('m-ora').textContent=c.ora;
+  document.getElementById('m-chi').textContent=c.chi;
+  document.getElementById('m-desc').textContent=c.d;
+  const n=document.getElementById('m-nota');n.hidden=!c.nota;if(c.nota)n.textContent=c.nota;
+  document.getElementById('m-cta').hidden=!c.cta;
+  document.getElementById('m-info').hidden=!!c.cta;
+  mov.classList.add('on');
+  document.getElementById('m-chiudi').focus();
+}
+function chiudiCorso(){mov.classList.remove('on')}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-c]');
+  if(b){e.preventDefault();apriCorso(b.dataset.c);return}
+  if(e.target===mov||e.target.id==='m-chiudi')chiudiCorso();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')chiudiCorso()});
+document.querySelectorAll('[data-c]').forEach(el=>{if(el.tagName!=='A'){el.setAttribute('role','button');el.setAttribute('tabindex','0');
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();apriCorso(el.dataset.c)}})}});
+</script>
+</body>
+</html>
