@@ -6,7 +6,7 @@
 <title>Commerciale · KataClimb</title>
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- KC-BUILD: commerciale v1.14 · 2026-07-08 · + ⭐ RECENSIONE su OGNI card (entrambe le code, prenotati e non): azRecensione apre WhatsApp precompilato con link recensione Google (g.page/r/...). Template per stato: prenotato -> post-Prima-Lezione, altrimenti fedelissimi/generico. Nessuna scrittura DB. CUMULA v1.13 · 2026-06-30 · BUCKETING ETA 30/60 + LEAD VECCHI: codaEff banda TUTTI i lead aperti per eta (lead_creato_il) -> Freschi 0-30 (commerciale) · Riacciuffo 31-60 · Lead vecchi >60 (4o tab separato). Prenotati e richiami-futuri esclusi dall'invecchiamento. RPC get_leads_da_contattare: ultima_nota = COALESCE(lead_data.note, lead_richieste.note) -> note operative visibili. CUMULA v1.12 · 2026-06-24 · SCHEDA RIACCIUFFO: i mai-sentiti oltre 45gg escono dal commerciale e vanno in coda dedicata 'riacciuffo' (toggle 🔁 Riacciuffo + tessera oggi.html ?coda=riacciuffo). codaEff() calcola la coda effettiva; isFreddo non riguarda piu i nuovi. I contatti vecchi/import non intasano piu da-chiamare ma restano lavorabili a freddo. CUMULA v1.11 · 2026-06-24 · MAI-SENTITI per DATA INGRESSO: 📞 Ultimi arrivi (<=3gg) + 📅 fasce 4-15 / 16-30 / 31-45 gg; oltre 45gg -> isFreddo (box Lead freddi, fuori vista). Risolve i lead vecchi/import che intasavano da-chiamare. CUMULA v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
+<!-- KC-BUILD: commerciale v2.0 · 2026-07-08 · CRUSCOTTO PERCORSI: 5° tab 🧗 Percorsi (RPC get_cruscotto_percorsi, def Marco: finito = lezioni tutte EFFETTUATE, residue=0 e zero prenotazioni future). Bucket: prima_non_proseguita / in_open / open_finito_no_advance / in_advance / advance_finito_no_intro / in_intro / intro_finito_no_evo / in_evo / evo_finito + tessera ⚠️ Scaduti (credito residuo con finestra scaduta — caso Ardillo/Zurischi, controllo manuale). Card percorsi: Chiama / WhatsApp / ⭐ Recensione (segna_recensione_inviata_persona, template per bucket) / 📲 Salva+Chiama (vCard poi dialer). + 📲 Salva+Chiama anche su ogni card lead. CUMULA v1.15 · 2026-07-08 · + ⭐ RECENSIONE su OGNI card (entrambe le code): azRecensione apre WhatsApp precompilato con link recensione Google (g.page/r/...) e SEGNA in DB via RPC segna_recensione_inviata (lead_data.recensione_inviata_at + ultima_interazione; colonna esposta da get_leads_da_contattare). Bottone acceso + ✓ se gia inviata (anti doppia richiesta). Template per stato: prenotato -> post-Prima-Lezione, altrimenti fedelissimi/generico. CUMULA v1.13 · 2026-06-30 · BUCKETING ETA 30/60 + LEAD VECCHI: codaEff banda TUTTI i lead aperti per eta (lead_creato_il) -> Freschi 0-30 (commerciale) · Riacciuffo 31-60 · Lead vecchi >60 (4o tab separato). Prenotati e richiami-futuri esclusi dall'invecchiamento. RPC get_leads_da_contattare: ultima_nota = COALESCE(lead_data.note, lead_richieste.note) -> note operative visibili. CUMULA v1.12 · 2026-06-24 · SCHEDA RIACCIUFFO: i mai-sentiti oltre 45gg escono dal commerciale e vanno in coda dedicata 'riacciuffo' (toggle 🔁 Riacciuffo + tessera oggi.html ?coda=riacciuffo). codaEff() calcola la coda effettiva; isFreddo non riguarda piu i nuovi. I contatti vecchi/import non intasano piu da-chiamare ma restano lavorabili a freddo. CUMULA v1.11 · 2026-06-24 · MAI-SENTITI per DATA INGRESSO: 📞 Ultimi arrivi (<=3gg) + 📅 fasce 4-15 / 16-30 / 31-45 gg; oltre 45gg -> isFreddo (box Lead freddi, fuori vista). Risolve i lead vecchi/import che intasavano da-chiamare. CUMULA v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
 <!-- KC-BUILD: commerciale v1.3 · 2026-06-18 · v1.2 + TASTO "➕ Aggiungi figlio/a" sulla card del genitore: crea il minore (persone+lead_data segreteria+crm_relazioni, pagante=true) via crea_figlio_lead, il genitore resta adulto in commerciale, badge "👶 N in segreteria". Tessere impatto cliccabili (filtro elenco). 6+1 azioni per card. Filtro coda='commerciale'. NB profilo/visibilita minore = cantiere iscrizione (login del genitore), non qui. -->
 <style>
 :root{
@@ -145,6 +145,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
       <button id="cs-riac" onclick="setCoda('riacciuffo')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🔁 Riacciuffo</button>
       <button id="cs-segr" onclick="setCoda('segreteria')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🗂 Segreteria</button>
       <button id="cs-vecc" onclick="setCoda('vecchi')" style="padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🗄️ Vecchi</button>
+      <button id="cs-perc" onclick="setCoda('percorsi')" style="grid-column:1 / -1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🧗 Percorsi · dopo la Prima Lezione</button>
     </div>
     <div id="impatto" class="impatto"></div>
     <div id="fasi"></div>
@@ -170,7 +171,8 @@ const TIPO_LBL={chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉️ 
 const ESITO_LBL={ha_risposto:'Ha risposto',non_risposto:'Non ha risposto',messaggio_lasciato:'Messaggio lasciato',appuntamento_preso:'Appuntamento preso',da_ricontattare:'Da ricontattare',rifiutato:'Ha rifiutato'};
 
 let sb=null, leads=[], notesByLead={}, lastTouch={}, filtroImpatto=null, figliCreati={}, freddiAperti=false;
-let codaAttiva=(()=>{const c=new URLSearchParams(location.search).get('coda');return (c==='segreteria'||c==='riacciuffo'||c==='vecchi')?c:'commerciale';})();
+let codaAttiva=(()=>{const c=new URLSearchParams(location.search).get('coda');return (c==='segreteria'||c==='riacciuffo'||c==='vecchi'||c==='percorsi')?c:'commerciale';})();
+let percorsi=[];
 
 function goBack(){ if(history.length>1){history.back();} else {location.href='/oggi.html';} }
 
@@ -299,7 +301,7 @@ async function azWa(id){
   if(!error){ const now=new Date().toISOString(); localUpdate(id,{memo_wa_at:now,ultima_interazione:now}); render(); }
 }
 // 2b) Recensione Google — apre WhatsApp precompilato (template per stato lead), nessuna scrittura DB
-function azRecensione(id){
+async function azRecensione(id){
   const l=leads.find(x=>x.id===id); if(!l) return;
   const num=waNum(l.telefono);
   if(!num){ alert('Numero mancante per questo contatto.'); return; }
@@ -308,6 +310,8 @@ function azRecensione(id){
     ?'Ciao '+nome+'! Grazie per essere venuto/a in Accademia \u{1F9D7}\nSe la prima lezione ti \u00e8 piaciuta, ci faresti un grande regalo lasciando una recensione su Google \u2014 bastano 30 secondi e per una piccola realt\u00e0 come la nostra vale tantissimo:\n'+KC_REVIEW_URL+'\nA presto sulla parete!'
     :'Ciao '+nome+'! Una richiesta veloce: stiamo facendo crescere l\'Accademia e le recensioni Google ci aiutano pi\u00f9 di qualsiasi pubblicit\u00e0. Se ti va di raccontare in due righe la tua esperienza:\n'+KC_REVIEW_URL+'\nGrazie di cuore \u{1F64F}';
   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  const{error}=await sb.rpc('segna_recensione_inviata',{p_lead_id:id});
+  if(!error){ const now=new Date().toISOString(); localUpdate(id,{recensione_inviata_at:now,ultima_interazione:now}); render(); }
 }
 // 3) Nota — apre/chiude il form inline
 function azNota(id){
@@ -495,7 +499,8 @@ function rowHtml(l,dot){
       +'<button class="ab" onclick="azNota('+I+')">📝 Nota</button>'
       +'<button class="ab" onclick="azEdit('+I+')">✏️ Dati</button>'
       +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
-      +'<button class="ab" onclick="azRecensione('+I+')">⭐ Recensione</button>'
+      +'<button class="ab'+(l.recensione_inviata_at?' on':'')+'" onclick="azRecensione('+I+')">⭐ Recensione'+(l.recensione_inviata_at?' ✓':'')+'</button>'
+      +'<button class="ab" onclick="azSalvaChiama('+I+')">📲 Salva+Chiama</button>'
       +'</div>';
   } else {
     acts='<div class="acts">'
@@ -510,7 +515,8 @@ function rowHtml(l,dot){
       +'<button class="ab add" onclick="azFiglio('+I+')">➕ Aggiungi figlio/a</button>'
       +'<button class="ab" onclick="azEdit('+I+')">✏️ Dati</button>'
       +'<button class="ab" onclick="salvaContattoVCard('+I+')">📇 Rubrica</button>'
-      +'<button class="ab" onclick="azRecensione('+I+')">⭐ Recensione</button>'
+      +'<button class="ab'+(l.recensione_inviata_at?' on':'')+'" onclick="azRecensione('+I+')">⭐ Recensione'+(l.recensione_inviata_at?' ✓':'')+'</button>'
+      +'<button class="ab" onclick="azSalvaChiama('+I+')">📲 Salva+Chiama</button>'
       +'</div>';
   }
   const childform=prenotato?'':('<div class="childform" id="cf-'+l.id+'">'
@@ -547,6 +553,7 @@ function rowHtml(l,dot){
 }
 
 function render(){
+  if(codaAttiva==='percorsi'){ renderPercorsi(); return; }
   const rows=leads.filter(l=>phase(l)&&isCommerciale(l)&&(!filtroCamp||campNum(l)===filtroCamp));
   const caldi=(codaAttiva==='commerciale')?rows.filter(l=>!isFreddo(l)):rows;
   const freddi=(codaAttiva==='commerciale')?rows.filter(l=>isFreddo(l)):[];
@@ -610,15 +617,133 @@ function setImpatto(k){
   document.getElementById('fasi').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+// ── PERCORSI: cruscotto dalla Prima Lezione all'Evo ──
+const PBUCKETS=[
+  {k:'prima_non_proseguita',emoji:'🧗',t:'Prima fatta, non proseguita',hint:'hanno vissuto la Prima Lezione ma non hanno iniziato un corso: la chiamata più preziosa',dot:'var(--red)'},
+  {k:'in_open',emoji:'🟢',t:'In Open',hint:'corso Open attivo',dot:'var(--green)'},
+  {k:'open_finito_no_advance',emoji:'⏸',t:'Open finito · no Advance',hint:'tutte le lezioni Open effettuate, Advance non iniziato: proponi il passo dopo',dot:'var(--orange)'},
+  {k:'in_advance',emoji:'🔵',t:'In Advance',hint:'corso Advance attivo',dot:'var(--blue)'},
+  {k:'advance_finito_no_intro',emoji:'⏸',t:'Advance finito · no Intro Corda',hint:'Advance completato, il mondo della corda li aspetta',dot:'var(--orange)'},
+  {k:'in_intro',emoji:'🟣',t:'In Intro Corda',hint:'corso Intro Corda attivo',dot:'var(--blue)'},
+  {k:'intro_finito_no_evo',emoji:'⏸',t:'Intro finito · no Evo Corda',hint:'Intro completato, Evo non iniziato',dot:'var(--orange)'},
+  {k:'in_evo',emoji:'🟠',t:'In Evo Corda',hint:'corso Evo Corda attivo',dot:'var(--blue)'},
+  {k:'evo_finito',emoji:'🏁',t:'Evo finito',hint:'percorso corsi completato',dot:'var(--teal)'},
+];
+const CORSO_LBL={open:'Open',advance:'Advance',intro_corda:'Intro Corda',evo_corda:'Evo Corda'};
+function pResidue(p){
+  if(p.corso_attivo==='open') return p.residue_open;
+  if(p.corso_attivo==='advance') return p.residue_advance;
+  if(p.corso_attivo==='intro_corda') return p.residue_intro;
+  if(p.corso_attivo==='evo_corda') return p.residue_evo;
+  return null;
+}
+function pScadute(p){
+  const out=[]; const f=(n,lbl,sc)=>{ if(n>0&&sc&&new Date(sc)<new Date()) out.push(lbl+': '+n+' lez. residue, scaduto il '+String(sc).slice(8,10)+'/'+String(sc).slice(5,7)); };
+  f(p.residue_open,'Open',p.scadenza_open); f(p.residue_advance,'Advance',p.scadenza_advance);
+  f(p.residue_intro,'Intro',p.scadenza_intro); f(p.residue_evo,'Evo',p.scadenza_evo);
+  return out;
+}
+function pRowHtml(p,dot){
+  const nomeC=esc(((p.nome||'')+' '+(p.cognome||'')).trim()||'—');
+  const chips=[];
+  if(p.corso_attivo){ const r=pResidue(p); chips.push('<span class="chip">'+ (CORSO_LBL[p.corso_attivo]||p.corso_attivo)+(r!=null?' · '+r+' residue':'')+'</span>'); }
+  if(p.prenotazioni_future>0) chips.push('<span class="chip">📅 '+p.prenotazioni_future+' prenotate</span>');
+  if(p.data_prima_lezione) chips.push('<span class="chip">Prima: '+String(p.data_prima_lezione).slice(8,10)+'/'+String(p.data_prima_lezione).slice(5,7)+'</span>');
+  if(p.alert_scaduto) chips.push('<span class="chip" style="background:var(--red);color:#fff">⚠️ scaduto</span>');
+  const scad=p.alert_scaduto?('<div class="notepv" style="color:var(--red)">'+pScadute(p).map(esc).join(' · ')+'</div>'):'';
+  const P="'"+p.persona_id+"'";
+  const tel=(p.telefono||'').replace(/\s/g,'');
+  const callBtn=tel?'<a class="ab" href="tel:'+tel+'">📞 Chiama</a>':'';
+  const acts='<div class="acts" style="grid-template-columns:repeat(2,1fr)">'
+    +callBtn
+    +'<button class="ab wa" onclick="azWaP('+P+')">💬 WhatsApp</button>'
+    +'<button class="ab'+(p.recensione_inviata_at?' on':'')+'" onclick="azRecensioneP('+P+')">⭐ Recensione'+(p.recensione_inviata_at?' ✓':'')+'</button>'
+    +'<button class="ab" onclick="azSalvaChiamaP('+P+')">📲 Salva+Chiama</button>'
+    +'</div>';
+  return '<div class="row"><div class="row-top" style="cursor:default">'
+    +'<span class="dot" style="background:'+dot+'"></span>'
+    +'<div style="flex:1;min-width:0"><div class="nm">'+nomeC+'</div>'
+    +'<div class="meta">'+chips.join('')+'</div>'+scad+'</div>'
+    +'</div>'+acts+'</div>';
+}
+function renderPercorsi(){
+  const cf=document.getElementById('campflag'); if(cf) cf.style.display='none';
+  const scaduti=percorsi.filter(p=>p.alert_scaduto);
+  const cntB=k=>percorsi.filter(p=>p.bucket===k).length;
+  const imp=document.getElementById('impatto');
+  imp.innerHTML=
+     tile(cntB('prima_non_proseguita'),'Prima, non proseguita','red0','p_prima')
+    +tile(cntB('in_open')+cntB('in_advance')+cntB('in_intro')+cntB('in_evo'),'In corso','blue','p_incorso')
+    +tile(cntB('open_finito_no_advance')+cntB('advance_finito_no_intro')+cntB('intro_finito_no_evo'),'Finito, prossimo passo','orange','p_passo')
+    +tile(scaduti.length,'⚠️ Scaduti da controllare','red','p_scaduti')
+    +tile(percorsi.length,'Totale','teal',null);
+  const fasi=document.getElementById('fasi');
+  if(filtroImpatto==='p_scaduti'){
+    const body=scaduti.length?scaduti.map(p=>pRowHtml(p,'var(--red)')).join(''):'<div class="empty">— nessuno —</div>';
+    fasi.innerHTML='<div class="sec"><div class="sec-h"><span class="t">⚠️ Scaduti da controllare</span><span class="c">'+scaduti.length+'</span></div>'
+      +'<div class="hint" style="font-size:11px;color:var(--txt3);margin:-4px 0 9px">credito residuo con finestra scaduta: verifica e aggiorna il sistema</div>'+body+'</div>';
+    return;
+  }
+  let show=PBUCKETS;
+  if(filtroImpatto==='p_prima') show=PBUCKETS.filter(b=>b.k==='prima_non_proseguita');
+  if(filtroImpatto==='p_incorso') show=PBUCKETS.filter(b=>b.k.indexOf('in_')===0);
+  if(filtroImpatto==='p_passo') show=PBUCKETS.filter(b=>b.k.indexOf('_finito_')>0);
+  fasi.innerHTML=show.map(b=>{
+    const items=percorsi.filter(p=>p.bucket===b.k);
+    const body=items.length?items.map(p=>pRowHtml(p,b.dot)).join(''):'<div class="empty">— nessuno —</div>';
+    return '<div class="sec"><div class="sec-h"><span class="t">'+b.emoji+' '+b.t+'</span><span class="c">'+items.length+'</span></div>'
+      +'<div class="hint" style="font-size:11px;color:var(--txt3);margin:-4px 0 9px">'+b.hint+'</div>'+body+'</div>';
+  }).join('');
+}
+function azWaP(pid){
+  const p=percorsi.find(x=>x.persona_id===pid); if(!p) return;
+  const num=waNum(p.telefono); if(!num){ alert('Numero mancante.'); return; }
+  window.open('https://wa.me/'+num,'_blank');
+}
+async function azRecensioneP(pid){
+  const p=percorsi.find(x=>x.persona_id===pid); if(!p) return;
+  const num=waNum(p.telefono); if(!num){ alert('Numero mancante.'); return; }
+  const nome=(p.nome||'').trim();
+  const msg=(p.bucket==='prima_non_proseguita')
+    ?'Ciao '+nome+'! Grazie per essere venuto/a in Accademia \u{1F9D7}\nSe la prima lezione ti \u00e8 piaciuta, ci faresti un grande regalo lasciando una recensione su Google \u2014 bastano 30 secondi e per una piccola realt\u00e0 come la nostra vale tantissimo:\n'+KC_REVIEW_URL+'\nA presto sulla parete!'
+    :'Ciao '+nome+'! Una richiesta veloce: stiamo facendo crescere l\'Accademia e le recensioni Google ci aiutano pi\u00f9 di qualsiasi pubblicit\u00e0. Se ti va di raccontare in due righe la tua esperienza:\n'+KC_REVIEW_URL+'\nGrazie di cuore \u{1F64F}';
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  const{error}=await sb.rpc('segna_recensione_inviata_persona',{p_persona_id:pid});
+  if(!error){ p.recensione_inviata_at=new Date().toISOString(); render(); }
+}
+function pvCard(p){
+  const nome=(p.nome||'').trim(), cog=(p.cognome||'').trim();
+  const tel=(p.telefono||'').replace(/\s/g,'');
+  const fn=(nome+' '+cog).trim()||'Allievo RCC';
+  const vcf=['BEGIN:VCARD','VERSION:3.0','N:'+cog+';'+nome+';;;','FN:'+fn+' (RCC)',(tel?'TEL;TYPE=CELL:'+tel:''),'END:VCARD'].filter(Boolean).join('\r\n');
+  const blob=new Blob([vcf],{type:'text/vcard'});
+  const f=new File([blob],fn+'.vcf',{type:'text/vcard'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){ navigator.share({files:[f]}).catch(()=>{}); }
+  else { const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=fn+'.vcf'; a.click(); setTimeout(()=>URL.revokeObjectURL(u),4000); }
+}
+function azSalvaChiamaP(pid){
+  const p=percorsi.find(x=>x.persona_id===pid); if(!p) return;
+  const tel=(p.telefono||'').replace(/\s/g,''); if(!tel){ alert('Numero mancante.'); return; }
+  pvCard(p);
+  setTimeout(()=>{ location.href='tel:'+tel; },1200);
+}
+// Salva+Chiama sulle card lead: vCard esistente + dialer
+function azSalvaChiama(id){
+  const l=leads.find(x=>x.id===id); if(!l) return;
+  const tel=(l.telefono||'').replace(/\s/g,''); if(!tel){ alert('Numero mancante.'); return; }
+  salvaContattoVCard(id);
+  setTimeout(()=>{ location.href='tel:'+tel; },1200);
+}
+
 // ── init ──
 function setCoda(c){
   codaAttiva=c;
-  const comm=document.getElementById('cs-comm'), segr=document.getElementById('cs-segr'), riac=document.getElementById('cs-riac'), vecc=document.getElementById('cs-vecc');
+  const comm=document.getElementById('cs-comm'), segr=document.getElementById('cs-segr'), riac=document.getElementById('cs-riac'), vecc=document.getElementById('cs-vecc'), perc=document.getElementById('cs-perc');
   const on=b=>{if(b){b.style.background='var(--accent,#111)';b.style.color='#fff';b.style.opacity='1';}};
   const off=b=>{if(b){b.style.background='transparent';b.style.color='var(--txt,#444)';b.style.opacity='.7';}};
-  off(comm);off(segr);off(riac);off(vecc);
-  on(c==='segreteria'?segr:(c==='riacciuffo'?riac:(c==='vecchi'?vecc:comm)));
-  const h1=document.querySelector('header h1'); if(h1) h1.textContent=(c==='segreteria'?'Segreteria · da chiamare':(c==='riacciuffo'?'Riacciuffo · 31–60 giorni':(c==='vecchi'?'Lead vecchi · oltre 60 giorni':'Commerciale')));
+  off(comm);off(segr);off(riac);off(vecc);off(perc);
+  on(c==='segreteria'?segr:(c==='riacciuffo'?riac:(c==='vecchi'?vecc:(c==='percorsi'?perc:comm))));
+  const h1=document.querySelector('header h1'); if(h1) h1.textContent=(c==='segreteria'?'Segreteria · da chiamare':(c==='riacciuffo'?'Riacciuffo · 31–60 giorni':(c==='vecchi'?'Lead vecchi · oltre 60 giorni':(c==='percorsi'?'Percorsi · dalla Prima all\u0027Evo':'Commerciale'))));
   filtroImpatto=null;
   render();
 }
@@ -636,6 +761,10 @@ async function init(){
   const{data:ld,error:e1}=await sb.rpc('get_leads_da_contattare');
   if(e1){ document.getElementById('stato').textContent='Errore lead: '+e1.message; return; }
   leads=ld||[];
+
+  // percorsi (cruscotto dalla Prima all'Evo) — non blocca la pagina se fallisce
+  const{data:pz,error:e1b}=await sb.rpc('get_cruscotto_percorsi');
+  percorsi=(e1b?[]:(pz||[]));
 
   // storico note (no embed: solo colonne reali) + last touch
   const{data:fu}=await sb.from('crm_follow_ups')
