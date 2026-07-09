@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: orari v0.17 (PROTOTIPO) · 2026-07-09 · FIX etichetta 20:00 (la sostituzione generica v0.16 le aveva assegnato la riga del 17:00 → scritte sovrapposte in alto e 20:00 assente tra 19 e 21). CUMULA v0.16 · VIA LA RIGA VUOTA 14-17 (Marco): eliminata la fascia compressa — asse solo 17-22; Sabato (14-18) e Domenica (mattina) vivono in testa alle loro colonne con gli orari veri scritti sul blocco. CUMULA v0.15 · TAGLIO SEZIONI (Marco): via "Giorno per giorno" e via la sezione roccia separata — resta griglia → Eventi (che ora include anche le uscite domenicali, con orari stagionali nel sottotitolo) → Metodo → CTA; corsi cliccabili con schede, TESTI DESCRIZIONI DA FARE DOMANI con Marco (quelli attuali sono segnaposto). CUMULA v0.14 · NOTE DENTRO LE SCHEDE (Marco): rimossi i due banner in testa — apertura = titolo + griglia; "attivo tutto l'anno" nelle schede dei corsi adulti, "da metà settembre" resta nelle schede minori, la pausa di agosto/si-scala-in-natura vive nel sottotitolo di Eventi e viaggi. CUMULA v0.13 · CALENDARIO PRIMO PIANO (Marco: troppe parole — il centro è l'azione nello spazio-tempo, le parole dopo per chi scorre): hero compresso (titolo + indirizzo, via il paragrafo), banner mantenuti, griglia subito a tutta pagina senza titolo/sottotitolo di sezione; tutto il testo (dettaglio, roccia, eventi, metodo, CTA) resta sotto. CUMULA v0.12 · COPY CTA FINALE DI MARCO (via "mai arrampicato?"): "Vuoi iniziare a sviluppare la percezione dell'equilibrio ed imparare a muoverti in scioltezza, divertendoti e migliorando in piena sicurezza? Prenota la tua Prima Lezione ed entra nel tuo mondo con KataClimb" — titolo "Entra nel tuo mondo."; allineate le occorrenze nei blocchi Prima e nella scheda-modale. CUMULA v0.11 · CORSI TUTTI CLICCABILI CON DESCRIZIONE (Marco): ogni blocco (griglia e dettaglio) apre una scheda-modale con orari, istruttori, descrizione e CTA (Prima Lezione → inizia.html; altri corsi → invito a scrivere/passare); descrizioni BOZZA da validare al collaudo (Fly ed Expert in particolare). Un solo calendario, tre porte: sito Accademia (link/iframe), kataclimb.com, portale. CUMULA v0.10 · RESET LUCE (direzione Marco: luce, chiarezza, ordine, equilibrio, deciso ma non arrogante — il nero impastava colori e scritte): fondo carta chiara, blocchi a tinta leggera + barra colore, linee-ora tratteggiate che mostrano gli incastri; DOMENICA EQUILIBRIO: solo la mattina in falesia (estate 7-13 · inverno 9-15) e il pomeriggio dichiarato libero ("il pomeriggio è tuo: casa, famiglia, vita") — integriamo, non evadiamo; PRIMA LEZIONE A 3 FASCE (decisione Marco): Adulti 25€ cliccabile → inizia.html, Ragazzi 12-17 15€, Bambini 6-11 10€ (per ora in Accademia; acquisto online minori in cantiere domani). CUMULA v0.9 (banner agosto → #eventi) · v0.8 (orari roccia stagionali) · v0.7 (banner adulti attivi / minori da metà settembre) · v0.6 (agenda oraria: asse 17-22 reale + fascia 14-17 compressa per il sabato, semi-colonne sui paralleli) · v0.5 (lame verticali oro sui titoli) · v0.3 (sezione metodo: struttura/procedure/affidabilità/sicurezza) · v0.1 (griglia settembre decisa 9 lug: Pupi princ+int lun/gio 17-18 · Ragazzi princ+int lun/gio 18-19:30 · Evo Ragazzi mer 17-18:30 +1 giorno a scelta · Expert mer 18-19:30 Mello · minori Claudia+Mattia in contemporanea · Monitor mar 18-21 e sab 14-18 · uscite/eventi da RPC get_eventi_calendario, read-only senza numeri di occupazione). Terminologia: mai "palestra" in pagina (solo meta SEO), roccia = uscite/accompagnamenti. -->
+<!-- KC-BUILD: orari v0.18 · 2026-07-09 · COLLAUDO MARCO SU LIVE: (1) FIX BUG bottone "Prenota 25€" visibile in TUTTE le schede — display:block su .m-cta vinceva su [hidden] (T-HIDDEN-DISPLAY); (2) CTA prenota SOLO su Prima Lezione e Open (su Open con testo "Prenota la tua Prima Lezione"); via da Advance/Intro/Evo/Fly; (3) Sala con Monitor NON prenotabile a pagamento: inclusa nei corsi Advance/Intro/Evo o negli abbonamenti di chi ha completato i corsi; (4) schede minori citano la loro prima lezione (Pupi 10€, Ragazzi 15€); Evo Ragazzi: non si entra diretti, prima valutazione del livello; (5) NUOVO corso LAB: sabato 16:00-17:30, ogni sabato un istruttore diverso, in griglia accanto al Monitor. CUMULA v0.17 · FIX etichetta 20:00 (la sostituzione generica v0.16 le aveva assegnato la riga del 17:00 → scritte sovrapposte in alto e 20:00 assente tra 19 e 21). CUMULA v0.16 · VIA LA RIGA VUOTA 14-17 (Marco): eliminata la fascia compressa — asse solo 17-22; Sabato (14-18) e Domenica (mattina) vivono in testa alle loro colonne con gli orari veri scritti sul blocco. CUMULA v0.15 · TAGLIO SEZIONI (Marco): via "Giorno per giorno" e via la sezione roccia separata — resta griglia → Eventi (che ora include anche le uscite domenicali, con orari stagionali nel sottotitolo) → Metodo → CTA; corsi cliccabili con schede, TESTI DESCRIZIONI DA FARE DOMANI con Marco (quelli attuali sono segnaposto). CUMULA v0.14 · NOTE DENTRO LE SCHEDE (Marco): rimossi i due banner in testa — apertura = titolo + griglia; "attivo tutto l'anno" nelle schede dei corsi adulti, "da metà settembre" resta nelle schede minori, la pausa di agosto/si-scala-in-natura vive nel sottotitolo di Eventi e viaggi. CUMULA v0.13 · CALENDARIO PRIMO PIANO (Marco: troppe parole — il centro è l'azione nello spazio-tempo, le parole dopo per chi scorre): hero compresso (titolo + indirizzo, via il paragrafo), banner mantenuti, griglia subito a tutta pagina senza titolo/sottotitolo di sezione; tutto il testo (dettaglio, roccia, eventi, metodo, CTA) resta sotto. CUMULA v0.12 · COPY CTA FINALE DI MARCO (via "mai arrampicato?"): "Vuoi iniziare a sviluppare la percezione dell'equilibrio ed imparare a muoverti in scioltezza, divertendoti e migliorando in piena sicurezza? Prenota la tua Prima Lezione ed entra nel tuo mondo con KataClimb" — titolo "Entra nel tuo mondo."; allineate le occorrenze nei blocchi Prima e nella scheda-modale. CUMULA v0.11 · CORSI TUTTI CLICCABILI CON DESCRIZIONE (Marco): ogni blocco (griglia e dettaglio) apre una scheda-modale con orari, istruttori, descrizione e CTA (Prima Lezione → inizia.html; altri corsi → invito a scrivere/passare); descrizioni BOZZA da validare al collaudo (Fly ed Expert in particolare). Un solo calendario, tre porte: sito Accademia (link/iframe), kataclimb.com, portale. CUMULA v0.10 · RESET LUCE (direzione Marco: luce, chiarezza, ordine, equilibrio, deciso ma non arrogante — il nero impastava colori e scritte): fondo carta chiara, blocchi a tinta leggera + barra colore, linee-ora tratteggiate che mostrano gli incastri; DOMENICA EQUILIBRIO: solo la mattina in falesia (estate 7-13 · inverno 9-15) e il pomeriggio dichiarato libero ("il pomeriggio è tuo: casa, famiglia, vita") — integriamo, non evadiamo; PRIMA LEZIONE A 3 FASCE (decisione Marco): Adulti 25€ cliccabile → inizia.html, Ragazzi 12-17 15€, Bambini 6-11 10€ (per ora in Accademia; acquisto online minori in cantiere domani). CUMULA v0.9 (banner agosto → #eventi) · v0.8 (orari roccia stagionali) · v0.7 (banner adulti attivi / minori da metà settembre) · v0.6 (agenda oraria: asse 17-22 reale + fascia 14-17 compressa per il sabato, semi-colonne sui paralleli) · v0.5 (lame verticali oro sui titoli) · v0.3 (sezione metodo: struttura/procedure/affidabilità/sicurezza) · v0.1 (griglia settembre decisa 9 lug: Pupi princ+int lun/gio 17-18 · Ragazzi princ+int lun/gio 18-19:30 · Evo Ragazzi mer 17-18:30 +1 giorno a scelta · Expert mer 18-19:30 Mello · minori Claudia+Mattia in contemporanea · Monitor mar 18-21 e sab 14-18 · uscite/eventi da RPC get_eventi_calendario, read-only senza numeri di occupazione). Terminologia: mai "palestra" in pagina (solo meta SEO), roccia = uscite/accompagnamenti. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Orari e corsi — Accademia ArrampiKata RCC | KataClimb</title>
@@ -17,7 +17,7 @@
   --oro:#e8b93c; --oro-scuro:#9c7a17;
   --pupi:#f5862e; --ragazzi:#ef5d50; --evorag:#d84fa0; --expert:#ff9d3c;
   --open:#2fae60; --advance:#1f8a4d; --intro:#2f97d4; --evocorda:#8a5ce0;
-  --fly:#5b74e8; --monitor:#22a893; --roccia:#b08a54;
+  --fly:#5b74e8; --monitor:#22a893; --roccia:#b08a54; --lab:#6b7f3a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -76,6 +76,7 @@ a.ov-b:hover{filter:brightness(.97)}
 .c-evocorda{--c:var(--evocorda);--t:rgba(138,92,224,.11)}
 .c-fly{--c:var(--fly);--t:rgba(91,116,232,.12)}
 .c-monitor{--c:var(--monitor);--t:rgba(34,168,147,.12)}
+.c-lab{--c:var(--lab);--t:rgba(107,127,58,.13)}
 .c-roccia{--c:var(--roccia);--t:rgba(176,138,84,.14)}
 .c-prima{--c:var(--oro-scuro);--t:var(--oro)}
 .c-prima .o{color:rgba(28,28,32,.75)}
@@ -148,6 +149,7 @@ a.fascia:hover{filter:brightness(1.15)}
 .mod .m-nota{font-size:13px;font-weight:600;color:var(--testo2);margin-top:10px;background:var(--fondo);border:1px solid var(--linea);border-radius:8px;padding:8px 10px}
 .mod .m-cta{display:block;text-align:center;margin-top:18px;background:var(--oro);color:var(--ink);font-weight:800;font-size:16px;border-radius:10px;padding:13px;text-decoration:none}
 .mod .m-cta:hover{filter:brightness(1.05)}
+.mod .m-cta[hidden],.mod .m-info[hidden],.mod .m-nota[hidden]{display:none}
 .mod .m-info{margin-top:18px;text-align:center;font-size:14px;color:var(--testo2)}
 .mod .m-chiudi{display:block;margin:14px auto 0;background:none;border:none;font:inherit;font-size:14px;color:var(--testo2);cursor:pointer;text-decoration:underline}
 
@@ -217,6 +219,7 @@ footer a{color:var(--testo2)}
       <a class="ov-b c-prima" data-c="prima" href="/inizia.html" style="grid-column:10/12;grid-row:10/12"><span class="n">Prima Lezione</span><span class="o">Adulti · 21–22 · 25€</span></a>
       <!-- SAB -->
       <div class="ov-b c-monitor" data-c="monitor" style="grid-column:12/14;grid-row:2/4"><span class="n">Sala con Monitor</span><span class="o">14–18</span></div>
+      <div class="ov-b c-lab" data-c="lab" style="grid-column:12/14;grid-row:4/7"><span class="n">Lab</span><span class="o">16–17:30</span></div>
       <!-- DOM: la mattina in falesia, il pomeriggio è tuo -->
       <a class="ov-b c-roccia" href="#eventi" style="grid-column:14/16;grid-row:2/6"><span class="n">In falesia</span><span class="o">estate 7–13 · inverno 9–15</span></a>
       <div class="ov-dom-note" style="grid-column:14/16;grid-row:6/12">Il pomeriggio è tuo:<br>casa, famiglia, vita.</div>
@@ -234,6 +237,7 @@ footer a{color:var(--testo2)}
       <span><i style="background:var(--evocorda)"></i>Evo Corda</span>
       <span><i style="background:var(--fly)"></i>Fly</span>
       <span><i style="background:var(--monitor)"></i>Sala con Monitor</span>
+      <span><i style="background:var(--lab)"></i>Lab</span>
       <span><i style="background:var(--oro)"></i>Prima Lezione</span>
       <span><i style="background:var(--roccia)"></i>In falesia</span>
     </div>
@@ -358,16 +362,16 @@ fetch(CFG.SB_URL+'/rest/v1/rpc/get_eventi_calendario',{method:'POST',headers:{'a
 /* ── Schede corso (descrizioni BOZZA, da validare) ── */
 const CORSI={
  pupi:{eta:'Bambini 6–11 · da metà settembre',t:'Pupi',ora:'Lun e Gio 17:00–18:00',chi:'principianti e intermedi · Claudia + Mattia',c:'var(--pupi)',
-  d:'Il primo incontro con la verticale: gioco, movimento e coraggio a misura di bambino. Si impara ad arrampicare come si impara a camminare — provando, cadendo sui materassi, riprovando. Gruppi per livello, principianti e intermedi.'},
+  d:'Il primo incontro con la verticale: gioco, movimento e coraggio a misura di bambino. Si impara ad arrampicare come si impara a camminare — provando, cadendo sui materassi, riprovando. Gruppi per livello, principianti e intermedi. La prima lezione bambini costa 10€ e si prenota in Accademia.'},
  ragazzi:{eta:'Ragazzi 12–17 · da metà settembre',t:'Ragazzi',ora:'Lun e Gio 18:00–19:30',chi:'principianti e intermedi · Claudia + Mattia',c:'var(--ragazzi)',
-  d:'Il corso settimanale dei ragazzi: tecnica, forza e testa, in un gruppo che cresce insieme. Si può venire una o due volte a settimana, con gruppi per livello, principianti e intermedi.'},
+  d:'Il corso settimanale dei ragazzi: tecnica, forza e testa, in un gruppo che cresce insieme. Si può venire una o due volte a settimana, con gruppi per livello, principianti e intermedi. La prima lezione ragazzi costa 15€ e si prenota in Accademia.'},
  evorag:{eta:'Ragazzi · da metà settembre',t:'Evo Ragazzi',ora:'Mer 17:00–18:30 + 1 giorno a scelta tra Lun e Gio',chi:'Claudia + Mattia',c:'var(--evorag)',
   d:'Per i ragazzi che hanno già fatto la base e vogliono crescere: il mercoledì è il giorno fisso, più un giorno a scelta tra lunedì e giovedì — o tutti e due, con un piccolo supplemento. Nei giorni di corso la sala è loro: frequenza libera.',
-  nota:'Nei giorni di corso, frequenza libera in sala.'},
+  nota:'Non si entra diretti nell\'Evo: l\'ingresso passa da una valutazione del livello, insieme agli istruttori. Nei giorni di corso, frequenza libera in sala.'},
  expert:{eta:'Ragazzi selezionati · da metà settembre',t:'Expert',ora:'Mer 18:00–19:30 + accesso libero',chi:'Mello',c:'var(--expert)',
   d:'La selezione dei ragazzi forti. Allenamento vero, obiettivi veri, con accesso libero alla sala per costruire il proprio livello anche fuori dall\'ora di corso.'},
  open:{eta:'Adulti · attivo tutto l\'anno',t:'Open',ora:'Lun 21–22 · Mer 21–22 · Gio 19–20',chi:'Mello',c:'var(--open)',
-  d:'Il corso dove si comincia. Le basi del movimento verticale: come si sta in parete, come si cade, come si sale. È il primo gradino del percorso KataClimb — dalla Prima Lezione si entra qui.'},
+  d:'Il corso dove si comincia. Le basi del movimento verticale: come si sta in parete, come si cade, come si sale. È il primo gradino del percorso KataClimb — dalla Prima Lezione si entra qui.',cta:true,ctaLabel:'Prenota la tua Prima Lezione — 25€ →'},
  advance:{eta:'Adulti · attivo tutto l\'anno',t:'Advance',ora:'Lun 19–20 · Mer 20–21',chi:'Mello',c:'var(--advance)',
   d:'Il passo dopo l\'Open: tecnica più fine, continuità, letture di parete. Per chi ha costruito la base e vuole salire di livello.'},
  intro:{eta:'Adulti · attivo tutto l\'anno',t:'Intro Corda',ora:'Lun 20:00–21:00',chi:'Mello',c:'var(--intro)',
@@ -377,7 +381,9 @@ const CORSI={
  fly:{eta:'Corso accademico',t:'Fly',ora:'Mer 19:00–20:00',chi:'Mello',c:'var(--fly)',
   d:'Corso accademico ciclico del metodo KataClimb. Chiedi in Accademia per sapere quando parte il prossimo ciclo e se fa per te.'},
  monitor:{eta:'Accesso libero',t:'Sala con Monitor',ora:'Mar 18:00–21:00 · Sab 14:00–18:00',chi:'sala sorvegliata',c:'var(--monitor)',
-  d:'La sala aperta per arrampicare liberamente, sempre con un monitor presente. Il momento per allenarsi, ripassare, incontrare gli altri — in sicurezza, mai da soli.'},
+  d:'La sala aperta per arrampicare liberamente, sempre con un monitor presente. Il momento per allenarsi, ripassare, incontrare gli altri — in sicurezza, mai da soli. L\'accesso è incluso nei corsi Advance, Intro Corda ed Evo Corda, e negli abbonamenti di chi ha già completato i corsi.'},
+ lab:{eta:'Corso accademico',t:'Lab',ora:'Sab 16:00–17:30',chi:'ogni sabato un istruttore diverso',c:'var(--lab)',
+  d:'Il laboratorio del sabato: ogni settimana un istruttore diverso porta il suo tema e il suo sguardo. Chiedi in Accademia per il ciclo in corso.'},
  prima:{eta:'Adulti · attiva tutto l\'anno',t:'Prima Lezione',ora:'Gio 20–21 · Ven 20–21 · Ven 21–22',chi:'Mello',c:'var(--oro)',
   d:'Un\'ora con l\'istruttore per iniziare a sviluppare la percezione dell\'equilibrio e imparare a muoverti in scioltezza, divertendoti e in piena sicurezza. Tutto il materiale incluso. Per bambini (10€) e ragazzi (15€) la Prima Lezione si prenota in Accademia.',cta:true},
 };
@@ -391,7 +397,7 @@ function apriCorso(k){
   document.getElementById('m-chi').textContent=c.chi;
   document.getElementById('m-desc').textContent=c.d;
   const n=document.getElementById('m-nota');n.hidden=!c.nota;if(c.nota)n.textContent=c.nota;
-  document.getElementById('m-cta').hidden=!c.cta;
+  const mcta=document.getElementById('m-cta');mcta.hidden=!c.cta;if(c.cta)mcta.textContent=c.ctaLabel||'Prenota ora — 25€ →';
   document.getElementById('m-info').hidden=!!c.cta;
   mov.classList.add('on');
   document.getElementById('m-chiudi').focus();
