@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-minori v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
+<!-- KC-BUILD: inizia-minori v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -199,7 +199,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
     <label class="terms">
       <input type="checkbox" id="f-terms">
-      <span>In qualità di genitore/esercente la responsabilità genitoriale, accetto i <a href="/termini-prima-lezione.html" target="_blank" rel="noopener">Termini della Prima Lezione</a> e acconsento alla creazione del profilo riservato di mio figlio/a sul portale KataClimb (non visibile al pubblico né alla Comunità).</span>
+      <span>In qualità di genitore/esercente la responsabilità genitoriale, accetto i <a href="/Termini_Prima_Lezione.pdf" target="_blank" rel="noopener">Termini della Prima Lezione</a> e acconsento alla creazione del profilo riservato di mio figlio/a sul portale KataClimb (non visibile al pubblico né alla Comunità).</span>
     </label>
 
     <button class="paga-btn" id="paga-btn"><span class="sp"></span><span id="paga-label">Paga e prenota</span></button>
