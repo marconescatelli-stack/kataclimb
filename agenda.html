@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: agenda v3.74 · 2026-07-14 · FASCE ANCHE SUL CORSO: badge BAMBINI 6-11 / RAGAZZI 12-17 su OGNI slot con fascia (corso bambini/ragazzi incluso, non solo Prima) + tab 'Bambini' rinominato 'Bambini e Ragazzi' (contiene entrambe le fasce dopo lo split slot del 14 lug). CUMULA v3.73 · 2026-07-14 · BADGE FASCIA MINORI: gli slot Prima Lezione con fascia bambini/ragazzi mostrano il badge BAMBINI 6-11 (giallo) / RAGAZZI 12-17 (azzurro) accanto alla data, in ogni vista (Prima e Tutti) — distinzione a colpo d'occhio dalle Prima adulti (richiesta Marco). caricaSlot ora seleziona anche la colonna fascia. CUMULA v3.72 · 2026-07-10 · DEBITO-182 CREDITO ESAURITO UMANO: banner bloccante generico per corsi a tranche (advance/intro/evo) a credito 0 — 'Credito esaurito, passa in segreteria' (CTA Stripe nascosta, il saldo è in segreteria); traduzione umana degli errori tecnici di prenota_corso nel modale (Nessuna lezione residua / Nessun corso attivo). CUMULA v3.71 · 2026-07-08 · PRIMA LEZIONE PIENA PER L'ISTRUTTORE (decisione Marco, cumulativo v3.70+v3.71 in UN deploy): (v3.70) tolto il nascondimento dell'opzione Prima lezione dal dropdown in vista istruttore; (v3.71) P/A marcabili anche dall'istruttore (showPA=isStaff() anche su prima_lezione) — allineato al gate RPC marca_presenza_prima_lezione ESTESO a tutti i ruoli staff (migration 8 lug). CUMULA v3.69 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) + etichetta 'Portale'→'Profilo' (allineamento P v3.78: voce profilo = Profilo ovunque). CUMULA v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
+<!-- KC-BUILD: agenda v3.77 · 2026-07-14 · EVO RAGAZZI + EXPERT IN AGENDA (migration aggiungi_corsi_evo_ragazzi_expert live: CHECK tipo_corso esteso + 2 slot Mer — Evo Ragazzi 17:00-18:30 Claudia e Mattia, Expert 18:00-19:30 Mello, fascia ragazzi, capienza NULL=illimitata da fissare, status attivo): nuove voci in TIPO_LABELS, labelSlot, dropdown, CSS (--evorag, --expert, classi gblk/slot). Dropdown: etichette allineate alla REGOLA FERREA NOMENCLATURA (era anche li accorciato: "Prima lezione", "Bambini"). CUMULA v3.76 · 2026-07-14 · DICITURA KATACLIMB SUI CORSI DEL PERCORSO (diciture esatte di Marco): Open KataClimb · Advance KataClimb · Intro KataClimb · Evo KataClimb — applicata in TIPO_LABELS (dropdown, tab, titoli) e in labelSlot (griglia settimanale). Fly, Lab, Prima Lezione e corsi minori senza dicitura (non nell'elenco di Marco). CUMULA v3.75 · 2026-07-14 · NOMI COMPLETI IN GRIGLIA SETTIMANALE (REGOLA FERREA NOMENCLATURA, Marco 14 lug: mai nomi accorciati): via la mappa abbreviata (Prima/Bambini/Intro/Evo) — la griglia Tutti ora etichetta ogni blocco con nome completo e fascia via labelSlot(tipo,fascia): "Prima Lezione Bambini 6-11" / "Prima Lezione Ragazzi 12-17" / "Prima Lezione Adulti" · "Corso Bambini 6-11" / "Corso Ragazzi 12-17" · "Intro Corda" / "Evo Corda". La colonna fascia era gia in select (v3.73) ma la griglia non la usava. NOTA APERTA: cap in griglia legge ancora tipiConfig e non s.capienza_max dello slot (mostra 0/6 su Prima minori che sono a capienza illimitata) — fix separato in attesa di decisione Marco su come mostrare gli slot senza limite. CUMULA v3.74 · 2026-07-14 · FASCE ANCHE SUL CORSO: badge BAMBINI 6-11 / RAGAZZI 12-17 su OGNI slot con fascia (corso bambini/ragazzi incluso, non solo Prima) + tab 'Bambini' rinominato 'Bambini e Ragazzi' (contiene entrambe le fasce dopo lo split slot del 14 lug). CUMULA v3.73 · 2026-07-14 · BADGE FASCIA MINORI: gli slot Prima Lezione con fascia bambini/ragazzi mostrano il badge BAMBINI 6-11 (giallo) / RAGAZZI 12-17 (azzurro) accanto alla data, in ogni vista (Prima e Tutti) — distinzione a colpo d'occhio dalle Prima adulti (richiesta Marco). caricaSlot ora seleziona anche la colonna fascia. CUMULA v3.72 · 2026-07-10 · DEBITO-182 CREDITO ESAURITO UMANO: banner bloccante generico per corsi a tranche (advance/intro/evo) a credito 0 — 'Credito esaurito, passa in segreteria' (CTA Stripe nascosta, il saldo è in segreteria); traduzione umana degli errori tecnici di prenota_corso nel modale (Nessuna lezione residua / Nessun corso attivo). CUMULA v3.71 · 2026-07-08 · PRIMA LEZIONE PIENA PER L'ISTRUTTORE (decisione Marco, cumulativo v3.70+v3.71 in UN deploy): (v3.70) tolto il nascondimento dell'opzione Prima lezione dal dropdown in vista istruttore; (v3.71) P/A marcabili anche dall'istruttore (showPA=isStaff() anche su prima_lezione) — allineato al gate RPC marca_presenza_prima_lezione ESTESO a tutti i ruoli staff (migration 8 lug). CUMULA v3.69 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) + etichetta 'Portale'→'Profilo' (allineamento P v3.78: voce profilo = Profilo ovunque). CUMULA v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
 <!-- KC-BUILD-PREV: agenda v3.64 · 2026-06-04 -->
 <!-- KC-BUILD-PREV: agenda v3.63 · 2026-06-04 -->
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
   :root { --bg:#FFFFFF; --card:#fff; --ink:#000000; --gold:#A77E11; --muted:#262626; --muted2:#737373;
           --open:#0A7F4B; --advance:#064E2F; --intro:#0095F6; --evo:#7B2D8E; --prima:#A77E11;
-          --bambini:#D6336C; --fly:#C77F0A; --lab:#0E8C8C;
+          --bambini:#D6336C; --fly:#C77F0A; --lab:#0E8C8C; --evorag:#8E24AA; --expert:#37474F;
           --info:#0095F6; --warn:#ED4956; --ok:#0A7F4B; --border:rgba(0,0,0,.16); }
   * { box-sizing: border-box; }
   body { margin:0; padding:1rem 2rem; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); font-size:17px; line-height:1.45; overflow-x:hidden; max-width:100%; }
@@ -88,6 +88,8 @@
   .slot.bambini { border-left-color:var(--bambini); }
   .slot.fly { border-left-color:var(--fly); }
   .slot.lab { border-left-color:var(--lab); }
+  .slot.evo_ragazzi { border-left-color:var(--evorag); }
+  .slot.expert { border-left-color:var(--expert); }
   .slot.mia-prenot { background:linear-gradient(90deg,rgba(10,127,75,.06),#fff); }
 
   /* v3.61 — Griglia settimanale "Tutti i corsi" (solo segreteria desktop) */
@@ -110,6 +112,8 @@
   .gblk.bambini { background:var(--bambini); }
   .gblk.fly { background:var(--fly); }
   .gblk.lab { background:var(--lab); }
+  .gblk.evo_ragazzi { background:var(--evorag); }
+  .gblk.expert { background:var(--expert); }
   .slot strong { display:block; margin-bottom:.2rem; font-size:16px; color:var(--ink); }
   .ora { color:var(--gold); font-weight:700; font-size:1.15rem; }
   .ist { color:var(--muted); font-size:.95rem; font-weight:600; }
@@ -291,12 +295,14 @@
     <div class="bar">
       <div class="bar-left">
         <select id="tipo-select" class="tipo-select" style="display:none">
-          <option value="prima_lezione">Prima lezione</option>
-          <option value="open">Open</option>
-          <option value="advance">Advance</option>
-          <option value="intro_corda">Intro Corda</option>
-          <option value="evo_corda">Evo Corda</option>
-          <option value="bambini">Bambini</option>
+          <option value="prima_lezione">Prima Lezione</option>
+          <option value="open">Open KataClimb</option>
+          <option value="advance">Advance KataClimb</option>
+          <option value="intro_corda">Intro KataClimb</option>
+          <option value="evo_corda">Evo KataClimb</option>
+          <option value="bambini">Bambini e Ragazzi</option>
+          <option value="evo_ragazzi">Evo Ragazzi</option>
+          <option value="expert">Expert</option>
           <option value="lab">Lab</option>
           <option value="fly">Fly</option>
         </select>
@@ -472,11 +478,13 @@
 
   const TIPO_LABELS = {
     prima_lezione: { label: 'Prima Lezione', color: 'var(--prima)' },
-    open:          { label: 'Open',          color: 'var(--open)' },
-    advance:       { label: 'Advance',       color: 'var(--advance)' },
-    intro_corda:   { label: 'Intro Corda',   color: 'var(--intro)' },
-    evo_corda:     { label: 'Evo Corda',     color: 'var(--evo)' },
+    open:          { label: 'Open KataClimb',    color: 'var(--open)' },
+    advance:       { label: 'Advance KataClimb', color: 'var(--advance)' },
+    intro_corda:   { label: 'Intro KataClimb',   color: 'var(--intro)' },
+    evo_corda:     { label: 'Evo KataClimb',     color: 'var(--evo)' },
     bambini:       { label: 'Bambini e Ragazzi',       color: 'var(--bambini)' },
+    evo_ragazzi:   { label: 'Evo Ragazzi',   color: 'var(--evorag)' },
+    expert:        { label: 'Expert',        color: 'var(--expert)' },
     lab:           { label: 'Lab',           color: 'var(--lab)' },
     fly:           { label: 'Fly',           color: 'var(--fly)' },
     tutti:         { label: 'Tutti i corsi', color: 'var(--gold)' }
@@ -1163,7 +1171,21 @@
 
   function renderGridTutti(lezioni, lun, now) {
     const grid = document.getElementById('grid');
-    const TIPO_BR = { open:'Open', advance:'Advance', intro_corda:'Intro', evo_corda:'Evo', prima_lezione:'Prima', bambini:'Bambini', lab:'Lab', fly:'Fly' };
+    // REGOLA FERREA NOMENCLATURA (14 lug): mai nomi accorciati — nome completo + fascia
+    function labelSlot(tipo, fascia) {
+      if (tipo === 'prima_lezione') {
+        if (fascia === 'bambini') return 'Prima Lezione Bambini 6-11';
+        if (fascia === 'ragazzi') return 'Prima Lezione Ragazzi 12-17';
+        return 'Prima Lezione Adulti';
+      }
+      if (tipo === 'bambini') {
+        if (fascia === 'bambini') return 'Corso Bambini 6-11';
+        if (fascia === 'ragazzi') return 'Corso Ragazzi 12-17';
+        return 'Corso Bambini e Ragazzi';
+      }
+      const T = { open:'Open KataClimb', advance:'Advance KataClimb', intro_corda:'Intro KataClimb', evo_corda:'Evo KataClimb', evo_ragazzi:'Evo Ragazzi', expert:'Expert', lab:'Lab', fly:'Fly' };
+      return T[tipo] || tipo;
+    }
 
     // Righe = istruttori (chiave istruttore_id; fallback sul nome). Ordinati per nome.
     const istrMap = new Map();
@@ -1204,7 +1226,7 @@
           const cap = cfg.capienza_max;
           const oi = s.ora_inizio.slice(0,5);
           const of = s.ora_fine.slice(0,5);
-          const lab = TIPO_BR[tipo] || tipo;
+          const lab = labelSlot(tipo, s.fascia);
           html += `<button class="gblk ${tipo}${lez.passato ? ' passato' : ''}" data-tipo="${tipo}" title="${lab} ${oi}–${of} · ${occ}/${cap} iscritti">`
                 + `<span class="gblk-t">${lab}</span>`
                 + `<span class="gblk-o">${oi}–${of} <b>${occ}/${cap}</b></span>`
