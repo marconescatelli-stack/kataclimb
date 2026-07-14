@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: inizia v7 · 2026-07-13 · FASCIA ADULTI: la query slot filtra .eq('fascia','adulti') — gli slot Prima Lezione minori (bambini/ragazzi, cantiere inizia-minori) NON devono comparire qui a 25€. CUMULA v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -825,6 +825,7 @@ body{
     const { data, error } = await sb.from('corsi_attivi_settimanali')
       .select('id, giorno_settimana, ora_inizio, ora_fine, capienza_max, istruttori(nome)')
       .eq('tipo_corso','prima_lezione')
+      .eq('fascia','adulti')
       .eq('status','attivo');
     if(error) throw error;
     return data || [];
