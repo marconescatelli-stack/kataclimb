@@ -1,45 +1,52 @@
-# Regole di progetto — KataClimb
+# CLAUDE.md — Regole di lavoro per il repo kataclimb
 
-Istruzioni per Claude quando lavora su questo repository. Leggile prima di toccare un file.
+Rispondi e commenta sempre in italiano. Stile diretto, senza preamboli.
 
-## Identità (non negoziabile)
-- KataClimb è un'**Accademia**, non una "palestra". Nei contenuti rivolti all'utente si dice
-  sempre **Accademia**. "Palestra" è ammesso **solo** in SEO tecnico (meta description, alt text),
-  mai nel testo visibile.
+## Contesto
 
-## Cosa c'è (e cosa NON c'è) qui
-- Questo repo = **solo frontend** (GitHub Pages → kataclimb.com).
-- **Worker** (Cloudflare) e **database** (Supabase) **non** sono in questo repo:
-  non cercare qui la logica dei pagamenti, delle notifiche o le RPC.
+Questo repo contiene il sito pubblico kataclimb.com e il portale allievi (`portale.html`).
+Quattro entità da tenere sempre separate, mai confonderle nei testi:
+- **KataClimb** = metodo/sistema internazionale (33 Kata, 6 fasi). Non eroga corsi.
+- **Accademia RCC** (Roma, Via Cassia 1634) = struttura che eroga i corsi.
+- **Syncrolink Ltd** = veicolo commerciale (intensivi per professionisti).
+- **Marco Nescatelli** = la persona, fondatore.
 
-## Ordine di deploy (sempre, mai invertire)
-**SQL (Supabase) → Worker (Cloudflare) → Pages (questo repo).**
+## Branch e deploy
 
-## Regole sui file
-- Il sito live è la fonte di verità. Prima di modificare una pagina, **parti dalla versione live/`main`**,
-  non da una copia vecchia (trappola storica: lavorare su file stale → si ricarica il vecchio).
-- In VS Code: **aggiorna la cartella (git pull) prima di editare**. Sempre.
-- Consegna/commit di **file completi e funzionanti**, non frammenti.
-- Modifiche chirurgiche su un'ancora **unica** nel file; se l'ancora compare più volte, fermati.
-- Valida il JS prima del commit (es. blocchi `<script type="module">`).
+- `main` = produzione (kataclimb.com, servito da GitHub Pages). NON lavorare mai direttamente su main.
+- `dev` = sviluppo. Tutto il lavoro avviene qui. Anteprima automatica su kataclimb-dev.pages.dev (Cloudflare Pages).
+- Ogni task si chiude con una pull request verso `dev` (o da `dev` verso `main` solo su richiesta esplicita di Marco).
+- Il merge in produzione lo decide solo Marco, dopo verifica sull'anteprima.
 
-## Dati — una fonte, uno stato (P-VERITÀ-UNICA)
-Anche se le RPC/DB non stanno qui, le pagine li leggono. Tieni presente:
-- `persone` = anagrafica (nome/cognome/email/telefono). **L'anagrafica sta qui, non in `profile_data`.**
-- `profile_data` = stato operativo (chiave `user_id`).
-- `profiles` = VIEW che unisce `profile_data` + `persone`.
-- `lead_data` = lead; `crm_leads` = VIEW su `lead_data`.
-- Se due viste dicono cose diverse sulla stessa persona, è un bug strutturale, non un caso.
+## Stack (non proporre alternative esterne)
 
-## Trappole note
-- **Stale**: non lavorare su copie vecchie; allinea sempre al live.
-- **Date in UTC**: `Date.toISOString()` converte in UTC e rompe i match di data; usare
-  `getFullYear/getMonth/getDate`.
-- **Anagrafica**: sta in `persone`, non in `profile_data`.
-- **Nomi colonna**: mai inventarli; verificare lo schema reale prima di scrivere SQL.
+Cloudflare Pages/Workers/R2 + Supabase + Brevo (email transazionali) + Stripe + PayPal + Google Workspace + Namecheap. Se serve qualcosa fuori stack, fermarsi e spiegare perché lo stack non basta.
 
-## Come lavorare con Marco
-- Italiano, diretto, senza fronzoli. Proposte concrete da correggere, non domande aperte.
-- **Una cosa alla volta.** Niente bundle di modifiche o query.
-- Davanti a un'incoerenza: non diagnosticare a memoria, chiedi secco "questo non torna, è giusto?".
-- Marco non è sviluppatore: preferenza web > editor > terminale.
+## Database (Supabase, progetto wbtougychlhnlcnonqge)
+
+- MAI inventare nomi di colonne o tabelle: verificare sempre contro il codice live o chiedere. In caso di dubbio, fermarsi.
+- Trappola nota: la vista `crm_leads` NON espone le colonne `coda`/`fascia` — le scritture passano dalla RPC `imposta_queue_fascia` (verificare il nome esatto nel codice prima dell'uso).
+- Modello funnel canonico: ogni corso ha esattamente 3 stati: `prenotato_X` / `iscritto_X` / `concluso_X`.
+- Prenotazioni: tabella canonica `prenotazioni_prima_lezione` (NON la vecchia `crm_prime_lezioni`). Capienza slot: max 6.
+- VIETATO scrivere sul database o modificare la logica di scrittura (prenotazioni, iscrizioni, pagamenti) senza istruzione esplicita nel task. Il DB collegato è quello di PRODUZIONE, con dati reali.
+
+## Regole di codice
+
+- Consegnare file completi e deployabili, mai diff parziali da ricomporre a mano.
+- Verificare la sintassi JS di ogni file toccato (equivalente di `node --check`).
+- HTML statico, nessun build step: quello che sta nel repo è quello che va online.
+- Non introdurre framework, bundler o dipendenze npm senza richiesta esplicita.
+
+## Regole UI
+
+- Testi mai sotto i 13px.
+- Mai `var(--text3)` (grigio chiaro) su dati operativi.
+- Bottoni di azione primaria scuri, mai grigi.
+- Tono dei testi: diretto, caldo, mai da guru. Metafore verticali (volare, vetta, cordata) benvenute. Il cliente è l'eroe, mai promesse miracolose. Niente CTA basate su paura o scarsità.
+
+## Come lavorare
+
+- Un task alla volta, portato a termine. Se il task è ambiguo, fare la scelta più conservativa e segnalarla nella PR.
+- Nella descrizione della PR: cosa è stato modificato, quali file, cosa verificare sull'anteprima.
+- Non toccare file fuori dal perimetro del task.
+- Documentazione di dettaglio (quando presente) in `/docs`: consultarla prima di lavorare su portale, DB o infrastruttura.
