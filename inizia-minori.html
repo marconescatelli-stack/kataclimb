@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-minori v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
+<!-- KC-BUILD: inizia-minori v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -277,7 +277,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   async function caricaSlot(){
     const { data, error } = await sb.from('corsi_attivi_settimanali')
       .select('id, fascia, giorno_settimana, ora_inizio, ora_fine')
-      .eq('tipo_corso','prima_lezione')
+      .in('tipo_corso',['prima_lezione_bambini','prima_lezione_ragazzi'])
       .in('fascia',['bambini','ragazzi'])
       .eq('status','attivo');
     if (error) throw error;
