@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-minori v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
+<!-- KC-BUILD: inizia-minori v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -18,16 +18,30 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
-<!-- Meta Pixel -->
+<!-- Meta Pixel · gated dal consenso (KC-PIXEL v1, come inizia.html) -->
 <script>
+(function(){
   var PIXEL_ID = '4033907056821757';
-  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-  document,'script','https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', PIXEL_ID);
-  fbq('track', 'PageView');
+  window.kcPixelReady = false;
+  window.kcInitPixel = function(){
+    if (window.kcPixelReady) return;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', PIXEL_ID);
+    fbq('track', 'PageView');
+    window.kcPixelReady = true;
+  };
+  window.kcTrack = function(name, params, opts){
+    if (window.kcPixelReady && window.fbq) { fbq('track', name, params || {}, opts || {}); }
+  };
+  try { if (localStorage.getItem('kc_consent') === 'granted') {
+    window.kcInitPixel();
+    window.kcTrack('ViewContent', {content_name:'Prima Lezione Bambini e Ragazzi', currency:'EUR'});
+  } } catch(e){}
+})();
 </script>
 
 <style>
@@ -137,6 +151,35 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 </style>
 </head>
 <body>
+
+<!-- ═══ Banner consenso · KataClimb (KC-PIXEL v1) ═══ -->
+<div id="kc-consent" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#0B2E42;color:#F5F0E8;padding:16px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.45;box-shadow:0 -2px 14px rgba(0,0,0,.28)">
+  <div style="max-width:760px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+    <span style="flex:1;min-width:220px">Usiamo cookie tecnici e di misurazione (Meta Pixel) per migliorare la tua esperienza e capire l'efficacia delle nostre campagne. Puoi accettare o rifiutare.</span>
+    <span style="display:flex;gap:8px;flex-shrink:0">
+      <button id="kc-consent-no" type="button" style="background:transparent;color:#F5F0E8;border:1px solid #ffffff55;border-radius:8px;padding:9px 16px;font-size:14px;cursor:pointer">Rifiuta</button>
+      <button id="kc-consent-yes" type="button" style="background:#C45D3E;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer">Accetta</button>
+    </span>
+  </div>
+</div>
+<script>
+(function(){
+  var box = document.getElementById('kc-consent');
+  var saved = null;
+  try { saved = localStorage.getItem('kc_consent'); } catch(e){}
+  if (!saved) { box.style.display = 'block'; }
+  function chiudi(scelta){
+    try { localStorage.setItem('kc_consent', scelta); } catch(e){}
+    box.style.display = 'none';
+    if (scelta === 'granted' && window.kcInitPixel) {
+      window.kcInitPixel();
+      window.kcTrack('ViewContent', {content_name:'Prima Lezione Bambini e Ragazzi', currency:'EUR'});
+    }
+  }
+  document.getElementById('kc-consent-yes').onclick = function(){ chiudi('granted'); };
+  document.getElementById('kc-consent-no').onclick  = function(){ chiudi('denied'); };
+})();
+</script>
 
 <header class="header">
   <img src="/logo-rcc.png" alt="Accademia RCC" class="logo logo-rcc">
@@ -412,7 +455,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     $('paga-label').textContent = 'Un attimo…';
 
     const consent = (localStorage.getItem('kc_consent') === 'granted') ? 'yes' : 'no';
-    try { fbq('track', 'InitiateCheckout', { value: PREZZO[selezione.fascia], currency: 'EUR' }); } catch(e){}
+    try { window.kcTrack('InitiateCheckout', { value: PREZZO[selezione.fascia], currency: 'EUR' }); } catch(e){}
 
     try {
       const res = await fetch(`${WORKER_URL}/create-checkout-session`, {
