@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
+<!-- KC-BUILD: libro v2.2 · 2026-07-17 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -146,6 +147,15 @@
     color: var(--rock-light);
   }
 
+  .book-hero .tagline {
+    max-width: 620px;
+    margin: 1.5rem auto 0;
+    font-size: 1.1rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: rgba(245,240,232,0.85);
+  }
+
   /* === COVER === */
   .cover-section {
     background: var(--chalk);
@@ -166,10 +176,125 @@
     display: block;
   }
 
+  /* === SEZIONI CONTENUTO === */
+  .section {
+    padding: 3.5rem 2rem;
+  }
+
+  .section-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .section .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--rope);
+    margin-bottom: 1rem;
+  }
+
+  .section h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+    line-height: 1.2;
+    margin-bottom: 1.25rem;
+  }
+
+  .section p {
+    font-size: 1.02rem;
+    font-weight: 300;
+    line-height: 1.75;
+    margin-bottom: 1.1rem;
+  }
+
+  .section p strong { font-weight: 600; }
+
+  .section-dark {
+    background: var(--void);
+    color: var(--chalk);
+  }
+
+  .section-dark h2 { color: var(--chalk); }
+  .section-dark p { color: rgba(245,240,232,0.85); }
+
+  /* === CARDS COSA TI PORTA === */
+  .porta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .porta-card {
+    background: rgba(245,240,232,0.06);
+    border-left: 3px solid var(--rope);
+    padding: 1.5rem 1.5rem 1.4rem;
+  }
+
+  .porta-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.6rem;
+    color: var(--rope-light);
+  }
+
+  .porta-card p {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    margin-bottom: 0;
+  }
+
+  /* === PER CHI È === */
+  .perchi-list {
+    list-style: none;
+    margin-top: 1.5rem;
+  }
+
+  .perchi-list li {
+    position: relative;
+    padding-left: 1.8rem;
+    font-size: 1.02rem;
+    font-weight: 300;
+    line-height: 1.7;
+    margin-bottom: 0.9rem;
+  }
+
+  .perchi-list li::before {
+    content: '↑';
+    position: absolute;
+    left: 0;
+    color: var(--rope);
+    font-weight: 600;
+  }
+
+  /* === PONTE ACCADEMIA === */
+  .ponte {
+    background: linear-gradient(135deg, var(--sky-dark), var(--void));
+    color: var(--chalk);
+    text-align: center;
+  }
+
+  .ponte p {
+    max-width: 620px;
+    margin-left: auto;
+    margin-right: auto;
+    color: rgba(245,240,232,0.9);
+  }
+
+  .ponte .grande {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.3rem, 3vw, 1.7rem);
+    line-height: 1.35;
+    font-weight: 400;
+    margin-bottom: 1.2rem;
+  }
+
   /* === CTA === */
   .book-cta {
     background: var(--chalk);
-    padding: 0 2rem 4rem;
+    padding: 3.5rem 2rem 4rem;
     text-align: center;
   }
 
@@ -237,6 +362,7 @@
   <div class="label">Il Libro</div>
   <h1>Scalare <em>l'Impossibile</em></h1>
   <p class="author">Marco Nescatelli</p>
+  <p class="tagline">La paura non è il tuo nemico. È la porta. Questo libro racconta come attraversarla — e cosa c'è dall'altra parte.</p>
 </section>
 
 <section class="cover-section">
@@ -245,12 +371,85 @@
   </div>
 </section>
 
-<section class="book-cta">
+<section class="book-cta" style="padding-top:0;">
   <a href="https://amzn.to/3NmlLM8" target="_blank" rel="noopener" class="cta-btn">
     Acquista su Amazon
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l10-10"/><path d="M7 7h10v10"/></svg>
   </a>
-  <p class="cta-note">Disponibile in formato cartaceo e Kindle</p>
+  <p class="cta-note">Disponibile in formato cartaceo e Kindle · Consegna ovunque tu sia</p>
+</section>
+
+<section class="section section-dark">
+  <div class="section-inner">
+    <div class="label">Ti manca la forza?</div>
+    <h2>Non è la forza che ti manca. E nemmeno la tecnica.</h2>
+    <p>Tante persone mi dicono la stessa cosa prima di iniziare: <strong>"vorrei prepararmi, non mi sento abbastanza forte"</strong>. Ti capisco. Ma forza e tecnica sono la parte facile: te le diamo noi, con il metodo, un passo alla volta. Quello che manca davvero è un'altra cosa — quel fuoco che hai dentro e che non senti più. E se non lo senti, quasi sempre è perché in fondo c'è una paura che ti blocca, silenziosa e ben camuffata.</p>
+    <p>Io ho avuto una fortuna strana: la mia paura era così forte che non potevo nasconderla. Non sapevo gestirla, né bloccarla. Così ho dovuto guardarla in faccia e imparare a conoscerla. I più, invece, riescono a camuffarla e tenerla sopita per anni: fuori sembra tutto a posto, ma il fuoco resta spento.</p>
+    <p>La vera forza non sta nei muscoli. Sta nel <strong>sentirsi sostenuti, mantenuti e accompagnati in ogni passo</strong>. Nel sentirsi parte, in armonia con ciò che si sente e con le proprie relazioni. È lì che il fuoco si riaccende — e questo libro è il primo passo per ritrovarlo.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="label">Perché l'ho scritto</div>
+    <h2>Da bambino avevo paura di tutto.</h2>
+    <p>Poi, a dodici anni, ho visto degli arrampicatori su una parete. E ho capito che c'era un altro modo di stare al mondo. Da lì sono arrivati la Coppa del Mondo di arrampicata, migliaia di itinerari sulla roccia, il ghiaccio, il deserto, le cadute, gli infortuni, i ritorni.</p>
+    <p>Ma la scalata più difficile non è mai stata su una parete. È stata dentro: scoprire che la mia ossessione per l'arrampicata era una fuga, non libertà. Che il bisogno di essere visto distorceva tutto. E che la vera vetta non è in alto — <strong>è la versione di te che non conosci ancora</strong>.</p>
+    <p>Questo libro è il racconto onesto di quel viaggio, e di come da lì è nato il metodo KataClimb: un sistema per integrare corpo, mente e spirito, dove la paura smette di comandare e diventa la tua guida più lucida.</p>
+  </div>
+</section>
+
+<section class="section section-dark">
+  <div class="section-inner">
+    <div class="label">Cosa ti porta</div>
+    <h2>Non è un libro sull'arrampicata. È un libro su di te.</h2>
+    <div class="porta-grid">
+      <div class="porta-card">
+        <h3>La paura come alleata</h3>
+        <p>Il vero problema non è la paura di cadere. È la paura di scoprirsi. Imparerai a riconoscerla, ad ascoltarla e a usarla come bussola invece di combatterla.</p>
+      </div>
+      <div class="porta-card">
+        <h3>Storie vere, vissute</h3>
+        <p>Competizioni mondiali, pareti che pochi al mondo hanno salito, cascate di ghiaccio, immersioni, incidenti e rinascite. Nessuna teoria da salotto: tutto quello che leggi è stato vissuto sulla pelle.</p>
+      </div>
+      <div class="porta-card">
+        <h3>Il metodo KataClimb</h3>
+        <p>Come nasce un sistema che unisce spiritualità, scienza e movimento verticale — e perché la ripetizione meccanica rinforza i limiti invece di superarli.</p>
+      </div>
+      <div class="porta-card">
+        <h3>Una direzione pratica</h3>
+        <p>Non ispirazione che evapora il giorno dopo: una mentalità da portare nella vita di tutti i giorni, per viverla piena, entusiasta e da protagonista.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="label">Per chi è</div>
+    <h2>Se ti riconosci qui, è per te.</h2>
+    <ul class="perchi-list">
+      <li>Senti che nella tua vita c'è di più, ma qualcosa ti trattiene dal andarlo a prendere.</li>
+      <li>Vuoi capire come trasformare la paura — dell'altezza, del giudizio, del cambiamento — in energia.</li>
+      <li>Stai per iniziare il tuo percorso in Accademia e vuoi arrivare con la mentalità giusta.</li>
+      <li>Cerchi una storia vera, senza formule magiche e senza guru: solo esperienza vissuta e condivisa.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section ponte">
+  <div class="section-inner">
+    <p class="grande">Il percorso inizia da dove sei.<br>Anche in vacanza, anche sotto l'ombrellone.</p>
+    <p>L'Accademia e questo libro fanno la stessa cosa, in due modi diversi: <strong>ti mostrano ciò che sei</strong>, dentro uno spazio favorevole e fertile dove puoi fiorire e manifestare tutto ciò che provi. Chi arriva dopo aver letto il libro parte con un vantaggio: conosce già lo spirito del viaggio. Il resto lo scopriamo insieme, in parete e in cordata.</p>
+  </div>
+</section>
+
+<section class="book-cta">
+  <a href="https://amzn.to/3NmlLM8" target="_blank" rel="noopener" class="cta-btn">
+    Inizia la tua scalata
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l10-10"/><path d="M7 7h10v10"/></svg>
+  </a>
+  <p class="cta-note">Disponibile su Amazon in formato cartaceo e Kindle</p>
 </section>
 
 <footer>
