@@ -120,7 +120,7 @@ h1 .accent{color:var(--sky)}
 .foot .mid a{color:rgba(255,255,255,.7);text-decoration:underline}
 .foot .legal{color:rgba(255,255,255,.4);font-size:11px;margin-top:14px}
 </style>
-<!-- ═══ Meta Pixel + consenso GDPR · KataClimb (KC-PIXEL v1) ═══ -->
+<!-- ═══ Meta Pixel + consenso GDPR · KataClimb (KC-PIXEL v2 · KC-BUILD: grazie v2 · 2026-07-16 · PURCHASE DINAMICO Onda 1 audit: value+content_name dai parametri &tipo=&importo= della success_url, stripe-worker v3.68; fallback legacy 25€/Prima Lezione per sessioni pre-deploy) ═══ -->
 <script>
 (function(){
   var PIXEL_ID = '4033907056821757';
@@ -215,11 +215,28 @@ h1 .accent{color:var(--sky)}
     document.getElementById('session-block').style.display = 'block';
   }
 
-  // ═══ Meta Pixel · evento Purchase (KC-PIXEL v1) ═══
-  // event_id = session_id Stripe → deduplica con il futuro evento Conversions API server-side
+  // ═══ Meta Pixel · evento Purchase (KC-PIXEL v2, Onda 1 audit) ═══
+  // event_id = session_id Stripe → deduplica con l'evento Conversions API server-side.
+  // v2: tipo+importo arrivano dalla success_url (stripe-worker v3.68) — prima il
+  // Purchase era hardcoded 25€/"Prima Lezione" anche per minori (10/15€),
+  // gruppi (N×25€) e Open (115/215€). Fallback legacy per le sessioni Stripe
+  // create prima del deploy v3.68 (senza i nuovi parametri).
+  const KC_TIPO_LABEL = {
+    prima_lezione:          'Prima Lezione',
+    prima_lezione_bambini:  'Prima Lezione Bambini (6-11)',
+    prima_lezione_ragazzi:  'Prima Lezione Ragazzi (12-17)',
+    pacchetto_intero:       'Pacchetto Open intero',
+    pacchetto_meta_open:    'Pacchetto ½ Open + Prima Lezione',
+    saldo_open_intero:      'Pacchetto Open intero',
+    iscrizione_meta_open:   'Mezza Open',
+  };
+  const kcTipo    = params.get('tipo') || '';
+  const kcImporto = parseFloat(params.get('importo') || '');
   function kcPurchase(){
     if (!window.kcTrack) return;
-    window.kcTrack('Purchase', { value: 25, currency: 'EUR', content_name: 'Prima Lezione' },
+    const value = (isFinite(kcImporto) && kcImporto > 0) ? kcImporto : 25; // fallback legacy
+    const label = KC_TIPO_LABEL[kcTipo] || (kcTipo ? kcTipo : 'Prima Lezione');
+    window.kcTrack('Purchase', { value: value, currency: 'EUR', content_name: label },
       sessionId ? { eventID: sessionId } : {});
   }
   (function(){
