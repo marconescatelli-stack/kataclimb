@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-dopo v3 · 2026-06-17 · FIX getUTM() (stesso bug di inizia v4): intestazione persa -> return orfano -> SyntaxError -> spinner date infinito. Ripristinata. CUMULA v2 · 2026-06-16 · = inizia v4 (GRUPPO 1-6) + finestra 2 SETTIMANE. Da girare via WhatsApp. · base inizia v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: inizia-dopo v4 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (calcolaRange avanza fino a 14 giorni validi, la pausa non consuma la finestra) + banner riapertura 1° settembre; messaggio vuoto reso neutro. CUMULA v3 · 2026-06-17 · FIX getUTM() (stesso bug di inizia v4): intestazione persa -> return orfano -> SyntaxError -> spinner date infinito. Ripristinata. CUMULA v2 · 2026-06-16 · = inizia v4 (GRUPPO 1-6) + finestra 2 SETTIMANE. Da girare via WhatsApp. · base inizia v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -75,6 +75,12 @@ body{
   border-radius:var(--r); font-size:14px; color:#78350F;
 }
 .cancel-banner.show{display:block}
+.pausa-banner{
+  display:none; margin:0 0 14px; padding:12px 16px;
+  background:#F0F9FF; border:1px solid #BAE6FD;
+  border-radius:var(--r); font-size:14px; color:#0C4A6E; line-height:1.45;
+}
+.pausa-banner.show{display:block}
 
 .top-pill-wrap{padding:24px 16px 0;text-align:center}
 .top-pill{
@@ -546,6 +552,7 @@ body{
     <strong>Prenota la tua prima lezione</strong><br>
     in <span class="accent">piccoli gruppi, max 6 persone</span>.
   </p>
+  <div id="pausa-banner" class="pausa-banner">Ad agosto l'Accademia è in pausa: si riparte il 1° settembre. Le date di settembre sono già prenotabili — assicurati il tuo posto.</div>
   <div id="slot-grid" class="slot-grid">
     <div class="empty"><span class="loader"></span>Carico le date disponibili…</div>
   </div>
@@ -798,14 +805,25 @@ body{
     return `${y}-${m}-${dd}`;
   }
 
+  // Pausa estiva Accademia: nessuna Prima Lezione in questo intervallo.
+  // Rimuovere o aggiornare per le chiusure future.
+  const CHIUSURA_DAL = '2026-08-01';
+  const CHIUSURA_AL  = '2026-08-31';
+
   function calcolaRange(){
     const oggi = new Date(); oggi.setHours(0,0,0,0);
     const giorni = [];
-    for(let i=1;i<=14;i++){
+    // Parte da domani e avanza finché non raccoglie 14 giorni validi,
+    // saltando la pausa estiva (che non consuma la finestra). Tetto: 60 iterazioni.
+    let offset = 0;
+    while(giorni.length < 14 && offset < 60){
+      offset++;
       const d = new Date(oggi);
-      d.setDate(d.getDate()+i);
+      d.setDate(d.getDate()+offset);
+      const isoG = isoDate(d);
+      if(isoG >= CHIUSURA_DAL && isoG <= CHIUSURA_AL) continue; // pausa estiva
       const gs = ((d.getDay()+6)%7)+1;
-      giorni.push({ data:d, iso:isoDate(d), giorno_settimana:gs });
+      giorni.push({ data:d, iso:isoG, giorno_settimana:gs });
     }
     return giorni;
   }
@@ -848,7 +866,7 @@ body{
   function renderOccorrenze(occorrenze, counts){
     const grid = document.getElementById('slot-grid');
     if(occorrenze.length === 0){
-      grid.innerHTML = '<div class="empty">Nessuna data disponibile nelle prossime 2 settimane. Riprova più tardi.</div>';
+      grid.innerHTML = '<div class="empty">Nessuna data disponibile al momento. Riprova più tardi.</div>';
       return;
     }
     grid.innerHTML = '';
@@ -1239,6 +1257,9 @@ body{
       }
 
       const range = calcolaRange();
+      if(range.some(g => g.iso >= '2026-09-01')){
+        document.getElementById('pausa-banner').classList.add('show');
+      }
       const occorrenze = [];
       range.forEach(giorno => {
         slots.forEach(s => {

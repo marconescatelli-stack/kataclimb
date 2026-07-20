@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia v8 · 2026-07-14 · MINORI->PAGINA DEDICATA: il blocco 'privata/minori -> WhatsApp' ora manda i 6-17 anni a /inizia-minori.html (WhatsApp resta solo per la privata). CUMULA v7 · 2026-07-13 · FASCIA ADULTI: la query slot filtra .eq('fascia','adulti') — gli slot Prima Lezione minori (bambini/ragazzi, cantiere inizia-minori) NON devono comparire qui a 25€. CUMULA v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: inizia v9 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (calcolaRange avanza a finestra piena, la pausa non consuma i giorni) + banner riapertura 1° settembre; messaggio vuoto reso neutro. CUMULA v8 · 2026-07-14 · MINORI->PAGINA DEDICATA: il blocco 'privata/minori -> WhatsApp' ora manda i 6-17 anni a /inizia-minori.html (WhatsApp resta solo per la privata). CUMULA v7 · 2026-07-13 · FASCIA ADULTI: la query slot filtra .eq('fascia','adulti') — gli slot Prima Lezione minori (bambini/ragazzi, cantiere inizia-minori) NON devono comparire qui a 25€. CUMULA v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -75,6 +75,12 @@ body{
   border-radius:var(--r); font-size:14px; color:#78350F;
 }
 .cancel-banner.show{display:block}
+.pausa-banner{
+  display:none; margin:0 0 14px; padding:12px 16px;
+  background:#F0F9FF; border:1px solid #BAE6FD;
+  border-radius:var(--r); font-size:14px; color:#0C4A6E; line-height:1.45;
+}
+.pausa-banner.show{display:block}
 
 .top-pill-wrap{padding:24px 16px 0;text-align:center}
 .top-pill{
@@ -546,6 +552,7 @@ body{
     <strong>Prenota la tua prima lezione</strong><br>
     in <span class="accent">piccoli gruppi, max 6 persone</span>.
   </p>
+  <div id="pausa-banner" class="pausa-banner">Ad agosto l'Accademia è in pausa: si riparte il 1° settembre. Le date di settembre sono già prenotabili — assicurati il tuo posto.</div>
   <div id="slot-grid" class="slot-grid">
     <div class="empty"><span class="loader"></span>Carico le date disponibili…</div>
   </div>
@@ -808,15 +815,28 @@ body{
     return `${y}-${m}-${dd}`;
   }
 
+  // Pausa estiva Accademia: nessuna Prima Lezione in questo intervallo.
+  // Rimuovere o aggiornare per le chiusure future.
+  const CHIUSURA_DAL = '2026-08-01';
+  const CHIUSURA_AL  = '2026-08-31';
+
   function calcolaRange(){
     const oggi = new Date(); oggi.setHours(0,0,0,0);
     const giorni = [];
-    for(let i=1;i<=7;i++){
+    // Parte da domani e avanza finché non raccoglie 7 giorni-finestra validi:
+    // la pausa estiva viene saltata SENZA consumare la finestra; il giorno chiuso
+    // puntuale (GIORNI_CHIUSI) consuma la finestra ma non si propone (comportamento
+    // preesistente). Tetto di sicurezza: 60 iterazioni.
+    let raccolti = 0, offset = 0;
+    while(raccolti < 7 && offset < 60){
+      offset++;
       const d = new Date(oggi);
-      d.setDate(d.getDate()+i);
-      const gs = ((d.getDay()+6)%7)+1;
+      d.setDate(d.getDate()+offset);
       const isoG = isoDate(d);
+      if(isoG >= CHIUSURA_DAL && isoG <= CHIUSURA_AL) continue; // pausa estiva
+      raccolti++;
       if(GIORNI_CHIUSI.has(isoG)) continue; // giorno chiuso: non proponibile
+      const gs = ((d.getDay()+6)%7)+1;
       giorni.push({ data:d, iso:isoG, giorno_settimana:gs });
     }
     return giorni;
@@ -861,7 +881,7 @@ body{
   function renderOccorrenze(occorrenze, counts){
     const grid = document.getElementById('slot-grid');
     if(occorrenze.length === 0){
-      grid.innerHTML = '<div class="empty">Nessuna data disponibile nei prossimi 7 giorni. Riprova più tardi.</div>';
+      grid.innerHTML = '<div class="empty">Nessuna data disponibile al momento. Riprova più tardi.</div>';
       return;
     }
     grid.innerHTML = '';
@@ -1255,6 +1275,9 @@ body{
       }
 
       const range = calcolaRange();
+      if(range.some(g => g.iso >= '2026-09-01')){
+        document.getElementById('pausa-banner').classList.add('show');
+      }
       const occorrenze = [];
       range.forEach(giorno => {
         slots.forEach(s => {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-minori v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
+<!-- KC-BUILD: inizia-minori v6 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (generaDate avanza a finestra piena, la pausa non consuma i giorni; giorni_chiusi puntuali invariati) + banner riapertura 1° settembre (classe .nota-estate). CUMULA v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -225,6 +225,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
   <div id="slot-loading"><span class="sp"></span> Carico le date disponibili…</div>
   <div id="slot-err">Non riesco a caricare le date. Riprova tra poco o scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
+  <div class="nota-estate" id="pausa-banner" style="display:none">Ad agosto l'Accademia è in pausa: si riparte il 1° settembre. Le date di settembre sono già prenotabili — assicurati il tuo posto.</div>
   <div class="slot-list" id="slot-list"></div>
 
   <div class="form-wrap" id="form-wrap">
@@ -327,14 +328,27 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     return data || [];
   }
 
+  // Pausa estiva Accademia: nessuna Prima Lezione in questo intervallo.
+  // Rimuovere o aggiornare per le chiusure future.
+  const CHIUSURA_DAL = '2026-08-01';
+  const CHIUSURA_AL  = '2026-08-31';
+
   function generaDate(slots){
     const out = [];
     const oggi = new Date(); oggi.setHours(0,0,0,0);
-    for (let i = 1; i <= GIORNI_AVANTI; i++) {
-      const d = new Date(oggi); d.setDate(oggi.getDate() + i);
-      const dow = d.getDay() === 0 ? 7 : d.getDay(); // 1=lun … 7=dom
+    // Parte da domani e avanza finché non raccoglie GIORNI_AVANTI giorni-finestra
+    // validi: la pausa estiva viene saltata SENZA consumare la finestra; il giorno
+    // chiuso puntuale (giorniChiusi) consuma la finestra ma non si propone
+    // (comportamento preesistente). Tetto di sicurezza: 90 iterazioni.
+    let raccolti = 0, offset = 0;
+    while (raccolti < GIORNI_AVANTI && offset < 90) {
+      offset++;
+      const d = new Date(oggi); d.setDate(oggi.getDate() + offset);
       const iso = isoLocale(d);
+      if (iso >= CHIUSURA_DAL && iso <= CHIUSURA_AL) continue; // pausa estiva
+      raccolti++;
       if (giorniChiusi.has(iso)) continue;
+      const dow = d.getDay() === 0 ? 7 : d.getDay(); // 1=lun … 7=dom
       for (const s of slots) {
         if (s.giorno_settimana === dow) {
           out.push({ key: `${s.id}|${iso}`, slot_id: s.id, fascia: s.fascia,
@@ -491,6 +505,9 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       await caricaGiorniChiusi();
       const slots = await caricaSlot();
       slotDate = generaDate(slots);
+      if (slotDate.some(s => s.dataISO >= '2026-09-01')) {
+        $('pausa-banner').style.display = '';
+      }
       $('slot-loading').style.display = 'none';
       render();
     } catch (e) {
