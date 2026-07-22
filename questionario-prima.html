@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<!-- KC-BUILD: questionario-prima v1.0 · 2026-07-22 -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La tua esperienza — KataClimb</title>
+<style>
+  :root { --crema:#F5F0E8; --inchiostro:#2C2418; --blu:#1E8FE6; --bordo:#d9d2c6; --grigio:#9a9486; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--crema);
+         color:var(--inchiostro); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:640px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:1.5rem; font-weight:700; margin-bottom:8px; }
+  .intro { margin:20px 0 36px; font-size:1.02rem; }
+  .intro p { margin-bottom:14px; }
+  .blocco { margin-bottom:34px; }
+  .scena { color:var(--grigio); font-size:.95rem; margin-bottom:6px; font-style:italic; }
+  .domanda { font-weight:600; margin-bottom:10px; font-size:1.05rem; }
+  textarea { width:100%; min-height:110px; padding:14px; border:1px solid var(--bordo);
+             border-radius:10px; font-family:inherit; font-size:1rem; background:#fff;
+             color:var(--inchiostro); resize:vertical; }
+  textarea:focus { outline:none; border-color:var(--blu); }
+  .scelta { display:flex; gap:12px; margin-top:10px; }
+  .scelta label { flex:1; border:1.5px solid var(--bordo); border-radius:10px; padding:14px;
+                  text-align:center; cursor:pointer; background:#fff; font-weight:600; }
+  .scelta input { display:none; }
+  .scelta input:checked + span { color:var(--blu); }
+  .scelta label:has(input:checked) { border-color:var(--blu); background:#eaf4fd; }
+  .gradino { border:1.5px solid var(--bordo); border-radius:14px; padding:22px; background:#fff;
+             margin-bottom:30px; }
+  .gradino .domanda { font-size:1.1rem; }
+  button { width:100%; background:var(--blu); color:#fff; border:none; border-radius:10px;
+           padding:16px; font-size:1.08rem; font-weight:700; cursor:pointer; font-family:inherit; }
+  button:disabled { opacity:.5; cursor:default; }
+  .stato { text-align:center; padding:60px 20px; }
+  .stato h2 { margin-bottom:14px; }
+  .nascosto { display:none; }
+  .errore-msg { color:#b3261e; text-align:center; margin-top:14px; min-height:1.4em; }
+  .logo { font-weight:800; letter-spacing:.02em; margin-bottom:26px; font-size:.95rem; color:var(--grigio); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">KATACLIMB · Accademia ArrampiKata RCC</div>
+
+  <div id="caricamento" class="stato"><p>Un attimo…</p></div>
+
+  <div id="nonvalida" class="stato nascosto">
+    <h2>Link non valido</h2>
+    <p>Questo collegamento non risulta attivo. Scrivici su WhatsApp e lo sistemiamo subito.</p>
+  </div>
+
+  <div id="giafatto" class="stato nascosto">
+    <h2>Le tue parole sono già con noi 🧗</h2>
+    <p>Hai già ripercorso la tua esperienza — e ti ringraziamo per averlo fatto. Ci vediamo in Accademia.</p>
+  </div>
+
+  <div id="form" class="nascosto">
+    <h1 id="saluto">Ciao</h1>
+    <div class="intro">
+      <p>ieri hai vissuto la tua prima esperienza con KataClimb. Ti scrivo perché so che non è
+      facile metabolizzare un'esperienza completamente fuori dagli schemi — ma è proprio questo
+      che cambia il risultato delle proprie azioni.</p>
+      <p>Vorrei accompagnarti a ripercorrerla con calma, per capire insieme se questa esperienza
+      ha per te il valore che serve alla tua volontà.</p>
+      <p><strong>Prenditi due minuti, senza fretta. Non ci sono risposte giuste o sbagliate —
+      c'è solo quello che hai vissuto tu, e a me interessa quello.</strong></p>
+    </div>
+
+    <div class="blocco">
+      <div class="scena">Torna al momento in cui sei entrato in Accademia. Hai varcato la porta,
+      hai visto le pareti, le persone, un posto nuovo. Fermati lì un attimo.</div>
+      <div class="domanda">Come ti sentivi in quel momento? Cosa ti passava per la testa?</div>
+      <textarea id="d1"></textarea>
+    </div>
+
+    <div class="blocco">
+      <div class="scena">Poi le mani sono andate sulla parete. Gli esercizi, i circuiti,
+      il corpo che lavora. Rientra in quei momenti.</div>
+      <div class="domanda">Cosa sentivi, nel corpo e nella testa, mentre lo facevi?</div>
+      <textarea id="d2"></textarea>
+    </div>
+
+    <div class="blocco">
+      <div class="scena">E se a un certo punto ti è sembrato tutto più semplice di quanto ti
+      aspettavi — quasi leggero — fermati proprio lì, perché quello è il punto più interessante.</div>
+      <div class="domanda">Cos'era quella semplicità, secondo te? Da dove veniva?</div>
+      <textarea id="d3"></textarea>
+    </div>
+
+    <div class="blocco">
+      <div class="scena">Poi sei uscito. La porta alle spalle, la strada, il ritorno a casa.</div>
+      <div class="domanda">Come ti sentivi uscendo? C'era qualcosa di diverso rispetto a quando sei entrato?</div>
+      <textarea id="d4"></textarea>
+    </div>
+
+    <div class="blocco">
+      <div class="scena">E adesso, mentre leggi queste righe.</div>
+      <div class="domanda">Cosa senti oggi? Nel corpo, nell'umore, in quello che ti è rimasto addosso.</div>
+      <textarea id="d5"></textarea>
+    </div>
+
+    <div class="blocco">
+      <div class="domanda">Ripensando a tutto: cosa hai scoperto di te, ieri, che prima non sapevi — o non credevi?</div>
+      <textarea id="d6"></textarea>
+    </div>
+
+    <div class="blocco">
+      <div class="scena">Ultima cosa, la più importante. Pensa a quello che hai provato e raggiunto
+      in un'ora di esperienza. Ora allarga lo sguardo.</div>
+      <div class="domanda">Secondo te, che trasformazione potresti ottenere con il percorso?</div>
+      <textarea id="d7"></textarea>
+    </div>
+
+    <div class="gradino">
+      <div class="domanda">Alla luce di quello che hai provato: vuoi che ti mandiamo la proposta
+      per il percorso KataClimb Open?</div>
+      <div class="scelta">
+        <label><input type="radio" name="proposta" value="si"><span>Sì, mandamela</span></label>
+        <label><input type="radio" name="proposta" value="no"><span>Non ora</span></label>
+      </div>
+    </div>
+
+    <div class="gradino">
+      <div class="domanda">Le tue parole aiutano chi non ha ancora vissuto questa esperienza a
+      capire cos'è. Possiamo pubblicarne un estratto, firmato solo col tuo nome, senza cognome?</div>
+      <div class="scelta">
+        <label><input type="radio" name="consenso" value="si"><span>Sì</span></label>
+        <label><input type="radio" name="consenso" value="no"><span>Preferisco di no</span></label>
+      </div>
+    </div>
+
+    <button id="invia">Consegna le tue parole</button>
+    <div class="errore-msg" id="err"></div>
+  </div>
+
+  <div id="grazie" class="stato nascosto">
+    <h2 id="grazie-titolo">Grazie 🧗</h2>
+    <p id="grazie-testo">Le tue parole sono con noi. Ci vediamo in Accademia.</p>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://wbtougychlhnlcnonqge.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+const P = new URLSearchParams(location.search).get('p') || '';
+
+function mostra(id) {
+  ['caricamento','nonvalida','giafatto','form','grazie'].forEach(function(x){
+    document.getElementById(x).classList.toggle('nascosto', x !== id);
+  });
+}
+
+async function rpc(fn, args) {
+  const r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+               'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function init() {
+  if (!P) { mostra('nonvalida'); return; }
+  try {
+    const ctx = await rpc('get_questionario_prima_context', { p_prenotazione_id: P });
+    if (!ctx || !ctx.valida) { mostra('nonvalida'); return; }
+    if (ctx.gia_compilato) { mostra('giafatto'); return; }
+    document.getElementById('saluto').textContent = 'Ciao ' + (ctx.nome || '') + ',';
+    mostra('form');
+  } catch (e) { mostra('nonvalida'); }
+}
+
+document.getElementById('invia').addEventListener('click', async function() {
+  const btn = this, err = document.getElementById('err');
+  err.textContent = '';
+  const risposte = {};
+  for (let i = 1; i <= 7; i++) {
+    risposte['d' + i] = document.getElementById('d' + i).value.trim();
+  }
+  const qualcosa = Object.values(risposte).some(function(v){ return v.length > 0; });
+  if (!qualcosa) { err.textContent = 'Scrivi almeno una risposta: anche due parole vere valgono.'; return; }
+  const prop = document.querySelector('input[name="proposta"]:checked');
+  const cons = document.querySelector('input[name="consenso"]:checked');
+
+  btn.disabled = true; btn.textContent = 'Un attimo…';
+  try {
+    const out = await rpc('salva_questionario_prima', {
+      p_prenotazione_id: P,
+      p_risposte: risposte,
+      p_vuole_proposta: prop ? prop.value === 'si' : null,
+      p_consenso: cons ? cons.value === 'si' : false
+    });
+    if (out && out.ok) {
+      if (out.proposta_accodata) {
+        document.getElementById('grazie-testo').textContent =
+          'Le tue parole sono con noi — e la proposta per il percorso KataClimb Open è in viaggio verso la tua email.';
+      }
+      mostra('grazie');
+      window.scrollTo(0, 0);
+    } else if (out && out.errore === 'gia_compilato') {
+      mostra('giafatto');
+    } else {
+      throw new Error((out && out.errore) || 'errore');
+    }
+  } catch (e) {
+    err.textContent = 'Qualcosa non ha funzionato. Riprova tra un attimo.';
+    btn.disabled = false; btn.textContent = 'Consegna le tue parole';
+  }
+});
+
+init();
+</script>
+</body>
+</html>
