@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: listino-frequenze v1.0 · 2026-08-03 · Pagina listino riservata staff (gate = sessione + ruolo: SEG_ROLES su profiles.role OPPURE STAFF_ISTRUTTORI su profile_data.staff_role — pattern oggi.html v2.12). Contenuto dal documento canonico Listini_Accademia_2026_v1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listino Frequenze e Abbonamenti · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
+  --fiducia:#FFD60A; --corpo:#FF5A1F; --gravita:#0A84FF; --cordata:#30D158;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--nero);color:var(--bianco);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;max-width:480px;margin:0 auto;padding:14px 12px 60px}
+.mono{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+a{color:inherit;text-decoration:none}
+#gate{display:none;padding:80px 24px;text-align:center}
+#gate h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:1.8rem;margin-bottom:10px}
+#gate p{color:var(--grigio);font-size:.92rem;margin-bottom:24px}
+#gate a{display:inline-block;padding:14px 28px;border-radius:12px;background:var(--fiducia);color:#000;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.05em;font-size:.9rem}
+#app{display:none}
+header.testata{padding:34px 2px 8px;text-align:center}
+header.testata h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:1.9rem;line-height:1.15}
+header.testata .sotto{color:var(--grigio);font-size:.8rem;margin-top:6px}
+header.testata .sotto b{color:var(--fiducia);font-weight:700}
+.zona{margin:22px 2px 8px;color:var(--grigio);font-weight:800;font-size:.6rem;display:flex;align-items:center;gap:8px}
+.zona::after{content:'';flex:1;height:1px;background:var(--velo)}
+.blocco{background:var(--tile);border:1px solid var(--velo);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.blocco p.nota{color:var(--grigio);font-size:.82rem;margin-top:8px}
+.blocco p.nota b{color:var(--bianco)}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--grigio);text-align:left;padding:4px 6px 6px;border-bottom:1px solid var(--velo)}
+td{padding:8px 6px;border-bottom:1px solid var(--velo);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td .p{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--fiducia);white-space:nowrap}
+td small{display:block;color:var(--grigio);font-size:.76rem;margin-top:2px;line-height:1.35}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroll table{min-width:430px}
+h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22rem;margin:2px 0 2px}
+.prezzo-hero{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1.3rem;color:var(--fiducia)}
+.prezzo-hero small{font-size:.78rem;color:var(--grigio);font-weight:600}
+.chiusa{color:var(--grigio);font-size:.82rem;font-style:italic;text-align:center;margin:26px 8px 0}
+@media print{
+  body{background:#fff;color:#000;max-width:none;padding:0}
+  :root{--tile:#fff;--bianco:#000;--grigio:#555;--velo:rgba(0,0,0,.15);--fiducia:#000}
+  .no-print,#gate{display:none!important}
+  #app{display:block!important}
+  .blocco{border:1px solid #ddd;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<button class="no-print" aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
+
+<div id="gate">
+  <h1>Listino Frequenze e Abbonamenti</h1>
+  <p id="gate-msg">Pagina riservata allo staff dell'Accademia.</p>
+  <a href="/portale.html">ENTRA</a>
+</div>
+
+<div id="app">
+<header class="testata">
+  <h1>Listino Frequenze e Abbonamenti</h1>
+  <div class="sotto mono">Accademia ArrampiKata RCC</div>
+  <div class="sotto">In vigore dal <b>1 settembre 2026</b> · Via Cassia 1634, La Storta — Roma</div>
+</header>
+
+<div class="zona mono">Abbonamenti mensili</div>
+<div class="blocco">
+  <table>
+    <tr><th>Abbonamento</th><th>Prezzo</th></tr>
+    <tr><td><b>Sala con Monitor</b><small>monitor + accesso portale KataClimb. Dall'Advance in poi; obbligatoria durante Advance, Intro Corda, Evo Corda e per le formule RCC Lab e Fly</small></td><td><span class="p">90€/mese</span></td></tr>
+    <tr><td><b>Sala + corda</b><small>su certificazione dell'istruttore tutor che attesta la preparazione alla pratica autonoma con corda. Non si sceglie: si ottiene</small></td><td><span class="p">110€/mese</span></td></tr>
+  </table>
+  <p class="nota">La sala con monitor non è un semplice ingresso: è lo spazio dell'Accademia, un monitor che accompagna la pratica e l'accesso al portale KataClimb con la memoria del proprio percorso.</p>
+</div>
+
+<div class="zona mono">Ingressi Sala con Monitor</div>
+<div class="blocco">
+  <table>
+    <tr><th>Voce</th><th>Prezzo</th></tr>
+    <tr><td>Sessione singola<small>ingresso 15€ + lezione con monitor 15€</small></td><td><span class="p">30€</span></td></tr>
+    <tr><td><b>Pacchetto 10 sessioni</b><small>10 ingressi al prezzo di 8 (120€) + monitor 10×15€ · validità 3 mesi</small></td><td><span class="p">270€</span></td></tr>
+  </table>
+  <p class="nota">Sessioni con monitor presente, prenotabili dal portale KataClimb. <b>Riservate a chi frequenta o ha completato il Corso Advance KataClimb.</b> Incluse nell'abbonamento sala con monitor. Il costo del monitor non è mai scontato: lo sconto del pacchetto vale solo sugli ingressi. Già da 3 sessioni al mese conviene il mensile.</p>
+</div>
+
+<div class="zona mono">Ingresso corda</div>
+<div class="blocco">
+  <table>
+    <tr><th>Voce</th><th>Prezzo</th></tr>
+    <tr><td>Ingresso singolo</td><td><span class="p">20€</span></td></tr>
+    <tr><td><b>Pacchetto 10 ingressi</b><small>ne paghi 8, 2 in omaggio · validità 3 mesi</small></td><td><span class="p">160€</span></td></tr>
+  </table>
+  <p class="nota"><b>Solo con certificazione dell'istruttore tutor.</b></p>
+</div>
+
+<div class="zona mono">Formule mensili specialistiche</div>
+<div class="blocco">
+  <table>
+    <tr><th>Formula</th><th>Prezzo</th></tr>
+    <tr><td>RCC Lab<small>su invito o dopo l'Advance</small></td><td><span class="p">50€/mese</span></td></tr>
+    <tr><td>Fly<small>solo dopo il completamento del Corso Evo Corda KataClimb</small></td><td><span class="p">70€/mese</span></td></tr>
+    <tr><td>Combo Fly + Lab<small>stesso requisito del Fly</small></td><td><span class="p">95€/mese</span></td></tr>
+  </table>
+  <p class="nota">Una lezione a settimana (4/mese). Il prezzo si aggiunge all'abbonamento sala, obbligatorio.</p>
+</div>
+
+<div class="zona mono">Noleggio attrezzatura</div>
+<div class="blocco">
+  <table>
+    <tr><td>Scarpette</td><td><span class="p">5€/ingresso</span></td></tr>
+    <tr><td>Imbrago</td><td><span class="p">5€/ingresso</span></td></tr>
+  </table>
+</div>
+
+<div class="zona mono">Uscite in roccia</div>
+<div class="blocco">
+  <table>
+    <tr><th>Uscita</th><th>Prezzo</th><th>Partecipanti</th></tr>
+    <tr><td>Con istruttori RCC / collaboratori</td><td><span class="p">50€</span></td><td>min 3 · max 6</td></tr>
+    <tr><td>Con Marco Nescatelli — domenicale</td><td><span class="p">75€</span></td><td>min 2 · max 6</td></tr>
+    <tr><td>Con Marco Nescatelli — infrasettimanale</td><td><span class="p">150€</span></td><td>min 2 · max 6</td></tr>
+    <tr><td><b>Uscita bambini</b></td><td><span class="p">30€</span></td><td>min 5</td></tr>
+  </table>
+</div>
+
+<div class="zona mono">Iscrizione annuale</div>
+<div class="blocco">
+  <h2 class="corso">Iscrizione annuale Accademia</h2>
+  <div class="prezzo-hero">40€</div>
+  <p class="nota">Obbligatoria per tutti, si paga al primo corso (nell'Open è già inclusa). Scade il 31 dicembre dell'anno in corso.</p>
+</div>
+<p class="chiusa">Per ogni situazione particolare, la parola definitiva è del maestro.</p>
+</div>
+
+<script>
+/* ─── CFG identica alle pagine live (oggi.html v2.12) ─── */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+};
+const SEG_ROLES=['creator','admin','segreteria'];
+const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istruttore_tutor'];
+
+async function init(){
+  const sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){document.getElementById('gate').style.display='block';return;}
+  const uid=session.user.id;
+  const[rp,rd]=await Promise.all([
+    sb.from('profiles').select('role').eq('user_id',uid).maybeSingle(),
+    sb.from('profile_data').select('staff_role').eq('user_id',uid).maybeSingle()
+  ]);
+  const role=(rp.data||{}).role, staff=(rd.data||{}).staff_role;
+  const ok=SEG_ROLES.includes(role)||STAFF_ISTRUTTORI.includes(staff);
+  if(!ok){
+    document.getElementById('gate-msg').textContent='Questa pagina è riservata allo staff dell\'Accademia.';
+    document.getElementById('gate').style.display='block';
+    return;
+  }
+  document.getElementById('app').style.display='block';
+}
+init();
+</script>
+</body>
+</html>
