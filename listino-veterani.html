@@ -2,10 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: listini v1.0 · 2026-08-03 · Pagina listino riservata staff (gate = sessione + ruolo: SEG_ROLES su profiles.role OPPURE STAFF_ISTRUTTORI su profile_data.staff_role — pattern oggi.html v2.12). Contenuto dal documento canonico Listini_Accademia_2026_v1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
+<!-- KC-BUILD: listino-veterani v1.0 · 2026-08-03 · Pagina listino riservata staff (gate = sessione + ruolo: SEG_ROLES su profiles.role OPPURE STAFF_ISTRUTTORI su profile_data.staff_role — pattern oggi.html v2.12). Contenuto dal documento canonico Listini_Accademia_2026_v1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Listini Accademia · KataClimb</title>
+<title>Listino Veterani · KataClimb</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -58,36 +58,50 @@ h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22re
 <button class="no-print" aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
 
 <div id="gate">
-  <h1>Listini Accademia</h1>
+  <h1>Listino Veterani</h1>
   <p id="gate-msg">Pagina riservata allo staff dell'Accademia.</p>
   <a href="/portale.html">ENTRA</a>
 </div>
 
 <div id="app">
 <header class="testata">
-  <h1>Listini Accademia</h1>
+  <h1>Listino Veterani</h1>
   <div class="sotto mono">Accademia ArrampiKata RCC</div>
   <div class="sotto">In vigore dal <b>1 settembre 2026</b> · Via Cassia 1634, La Storta — Roma</div>
 </header>
 
-<div class="zona mono">I listini dell'Accademia</div>
-<a class="blocco" style="display:block" href="/listino-corsi-adulti.html">
-  <h2 class="corso">Listino Corsi Adulti ›</h2>
-  <p class="nota">Prima Lezione · Open · Advance · Intro Corda · Evo Corda</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-corsi-minori.html">
-  <h2 class="corso">Listino Corsi Bambini e Ragazzi ›</h2>
-  <p class="nota">Prime Lezioni · Bambini · Ragazzi · Evo Ragazzi · Expert · sconti famiglia</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-frequenze.html">
-  <h2 class="corso">Listino Frequenze e Abbonamenti ›</h2>
-  <p class="nota">Sala con Monitor · corda · ingressi · formule · noleggio · uscite in roccia</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-veterani.html">
-  <h2 class="corso">Listino Veterani ›</h2>
-  <p class="nota">Sala libera · ingressi sala e corda — riconosciuti dal maestro</p>
-</a>
-<p class="chiusa">In vigore dal 1 settembre 2026 · Documenti ufficiali riservati allo staff.</p>
+<div class="blocco">
+  <p class="nota" style="font-size:.9rem;color:var(--bianco)">Riservato a chi ha completato l'intero percorso KataClimb ed è stato selezionato dal maestro. <b>Non è una tariffa che si richiede: è un riconoscimento</b> del cammino fatto e della piena autonomia raggiunta.</p>
+</div>
+
+<div class="zona mono">Abbonamenti</div>
+<div class="blocco">
+  <table>
+    <tr><th>Abbonamento</th><th>Prezzo</th></tr>
+    <tr><td><b>Sala libera</b><small>pratica in piena autonomia, senza monitor</small></td><td><span class="p">80€/mese</span></td></tr>
+    <tr><td><b>Sala + corda</b><small>con certificazione dell'istruttore tutor</small></td><td><span class="p">110€/mese</span></td></tr>
+  </table>
+</div>
+
+<div class="zona mono">Ingressi sala</div>
+<div class="blocco">
+  <table>
+    <tr><th>Voce</th><th>Prezzo</th></tr>
+    <tr><td>Ingresso singolo</td><td><span class="p">15€</span></td></tr>
+    <tr><td><b>Pacchetto 10 ingressi</b><small>ne paghi 8, 2 in omaggio · validità 3 mesi</small></td><td><span class="p">120€</span></td></tr>
+  </table>
+</div>
+
+<div class="zona mono">Ingressi corda</div>
+<div class="blocco">
+  <table>
+    <tr><th>Voce</th><th>Prezzo</th></tr>
+    <tr><td>Ingresso singolo<small>con certificazione dell'istruttore tutor</small></td><td><span class="p">20€</span></td></tr>
+    <tr><td><b>Pacchetto 10 ingressi</b><small>ne paghi 8, 2 in omaggio · validità 3 mesi</small></td><td><span class="p">160€</span></td></tr>
+  </table>
+</div>
+
+<p class="chiusa">Le condizioni veterani sono personali e non trasferibili. La parola definitiva su accessi e riconoscimenti è del maestro.</p>
 </div>
 
 <script>
