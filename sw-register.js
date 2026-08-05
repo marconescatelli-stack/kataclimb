@@ -1,5 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════════
  * KataClimb · Service Worker registration + Push API
+ * v3.57 — BADGE ICONA: azzera il numerino sull'icona (Badging API)
+ *   quando il portale viene aperto o torna visibile, e avvisa il SW
+ *   (CLEAR_BADGE) di azzerare il contatore locale.
  * v3.56b Step 2-4 — esposto come window.KataClimbPush
  *
  * COSA ESPONE
@@ -189,4 +192,18 @@
   };
 
   window.KataClimbPush = KCPush;
+
+  /* ─── BADGE ICONA (v3.57) ── azzera il numerino quando il portale è aperto ─ */
+  function kcAzzeraBadge() {
+    try { if ('clearAppBadge' in navigator) navigator.clearAppBadge(); } catch (e) {}
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_BADGE' });
+      }
+    } catch (e) {}
+  }
+  window.addEventListener('load', kcAzzeraBadge);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') kcAzzeraBadge();
+  });
 })();
