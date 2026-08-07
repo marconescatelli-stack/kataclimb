@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia v10 · 2026-08-03 · SCHEDE KATA 01/02/03 riscritte dai testi ORIGINALI di Marco (le precedenti erano copy inventato — "imbrago, nodi" / "spinta dalle gambe" fuori linguaggio KataClimb, vedi Brief Bonifica Lista Kata). Stesso copy già live su sumisura.html v7. Campagna Meta ferma al momento della modifica. NIENT'ALTRO toccato: finestra 7gg, checkout, tracking invariati. CUMULA v9 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (calcolaRange avanza a finestra piena, la pausa non consuma i giorni) + banner riapertura 1° settembre; messaggio vuoto reso neutro. CUMULA v8 · 2026-07-14 · MINORI->PAGINA DEDICATA: il blocco 'privata/minori -> WhatsApp' ora manda i 6-17 anni a /inizia-minori.html (WhatsApp resta solo per la privata). CUMULA v7 · 2026-07-13 · FASCIA ADULTI: la query slot filtra .eq('fascia','adulti') — gli slot Prima Lezione minori (bambini/ragazzi, cantiere inizia-minori) NON devono comparire qui a 25€. CUMULA v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: inizia v11 · 2026-08-07 · FINESTRA ESTESA A 2 SETTIMANE FINO AL 15 SET: calcolaRange raccoglie 14 giorni-finestra + titolo calendario dinamico ('Due settimane di date utili' / 'Prossimi 7 giorni') se oggi <= 2026-09-15, poi torna DA SOLO a 7 (nessun secondo deploy necessario). Tetto iterazioni 60->90 per sicurezza col salto di agosto. NIENT'ALTRO toccato: checkout gruppo 1-6, tracking, giorni_chiusi invariati. CUMULA v10 · 2026-08-03 · SCHEDE KATA 01/02/03 riscritte dai testi ORIGINALI di Marco (le precedenti erano copy inventato — "imbrago, nodi" / "spinta dalle gambe" fuori linguaggio KataClimb, vedi Brief Bonifica Lista Kata). Stesso copy già live su sumisura.html v7. Campagna Meta ferma al momento della modifica. NIENT'ALTRO toccato: finestra 7gg, checkout, tracking invariati. CUMULA v9 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (calcolaRange avanza a finestra piena, la pausa non consuma i giorni) + banner riapertura 1° settembre; messaggio vuoto reso neutro. CUMULA v8 · 2026-07-14 · MINORI->PAGINA DEDICATA: il blocco 'privata/minori -> WhatsApp' ora manda i 6-17 anni a /inizia-minori.html (WhatsApp resta solo per la privata). CUMULA v7 · 2026-07-13 · FASCIA ADULTI: la query slot filtra .eq('fascia','adulti') — gli slot Prima Lezione minori (bambini/ragazzi, cantiere inizia-minori) NON devono comparire qui a 25€. CUMULA v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -546,7 +546,7 @@ body{
 
 <section class="picker fu fu5">
   <div class="section-eyebrow">Scegli quando</div>
-  <h2>Prossimi <span class="accent">7 giorni</span>.</h2>
+  <h2 id="cal-titolo">Due settimane di <span class="accent">date utili</span>.</h2>
   <p class="sub">Disponibilità in tempo reale.</p>
   <p class="lead-cta">
     <strong>Prenota la tua prima lezione</strong><br>
@@ -827,8 +827,15 @@ body{
     // la pausa estiva viene saltata SENZA consumare la finestra; il giorno chiuso
     // puntuale (GIORNI_CHIUSI) consuma la finestra ma non si propone (comportamento
     // preesistente). Tetto di sicurezza: 60 iterazioni.
+    // v11: 14 giorni-finestra fino al 15 set 2026 incluso, poi torna a 7 automaticamente
+    const finestra = (isoDate(oggi) <= '2026-09-15') ? 14 : 7;
+    // titolo calendario allineato alla finestra (torna a "7 giorni" da solo dal 16/9)
+    const calTitolo = document.getElementById('cal-titolo');
+    if(calTitolo) calTitolo.innerHTML = (finestra === 14)
+      ? 'Due settimane di <span class="accent">date utili</span>.'
+      : 'Prossimi <span class="accent">7 giorni</span>.';
     let raccolti = 0, offset = 0;
-    while(raccolti < 7 && offset < 60){
+    while(raccolti < finestra && offset < 90){
       offset++;
       const d = new Date(oggi);
       d.setDate(d.getDate()+offset);
