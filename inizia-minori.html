@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-minori v6 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (generaDate avanza a finestra piena, la pausa non consuma i giorni; giorni_chiusi puntuali invariati) + banner riapertura 1° settembre (classe .nota-estate). CUMULA v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
+<!-- KC-BUILD: inizia-minori v7 · 2026-08-16 · CRITERIO ANNO SOLARE (caso Bertie/Georgia, 16 ago): il minimo di fascia è soddisfatto se l'età minima si compie entro il 31 dicembre dell'anno della lezione (chi compie 12 a dicembre può scegliere Ragazzi già a settembre); il massimo resta sull'età effettiva alla data della lezione (un 17enne che compie 18 a dicembre resta Ragazzi fino al compleanno). Solo frontend: nuova fasciaOk() in verificaEta(), nessuna modifica a worker/DB. CUMULA v6 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (generaDate avanza a finestra piena, la pausa non consuma i giorni; giorni_chiusi puntuali invariati) + banner riapertura 1° settembre (classe .nota-estate). CUMULA v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -413,16 +413,24 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     if (m < 0 || (m === 0 && d.getDate() < n.getDate())) e--;
     return e;
   }
+  // Criterio anno solare (v7): il MINIMO fascia è raggiunto se l'età minima
+  // si compie entro il 31 dicembre dell'anno della lezione; il MASSIMO resta
+  // sull'età effettiva alla data della lezione (un 17enne che compie 18 a
+  // dicembre resta Ragazzi fino al compleanno vero).
+  function fasciaOk(fascia, eta, etaFineAnno){
+    const [min, max] = ETA[fascia];
+    return eta <= max && etaFineAnno >= min;
+  }
   function verificaEta(){
     const warn = $('eta-warn');
     warn.classList.remove('show');
     const nascita = $('f-fnascita').value;
     if (!nascita || !selezione) return true;
     const eta = etaAllaData(nascita, selezione.dataISO);
-    const [min, max] = ETA[selezione.fascia];
-    if (eta >= min && eta <= max) return true;
+    const etaFineAnno = parseInt(selezione.dataISO.slice(0,4),10) - parseInt(nascita.slice(0,4),10);
+    if (fasciaOk(selezione.fascia, eta, etaFineAnno)) return true;
     const altra = selezione.fascia === 'bambini' ? 'ragazzi' : 'bambini';
-    if (eta >= ETA[altra][0] && eta <= ETA[altra][1]) {
+    if (fasciaOk(altra, eta, etaFineAnno)) {
       warn.innerHTML = `Alla data scelta avrà <b>${eta} anni</b>: la fascia giusta è <b>${LABEL[altra]}</b>. Tocca il filtro qui sopra e scegli un orario ${LABEL[altra]}.`;
     } else if (eta >= 18) {
       warn.innerHTML = `Alla data scelta avrà <b>${eta} anni</b>: per i maggiorenni c'è la <a href="/inizia.html">Prima Lezione adulti</a>.`;
