@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-dopo v1 · 2026-08-07 · COPIA DI inizia v10 SU FILE SEPARATO con finestra calendario 3 SETTIMANE (21 giorni-finestra, tetto iterazioni 90) e titolo 'Tre settimane di date utili'. NIENT'ALTRO toccato: chip 1-6 persone, checkout, tracking, giorni_chiusi, fascia adulti identici al v10. Base: inizia v10 · SCHEDE KATA 01/02/03 riscritte dai testi ORIGINALI di Marco (le precedenti erano copy inventato — "imbrago, nodi" / "spinta dalle gambe" fuori linguaggio KataClimb, vedi Brief Bonifica Lista Kata). Stesso copy già live su sumisura.html v7. Campagna Meta ferma al momento della modifica. NIENT'ALTRO toccato: finestra 7gg, checkout, tracking invariati. CUMULA v9 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (calcolaRange avanza a finestra piena, la pausa non consuma i giorni) + banner riapertura 1° settembre; messaggio vuoto reso neutro. CUMULA v8 · 2026-07-14 · MINORI->PAGINA DEDICATA: il blocco 'privata/minori -> WhatsApp' ora manda i 6-17 anni a /inizia-minori.html (WhatsApp resta solo per la privata). CUMULA v7 · 2026-07-13 · FASCIA ADULTI: la query slot filtra .eq('fascia','adulti') — gli slot Prima Lezione minori (bambini/ragazzi, cantiere inizia-minori) NON devono comparire qui a 25€. CUMULA v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: sumisura v7 · 2026-08-03 · BANNER "SU MISURA" SPARATO: sfondo giallo pieno, testo nero maiuscolo grande su 2 righe (richiesta Marco: il celeste piccolo si perdeva). CUMULA v6 · 2026-08-03 · DISTINZIONE VISIVA da inizia.html: <title> "Su misura ·...", top-pill "Su misura · Tutte le date fino al 30 settembre · 25€", sottotitolo hero riscritto (dichiara subito la differenza — chi apre il link capisce al volo che NON è la pagina 7 giorni). CUMULA v5 · 2026-08-03 · TITOLO SEZIONE calendario "Prossimi 7 giorni" → "Tutte le date fino al 30 settembre" (era rimasto il copy statico della finestra 7gg). CUMULA v4 · 2026-08-03 · SCHEDE 02+03 riscritte dai testi ORIGINALI di Marco (Kata_02_L_Atterraggio, Kata_03_Il_Passo_Verticale) — le precedenti erano copy inventato (vedi Brief Bonifica Lista Kata). Approvate da Marco. CUMULA v3 · 2026-08-03 · COPY "Il Pronti" riscritto (via "imbrago, nodi": fuori linguaggio, un solo nodo insegnato) → procedure di sicurezza + movimento spiegato + sostegno = pronto dal concreto. CUMULA v2 · 2026-08-03 · TETTO DATA_MAX=2026-09-30 (niente ottobre; da aggiornare o rimuovere se la pagina servirà oltre settembre). CUMULA v1 · COPIA DI inizia.html v9 con FINESTRA 30 GIORNI VALIDI (anti-procrastinazione NON applicata: pagina per link diretto manuale a persone che rientrano tardi). Uniche differenze da inizia v9: finestra 7→30 giorni validi (tetto iterazioni 60→120 per scavalcare la pausa di agosto), og:url e label pagina=sumisura.html. Tutto il resto (checkout, kc-lead, fascia adulti, gruppo, minori→/inizia-minori.html, pausa agosto) IDENTICO. REGOLA: ogni futura modifica a inizia.html va valutata anche qui. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0EA5E9">
 <meta name="robots" content="noindex,nofollow">
-<title>Prenota la tua Prima Lezione · Accademia RCC</title>
+<title>Su misura · La tua Prima Lezione · Accademia RCC</title>
 <meta name="description" content="La tua prima lezione di KataClimb. Vivi l'arrampicata con leggerezza, vai oltre i tuoi limiti con semplicità. 25 €.">
 
 <!-- Open Graph (WhatsApp, Facebook, LinkedIn, Telegram) -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://kataclimb.com/inizia-dopo.html">
+<meta property="og:url" content="https://kataclimb.com/sumisura.html">
 <meta property="og:title" content="La tua prima lezione di KataClimb · 25 €">
 <meta property="og:description" content="Vivi l'arrampicata con leggerezza. Vai oltre i tuoi limiti con semplicità. Prenota online fino a 8 ore prima.">
 <meta property="og:image" content="https://kataclimb.com/arrampicata_kalymnos_rcc.jpg">
@@ -84,9 +84,12 @@ body{
 
 .top-pill-wrap{padding:24px 16px 0;text-align:center}
 .top-pill{
-  display:inline-block; background:var(--sky); color:#fff;
-  padding:10px 24px; border-radius:var(--r-pill);
-  font-weight:900; font-size:13px; letter-spacing:.03em;
+  display:block; max-width:680px; margin:0 auto;
+  background:var(--yellow); color:#000;
+  font-weight:900; font-size:clamp(18px,4.5vw,26px);
+  line-height:1.25; text-transform:uppercase; letter-spacing:.5px;
+  padding:16px 20px; border-radius:14px;
+  box-shadow:0 4px 18px rgba(250,204,21,.45);
 }
 .top-pill u{text-decoration-thickness:2px;text-underline-offset:3px}
 
@@ -468,7 +471,7 @@ body{
 </div>
 
 <div class="top-pill-wrap fu">
-  <div class="top-pill">La tua prima lezione di arrampicata · <u>25€</u></div>
+  <div class="top-pill">Su misura<br><span style="font-size:.72em;font-weight:800">Tutte le date fino al 30 settembre · <u>25€</u></span></div>
 </div>
 
 <section class="hero fu fu1">
@@ -477,8 +480,8 @@ body{
       La tua <span class="accent">prima lezione</span> di KataClimb.
     </h1>
     <p>
-      Vivi l'arrampicata con <strong>leggerezza</strong>.
-      Vai oltre i tuoi limiti con <strong>semplicità</strong>.
+      <strong>Su misura per te:</strong> qui trovi tutte le date fino al 30 settembre.
+      Scegli il giorno giusto per il tuo rientro e assicurati il posto.
     </p>
   </div>
 </section>
@@ -546,7 +549,7 @@ body{
 
 <section class="picker fu fu5">
   <div class="section-eyebrow">Scegli quando</div>
-  <h2>Tre settimane di <span class="accent">date utili</span>.</h2>
+  <h2>Tutte le date fino al <span class="accent">30 settembre</span>.</h2>
   <p class="sub">Disponibilità in tempo reale.</p>
   <p class="lead-cta">
     <strong>Prenota la tua prima lezione</strong><br>
@@ -819,21 +822,23 @@ body{
   // Rimuovere o aggiornare per le chiusure future.
   const CHIUSURA_DAL = '2026-08-01';
   const CHIUSURA_AL  = '2026-08-31';
+  // Tetto pagina su misura: mai proporre date oltre questa (niente ottobre).
+  const DATA_MAX = '2026-09-30';
 
   function calcolaRange(){
     const oggi = new Date(); oggi.setHours(0,0,0,0);
     const giorni = [];
-    // Parte da domani e avanza finché non raccoglie 7 giorni-finestra validi:
+    // Parte da domani e avanza finché non raccoglie 30 giorni-finestra validi (tetto DATA_MAX):
     // la pausa estiva viene saltata SENZA consumare la finestra; il giorno chiuso
     // puntuale (GIORNI_CHIUSI) consuma la finestra ma non si propone (comportamento
     // preesistente). Tetto di sicurezza: 60 iterazioni.
-    // inizia-dopo: finestra 3 settimane (21 giorni-finestra)
     let raccolti = 0, offset = 0;
-    while(raccolti < 21 && offset < 90){
+    while(raccolti < 30 && offset < 120){
       offset++;
       const d = new Date(oggi);
       d.setDate(d.getDate()+offset);
       const isoG = isoDate(d);
+      if(isoG > DATA_MAX) break; // tetto: fine settembre
       if(isoG >= CHIUSURA_DAL && isoG <= CHIUSURA_AL) continue; // pausa estiva
       raccolti++;
       if(GIORNI_CHIUSI.has(isoG)) continue; // giorno chiuso: non proponibile
@@ -1232,7 +1237,7 @@ body{
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          nome, cognome, email, telefono, pagina: 'inizia.html',
+          nome, cognome, email, telefono, pagina: 'sumisura.html',
           orario: infoExtra.orario, note,
           event_id: eventId, event_source_url: window.location.href,
           fbp, fbc, consent,
@@ -1300,7 +1305,7 @@ body{
       renderOccorrenze(occorrenze, counts);
 
     } catch(err){
-      console.error('inizia.html init error:', err);
+      console.error('sumisura.html init error:', err);
       document.getElementById('slot-grid').innerHTML =
         `<div class="err">Errore caricamento date. Ricarica la pagina o scrivici a <strong>rccsegreteria@gmail.com</strong>.</div>`;
     }

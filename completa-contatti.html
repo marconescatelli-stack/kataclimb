@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!-- KC-BUILD: completa-contatti v1.0 · 2026-08-07 -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Completa il tuo profilo · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+:root{
+  --amber:#FFBB58; --ink:#16130d; --ink2:#231e15;
+  --paper:#f6f1e7; --paper2:#efe7d6; --teal:#1f8a8f;
+  --terra:#b4552d; --line:rgba(22,19,13,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Archivo",system-ui,sans-serif;background:var(--paper);color:var(--ink);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:100%;max-width:420px;background:#fff;border:1px solid var(--line);
+  border-radius:16px;padding:28px 24px;box-shadow:0 2px 16px rgba(22,19,13,.06)}
+.brand{font-family:"Archivo Black",sans-serif;font-size:14px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--terra);margin-bottom:18px}
+h1{font-family:"Archivo Black",sans-serif;font-size:24px;line-height:1.2;margin-bottom:10px}
+p.sub{font-size:14.5px;color:var(--ink2);opacity:.85;line-height:1.5;margin-bottom:22px}
+label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--ink2);margin:14px 0 5px}
+input{width:100%;font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line);
+  border-radius:10px;background:var(--paper);color:var(--ink)}
+input:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:transparent}
+button{width:100%;margin-top:22px;font-family:"Archivo Black",sans-serif;font-size:15px;
+  letter-spacing:.5px;padding:14px;border:0;border-radius:10px;background:var(--ink);
+  color:var(--amber);cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.msg{margin-top:14px;font-size:13.5px;line-height:1.45;padding:11px 13px;border-radius:9px;display:none}
+.msg.err{display:block;background:#fbeae2;color:var(--terra)}
+.msg.ok{display:block;background:#e4f1ec;color:#1e6b4f}
+.hidden{display:none}
+.done h1{color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="brand">KataClimb · Accademia</div>
+
+  <div id="stato-caricamento">
+    <p class="sub">Un momento…</p>
+  </div>
+
+  <div id="stato-form" class="hidden">
+    <h1 id="saluto">Ciao</h1>
+    <p class="sub">Il maestro ti ha invitato sul portale dell'Accademia. Lascia qui i tuoi contatti: appena inseriti, la segreteria prepara il tuo accesso.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="nome@esempio.it">
+    <label for="telefono">Telefono <span style="text-transform:none;font-weight:400">(facoltativo)</span></label>
+    <input id="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="+39 …">
+    <button id="invia">Invia i miei contatti</button>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <div id="stato-fatto" class="hidden done">
+    <h1>Fatto, grazie!</h1>
+    <p class="sub">Contatti ricevuti. Ti arriverà l'accesso al portale appena il tuo profilo è pronto. Ci vediamo in Accademia.</p>
+  </div>
+
+  <div id="stato-invalido" class="hidden">
+    <h1>Link non valido</h1>
+    <p class="sub">Questo invito non è più attivo o è già stato usato. Se pensi sia un errore, scrivi alla segreteria dell'Accademia.</p>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://wbtougychlhnlcnonqge.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+
+const qs=new URLSearchParams(location.search);
+const personaId=(qs.get('p')||'').trim();
+const UUID_RX=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function mostra(id){
+  ['stato-caricamento','stato-form','stato-fatto','stato-invalido'].forEach(function(s){
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+}
+
+async function rpc(fn, body){
+  const res=await fetch(SB_URL+'/rest/v1/rpc/'+fn,{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error('rete');
+  return res.json();
+}
+
+async function init(){
+  if(!UUID_RX.test(personaId)){ mostra('stato-invalido'); return; }
+  try{
+    const r=await rpc('get_persona_per_completamento',{p_persona_id:personaId});
+    if(r && r.ok){
+      document.getElementById('saluto').textContent='Ciao '+r.nome;
+      mostra('stato-form');
+    }else{
+      mostra('stato-invalido');
+    }
+  }catch(e){ mostra('stato-invalido'); }
+}
+
+document.getElementById('invia').addEventListener('click', async function(){
+  const btn=this;
+  const email=document.getElementById('email').value.trim();
+  const telefono=document.getElementById('telefono').value.trim();
+  const msg=document.getElementById('msg');
+  msg.className='msg';
+  if(!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    msg.className='msg err'; msg.textContent='Serve un indirizzo email valido.'; return;
+  }
+  btn.disabled=true;
+  try{
+    const r=await rpc('completa_contatti_persona',{p_persona_id:personaId,p_email:email,p_telefono:telefono||null});
+    if(r && r.ok){ mostra('stato-fatto'); return; }
+    const errori={
+      email_non_valida:'Serve un indirizzo email valido.',
+      email_gia_presente:'Questa email risulta già registrata: scrivi alla segreteria dell\'Accademia.',
+      telefono_gia_presente:'Questo numero risulta già registrato: scrivi alla segreteria dell\'Accademia.',
+      link_non_valido:'Questo invito non è più attivo.'
+    };
+    msg.className='msg err';
+    msg.textContent=errori[(r&&r.errore)||'']||'Qualcosa non ha funzionato, riprova.';
+  }catch(e){
+    msg.className='msg err'; msg.textContent='Problema di rete, riprova tra un momento.';
+  }finally{
+    btn.disabled=false;
+  }
+});
+
+init();
+</script>
+</body>
+</html>

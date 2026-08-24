@@ -11,11 +11,19 @@
  *   CACHE_VERSION bump → invalida cache vecchia automaticamente
  *
  * HOOK PRONTI (attivati in Step 4-5)
- *   - 'push' event: mostra notifica nativa
- *   - 'notificationclick': apre PWA / focus tab esistente
+ *   - 'push' event: mostra notifica nativa + badge icona (numerino)
+ *   - 'notificationclick': apre PWA / focus tab esistente + azzera badge
+ *
+ * v3.57 — BADGE ICONA (5 ago 2026): numerino stile WhatsApp sull'icona
+ *   della PWA installata (Badging API). Contatore locale in IndexedDB:
+ *   +1 a ogni push mostrata; azzerato al tocco della notifica o quando
+ *   il portale torna visibile (messaggio CLEAR_BADGE da sw-register.js).
+ *   Se il payload push porta badge_count numerico vale come assoluto
+ *   (predisposizione per conteggio reale non-lette dal Worker).
+ *   Richiede PWA installata sulla home: iOS 16.4+ / Android Chrome.
  * ════════════════════════════════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'kc-v3.56b';
+const CACHE_VERSION = 'kc-v3.57';
 const CACHE_STATIC  = `${CACHE_VERSION}-static`;
 
 // Asset pre-cache all'install (solo icone + manifest, NIENTE HTML)
@@ -139,6 +147,57 @@ async function cacheFirst(req) {
 }
 
 /* ─── PUSH (predisposto Step 4) ───────────────────────────────────── */
+/* ─── BADGE ICONA (v3.57) ─────────────────────────────────────── */
+const BADGE_DB = 'kc-badge';
+function badgeDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(BADGE_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('kv');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function badgeGet() {
+  return badgeDb().then((db) => new Promise((resolve) => {
+    const tx = db.transaction('kv', 'readonly');
+    const rq = tx.objectStore('kv').get('count');
+    rq.onsuccess = () => resolve(Number(rq.result) || 0);
+    rq.onerror = () => resolve(0);
+  })).catch(() => 0);
+}
+function badgeSet(n) {
+  return badgeDb().then((db) => new Promise((resolve) => {
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(n, 'count');
+    tx.oncomplete = () => resolve(n);
+    tx.onerror = () => resolve(n);
+  })).catch(() => n);
+}
+async function badgeIncrementa(assoluto) {
+  let n;
+  if (Number.isFinite(assoluto) && assoluto >= 0) {
+    n = Math.floor(assoluto);
+  } else {
+    n = (await badgeGet()) + 1;
+  }
+  await badgeSet(n);
+  try {
+    if (self.navigator && 'setAppBadge' in self.navigator) {
+      if (n > 0) await self.navigator.setAppBadge(n);
+      else await self.navigator.clearAppBadge();
+    }
+  } catch (e) { /* Badging API non supportata: nessun danno */ }
+  return n;
+}
+async function badgeAzzera() {
+  await badgeSet(0);
+  try {
+    if (self.navigator && 'clearAppBadge' in self.navigator) {
+      await self.navigator.clearAppBadge();
+    }
+  } catch (e) { /* ok */ }
+}
+
 self.addEventListener('push', (event) => {
   let data = {};
   try {
@@ -158,7 +217,12 @@ self.addEventListener('push', (event) => {
     silent:  !!data.silent,
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    await self.registration.showNotification(title, options);
+    if (!options.silent) {
+      await badgeIncrementa(Number(data.badge_count));
+    }
+  })());
 });
 
 /* ─── NOTIFICATION CLICK ──────────────────────────────────────────── */
@@ -167,6 +231,7 @@ self.addEventListener('notificationclick', (event) => {
   const url = (event.notification.data && event.notification.data.url) || '/portale.html';
 
   event.waitUntil((async () => {
+    await badgeAzzera();
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     // Se c'è già una finestra aperta della PWA, le do focus
     for (const c of all) {
@@ -186,5 +251,8 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'CLEAR_BADGE') {
+    event.waitUntil(badgeAzzera());
   }
 });
