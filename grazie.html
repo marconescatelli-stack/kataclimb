@@ -120,7 +120,7 @@ h1 .accent{color:var(--sky)}
 .foot .mid a{color:rgba(255,255,255,.7);text-decoration:underline}
 .foot .legal{color:rgba(255,255,255,.4);font-size:11px;margin-top:14px}
 </style>
-<!-- ═══ Meta Pixel + consenso GDPR · KataClimb (KC-PIXEL v2 · KC-BUILD: grazie v2 · 2026-07-16 · PURCHASE DINAMICO Onda 1 audit: value+content_name dai parametri &tipo=&importo= della success_url, stripe-worker v3.68; fallback legacy 25€/Prima Lezione per sessioni pre-deploy) ═══ -->
+<!-- ═══ Meta Pixel + consenso GDPR · KataClimb (KC-PIXEL v2 · KC-BUILD: grazie v3 · 2026-08-24 · + etichetta prima_famiglia -> 'Prima Lezione in Famiglia' in KC_TIPO_LABEL (success_url famiglia: tipo=prima_famiglia&importo=<totale>); il Purchase resta dinamico dai parametri, il tipo sconosciuto non rompeva già la pagina (fallback). CUMULA v2 · 2026-07-16 · PURCHASE DINAMICO Onda 1 audit: value+content_name dai parametri &tipo=&importo= della success_url, stripe-worker v3.68; fallback legacy 25€/Prima Lezione per sessioni pre-deploy) ═══ -->
 <script>
 (function(){
   var PIXEL_ID = '4033907056821757';
@@ -225,6 +225,7 @@ h1 .accent{color:var(--sky)}
     prima_lezione:          'Prima Lezione',
     prima_lezione_bambini:  'Prima Lezione Bambini (6-11)',
     prima_lezione_ragazzi:  'Prima Lezione Ragazzi (12-17)',
+    prima_famiglia:         'Prima Lezione in Famiglia',
     pacchetto_intero:       'Pacchetto Open intero',
     pacchetto_meta_open:    'Pacchetto ½ Open + Prima Lezione',
     saldo_open_intero:      'Pacchetto Open intero',
