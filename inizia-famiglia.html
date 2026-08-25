@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-famiglia v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
+<!-- KC-BUILD: inizia-famiglia v2 · 2026-08-25 · AUTO-SELEZIONE ORARIO GENITORI: quando il figlio NON è già iscritto e la nascita determina la fascia, l'orario genitori viene selezionato in automatico abbinando ora_inizio (bambini 17–18 → genitori 17:00; ragazzi 18–19:30 → genitori 18:00), MAI per id. Scatta al cambio fascia (autoSelezionaOrario + lastAutoFascia), resta modificabile a mano (se l'utente cambia orario compare il warning di coerenza esistente); se cambia la nascita e cambia la fascia ri-auto-seleziona; figlio già iscritto → nessuna auto-selezione, scelta libera. CUMULA v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -400,6 +400,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   let orarioSel = null;   // slot genitori selezionato
   let dataSel   = null;   // ISO giovedì selezionato
   let g2Attivo  = false;
+  let lastAutoFascia = null;   // fascia per cui è già stato auto-selezionato l'orario genitori (rispetta le modifiche manuali)
 
   if (new URLSearchParams(location.search).get('cancelled') === '1') {
     $('cancel-banner').classList.add('show');
@@ -633,8 +634,25 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     return incompleto ? null : tot;
   }
 
+  // Auto-selezione dell'orario genitori in base alla fascia del figlio (abbinamento per ora_inizio,
+  // MAI per id): fascia bambini (17–18) → slot genitori che inizia alle 17:00; ragazzi (18–19:30) →
+  // slot genitori che inizia alle 18:00. Scatta solo al cambio di fascia, così la scelta manuale
+  // dell'utente resta valida; se cambia la nascita e cambia la fascia, ri-auto-seleziona.
+  // Figlio "già iscritto": nessuna auto-selezione (non conosciamo l'orario del suo corso) → scelta libera.
+  function autoSelezionaOrario(){
+    if ($('f-iscritto').checked) { lastAutoFascia = null; return; }
+    const fascia = fasciaFiglio();
+    if (!fascia || !slotFiglio[fascia]) { lastAutoFascia = null; return; }
+    if (fascia === lastAutoFascia) return;   // già auto-selezionato per questa fascia: non sovrascrivo scelte manuali
+    const target = ora5(slotFiglio[fascia].ora_inizio);
+    const match = slotGenitori.find(s => ora5(s.ora_inizio) === target);
+    lastAutoFascia = fascia;
+    if (match) { orarioSel = match; renderOrario(); renderDate(); }
+  }
+
   function aggiornaTutto(){
     aggiornaFiglio();
+    autoSelezionaOrario();
     verificaCoerenza();
     aggiornaTotale();
   }
