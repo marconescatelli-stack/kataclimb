@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-famiglia v2 · 2026-08-25 · AUTO-SELEZIONE ORARIO GENITORI: quando il figlio NON è già iscritto e la nascita determina la fascia, l'orario genitori viene selezionato in automatico abbinando ora_inizio (bambini 17–18 → genitori 17:00; ragazzi 18–19:30 → genitori 18:00), MAI per id. Scatta al cambio fascia (autoSelezionaOrario + lastAutoFascia), resta modificabile a mano (se l'utente cambia orario compare il warning di coerenza esistente); se cambia la nascita e cambia la fascia ri-auto-seleziona; figlio già iscritto → nessuna auto-selezione, scelta libera. CUMULA v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
+<!-- KC-BUILD: inizia-famiglia v3 · 2026-08-26 · BONIFICA TERMINOLOGIA (solo testi utente, sostituzioni esatte decise da Marco): via il diminutivo "Mello" da tutti i testi utente — hero "col tuo istruttore", sottotitolo Passo 2 "col vostro istruttore", etichetta "Orario dei genitori (giovedì)", card orario "col tuo istruttore"; via "vera" e "muro" — "Un'ora in parete, ciascuno col suo gruppo" e "la sua prima ora in parete". CUMULA v3 · 2026-08-26 · DESCRIZIONI DELLE LEZIONI (solo testi, nessuna logica di prenotazione/pagamento toccata): tre descrizioni motivazionali approvate da Marco. Blocco figlio: due testi alternativi (DESC_FASCIA.bambini / DESC_FASCIA.ragazzi) in #desc-figlio sotto lo slot del figlio, commutati da aggiornaFiglio() sulla stessa fascia che già commuta slot e prezzo; se il figlio è "già iscritto" nessuna delle due è visibile. Blocco genitori: #desc-genitori sopra la scelta dell'orario, sempre visibile (statico in HTML). Stile .desc-lezione = testo secondario 13.5px con filetto a sinistra, non un box. CUMULA v2 · 2026-08-25 · AUTO-SELEZIONE ORARIO GENITORI: quando il figlio NON è già iscritto e la nascita determina la fascia, l'orario genitori viene selezionato in automatico abbinando ora_inizio (bambini 17–18 → genitori 17:00; ragazzi 18–19:30 → genitori 18:00), MAI per id. Scatta al cambio fascia (autoSelezionaOrario + lastAutoFascia), resta modificabile a mano (se l'utente cambia orario compare il warning di coerenza esistente); se cambia la nascita e cambia la fascia ri-auto-seleziona; figlio già iscritto → nessuna auto-selezione, scelta libera. CUMULA v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -122,6 +122,10 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .figlio-orario.show{display:block}
 .figlio-orario b{color:var(--ink)}
 
+/* descrizioni delle lezioni */
+.desc-lezione{display:none;font-size:13.5px;line-height:1.65;color:var(--ink2);margin:0 0 14px;padding-left:12px;border-left:2px solid var(--border2)}
+.desc-lezione.show{display:block}
+
 /* aggiungi genitore */
 .add-genitore{background:#fff;border:1.5px dashed var(--border2);border-radius:var(--r);padding:11px 14px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer;width:100%;text-align:center}
 .add-genitore:hover{border-color:var(--sky);color:var(--sky)}
@@ -230,7 +234,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   <img src="/hero-prima-lezione-minori.jpg" alt="Genitore e figlio in arrampicata all'Accademia RCC" class="hero-img">
   <div class="hero-inner fu">
     <h1>La prima lezione di arrampicata <em>in famiglia</em></h1>
-    <p>Il giovedì all'Accademia RCC: tuo figlio arrampica col suo gruppo, tu (o entrambi i genitori) fai la tua Prima Lezione nella stessa ora, con Mello. Un solo pagamento.</p>
+    <p>Il giovedì all'Accademia RCC: tuo figlio arrampica col suo gruppo, tu (o entrambi i genitori) fai la tua Prima Lezione nella stessa ora, col tuo istruttore. Un solo pagamento.</p>
     <a href="#prenota" class="cta">Prenota →</a>
   </div>
 </section>
@@ -238,7 +242,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 <div class="spiega fu">
   <div class="spiega-card">
     <h3>Come funziona</h3>
-    <p>Mentre <b>tuo figlio</b> fa la sua prima ora sul muro con il suo gruppo, <b>tu sali insieme a lui</b>: stesso giovedì, stessa fascia oraria, la tua Prima Lezione con l'istruttore adulti. Potete venire in due genitori. <b>Un unico pagamento</b> per tutta la famiglia.</p>
+    <p>Mentre <b>tuo figlio</b> fa la sua prima ora in parete con il suo gruppo, <b>tu sali insieme a lui</b>: stesso giovedì, stessa fascia oraria, la tua Prima Lezione con l'istruttore adulti. Potete venire in due genitori. <b>Un unico pagamento</b> per tutta la famiglia.</p>
   </div>
 </div>
 
@@ -280,6 +284,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
         <div class="fgroup"><label for="f-fnascita">Data di nascita*</label><input id="f-fnascita" type="date"></div>
         <div class="eta-warn" id="eta-warn"></div>
         <div class="figlio-orario" id="figlio-orario"></div>
+        <div class="desc-lezione" id="desc-figlio"></div>
         <div class="fgroup"><label for="f-femail">Email di tuo figlio <small>(facoltativa — per il suo accesso al portale KataClimb)</small></label><input id="f-femail" type="email" inputmode="email" autocomplete="off"></div>
       </div>
     </div>
@@ -290,7 +295,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
         <div class="passo-num">2</div>
         <div>
           <h3>I genitori</h3>
-          <div class="sub-p">Uno o entrambi, la vostra Prima Lezione con Mello</div>
+          <div class="sub-p">Uno o entrambi, la vostra Prima Lezione col vostro istruttore</div>
         </div>
       </div>
 
@@ -316,7 +321,9 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       </div>
       <button type="button" class="add-genitore" id="add-genitore">+ Aggiungi l'altro genitore</button>
 
-      <div class="fsezione">Orario dei genitori (giovedì, con Mello)</div>
+      <div class="desc-lezione show" id="desc-genitori">Mentre tuo figlio è in parete col suo gruppo, tu sali col tuo istruttore: un'ora per conoscere il metodo KataClimb dal primo appoggio, una procedura alla volta. I bambini partono leggeri; noi adulti la leggerezza la dobbiamo conquistare — si comincia da qui.</div>
+
+      <div class="fsezione">Orario dei genitori (giovedì)</div>
       <div class="orario-list" id="orario-list"></div>
 
       <div class="fsezione">Scegli il giovedì</div>
@@ -357,7 +364,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 <section class="section">
   <h2>Perché insieme</h2>
   <div class="info-list">
-    <div class="info-item"><span class="ic">🧗</span><span><b>Un'ora vera sul muro, ciascuno col suo gruppo.</b> Tuo figlio con i suoi coetanei, tu con l'istruttore adulti — nella stessa fascia oraria.</span></div>
+    <div class="info-item"><span class="ic">🧗</span><span><b>Un'ora in parete, ciascuno col suo gruppo.</b> Tuo figlio con i suoi coetanei, tu con l'istruttore adulti — nella stessa fascia oraria.</span></div>
     <div class="info-item"><span class="ic">👟</span><span><b>Serve solo abbigliamento comodo.</b> Scarpette, imbrago e tutto il materiale li mettiamo noi.</span></div>
     <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b> — Via Cassia 1634, La Storta, Roma.</span></div>
     <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
@@ -382,6 +389,11 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   const PREZZO_FIGLIO   = { bambini: 10, ragazzi: 15 };
   const ETA             = { bambini: [6, 11], ragazzi: [12, 17] };
   const LABEL_FASCIA    = { bambini: 'Bambini 6–11', ragazzi: 'Ragazzi 12–17' };
+  // descrizioni della lezione del figlio: alternative, si commutano con la fascia calcolata dalla nascita
+  const DESC_FASCIA     = {
+    bambini: "Instradiamo i bambini alla disciplina attraverso il gioco, con Claudia e Mattia: una disciplina del divertimento, che prendiamo sul serio. Esercizi e circuiti su parete con materassi paracadute, con regole chiare e tutta la leggerezza di cui un bambino ha bisogno.",
+    ragazzi: "Un'ora in parete con Claudia e Mattia: esercizi, circuiti e i primi Kata del metodo. Il gioco si fa più strutturato — regole precise, procedure da imparare passo dopo passo, e l'impegno che diventa progresso."
+  };
   const PRODOTTO_FIGLIO = { bambini: 'prima_lezione_bambini', ragazzi: 'prima_lezione_ragazzi' };
 
   // Pausa estiva Accademia: nessuna Prima Lezione in questo intervallo.
@@ -516,7 +528,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     slotGenitori.forEach(s => {
       const div = document.createElement('div');
       div.className = 'orario-card' + (orarioSel && orarioSel.id === s.id ? ' sel' : '');
-      div.innerHTML = `<div class="ora">${oraRange(s.ora_inizio, s.ora_fine)}</div><div class="ist">con Mello</div>`;
+      div.innerHTML = `<div class="ora">${oraRange(s.ora_inizio, s.ora_fine)}</div><div class="ist">col tuo istruttore</div>`;
       div.addEventListener('click', () => { orarioSel = s; renderOrario(); renderDate(); aggiornaTutto(); });
       box.appendChild(div);
     });
@@ -567,6 +579,14 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       box.classList.add('show');
     } else {
       box.classList.remove('show');
+    }
+    // descrizione della lezione del figlio: quella della fascia attiva; se è già iscritto, nessuna delle due
+    const desc = $('desc-figlio');
+    if (!iscritto && fascia && DESC_FASCIA[fascia]){
+      desc.textContent = DESC_FASCIA[fascia];
+      desc.classList.add('show');
+    } else {
+      desc.classList.remove('show');
     }
   }
 
