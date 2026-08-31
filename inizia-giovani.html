@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-dopo v2 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v1 · 2026-08-07 · COPIA DI inizia v10 SU FILE SEPARATO con finestra calendario 3 SETTIMANE (21 giorni-finestra, tetto iterazioni 90) e titolo 'Tre settimane di date utili'. NIENT'ALTRO toccato: chip 1-6 persone, checkout, tracking, giorni_chiusi, fascia adulti identici al v10. Base: inizia v10 · SCHEDE KATA 01/02/03 riscritte dai testi ORIGINALI di Marco (le precedenti erano copy inventato — "imbrago, nodi" / "spinta dalle gambe" fuori linguaggio KataClimb, vedi Brief Bonifica Lista Kata). Stesso copy già live su sumisura.html v7. Campagna Meta ferma al momento della modifica. NIENT'ALTRO toccato: finestra 7gg, checkout, tracking invariati. CUMULA v9 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (calcolaRange avanza a finestra piena, la pausa non consuma i giorni) + banner riapertura 1° settembre; messaggio vuoto reso neutro. CUMULA v8 · 2026-07-14 · MINORI->PAGINA DEDICATA: il blocco 'privata/minori -> WhatsApp' ora manda i 6-17 anni a /inizia-minori.html (WhatsApp resta solo per la privata). CUMULA v7 · 2026-07-13 · FASCIA ADULTI: la query slot filtra .eq('fascia','adulti') — gli slot Prima Lezione minori (bambini/ragazzi, cantiere inizia-minori) NON devono comparire qui a 25€. CUMULA v6 · 2026-06-25 · CONSENT->checkout: i fetch /create-checkout-session (singolo+gruppo) inviano consent ('yes' se kc_consent=granted, altrimenti 'no') -> stripe-worker v3.62 salta il Purchase CAPI se consent='no' (GDPR). Ripartito dal live con la logica giorni_chiusi (festivita') INTATTA. CUMULA v5 · 2026-06-17 · FIX getUTM(): intestazione funzione persa nel refactor v4 -> return orfano -> SyntaxError -> script intero morto -> spinner date infinito. Ripristinato 'function getUTM(){ const p = new URLSearchParams(window.location.search); ...}'. CUMULA v4 · 2026-06-16 · GRUPPO 1-6 persone: selettore "Quante persone?" + blocchi profilo per partecipante + bottone N×25€ + privata/minori→WhatsApp. Invia partecipanti[] al Worker se 2+; singolo (1 persona) INVARIATO. · v3 2026-06-13 · Link "← Torna" SOLO per navigazione interna (referrer kataclimb.com, no fbclid/utm): il funnel ads resta sigillato, chi arriva dal calendario/portale ha la via del ritorno. · form-info allineato a kc-lead v1.1+ / RPC v2: event_id condiviso + fbp/fbc/consent per dedup CAPI server-side (no doppio conteggio Lead). form-prenota/checkout/video INVARIATI. -->
+<!-- KC-BUILD: inizia-giovani v3 · 2026-08-31 · BANNER RIFORMULATO: la prima lezione e' a 20€ per TUTTI i 18-24 a prescindere dal corso che seguiranno (il venerdi' riguarda solo il corso, non la prima lezione). CUMULA v2 · NOTA CORSO VENERDI: banner sopra la griglia date (prima lezione con gli adulti negli orari a calendario; il Corso Giovani sara' il venerdi 18-19; chi non puo' il venerdi prosegue col percorso adulti) + riga venerdi nel hero. NIENT'ALTRO toccato. CUMULA v1 · PRIMA LEZIONE GIOVANI (18-24) A 20€: clone di inizia v11 con prodotto 'prima_lezione_giovani' (RICHIEDE stripe-worker: voce CATALOGO + env STRIPE_PRICE_PRIMA_GIOVANI — senza, il checkout risponde 'Prodotto non disponibile sulla landing'), prezzi 25->20 ovunque (pill, modal, bottoni, riga termini, ViewContent/InitiateCheckout value 20, content_name 'Prima Lezione Giovani'), checkbox obbligatoria f-eta 'ho 18-24 anni' validata in entrambi i rami submit (verifica documento in Accademia), selettore gruppo NASCOSTO via display:none (il ramo gruppo del worker fattura il price adulti 25€: qui solo checkout singolo; fratelli/amici prenotano ognuno il proprio posto), cross-link: 25+ -> /inizia.html, 6-17 -> /inizia-minori.html, kc-lead pagina='inizia-giovani.html', Lead content_name 'Richiesta info Prima Lezione Giovani'. INVARIATO da inizia v11: stessi slot Prima Lezione fascia adulti, finestra 14gg fino al 15 set poi 7gg, giorni_chiusi, consent/CAPI, video variant. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0EA5E9">
 <meta name="robots" content="noindex,nofollow">
-<title>Prenota la tua Prima Lezione · Accademia RCC</title>
-<meta name="description" content="La tua prima lezione di KataClimb. Vivi l'arrampicata con leggerezza, vai oltre i tuoi limiti con semplicità. 25 €.">
+<title>Prima Lezione Giovani (18–24) · Accademia RCC</title>
+<meta name="description" content="La prima lezione di KataClimb per chi ha tra i 18 e i 24 anni. Vivi l'arrampicata con leggerezza. 20 €.">
 
 <!-- Open Graph (WhatsApp, Facebook, LinkedIn, Telegram) -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://kataclimb.com/inizia-dopo.html">
-<meta property="og:title" content="La tua prima lezione di KataClimb · 25 €">
+<meta property="og:url" content="https://kataclimb.com/inizia-giovani.html">
+<meta property="og:title" content="La tua prima lezione di KataClimb · 18–24 anni · 20 €">
 <meta property="og:description" content="Vivi l'arrampicata con leggerezza. Vai oltre i tuoi limiti con semplicità. Prenota online fino a 8 ore prima.">
 <meta property="og:image" content="https://kataclimb.com/arrampicata_kalymnos_rcc.jpg">
 <meta property="og:image:secure_url" content="https://kataclimb.com/arrampicata_kalymnos_rcc.jpg">
@@ -25,7 +25,7 @@
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="La tua prima lezione di KataClimb · 25 €">
+<meta name="twitter:title" content="La tua prima lezione di KataClimb · 18–24 anni · 20 €">
 <meta name="twitter:description" content="Vivi l'arrampicata con leggerezza. Vai oltre i tuoi limiti con semplicità.">
 <meta name="twitter:image" content="https://kataclimb.com/arrampicata_kalymnos_rcc.jpg">
 
@@ -403,7 +403,7 @@ body{
   };
   try { if (localStorage.getItem('kc_consent') === 'granted') {
     window.kcInitPixel();
-    window.kcTrack('ViewContent', {content_name:'Prima Lezione', value:25, currency:'EUR'});
+    window.kcTrack('ViewContent', {content_name:'Prima Lezione Giovani', value:20, currency:'EUR'});
   } } catch(e){}
 })();
 </script>
@@ -431,7 +431,7 @@ body{
     box.style.display = 'none';
     if (scelta === 'granted' && window.kcInitPixel) {
       window.kcInitPixel();
-      window.kcTrack('ViewContent', {content_name:'Prima Lezione', value:25, currency:'EUR'});
+      window.kcTrack('ViewContent', {content_name:'Prima Lezione Giovani', value:20, currency:'EUR'});
     }
   }
   document.getElementById('kc-consent-yes').onclick = function(){ chiudi('granted'); };
@@ -468,7 +468,7 @@ body{
 </div>
 
 <div class="top-pill-wrap fu">
-  <div class="top-pill">La tua prima lezione di arrampicata · <u>25€</u></div>
+  <div class="top-pill">Prima lezione 18–24 anni · <u>20€</u></div>
 </div>
 
 <section class="hero fu fu1">
@@ -478,7 +478,9 @@ body{
     </h1>
     <p>
       Vivi l'arrampicata con <strong>leggerezza</strong>.
-      Vai oltre i tuoi limiti con <strong>semplicità</strong>.
+      Vai oltre i tuoi limiti con <strong>semplicità</strong>.<br>
+      Se hai tra i <strong>18 e i 24 anni</strong>, questa è la tua porta: <strong>20€</strong>.<br>
+      Il corso poi si terrà il <strong>venerdì 18:00–19:00</strong>.
     </p>
   </div>
 </section>
@@ -546,12 +548,19 @@ body{
 
 <section class="picker fu fu5">
   <div class="section-eyebrow">Scegli quando</div>
-  <h2>Tre settimane di <span class="accent">date utili</span>.</h2>
+  <h2 id="cal-titolo">Due settimane di <span class="accent">date utili</span>.</h2>
   <p class="sub">Disponibilità in tempo reale.</p>
   <p class="lead-cta">
     <strong>Prenota la tua prima lezione</strong><br>
     in <span class="accent">piccoli gruppi, max 6 persone</span>.
   </p>
+  <div class="pausa-banner" style="display:block">
+    Se hai tra i 18 e i 24 anni la prima lezione è questa, a <strong>20€</strong>, in uno
+    degli orari qui sotto insieme al gruppo adulti — comunque vada dopo.
+    Il <strong>Corso Giovani KataClimb (18–24)</strong> si terrà poi il
+    <strong>venerdì dalle 18:00 alle 19:00</strong>; se il venerdì non puoi,
+    prosegui semplicemente con il percorso adulti negli altri orari.
+  </div>
   <div id="pausa-banner" class="pausa-banner">Ad agosto l'Accademia è in pausa: si riparte il 1° settembre. Le date di settembre sono già prenotabili — assicurati il tuo posto.</div>
   <div id="slot-grid" class="slot-grid">
     <div class="empty"><span class="loader"></span>Carico le date disponibili…</div>
@@ -581,7 +590,7 @@ body{
 
 <div class="cta-final">
   <div class="lead">Hai già scelto la data? Scorri su e clicca SCEGLI.</div>
-  <div class="small">Pagamento sicuro tramite Stripe · 25€ una tantum</div>
+  <div class="small">Pagamento sicuro tramite Stripe · 20€ una tantum</div>
   <div class="small" style="margin-top:24px;padding-top:20px;border-top:1px solid #ffffff22;font-size:16px;color:#F5F0E8">
     Sono curioso, ma non so se fa al caso mio&hellip;
   </div>
@@ -611,7 +620,7 @@ body{
     <div class="slot-summary" id="modal-slot-summary">—</div>
 
     <form class="modal-form" id="form-prenota" autocomplete="on" novalidate>
-      <div class="grp-pick">
+      <div class="grp-pick" style="display:none">
         <div class="grp-q">Quante persone partecipano?</div>
         <div class="grp-chips" id="grp-chips">
           <button type="button" class="grp-chip on" data-n="1">1</button>
@@ -647,11 +656,17 @@ body{
       <div id="grp-extra"></div>
 
       <div class="grp-privata">
+        Venite in due o più? Ognuno prenota il suo posto da questa pagina.<br>
+        Hai <b>25 anni o più</b>? La Prima Lezione adulti è <a href="/inizia.html">qui →</a><br>
         Cerchi la prima lezione per <b>bambini o ragazzi</b> (6-17 anni)? <a href="/inizia-minori.html">È qui →</a><br>
         Vuoi lo slot tutto per te (lezione privata)?
         <a href="https://wa.me/393318743953?text=Ciao%2C%20vorrei%20info%20su%20una%20lezione%20privata" target="_blank" rel="noopener">Scrivici su WhatsApp</a>.
       </div>
 
+      <label class="terms">
+        <input id="f-eta" type="checkbox" required>
+        <span>Confermo di avere <b>tra i 18 e i 24 anni</b> (età verificata con documento in Accademia).</span>
+      </label>
       <label class="terms">
         <input id="f-terms" type="checkbox" required>
         <span>
@@ -662,14 +677,14 @@ body{
       <div class="cancel-note">
         Devi disdire o spostare la lezione? Scrivici su WhatsApp al
         <a href="https://wa.me/393318743953" target="_blank" rel="noopener">+39 331 874 3953</a>
-        almeno 8 ore prima. Sotto le 8 ore o in caso di assenza, i 25€ non sono rimborsabili.
+        almeno 8 ore prima. Sotto le 8 ore o in caso di assenza, i 20€ non sono rimborsabili.
       </div>
 
       <div class="modal-error" id="modal-error"></div>
 
       <div class="modal-actions">
         <button type="button" class="btn-close-modal" id="btn-modal-close">Annulla</button>
-        <button type="submit" class="btn-pay" id="btn-pay">Paga e prenota · 25€</button>
+        <button type="submit" class="btn-pay" id="btn-pay">Paga e prenota · 20€</button>
       </div>
     </form>
   </div>
@@ -827,9 +842,15 @@ body{
     // la pausa estiva viene saltata SENZA consumare la finestra; il giorno chiuso
     // puntuale (GIORNI_CHIUSI) consuma la finestra ma non si propone (comportamento
     // preesistente). Tetto di sicurezza: 60 iterazioni.
-    // inizia-dopo: finestra 3 settimane (21 giorni-finestra)
+    // v11: 14 giorni-finestra fino al 15 set 2026 incluso, poi torna a 7 automaticamente
+    const finestra = (isoDate(oggi) <= '2026-09-15') ? 14 : 7;
+    // titolo calendario allineato alla finestra (torna a "7 giorni" da solo dal 16/9)
+    const calTitolo = document.getElementById('cal-titolo');
+    if(calTitolo) calTitolo.innerHTML = (finestra === 14)
+      ? 'Due settimane di <span class="accent">date utili</span>.'
+      : 'Prossimi <span class="accent">7 giorni</span>.';
     let raccolti = 0, offset = 0;
-    while(raccolti < 21 && offset < 90){
+    while(raccolti < finestra && offset < 90){
       offset++;
       const d = new Date(oggi);
       d.setDate(d.getDate()+offset);
@@ -854,16 +875,17 @@ body{
   }
 
   async function caricaConteggi(slotIds, dataDal, dataAl){
-    // FIX RLS pre-campagna: la lettura diretta della tabella da anon tornava SEMPRE
-    // 0 righe (ogni data pareva libera anche a slot pieno). Ora RPC aggregata
-    // pubblica, stati allineati al trigger enforce_slot_capacity.
-    const { data, error } = await sb.rpc('conteggi_prima_lezione', { p_dal: dataDal, p_al: dataAl });
+    const { data, error } = await sb.from('prenotazioni_prima_lezione')
+      .select('slot_id, data_lezione, stato')
+      .in('slot_id', slotIds)
+      .gte('data_lezione', dataDal)
+      .lte('data_lezione', dataAl)
+      .in('stato', ['prenotato','fatto']);
     if(error) throw error;
-    const wanted = new Set(slotIds);
     const counts = {};
     (data||[]).forEach(p => {
-      if(!wanted.has(p.slot_id)) return;
-      counts[`${p.slot_id}_${p.data_lezione}`] = p.occupati;
+      const k = `${p.slot_id}_${p.data_lezione}`;
+      counts[k] = (counts[k]||0) + 1;
     });
     return counts;
   }
@@ -968,10 +990,10 @@ body{
 
   function aggiornaBottone(){
     const btn = document.getElementById('btn-pay');
-    const tot = nPersone * 25;
+    const tot = nPersone * 20;
     btn.textContent = nPersone === 1
-      ? 'Paga e prenota · 25€'
-      : `Paga e prenota · ${nPersone}×25€ = ${tot}€`;
+      ? 'Paga e prenota · 20€'
+      : `Paga e prenota · ${nPersone}×20€ = ${tot}€`;
   }
 
   document.getElementById('grp-chips').addEventListener('click', (e) => {
@@ -985,7 +1007,7 @@ body{
   function apriModal(ctx){
     modalCtx = ctx;
     document.getElementById('modal-slot-summary').innerHTML =
-      `<strong>${ctx.label}</strong>Prima Lezione · 25€`;
+      `<strong>${ctx.label}</strong>Prima Lezione Giovani · 20€`;
     document.getElementById('modal-error').classList.remove('show');
     document.getElementById('modal').classList.add('show');
     setTimeout(() => document.getElementById('f-nome').focus(), 100);
@@ -1031,6 +1053,7 @@ body{
     if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showError('Inserisci una email valida.'); return; }
     if(!telefono || telefono.length < 6){ showError('Inserisci un numero di telefono valido.'); return; }
     if(!terms){ showError('Devi accettare i Termini della Prima Lezione.'); return; }
+    if(!document.getElementById('f-eta').checked){ showError('Devi confermare di avere tra i 18 e i 24 anni.'); return; }
 
     const btn = document.getElementById('btn-pay');
     btn.disabled = true;
@@ -1043,7 +1066,7 @@ body{
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          prodotto:      'prima_lezione',
+          prodotto:      'prima_lezione_giovani',
           slot_id:       modalCtx.slot_id,
           data_lezione:  modalCtx.data_lezione,
           nome, cognome, email, telefono,
@@ -1061,7 +1084,7 @@ body{
       const { url } = await res.json();
       if(!url) throw new Error('URL pagamento non ricevuto.');
 
-      if (window.kcTrack) window.kcTrack('InitiateCheckout', { value: 25, currency: 'EUR', content_name: 'Prima Lezione' });
+      if (window.kcTrack) window.kcTrack('InitiateCheckout', { value: 20, currency: 'EUR', content_name: 'Prima Lezione Giovani' });
 
       window.location.href = url;
 
@@ -1069,7 +1092,7 @@ body{
       console.error('Pagamento errore:', err);
       showError(err.message || 'Errore di comunicazione. Riprova fra qualche istante.');
       btn.disabled = false;
-      btn.textContent = 'Paga e prenota · 25€';
+      btn.textContent = 'Paga e prenota · 20€';
     }
   });
 
@@ -1078,6 +1101,7 @@ body{
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const terms = document.getElementById('f-terms').checked;
     if(!terms){ showError('Devi accettare i Termini della Prima Lezione.'); return; }
+    if(!document.getElementById('f-eta').checked){ showError('Devi confermare di avere tra i 18 e i 24 anni.'); return; }
 
     // Persona 1 = campi principali; Persone 2..N = campi g{i}-*
     const partecipanti = [];
@@ -1100,7 +1124,7 @@ body{
     }
 
     const btn = document.getElementById('btn-pay');
-    const tot = nPersone * 25;
+    const tot = nPersone * 20;
     btn.disabled = true;
     btn.innerHTML = '<span class="field-spinner"></span> Apro pagamento…';
     document.getElementById('modal-error').classList.remove('show');
@@ -1231,7 +1255,7 @@ body{
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          nome, cognome, email, telefono, pagina: 'inizia.html',
+          nome, cognome, email, telefono, pagina: 'inizia-giovani.html',
           orario: infoExtra.orario, note,
           event_id: eventId, event_source_url: window.location.href,
           fbp, fbc, consent,
@@ -1245,7 +1269,7 @@ body{
       }
 
       // Pixel browser con LO STESSO event_id -> Meta deduplica con l'evento CAPI
-      if (window.kcTrack) window.kcTrack('Lead', { content_name: 'Richiesta info Prima Lezione' }, { eventID: eventId });
+      if (window.kcTrack) window.kcTrack('Lead', { content_name: 'Richiesta info Prima Lezione Giovani' }, { eventID: eventId });
 
       document.querySelector('#modal-info .modal').innerHTML =
         '<h3>Grazie, <span class="accent">ci sentiamo presto</span>.</h3>' +

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: sumisura v7 · 2026-08-03 · BANNER "SU MISURA" SPARATO: sfondo giallo pieno, testo nero maiuscolo grande su 2 righe (richiesta Marco: il celeste piccolo si perdeva). CUMULA v6 · 2026-08-03 · DISTINZIONE VISIVA da inizia.html: <title> "Su misura ·...", top-pill "Su misura · Tutte le date fino al 30 settembre · 25€", sottotitolo hero riscritto (dichiara subito la differenza — chi apre il link capisce al volo che NON è la pagina 7 giorni). CUMULA v5 · 2026-08-03 · TITOLO SEZIONE calendario "Prossimi 7 giorni" → "Tutte le date fino al 30 settembre" (era rimasto il copy statico della finestra 7gg). CUMULA v4 · 2026-08-03 · SCHEDE 02+03 riscritte dai testi ORIGINALI di Marco (Kata_02_L_Atterraggio, Kata_03_Il_Passo_Verticale) — le precedenti erano copy inventato (vedi Brief Bonifica Lista Kata). Approvate da Marco. CUMULA v3 · 2026-08-03 · COPY "Il Pronti" riscritto (via "imbrago, nodi": fuori linguaggio, un solo nodo insegnato) → procedure di sicurezza + movimento spiegato + sostegno = pronto dal concreto. CUMULA v2 · 2026-08-03 · TETTO DATA_MAX=2026-09-30 (niente ottobre; da aggiornare o rimuovere se la pagina servirà oltre settembre). CUMULA v1 · COPIA DI inizia.html v9 con FINESTRA 30 GIORNI VALIDI (anti-procrastinazione NON applicata: pagina per link diretto manuale a persone che rientrano tardi). Uniche differenze da inizia v9: finestra 7→30 giorni validi (tetto iterazioni 60→120 per scavalcare la pausa di agosto), og:url e label pagina=sumisura.html. Tutto il resto (checkout, kc-lead, fascia adulti, gruppo, minori→/inizia-minori.html, pausa agosto) IDENTICO. REGOLA: ogni futura modifica a inizia.html va valutata anche qui. -->
+<!-- KC-BUILD: sumisura v8 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v7 · 2026-08-03 · BANNER "SU MISURA" SPARATO: sfondo giallo pieno, testo nero maiuscolo grande su 2 righe (richiesta Marco: il celeste piccolo si perdeva). CUMULA v6 · 2026-08-03 · DISTINZIONE VISIVA da inizia.html: <title> "Su misura ·...", top-pill "Su misura · Tutte le date fino al 30 settembre · 25€", sottotitolo hero riscritto (dichiara subito la differenza — chi apre il link capisce al volo che NON è la pagina 7 giorni). CUMULA v5 · 2026-08-03 · TITOLO SEZIONE calendario "Prossimi 7 giorni" → "Tutte le date fino al 30 settembre" (era rimasto il copy statico della finestra 7gg). CUMULA v4 · 2026-08-03 · SCHEDE 02+03 riscritte dai testi ORIGINALI di Marco (Kata_02_L_Atterraggio, Kata_03_Il_Passo_Verticale) — le precedenti erano copy inventato (vedi Brief Bonifica Lista Kata). Approvate da Marco. CUMULA v3 · 2026-08-03 · COPY "Il Pronti" riscritto (via "imbrago, nodi": fuori linguaggio, un solo nodo insegnato) → procedure di sicurezza + movimento spiegato + sostegno = pronto dal concreto. CUMULA v2 · 2026-08-03 · TETTO DATA_MAX=2026-09-30 (niente ottobre; da aggiornare o rimuovere se la pagina servirà oltre settembre). CUMULA v1 · COPIA DI inizia.html v9 con FINESTRA 30 GIORNI VALIDI (anti-procrastinazione NON applicata: pagina per link diretto manuale a persone che rientrano tardi). Uniche differenze da inizia v9: finestra 7→30 giorni validi (tetto iterazioni 60→120 per scavalcare la pausa di agosto), og:url e label pagina=sumisura.html. Tutto il resto (checkout, kc-lead, fascia adulti, gruppo, minori→/inizia-minori.html, pausa agosto) IDENTICO. REGOLA: ogni futura modifica a inizia.html va valutata anche qui. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -859,17 +859,16 @@ body{
   }
 
   async function caricaConteggi(slotIds, dataDal, dataAl){
-    const { data, error } = await sb.from('prenotazioni_prima_lezione')
-      .select('slot_id, data_lezione, stato')
-      .in('slot_id', slotIds)
-      .gte('data_lezione', dataDal)
-      .lte('data_lezione', dataAl)
-      .in('stato', ['prenotato','fatto']);
+    // FIX RLS pre-campagna: la lettura diretta della tabella da anon tornava SEMPRE
+    // 0 righe (ogni data pareva libera anche a slot pieno). Ora RPC aggregata
+    // pubblica, stati allineati al trigger enforce_slot_capacity.
+    const { data, error } = await sb.rpc('conteggi_prima_lezione', { p_dal: dataDal, p_al: dataAl });
     if(error) throw error;
+    const wanted = new Set(slotIds);
     const counts = {};
     (data||[]).forEach(p => {
-      const k = `${p.slot_id}_${p.data_lezione}`;
-      counts[k] = (counts[k]||0) + 1;
+      if(!wanted.has(p.slot_id)) return;
+      counts[`${p.slot_id}_${p.data_lezione}`] = p.occupati;
     });
     return counts;
   }
