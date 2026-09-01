@@ -2,10 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: listino-corsi-adulti v1.1 · 2026-08-31 · Gate = solo sessione (visibile a tutti gli iscritti loggati; decisione 31 ago). Staff vede tutto via listini.html. Contenuto dal documento canonico Listini_Accademia_2026_v1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
+<!-- KC-BUILD: listino-corsi-bambini v1.0 · 2026-08-31 · Split di listino-corsi-minori (decisione 31 ago: Bambini e Ragazzi separati; Evo ed Expert in fondo alla lista Ragazzi). Gate = solo sessione (iscritti loggati). Contenuto dal documento canonico Listini_Accademia_2026_v1_1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Listino Corsi Adulti · KataClimb</title>
+<title>Listino Corsi Bambini (6–11) · KataClimb</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -58,67 +58,82 @@ h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22re
 <button class="no-print" aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
 
 <div id="gate">
-  <h1>Listino Corsi Adulti</h1>
+  <h1>Listino Corsi Bambini (6–11)</h1>
   <p id="gate-msg">Listino riservato agli iscritti dell'Accademia. Accedi dal portale.</p>
   <a href="/portale.html">ENTRA</a>
 </div>
 
 <div id="app">
 <header class="testata">
-  <h1>Listino Corsi Adulti</h1>
+  <h1>Listino Corsi Bambini (6–11)</h1>
   <div class="sotto mono">Accademia ArrampiKata RCC</div>
   <div class="sotto">In vigore dal <b>1 settembre 2026</b> · Via Cassia 1634, La Storta — Roma</div>
 </header>
 
-<div class="zona mono">Prima Lezione</div>
 <div class="blocco">
-  <h2 class="corso">Prima Lezione Adulti</h2>
-  <div class="prezzo-hero">25€</div>
-  <p class="nota">Lezione introduttiva al metodo KataClimb. Massimo 6 partecipanti.</p>
+  <p class="nota">In Accademia i bambini non imparano solo a salire: imparano ad ascoltarsi. Il metodo KataClimb lavora sulla percezione — l'equilibrio, l'atterraggio, la fiducia — con esercizi e circuiti su parete con materassi paracadute. Niente gare a chi arriva prima: ogni progresso è reale, riconosciuto, e lascia traccia nel percorso di ciascuno.</p>
 </div>
 
-<div class="zona mono">Percorso adulti KataClimb</div>
+<div class="zona mono">Prima Lezione</div>
 <div class="blocco">
-  <h2 class="corso">Corso Open KataClimb — Linguaggio del Corpo</h2>
-  <div class="prezzo-hero">215€ <small>· 7 lezioni · iscrizione annuale inclusa</small></div>
   <table>
-    <tr><th>Frequenza</th><th>Pagamento</th><th>Durata</th></tr>
-    <tr><td>⭐ 2 volte/sett</td><td><span class="p">215€</span><small>unica soluzione</small></td><td>~4 settimane<small>validità 45 giorni</small></td></tr>
-    <tr><td>1 volta/sett</td><td><span class="p">115€ + 100€</span><small>4 lezioni + 3 lezioni</small></td><td>~7 settimane<small>validità 75 giorni</small></td></tr>
+    <tr><th>Fascia</th><th>Prezzo</th></tr>
+    <tr><td>Prima Lezione Bambini (6–11)</td><td><span class="p">10€</span></td></tr>
+  </table>
+  <p class="nota">Lezione introduttiva al metodo KataClimb, in Accademia.</p>
+</div>
+
+<div class="zona mono">Corsi · stagione 1/9 → 30/6</div>
+<div class="blocco scroll">
+  <table>
+    <tr><th>Corso</th><th>Frequenza</th><th>Trimestre</th><th>Stagione</th></tr>
+    <tr><td>Corso Bambini (6–11)</td><td>1×/sett<small>lun o gio 17:00–18:00</small></td><td><span class="p">225€</span></td><td><span class="p">675€</span></td></tr>
+    <tr><td>Corso Bambini (6–11)</td><td>2×/sett<small>lun e gio 17:00–18:00</small></td><td><span class="p">240€</span></td><td><span class="p">720€</span></td></tr>
   </table>
 </div>
 <div class="blocco">
-  <h2 class="corso">Corso Advance KataClimb — Corpo in Azione</h2>
-  <div class="prezzo-hero"><small>8 lezioni · sala con monitor inclusa</small></div>
+  <p class="nota">La stagione 2026/27 si apre il 1° settembre e chiude il 30 giugno. La colonna Stagione è il prezzo pieno delle nove mensilità da ottobre a giugno: settembre si copre con la prova. Le formule di pagamento e gli sconti sono qui sotto.</p>
+</div>
+
+<div class="zona mono">Ingresso in prova</div>
+<div class="blocco">
   <table>
-    <tr><th>Frequenza</th><th>Pagamento</th><th>Durata</th></tr>
-    <tr><td>1 volta/sett</td><td><span class="p">140€/mese × 2</span></td><td>~2 mesi</td></tr>
-    <tr><td>2 volte/sett</td><td><span class="p">190€</span><small>in un mese</small></td><td>~1 mese</td></tr>
+    <tr><th>Ingresso</th><th>Prezzo</th></tr>
+    <tr><td>Primo mese di prova — 1×/sett<small>da inizio mese</small></td><td><span class="p">75€</span></td></tr>
+    <tr><td>Primo mese di prova — 2×/sett<small>da inizio mese</small></td><td><span class="p">80€</span></td></tr>
+    <tr><td>Mezzo mese di prova — 1×/sett<small>da metà mese</small></td><td><span class="p">37€</span></td></tr>
+    <tr><td>Mezzo mese di prova — 2×/sett<small>da metà mese</small></td><td><span class="p">40€</span></td></tr>
   </table>
+  <p class="nota">Il primo periodo è di prova e porta il ciclo al 1° del mese: si paga solo fino a fine mese, intero o mezzo secondo quando si entra. È l'unico periodo senza impegno. Chi prosegue paga a trimestri in Accademia, oppure sceglie la stagione intera: in contanti — unica o due soluzioni — o a rate mensili automatiche dal portale. Ogni periodo si paga sempre prima che inizi.</p>
 </div>
+
+<div class="zona mono">Pagamento della stagione</div>
 <div class="blocco">
-  <h2 class="corso">Corso Intro Corda KataClimb</h2>
-  <div class="prezzo-hero">150€/mese × 2 <small>· 8 lezioni · 1 volta/sett · sala con monitor inclusa</small></div>
-</div>
-<div class="blocco">
-  <h2 class="corso">Corso Evo Corda KataClimb</h2>
-  <div class="prezzo-hero">160€/mese × 2 <small>· 8 lezioni · 1 volta/sett · sala con monitor inclusa</small></div>
-</div>
-<div class="blocco">
-  <p class="nota">Il percorso è progressivo: <b>Open → Advance → Intro Corda → Evo Corda</b>. Un solo corso attivo alla volta. I prezzi di Advance, Intro Corda ed Evo Corda includono la sala con monitor (monitor + portale KataClimb), non separabile dal corso.</p>
+  <table>
+    <tr><th>Formula</th><th>1×/sett</th><th>2×/sett</th></tr>
+    <tr><td>Due soluzioni in contanti<small>−5%</small></td><td><span class="p">641€</span></td><td><span class="p">684€</span></td></tr>
+    <tr><td><b>Unica soluzione in contanti</b><small>−10%</small></td><td><span class="p">607€</span></td><td><span class="p">648€</span></td></tr>
+  </table>
+  <p class="nota">Si pagano in Accademia, in segreteria. Gli sconti valgono solo per pagamento in contanti e solo sulla quota corso.</p>
+  <p class="nota"><b>Novità da quest'anno — il pagamento rateale da sistema.</b> Per chi desidera un pagamento ricorrente diluito e un controllo finanziario più leggero: dal portale ci si impegna per la stagione e la si paga con una rata al mese — addebito automatico su carta o conto — a copertura di tutti i mesi da quando ti iscrivi fino a giugno: <b>75€/mese</b> (1×/sett) · <b>80€/mese</b> (2×/sett). Ci si può iscrivere in qualsiasi mese: le rate seguono. Vale anche per chi ha più figli: dal 2° figlio la rata è ridotta del 10%. L'impegno si prende una volta sola, il pagamento va da sé.</p>
 </div>
 
 <div class="zona mono">Attrezzatura</div>
 <div class="blocco">
   <p class="nota">Le scarpette le fornisce l'Accademia per le <b>prime 4 lezioni</b>. Dopo, ogni allievo ha le sue: chiedi all'istruttore quali comprare. In alternativa, noleggio in Accademia a 5€ a ingresso.</p>
-  <p class="nota">L'imbragatura la fornisce l'Accademia per tutto il <b>Corso Intro Corda KataClimb</b>; dal <b>Corso Evo Corda KataClimb</b> serve la propria — chiedi all'istruttore quale comprare — oppure noleggio a 5€ a ingresso.</p>
 </div>
 
-<div class="zona mono">Iscrizione annuale</div>
+<div class="zona mono">Iscrizione e sconti</div>
 <div class="blocco">
-  <h2 class="corso">Iscrizione annuale Accademia</h2>
-  <div class="prezzo-hero">40€</div>
-  <p class="nota">Obbligatoria al primo corso (nell'Open è già inclusa). Scade il 31 dicembre dell'anno in corso; chi passa da un corso al successivo nello stesso anno non la ripaga.</p>
+  <h2 class="corso">Iscrizione Accademia — 40€ a bambino</h2>
+  <p class="nota">Comprende assicurazione e registrazione. Obbligatoria, una per ogni iscritto, non scontabile, sempre da aggiungere ai prezzi corso.</p>
+</div>
+<div class="blocco">
+  <h2 class="corso">Sconti</h2>
+  <table>
+    <tr><td>Famiglia, dal 2° figlio</td><td><span class="p">−10%</span></td></tr>
+  </table>
+  <p class="nota">Solo sulla quota corso, mai sull'iscrizione. Sulla stagione si applica al prezzo già scontato.</p>
 </div>
 <p class="chiusa">Per iscrizioni e informazioni: segreteria Accademia.</p>
 </div>

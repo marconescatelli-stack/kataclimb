@@ -2,10 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: listino-frequenze v1.1 · 2026-08-31 · Gate = solo sessione (visibile a tutti gli iscritti loggati; decisione 31 ago). Staff vede tutto via listini.html. Contenuto dal documento canonico Listini_Accademia_2026_v1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
+<!-- KC-BUILD: listino-corsi-giovani v1.0 · 2026-09-01 · Nuovo listino Corso Giovani KataClimb (18–24), fonte Corso_Giovani_Segreteria_Istruttori_v3 (31 ago). Gate = solo sessione (iscritti loggati). Mobile-first 480px, print pulita, P-NAV-BACK. -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Listino Frequenze e Abbonamenti · KataClimb</title>
+<title>Listino Corso Giovani (18–24) · KataClimb</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -58,81 +58,71 @@ h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22re
 <button class="no-print" aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
 
 <div id="gate">
-  <h1>Listino Frequenze e Abbonamenti</h1>
+  <h1>Listino Corso Giovani (18–24)</h1>
   <p id="gate-msg">Listino riservato agli iscritti dell'Accademia. Accedi dal portale.</p>
   <a href="/portale.html">ENTRA</a>
 </div>
 
 <div id="app">
 <header class="testata">
-  <h1>Listino Frequenze e Abbonamenti</h1>
+  <h1>Listino Corso Giovani (18–24)</h1>
   <div class="sotto mono">Accademia ArrampiKata RCC</div>
   <div class="sotto">In vigore dal <b>1 settembre 2026</b> · Via Cassia 1634, La Storta — Roma</div>
 </header>
 
-<div class="zona mono">Abbonamenti mensili</div>
 <div class="blocco">
-  <table>
-    <tr><th>Abbonamento</th><th>Prezzo</th></tr>
-    <tr><td><b>Sala con Monitor</b><small>monitor + accesso portale KataClimb. Dall'Advance in poi · accompagna i corsi Advance, Intro Corda, Evo Corda e le formule RCC Lab e Fly</small></td><td><span class="p">90€/mese</span></td></tr>
-    <tr><td><b>Sala + corda</b><small>su certificazione dell'istruttore tutor che attesta la preparazione alla pratica autonoma con corda. Non si sceglie: si ottiene</small></td><td><span class="p">110€/mese</span></td></tr>
-    <tr><td><b>Sala + corda con formula Lab o Fly</b><small>stessa riduzione della Sala con Monitor</small></td><td><span class="p">90€/mese</span></td></tr>
-  </table>
-  <p class="nota">La sala con monitor non è un semplice ingresso: è lo spazio dell'Accademia, un monitor che accompagna la pratica e l'accesso al portale KataClimb con la memoria del proprio percorso. In Accademia si pratica così: il monitor è la modalità di tutti.</p>
+  <p class="nota">La porta d'ingresso dei giovani adulti al metodo KataClimb: un gruppo che corre veloce sui gesti e lavora sulla testa — gestire cadute ed errori e trasformarli in occasioni di crescita. Il gruppo è a rotazione: non deve consolidarsi, deve crescere verso i gruppi avanzati.</p>
 </div>
 
-<div class="zona mono">Ingressi Sala con Monitor</div>
+<div class="zona mono">Prima Lezione</div>
 <div class="blocco">
   <table>
     <tr><th>Voce</th><th>Prezzo</th></tr>
-    <tr><td>Sessione singola<small>ingresso 15€ + lezione con monitor 15€</small></td><td><span class="p">30€</span></td></tr>
-    <tr><td><b>Pacchetto 10 sessioni</b><small>10 ingressi al prezzo di 8 (120€) + monitor 10×15€ · validità 3 mesi</small></td><td><span class="p">270€</span></td></tr>
+    <tr><td>Prima Lezione Giovani (18–24)<small>negli orari Prima Lezione Adulti, insieme agli adulti</small></td><td><span class="p">20€</span></td></tr>
   </table>
-  <p class="nota">Sessioni con monitor presente, prenotabili dal portale KataClimb. <b>Riservate a chi frequenta o ha completato il Corso Advance KataClimb.</b> Incluse nell'abbonamento sala con monitor. Il costo del monitor non è mai scontato: lo sconto del pacchetto vale solo sugli ingressi. Già da 3 sessioni al mese conviene il mensile.</p>
+  <p class="nota">Vale per tutti i 18–24, qualunque percorso si scelga dopo. Fascia 18–24 anni compiuti: verifica con documento in Accademia.</p>
 </div>
 
-<div class="zona mono">Ingresso corda</div>
+<div class="zona mono">Corso</div>
 <div class="blocco">
   <table>
-    <tr><th>Voce</th><th>Prezzo</th></tr>
-    <tr><td>Ingresso singolo</td><td><span class="p">20€</span></td></tr>
-    <tr><td><b>Pacchetto 10 ingressi</b><small>ne paghi 8, 2 in omaggio · validità 3 mesi</small></td><td><span class="p">160€</span></td></tr>
-    <tr><td><b>Supplemento corda giornaliero</b><small>per abbonati Sala con Monitor con certificazione corda · vale per la giornata</small></td><td><span class="p">5€</span></td></tr>
-    <tr><td><b>Ingresso Fly</b><small>lezione Fly singola, ingresso incluso · solo dopo il completamento del Corso Evo Corda KataClimb</small></td><td><span class="p">40€</span></td></tr>
-    <tr><td><b>Pacchetto 10 ingressi Fly</b><small>35€ a ingresso · validità 3 mesi</small></td><td><span class="p">350€</span></td></tr>
+    <tr><th>Corso</th><th>Prezzo</th></tr>
+    <tr><td><b>Corso Giovani KataClimb (18–24)</b><small>venerdì 18:00–19:00 · 1 lezione a settimana + Sala con Monitor</small></td><td><span class="p">140€/mese</span></td></tr>
   </table>
-  <p class="nota">Ingresso singolo e pacchetto: <b>solo con certificazione dell'istruttore tutor</b> — pratica autonoma per chi è stato formato. Chi ha l'abbonamento Sala con Monitor ed è certificato aggiunge 5€ per la giornata di corda: da 4 giornate al mese conviene il passaggio a sala + corda (110€/mese). L'Ingresso Fly è la via per chi ha completato l'Evo e frequenta il Fly saltuariamente, dentro la lezione con l'istruttore. Prenotazione dal portale: <b>gli abbonati Fly hanno priorità</b>, gli ingressi accedono ai posti disponibili.</p>
+  <p class="nota">Durata indicativa 4 mesi: fondamenta Open → Advance → procedure di corda fino alle manovre Evo. Al termine, chi ha i requisiti — Kata del volo e della sicura al volo certificati e valutazione del maestro — passa al gruppo di destinazione; chi non li ha ancora resta nel corso finché non li matura. Il passaggio lo danno i requisiti, non il calendario.</p>
 </div>
 
-<div class="zona mono">Formule mensili specialistiche</div>
+<div class="zona mono">Passaggio ai gruppi avanzati</div>
 <div class="blocco">
   <table>
-    <tr><th>Formula</th><th>Prezzo</th></tr>
-    <tr><td>RCC Lab<small>su invito o dopo l'Advance</small></td><td><span class="p">120€/mese</span><small>50€ formula + 70€* sala</small></td></tr>
-    <tr><td>Fly<small>solo dopo il completamento del Corso Evo Corda KataClimb</small></td><td><span class="p">140€/mese</span><small>70€ formula + 70€* sala</small></td></tr>
-    <tr><td>Combo Fly + Lab<small>stesso requisito del Fly</small></td><td><span class="p">165€/mese</span><small>95€ formula + 70€* sala</small></td></tr>
-    <tr><td>Lezione Lab singola<small>stesso requisito del Lab</small></td><td><span class="p">30€</span></td></tr>
-    <tr><td>Pacchetto 10 lezioni Lab<small>validità 3 mesi</small></td><td><span class="p">260€</span></td></tr>
+    <tr><th>Gruppo</th><th>Prezzo</th></tr>
+    <tr><td>Corso Expert<small>mercoledì 18:00–19:30 · quota adulti</small></td><td><span class="p">110€/mese</span></td></tr>
+    <tr><td>Fly<small>solo su dichiarazione del maestro</small></td><td><span class="p">120€/mese</span></td></tr>
   </table>
-  <p class="nota">Una lezione a settimana (4/mese). I totali includono già tutto. <b>* Sala con Monitor ridotta: 70€/mese invece di 90€ per chi frequenta una formula mensile</b> — riduzione unica, anche col Combo.</p>
+  <p class="nota">Solo su dichiarazione del maestro, che indica anche il gruppo di destinazione secondo il livello.</p>
 </div>
 
-<div class="zona mono">Noleggio attrezzatura</div>
+<div class="zona mono">Sconto famiglia</div>
 <div class="blocco">
   <table>
-    <tr><td>Scarpette</td><td><span class="p">5€/ingresso</span></td></tr>
-    <tr><td>Imbrago</td><td><span class="p">5€/ingresso</span></td></tr>
+    <tr><th>Sconto</th><th></th></tr>
+    <tr><td>Dal 2° fratello maggiorenne<small>sulla quota corso: 140→105€ · Expert 110→82,50€ · Fly 120→90€</small></td><td><span class="p">−25%</span></td></tr>
   </table>
-  <p class="nota">Le scarpette sono fornite dall'Accademia per le prime 4 lezioni di corso; l'imbragatura è fornita per il Corso Intro Corda KataClimb, non per l'Evo Corda.</p>
+  <p class="nota">Mai su iscrizione annuale e Prima Lezione: sempre piene, a testa. A quota piena resta il fratello con la quota più alta.</p>
+</div>
+
+<div class="zona mono">Attrezzatura</div>
+<div class="blocco">
+  <p class="nota">Le scarpette le fornisce l'Accademia per le <b>prime 4 lezioni</b>. Dopo, ogni allievo ha le sue: chiedi all'istruttore quali comprare. In alternativa, noleggio in Accademia a 5€ a ingresso.</p>
 </div>
 
 <div class="zona mono">Iscrizione annuale</div>
 <div class="blocco">
-  <h2 class="corso">Iscrizione annuale Accademia</h2>
-  <div class="prezzo-hero">40€</div>
-  <p class="nota">Obbligatoria per tutti, si paga al primo corso (nell'Open è già inclusa). Scade il 31 dicembre dell'anno in corso.</p>
+  <h2 class="corso">Iscrizione annuale Accademia — 40€</h2>
+  <p class="nota">Obbligatoria al primo corso. Scade il 31 dicembre dell'anno in corso.</p>
 </div>
-<p class="chiusa">Per ogni situazione particolare, la parola definitiva è del maestro.</p>
+
+<p class="chiusa">Per iscrizioni e informazioni: segreteria Accademia.</p>
 </div>
 
 <script>
