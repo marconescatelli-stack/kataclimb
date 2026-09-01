@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: profilo v1.5 · 2026-07-20 · ONDA 4 AUDIT: dati operativi a min 13px (numeri Kata .fn erano a 8px; anche .t .cmd, .t .big small, .chi .da, .chi .grado, .fascia .fnome, .tappa, .t-sentiero .leg). Solo font-size (+ line-height/flex-wrap dove serve per non rompere il layout); nessuna modifica a logica, query o testi. CUMULA v1.4 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo. CUMULA v1.3 · 2026-06-17 · Impostazioni: da tessera a icona ⚙ FISSA in alto a destra (speculare alla freccia indietro, z-index sopra tutto) -> impostazioni-profilo.html. CUMULA v1.2 · 2026-06-17 · + tessera ⚙ Impostazioni (link impostazioni-profilo.html): cambio password + privacy raggiungibile dal profilo utente vero (la barra Profilo atterra qui, non sul vecchio header portale). CUMULA v1.1 · 2026-06-13 notte · Tessera ASD e Scudetti cablate su colonne VERIFICATE (query Marco): tesseramenti(persona_id, anno, data_scadenza, stato) -> anno corrente + vale-fino-al; scudetti_persona(persona_id, evento_nome, conquistato_at) -> conteggio reale, nome evento nel tooltip. Chiave unica persona_id, niente piu tentativi alla cieca. CUMULA v1.0 · INTEGRAZIONE del prototipo approvato (profilo-proto v0.2).
+<!-- KC-BUILD: profilo v1.6 · 2026-09-01 · LISTINI RAGGIUNGIBILI: tessera 💶 Listini Accademia (/listini.html) in fondo alle tessere allievo, formato riga come Cordata — le pagine listino 2026/27 erano orfane. CUMULA v1.5 · 2026-07-20 · ONDA 4 AUDIT: dati operativi a min 13px (numeri Kata .fn erano a 8px; anche .t .cmd, .t .big small, .chi .da, .chi .grado, .fascia .fnome, .tappa, .t-sentiero .leg). Solo font-size (+ line-height/flex-wrap dove serve per non rompere il layout); nessuna modifica a logica, query o testi. CUMULA v1.4 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo. CUMULA v1.3 · 2026-06-17 · Impostazioni: da tessera a icona ⚙ FISSA in alto a destra (speculare alla freccia indietro, z-index sopra tutto) -> impostazioni-profilo.html. CUMULA v1.2 · 2026-06-17 · + tessera ⚙ Impostazioni (link impostazioni-profilo.html): cambio password + privacy raggiungibile dal profilo utente vero (la barra Profilo atterra qui, non sul vecchio header portale). CUMULA v1.1 · 2026-06-13 notte · Tessera ASD e Scudetti cablate su colonne VERIFICATE (query Marco): tesseramenti(persona_id, anno, data_scadenza, stato) -> anno corrente + vale-fino-al; scudetti_persona(persona_id, evento_nome, conquistato_at) -> conteggio reale, nome evento nel tooltip. Chiave unica persona_id, niente piu tentativi alla cieca. CUMULA v1.0 · INTEGRAZIONE del prototipo approvato (profilo-proto v0.2).
      Pagina SEPARATA (pattern oggi/agenda/monitor): auth condivisa, zero righe a rischio sul portale.
      Legge del fascicolo: CHI SEI / DOVE SEI ORA / QUANTO SEI ANDATO. Firma: Sentiero intero 33 nodi.
      Fonti VERIFICATE: profiles(*), profile_data(*), kata_videos (slot/status reali: ready|certified),
@@ -364,6 +364,12 @@ function render(){
     <span class="et mono">Portale</span>
     <div class="big">▦</div>
     <span class="cmd mono">COMPLETO ›</span>
+  </a>
+
+  <a class="t" href="/listini.html" style="min-height:0; flex-direction:row; align-items:center; gap:10px; padding:12px 14px">
+    <span class="et mono" style="margin:0">Listini Accademia</span>
+    <div class="big" style="margin-left:auto">💶</div>
+    <span class="cmd mono">GUARDA ›</span>
   </a>`;
 }
 
