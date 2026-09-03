@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-giovani v3 · 2026-08-31 · BANNER RIFORMULATO: la prima lezione e' a 20€ per TUTTI i 18-24 a prescindere dal corso che seguiranno (il venerdi' riguarda solo il corso, non la prima lezione). CUMULA v2 · NOTA CORSO VENERDI: banner sopra la griglia date (prima lezione con gli adulti negli orari a calendario; il Corso Giovani sara' il venerdi 18-19; chi non puo' il venerdi prosegue col percorso adulti) + riga venerdi nel hero. NIENT'ALTRO toccato. CUMULA v1 · PRIMA LEZIONE GIOVANI (18-24) A 20€: clone di inizia v11 con prodotto 'prima_lezione_giovani' (RICHIEDE stripe-worker: voce CATALOGO + env STRIPE_PRICE_PRIMA_GIOVANI — senza, il checkout risponde 'Prodotto non disponibile sulla landing'), prezzi 25->20 ovunque (pill, modal, bottoni, riga termini, ViewContent/InitiateCheckout value 20, content_name 'Prima Lezione Giovani'), checkbox obbligatoria f-eta 'ho 18-24 anni' validata in entrambi i rami submit (verifica documento in Accademia), selettore gruppo NASCOSTO via display:none (il ramo gruppo del worker fattura il price adulti 25€: qui solo checkout singolo; fratelli/amici prenotano ognuno il proprio posto), cross-link: 25+ -> /inizia.html, 6-17 -> /inizia-minori.html, kc-lead pagina='inizia-giovani.html', Lead content_name 'Richiesta info Prima Lezione Giovani'. INVARIATO da inizia v11: stessi slot Prima Lezione fascia adulti, finestra 14gg fino al 15 set poi 7gg, giorni_chiusi, consent/CAPI, video variant. -->
+<!-- KC-BUILD: inizia-giovani v4 · 2026-09-03 · LUNEDI SOLO 7 SET + PORTING FIX RLS v12: (1) lo slot Prima Lezione del lunedi 20:00 vale SOLO per lun 7 set (dal 14 diventa Corso Open KataClimb) — occorrenze del lunedi con data > 2026-09-07 escluse dal calendario, condizione inerte dopo archiviazione DB dello slot; (2) caricaConteggi passa alla RPC pubblica conteggi_prima_lezione (era rimasta la lettura diretta di prenotazioni_prima_lezione da anon = RLS 0 righe = ESAURITO mai, stesso bug fixato su inizia v12 il 31 ago, qui mai portato). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-31 · BANNER RIFORMULATO: la prima lezione e' a 20€ per TUTTI i 18-24 a prescindere dal corso che seguiranno (il venerdi' riguarda solo il corso, non la prima lezione). CUMULA v2 · NOTA CORSO VENERDI: banner sopra la griglia date (prima lezione con gli adulti negli orari a calendario; il Corso Giovani sara' il venerdi 18-19; chi non puo' il venerdi prosegue col percorso adulti) + riga venerdi nel hero. NIENT'ALTRO toccato. CUMULA v1 · PRIMA LEZIONE GIOVANI (18-24) A 20€: clone di inizia v11 con prodotto 'prima_lezione_giovani' (RICHIEDE stripe-worker: voce CATALOGO + env STRIPE_PRICE_PRIMA_GIOVANI — senza, il checkout risponde 'Prodotto non disponibile sulla landing'), prezzi 25->20 ovunque (pill, modal, bottoni, riga termini, ViewContent/InitiateCheckout value 20, content_name 'Prima Lezione Giovani'), checkbox obbligatoria f-eta 'ho 18-24 anni' validata in entrambi i rami submit (verifica documento in Accademia), selettore gruppo NASCOSTO via display:none (il ramo gruppo del worker fattura il price adulti 25€: qui solo checkout singolo; fratelli/amici prenotano ognuno il proprio posto), cross-link: 25+ -> /inizia.html, 6-17 -> /inizia-minori.html, kc-lead pagina='inizia-giovani.html', Lead content_name 'Richiesta info Prima Lezione Giovani'. INVARIATO da inizia v11: stessi slot Prima Lezione fascia adulti, finestra 14gg fino al 15 set poi 7gg, giorni_chiusi, consent/CAPI, video variant. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -875,17 +875,16 @@ body{
   }
 
   async function caricaConteggi(slotIds, dataDal, dataAl){
-    const { data, error } = await sb.from('prenotazioni_prima_lezione')
-      .select('slot_id, data_lezione, stato')
-      .in('slot_id', slotIds)
-      .gte('data_lezione', dataDal)
-      .lte('data_lezione', dataAl)
-      .in('stato', ['prenotato','fatto']);
+    // FIX RLS (porting da inizia v12): la lettura diretta della tabella da anon tornava
+    // SEMPRE 0 righe (ogni data pareva libera anche a slot pieno). Ora RPC aggregata
+    // pubblica, stati allineati al trigger enforce_slot_capacity.
+    const { data, error } = await sb.rpc('conteggi_prima_lezione', { p_dal: dataDal, p_al: dataAl });
     if(error) throw error;
+    const wanted = new Set(slotIds);
     const counts = {};
     (data||[]).forEach(p => {
-      const k = `${p.slot_id}_${p.data_lezione}`;
-      counts[k] = (counts[k]||0) + 1;
+      if(!wanted.has(p.slot_id)) return;
+      counts[`${p.slot_id}_${p.data_lezione}`] = p.occupati;
     });
     return counts;
   }
@@ -1306,6 +1305,10 @@ body{
       range.forEach(giorno => {
         slots.forEach(s => {
           if(s.giorno_settimana === giorno.giorno_settimana){
+            // v4: lo slot del lunedì fa Prima Lezione SOLO fino a lun 7 set 2026 incluso;
+            // dal 14 quello slot è Corso Open KataClimb. Dopo l'archiviazione dello slot
+            // prima_lezione del lunedì nel DB questa condizione diventa inerte (rimuovere in un bump futuro).
+            if(giorno.giorno_settimana === 1 && giorno.iso > '2026-09-07') return;
             occorrenze.push({ slot:s, data_lezione:giorno.iso, dataObj:giorno.data });
           }
         });
