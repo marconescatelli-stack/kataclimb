@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: agenda v3.85 · 2026-08-31 · CORSO GIOVANI KATACLIMB 18-24 (migration corso_giovani_e_archivio_residui live: CHECK tipo_corso + 'giovani', CHECK status + 'archiviato', 2 righe bambini pre-split archiviate a zero riferimenti, slot Ven 18:00-19:00 Mello cap.8 attivo fascia adulti): voce giovani in TIPO_LABELS, dropdown, labelSlot, CSS (--giovani #2E7D32, classi slot/gblk). Iscrizione fissa non a credito, NESSUNA riga tipi_corso_config (default runtime come expert/evo_ragazzi). PUNTI APERTI: meccanismo iscritti fissi giovani (adulti: iscrizioni_minori non applicabile) e '+ Prenota allievo' che compare sullo slot per default — da definire alla partenza (meta' settembre, soglia 4 paganti). CUMULA v3.84 · 2026-08-31 · ISCRIZIONE MINORI DA AGENDA (migration iscrivi_minore_da_lead live): bottone '+ Iscrivi minore' per la segreteria sugli slot corso minori (bambini/evo_ragazzi/expert) → modale con scelta minore (crm_leads fascia bambini/ragazzi), giorni del corso a checkbox (slot cliccato preselezionato), Pagato e Note → RPC iscrivi_minore_da_lead in UN atto; '✗' accanto a ogni Iscritto (solo segreteria) → imposta_status_iscrizione_minore 'terminata' con conferma. Selettore vista-allievo esteso a :not(.btn-iscrivi). CUMULA v3.83 · 2026-08-31 · TAB BAMBINI E RAGAZZI INTEGRATO + ISCRIZIONI MINORI + CAPIENZA REALE (migration iscrizioni_minori_e_capienza_20 live: tabelle iscrizioni_minori/iscrizioni_minori_slot persona-centriche, RPC iscrivi_minore/imposta_status_iscrizione_minore/get_iscritti_minori, capienza_max=20 sui 4 slot corso minori): (1) tab Bambini e Ragazzi carica anche prima_lezione_bambini/ragazzi (BAMBINI_TAB) — corsi e prime lezioni della stessa ora insieme, prenotazioni da entrambe le tabelle; (2) chiusa NOTA APERTA v3.75: per famiglia Prima e corsi minori la capienza e'' quella DELLO SLOT (s.capienza_max, NULL=illimitata, mostra solo conteggio), corsi a credito restano su tipi_corso_config (verita'' = RPC prenota_corso); (3) iscritti fissi minori (get_iscritti_minori) elencati negli slot bambini/evo_ragazzi/expert con tag Iscritto e contati nell''occupazione insieme alle prime lezioni del giorno, tetto 20 = totale in sala nell''ora; (4) '+ Prenota allievo' soppresso sugli slot minori (i minori si iscrivono, non prenotano a credito). CUMULA v3.82 · 2026-08-24 · PRIMA LEZIONE GENITORI (funnel Prima Lezione in Famiglia, inizia-famiglia v1): PRIMA_FAMILY include prima_lezione_genitori -> gli slot del giovedì con Mello entrano nel tab Prima Lezione e nella vista istruttore (istruttore_id già a DB). Etichetta completa 'Prima Lezione Genitori' in TIPO_LABELS, PRIMA_FALLBACK_LABELS e labelSlot (check dedicato PRIMA della fascia, così non ricade su 'Prima Lezione Adulti' pur avendo fascia=adulti). CSS .slot/.gblk .prima_lezione_genitori = var(--prima). Solo frontend, nessuna modifica a query di scrittura/RPC. CUMULA v3.81 · 2026-07-22 · FINESTRE PRENOTAZIONE/DISDETTA VISIBILI (caso 20 lug: allievo Intro bloccato a 4h dalla lezione, credeva a un guasto): 3 interventi solo-frontend, nessuna modifica a regole/RPC/DB. (1) Riga regola fissa #regola-finestre sotto l'intestazione in vista allievo, "Prenoti fino a {N} ore prima · Disdici fino a {M} ore prima" — N=finestra_prenotazione_ore e M=finestra_disdetta_ore letti a runtime da tipiConfig[corso_attivo], MAI cablati. (2) Conferma post-prenotazione: toast ora "✓ Prenotazione confermata — puoi disdire fino a {M} ore prima della lezione". (3) Slot a finestra scaduta: label "Prenotazioni chiuse" + subline 13px "si prenota fino a {N} ore prima" (distinto da "Pieno" e "Credito esaurito"); errore RPC "Troppo tardi" mappato allo stesso messaggio nel modale, "Slot pieno" tradotto umano. Solo agenda.html. CUMULA v3.80 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce). Base: .prenot (lista nomi prenotati), .prenot em (stato/"N posti liberi"), .prenot .stage-tag (stadio funnel), .pa-btn (P/A/↔ erano a 10px). Mobile ≤720px: .ist, .prenot .stage-tag, .pa-btn, e .prenot li passa a flex-wrap:wrap così badge/bottoni a 13px non schiacciano i nomi. Solo font-size (+ line-height/flex-wrap); logica v3.79 intatta (PRIMA_FAMILY, isPrimaTipo, TIPO_LABELS, labelSlot); nessuna modifica a JS/query/testi/struttura. NON toccati (fuori scope CSS, da valutare con Marco): badge fascia inline nel <script>, griglia settimanale desktop .grid-tutti, ellipsis nomi mobile. CUMULA v3.79 · 2026-07-15 · SPLIT TIPI PRIMA LEZIONE (migration split_tipo_prima_lezione_minori live): i 4 slot minori passano a tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (adulti INVARIATI su prima_lezione) — fix radice cache: le copie pre-13-lug di inizia.html senza filtro fascia mostravano gli slot minori come Prima Lezione Adulti (segnalazione Marco 15 lug). In agenda: PRIMA_FAMILY+isPrimaTipo(), tab Prima Lezione carica tutta la famiglia (.in), prenotazioni via prenotazioni_prima_lezione invariata (slot_id), tipoEff per-slot anche nel tab Prima, TIPO_LABELS+fallback tipiConfig+CSS per i 2 nuovi tipi, labelSlot/statiAttivi/P-A/miaPrenot normalizzati a isPrimaTipo. TIPO_LABELS prima_lezione ora 'Prima Lezione Adulti' (REGOLA FERREA NOMENCLATURA). NOTA APERTA v3.75 (cap 0/6 su minori) invariata. CUMULA v3.78 · 2026-07-14 · SALA CON MONITOR + LAB AL SABATO (migration aggiungi_monitor_e_fix_lab live: CHECK + tipo monitor; slot Mar 18:00-21:00 e Sab 14:00-18:00 istruttore NULL da assegnare; Lab corretto da ven 20-21 sospeso a Sab 16:00-17:30 attivo istruttore a rotazione): voce monitor in TIPO_LABELS, labelSlot ("Sala con Monitor"), dropdown, CSS (--monitor); righe griglia senza istruttore etichettate "Da assegnare (di turno)" invece di "—". CUMULA v3.77 · 2026-07-14 · EVO RAGAZZI + EXPERT IN AGENDA (migration aggiungi_corsi_evo_ragazzi_expert live: CHECK tipo_corso esteso + 2 slot Mer — Evo Ragazzi 17:00-18:30 Claudia e Mattia, Expert 18:00-19:30 Mello, fascia ragazzi, capienza NULL=illimitata da fissare, status attivo): nuove voci in TIPO_LABELS, labelSlot, dropdown, CSS (--evorag, --expert, classi gblk/slot). Dropdown: etichette allineate alla REGOLA FERREA NOMENCLATURA (era anche li accorciato: "Prima lezione", "Bambini"). CUMULA v3.76 · 2026-07-14 · DICITURA KATACLIMB SUI CORSI DEL PERCORSO (diciture esatte di Marco): Open KataClimb · Advance KataClimb · Intro KataClimb · Evo KataClimb — applicata in TIPO_LABELS (dropdown, tab, titoli) e in labelSlot (griglia settimanale). Fly, Lab, Prima Lezione e corsi minori senza dicitura (non nell'elenco di Marco). CUMULA v3.75 · 2026-07-14 · NOMI COMPLETI IN GRIGLIA SETTIMANALE (REGOLA FERREA NOMENCLATURA, Marco 14 lug: mai nomi accorciati): via la mappa abbreviata (Prima/Bambini/Intro/Evo) — la griglia Tutti ora etichetta ogni blocco con nome completo e fascia via labelSlot(tipo,fascia): "Prima Lezione Bambini 6-11" / "Prima Lezione Ragazzi 12-17" / "Prima Lezione Adulti" · "Corso Bambini 6-11" / "Corso Ragazzi 12-17" · "Intro Corda" / "Evo Corda". La colonna fascia era gia in select (v3.73) ma la griglia non la usava. NOTA APERTA: cap in griglia legge ancora tipiConfig e non s.capienza_max dello slot (mostra 0/6 su Prima minori che sono a capienza illimitata) — fix separato in attesa di decisione Marco su come mostrare gli slot senza limite. CUMULA v3.74 · 2026-07-14 · FASCE ANCHE SUL CORSO: badge BAMBINI 6-11 / RAGAZZI 12-17 su OGNI slot con fascia (corso bambini/ragazzi incluso, non solo Prima) + tab 'Bambini' rinominato 'Bambini e Ragazzi' (contiene entrambe le fasce dopo lo split slot del 14 lug). CUMULA v3.73 · 2026-07-14 · BADGE FASCIA MINORI: gli slot Prima Lezione con fascia bambini/ragazzi mostrano il badge BAMBINI 6-11 (giallo) / RAGAZZI 12-17 (azzurro) accanto alla data, in ogni vista (Prima e Tutti) — distinzione a colpo d'occhio dalle Prima adulti (richiesta Marco). caricaSlot ora seleziona anche la colonna fascia. CUMULA v3.72 · 2026-07-10 · DEBITO-182 CREDITO ESAURITO UMANO: banner bloccante generico per corsi a tranche (advance/intro/evo) a credito 0 — 'Credito esaurito, passa in segreteria' (CTA Stripe nascosta, il saldo è in segreteria); traduzione umana degli errori tecnici di prenota_corso nel modale (Nessuna lezione residua / Nessun corso attivo). CUMULA v3.71 · 2026-07-08 · PRIMA LEZIONE PIENA PER L'ISTRUTTORE (decisione Marco, cumulativo v3.70+v3.71 in UN deploy): (v3.70) tolto il nascondimento dell'opzione Prima lezione dal dropdown in vista istruttore; (v3.71) P/A marcabili anche dall'istruttore (showPA=isStaff() anche su prima_lezione) — allineato al gate RPC marca_presenza_prima_lezione ESTESO a tutti i ruoli staff (migration 8 lug). CUMULA v3.69 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) + etichetta 'Portale'→'Profilo' (allineamento P v3.78: voce profilo = Profilo ovunque). CUMULA v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
+<!-- KC-BUILD: agenda v3.86 · 2026-09-03 · NUOVO MINORE + REFERENTE DA MODALE ISCRIVI (RPC inserisci_minore_con_referente live, collaudata con ROLLBACK): link '+ Nuovo minore' nella modale Iscrivi → sotto-form figlio (nome/cognome/nascita/fascia, fascia preimpostata dal tipo slot) + referente genitore (nome/cognome/email/telefono, almeno un recapito) → UN atto atomico a DB (genitore riusato se esiste, dedup in garantisci_persona; figlio omonimo stessa famiglia riusato; relazione crm_relazioni pagante=true) → il minore appena creato compare selezionato nel picker, pronto per Iscrivi. Nessun INSERT diretto (regola inserimento contatti). CUMULA v3.85 · 2026-08-31 · CORSO GIOVANI KATACLIMB 18-24 (migration corso_giovani_e_archivio_residui live: CHECK tipo_corso + 'giovani', CHECK status + 'archiviato', 2 righe bambini pre-split archiviate a zero riferimenti, slot Ven 18:00-19:00 Mello cap.8 attivo fascia adulti): voce giovani in TIPO_LABELS, dropdown, labelSlot, CSS (--giovani #2E7D32, classi slot/gblk). Iscrizione fissa non a credito, NESSUNA riga tipi_corso_config (default runtime come expert/evo_ragazzi). PUNTI APERTI: meccanismo iscritti fissi giovani (adulti: iscrizioni_minori non applicabile) e '+ Prenota allievo' che compare sullo slot per default — da definire alla partenza (meta' settembre, soglia 4 paganti). CUMULA v3.84 · 2026-08-31 · ISCRIZIONE MINORI DA AGENDA (migration iscrivi_minore_da_lead live): bottone '+ Iscrivi minore' per la segreteria sugli slot corso minori (bambini/evo_ragazzi/expert) → modale con scelta minore (crm_leads fascia bambini/ragazzi), giorni del corso a checkbox (slot cliccato preselezionato), Pagato e Note → RPC iscrivi_minore_da_lead in UN atto; '✗' accanto a ogni Iscritto (solo segreteria) → imposta_status_iscrizione_minore 'terminata' con conferma. Selettore vista-allievo esteso a :not(.btn-iscrivi). CUMULA v3.83 · 2026-08-31 · TAB BAMBINI E RAGAZZI INTEGRATO + ISCRIZIONI MINORI + CAPIENZA REALE (migration iscrizioni_minori_e_capienza_20 live: tabelle iscrizioni_minori/iscrizioni_minori_slot persona-centriche, RPC iscrivi_minore/imposta_status_iscrizione_minore/get_iscritti_minori, capienza_max=20 sui 4 slot corso minori): (1) tab Bambini e Ragazzi carica anche prima_lezione_bambini/ragazzi (BAMBINI_TAB) — corsi e prime lezioni della stessa ora insieme, prenotazioni da entrambe le tabelle; (2) chiusa NOTA APERTA v3.75: per famiglia Prima e corsi minori la capienza e'' quella DELLO SLOT (s.capienza_max, NULL=illimitata, mostra solo conteggio), corsi a credito restano su tipi_corso_config (verita'' = RPC prenota_corso); (3) iscritti fissi minori (get_iscritti_minori) elencati negli slot bambini/evo_ragazzi/expert con tag Iscritto e contati nell''occupazione insieme alle prime lezioni del giorno, tetto 20 = totale in sala nell''ora; (4) '+ Prenota allievo' soppresso sugli slot minori (i minori si iscrivono, non prenotano a credito). CUMULA v3.82 · 2026-08-24 · PRIMA LEZIONE GENITORI (funnel Prima Lezione in Famiglia, inizia-famiglia v1): PRIMA_FAMILY include prima_lezione_genitori -> gli slot del giovedì con Mello entrano nel tab Prima Lezione e nella vista istruttore (istruttore_id già a DB). Etichetta completa 'Prima Lezione Genitori' in TIPO_LABELS, PRIMA_FALLBACK_LABELS e labelSlot (check dedicato PRIMA della fascia, così non ricade su 'Prima Lezione Adulti' pur avendo fascia=adulti). CSS .slot/.gblk .prima_lezione_genitori = var(--prima). Solo frontend, nessuna modifica a query di scrittura/RPC. CUMULA v3.81 · 2026-07-22 · FINESTRE PRENOTAZIONE/DISDETTA VISIBILI (caso 20 lug: allievo Intro bloccato a 4h dalla lezione, credeva a un guasto): 3 interventi solo-frontend, nessuna modifica a regole/RPC/DB. (1) Riga regola fissa #regola-finestre sotto l'intestazione in vista allievo, "Prenoti fino a {N} ore prima · Disdici fino a {M} ore prima" — N=finestra_prenotazione_ore e M=finestra_disdetta_ore letti a runtime da tipiConfig[corso_attivo], MAI cablati. (2) Conferma post-prenotazione: toast ora "✓ Prenotazione confermata — puoi disdire fino a {M} ore prima della lezione". (3) Slot a finestra scaduta: label "Prenotazioni chiuse" + subline 13px "si prenota fino a {N} ore prima" (distinto da "Pieno" e "Credito esaurito"); errore RPC "Troppo tardi" mappato allo stesso messaggio nel modale, "Slot pieno" tradotto umano. Solo agenda.html. CUMULA v3.80 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce). Base: .prenot (lista nomi prenotati), .prenot em (stato/"N posti liberi"), .prenot .stage-tag (stadio funnel), .pa-btn (P/A/↔ erano a 10px). Mobile ≤720px: .ist, .prenot .stage-tag, .pa-btn, e .prenot li passa a flex-wrap:wrap così badge/bottoni a 13px non schiacciano i nomi. Solo font-size (+ line-height/flex-wrap); logica v3.79 intatta (PRIMA_FAMILY, isPrimaTipo, TIPO_LABELS, labelSlot); nessuna modifica a JS/query/testi/struttura. NON toccati (fuori scope CSS, da valutare con Marco): badge fascia inline nel <script>, griglia settimanale desktop .grid-tutti, ellipsis nomi mobile. CUMULA v3.79 · 2026-07-15 · SPLIT TIPI PRIMA LEZIONE (migration split_tipo_prima_lezione_minori live): i 4 slot minori passano a tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (adulti INVARIATI su prima_lezione) — fix radice cache: le copie pre-13-lug di inizia.html senza filtro fascia mostravano gli slot minori come Prima Lezione Adulti (segnalazione Marco 15 lug). In agenda: PRIMA_FAMILY+isPrimaTipo(), tab Prima Lezione carica tutta la famiglia (.in), prenotazioni via prenotazioni_prima_lezione invariata (slot_id), tipoEff per-slot anche nel tab Prima, TIPO_LABELS+fallback tipiConfig+CSS per i 2 nuovi tipi, labelSlot/statiAttivi/P-A/miaPrenot normalizzati a isPrimaTipo. TIPO_LABELS prima_lezione ora 'Prima Lezione Adulti' (REGOLA FERREA NOMENCLATURA). NOTA APERTA v3.75 (cap 0/6 su minori) invariata. CUMULA v3.78 · 2026-07-14 · SALA CON MONITOR + LAB AL SABATO (migration aggiungi_monitor_e_fix_lab live: CHECK + tipo monitor; slot Mar 18:00-21:00 e Sab 14:00-18:00 istruttore NULL da assegnare; Lab corretto da ven 20-21 sospeso a Sab 16:00-17:30 attivo istruttore a rotazione): voce monitor in TIPO_LABELS, labelSlot ("Sala con Monitor"), dropdown, CSS (--monitor); righe griglia senza istruttore etichettate "Da assegnare (di turno)" invece di "—". CUMULA v3.77 · 2026-07-14 · EVO RAGAZZI + EXPERT IN AGENDA (migration aggiungi_corsi_evo_ragazzi_expert live: CHECK tipo_corso esteso + 2 slot Mer — Evo Ragazzi 17:00-18:30 Claudia e Mattia, Expert 18:00-19:30 Mello, fascia ragazzi, capienza NULL=illimitata da fissare, status attivo): nuove voci in TIPO_LABELS, labelSlot, dropdown, CSS (--evorag, --expert, classi gblk/slot). Dropdown: etichette allineate alla REGOLA FERREA NOMENCLATURA (era anche li accorciato: "Prima lezione", "Bambini"). CUMULA v3.76 · 2026-07-14 · DICITURA KATACLIMB SUI CORSI DEL PERCORSO (diciture esatte di Marco): Open KataClimb · Advance KataClimb · Intro KataClimb · Evo KataClimb — applicata in TIPO_LABELS (dropdown, tab, titoli) e in labelSlot (griglia settimanale). Fly, Lab, Prima Lezione e corsi minori senza dicitura (non nell'elenco di Marco). CUMULA v3.75 · 2026-07-14 · NOMI COMPLETI IN GRIGLIA SETTIMANALE (REGOLA FERREA NOMENCLATURA, Marco 14 lug: mai nomi accorciati): via la mappa abbreviata (Prima/Bambini/Intro/Evo) — la griglia Tutti ora etichetta ogni blocco con nome completo e fascia via labelSlot(tipo,fascia): "Prima Lezione Bambini 6-11" / "Prima Lezione Ragazzi 12-17" / "Prima Lezione Adulti" · "Corso Bambini 6-11" / "Corso Ragazzi 12-17" · "Intro Corda" / "Evo Corda". La colonna fascia era gia in select (v3.73) ma la griglia non la usava. NOTA APERTA: cap in griglia legge ancora tipiConfig e non s.capienza_max dello slot (mostra 0/6 su Prima minori che sono a capienza illimitata) — fix separato in attesa di decisione Marco su come mostrare gli slot senza limite. CUMULA v3.74 · 2026-07-14 · FASCE ANCHE SUL CORSO: badge BAMBINI 6-11 / RAGAZZI 12-17 su OGNI slot con fascia (corso bambini/ragazzi incluso, non solo Prima) + tab 'Bambini' rinominato 'Bambini e Ragazzi' (contiene entrambe le fasce dopo lo split slot del 14 lug). CUMULA v3.73 · 2026-07-14 · BADGE FASCIA MINORI: gli slot Prima Lezione con fascia bambini/ragazzi mostrano il badge BAMBINI 6-11 (giallo) / RAGAZZI 12-17 (azzurro) accanto alla data, in ogni vista (Prima e Tutti) — distinzione a colpo d'occhio dalle Prima adulti (richiesta Marco). caricaSlot ora seleziona anche la colonna fascia. CUMULA v3.72 · 2026-07-10 · DEBITO-182 CREDITO ESAURITO UMANO: banner bloccante generico per corsi a tranche (advance/intro/evo) a credito 0 — 'Credito esaurito, passa in segreteria' (CTA Stripe nascosta, il saldo è in segreteria); traduzione umana degli errori tecnici di prenota_corso nel modale (Nessuna lezione residua / Nessun corso attivo). CUMULA v3.71 · 2026-07-08 · PRIMA LEZIONE PIENA PER L'ISTRUTTORE (decisione Marco, cumulativo v3.70+v3.71 in UN deploy): (v3.70) tolto il nascondimento dell'opzione Prima lezione dal dropdown in vista istruttore; (v3.71) P/A marcabili anche dall'istruttore (showPA=isStaff() anche su prima_lezione) — allineato al gate RPC marca_presenza_prima_lezione ESTESO a tutti i ruoli staff (migration 8 lug). CUMULA v3.69 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) + etichetta 'Portale'→'Profilo' (allineamento P v3.78: voce profilo = Profilo ovunque). CUMULA v3.68 · 2026-06-22 · FIX vista allievo corso-aware: counter, guardia "Credito esaurito" e scalo post-prenotazione ora leggono la colonna credito del corso_attivo (advance_/intro_/evo_lezioni_residue), non più solo lezioni_residue (Open). Risolveva falso "no lezioni residue" per allievi Advance/Intro/Evo (caso Sofia D'Uva). RPC prenota_corso era già corretta. CUMULA v3.67 · 2026-06-13 notte · Barra Oggi in fondo (Oggi/Agenda/Eventi/Portale, stile console) + fix testata mobile: pillole nav-back con wrap e compatte sotto 640px (si accavallavano, collaudo Marco). CUMULA v3.66 · 2026-06-12 02:30 · + orario partenza eventi nella striscia. CUMULA v3.65: Striscia "Eventi Accademia" della settimana sopra la griglia (RPC get_eventi_calendario, read-only → evento.html). Prenotazioni invariate -->
 <!-- KC-BUILD-PREV: agenda v3.64 · 2026-06-04 -->
 <!-- KC-BUILD-PREV: agenda v3.63 · 2026-06-04 -->
 <meta charset="UTF-8">
@@ -417,6 +417,30 @@
 
     <label>Seleziona minore</label>
     <select id="iscrivi-lead"><option value="">— seleziona —</option></select>
+    <div style="margin:.25rem 0 .5rem"><a href="#" id="nm-toggle" style="font-size:13px;font-weight:600">+ Nuovo minore (con genitore referente)</a></div>
+
+    <div id="nm-form" style="display:none;border:1px solid #E4E4E7;border-radius:8px;padding:.7rem;margin:0 0 .7rem;background:#FAFAFA">
+      <div style="font-weight:700;font-size:13px;margin-bottom:.4rem">Minore</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+        <input id="nm-f-nome" placeholder="Nome *">
+        <input id="nm-f-cognome" placeholder="Cognome *">
+        <input id="nm-f-nascita" type="date" title="Data di nascita">
+        <select id="nm-f-fascia"><option value="bambino">Bambini 6–11</option><option value="ragazzo">Ragazzi 12–17</option></select>
+      </div>
+      <div style="font-weight:700;font-size:13px;margin:.6rem 0 .4rem">Genitore referente</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+        <input id="nm-g-nome" placeholder="Nome *">
+        <input id="nm-g-cognome" placeholder="Cognome *">
+        <input id="nm-g-email" type="email" placeholder="Email">
+        <input id="nm-g-telefono" type="tel" placeholder="Telefono">
+      </div>
+      <div style="font-size:11.5px;color:#71717a;margin:.35rem 0 .5rem">Serve almeno un recapito del genitore (email o telefono). Se il genitore è già a sistema viene riconosciuto e riusato.</div>
+      <div id="nm-msg" class="modal-msg"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn-ann" id="nm-annulla" style="font-size:13px">Chiudi</button>
+        <button class="btn-ok" id="nm-crea" style="font-size:13px">Crea minore</button>
+      </div>
+    </div>
 
     <label>Giorni del corso</label>
     <div id="iscrivi-slots" style="display:flex;flex-direction:column;gap:.35rem;margin:.3rem 0 .6rem"></div>
@@ -955,6 +979,13 @@
     document.getElementById('lead-annulla').onclick = () => closeModal('modal-lead');
     document.getElementById('iscrivi-annulla').onclick = () => closeModal('modal-iscrivi'); // v3.84
     document.getElementById('iscrivi-conferma').onclick = onIscriviConferma;               // v3.84
+    document.getElementById('nm-toggle').onclick = (e) => {                                // v3.86
+      e.preventDefault();
+      const f = document.getElementById('nm-form');
+      f.style.display = (f.style.display === 'none') ? 'block' : 'none';
+    };
+    document.getElementById('nm-annulla').onclick = () => { document.getElementById('nm-form').style.display = 'none'; }; // v3.86
+    document.getElementById('nm-crea').onclick = onCreaMinore;                             // v3.86
     document.getElementById('lead-conferma').onclick = onLeadConferma;
     document.getElementById('lead-select').onchange = (e) => {
       document.getElementById('nuovo-lead').style.display = e.target.value === '__new__' ? 'block' : 'none';
@@ -2120,19 +2151,15 @@
     document.getElementById('iscrivi-note').value = '';
 
     // Minori = lead con fascia bambini/ragazzi (anagrafica dalla view crm_leads)
-    try {
-      const { data: leads, error } = await sb.from('crm_leads')
-        .select('id, nome, cognome, telefono, fascia, funnel_stage')
-        .in('fascia', ['bambino','ragazzo']) // ATTENZIONE: in lead_data la fascia e' SINGOLARE (bambino/ragazzo), sugli slot plurale
-        .order('cognome', { ascending: true, nullsFirst: false });
-      if (error) throw error;
-      const sel = document.getElementById('iscrivi-lead');
-      sel.innerHTML = '<option value="">— seleziona —</option>' +
-        (leads || []).map(l => `<option value="${l.id}">${l.nome || ''} ${l.cognome || ''} · ${l.fascia === 'bambino' ? 'Bambini 6-11' : 'Ragazzi 12-17'} · ${labelStage(l.funnel_stage)}</option>`).join('');
-    } catch (err) {
-      msg.className = 'modal-msg err';
-      msg.textContent = 'Errore caricamento minori: ' + (err.message || err);
-    }
+    await caricaMinoriPicker(null, msg);
+
+    // v3.86: sotto-form Nuovo minore chiuso e pulito a ogni apertura,
+    // fascia preimpostata dal tipo di slot cliccato
+    document.getElementById('nm-form').style.display = 'none';
+    ['nm-f-nome','nm-f-cognome','nm-f-nascita','nm-g-nome','nm-g-cognome','nm-g-email','nm-g-telefono'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('nm-f-fascia').value = (tipoSlot === 'bambini') ? 'bambino' : 'ragazzo';
+    const nmMsg = document.getElementById('nm-msg');
+    nmMsg.innerHTML = ''; nmMsg.className = 'modal-msg';
 
     // Giorni = slot attivi dello stesso tipo_corso, quello cliccato preselezionato
     try {
@@ -2152,6 +2179,59 @@
 
     document.getElementById('iscrivi-conferma').disabled = false;
     openModal('modal-iscrivi');
+  }
+
+  // v3.86: caricamento picker minori riusabile (preseleziona dopo la creazione)
+  async function caricaMinoriPicker(preselezionaId, msgEl) {
+    try {
+      const { data: leads, error } = await sb.from('crm_leads')
+        .select('id, nome, cognome, telefono, fascia, funnel_stage')
+        .in('fascia', ['bambino','ragazzo']) // ATTENZIONE: in lead_data la fascia e' SINGOLARE (bambino/ragazzo), sugli slot plurale
+        .order('cognome', { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      const sel = document.getElementById('iscrivi-lead');
+      sel.innerHTML = '<option value="">— seleziona —</option>' +
+        (leads || []).map(l => `<option value="${l.id}">${l.nome || ''} ${l.cognome || ''} · ${l.fascia === 'bambino' ? 'Bambini 6-11' : 'Ragazzi 12-17'} · ${labelStage(l.funnel_stage)}</option>`).join('');
+      if (preselezionaId) sel.value = preselezionaId;
+    } catch (err) {
+      if (msgEl) { msgEl.className = 'modal-msg err'; msgEl.textContent = 'Errore caricamento minori: ' + (err.message || err); }
+    }
+  }
+
+  // v3.86: crea minore + genitore referente in UN atto (RPC atomica a DB)
+  async function onCreaMinore() {
+    const nmMsg = document.getElementById('nm-msg');
+    nmMsg.innerHTML = ''; nmMsg.className = 'modal-msg';
+    const v = id => document.getElementById(id).value.trim();
+
+    if (!v('nm-f-nome') || !v('nm-f-cognome')) { nmMsg.className = 'modal-msg err'; nmMsg.textContent = 'Nome e cognome del minore obbligatori.'; return; }
+    if (!v('nm-g-nome') || !v('nm-g-cognome')) { nmMsg.className = 'modal-msg err'; nmMsg.textContent = 'Nome e cognome del genitore obbligatori.'; return; }
+    if (!v('nm-g-email') && !v('nm-g-telefono')) { nmMsg.className = 'modal-msg err'; nmMsg.textContent = 'Serve almeno un recapito del genitore (email o telefono).'; return; }
+
+    const btn = document.getElementById('nm-crea');
+    btn.disabled = true; btn.textContent = 'Creazione\u2026';
+    try {
+      const { data, error } = await sb.rpc('inserisci_minore_con_referente', {
+        p_figlio_nome:    v('nm-f-nome'),
+        p_figlio_cognome: v('nm-f-cognome'),
+        p_fascia:         v('nm-f-fascia'),
+        p_gen_nome:       v('nm-g-nome'),
+        p_gen_cognome:    v('nm-g-cognome'),
+        p_gen_email:      v('nm-g-email') || null,
+        p_gen_telefono:   v('nm-g-telefono') || null,
+        p_figlio_nascita: v('nm-f-nascita') || null,
+        p_note:           null
+      });
+      if (error) throw error;
+      await caricaMinoriPicker(data.figlio_lead_id, null);
+      document.getElementById('nm-form').style.display = 'none';
+      toast(data.figlio_riusato ? '\u2713 Minore gi\u00e0 a sistema: selezionato' : '\u2713 Minore creato con referente');
+    } catch (err) {
+      nmMsg.className = 'modal-msg err';
+      nmMsg.textContent = 'Errore: ' + (err.message || err);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Crea minore';
+    }
   }
 
   async function onIscriviConferma() {

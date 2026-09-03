@@ -18,7 +18,7 @@ html.kc-boot body::before{
 <script>/* v3.87 anti-flash con velo visibile + paracadute: se init non finisce entro 8s il velo cade e la landing riappare. */
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
-<!-- KC-BUILD: portale v3.111 · 2026-09-01 · LISTINI IN SEGRETERIA: link 💶 Listini (listini.html, target _blank) nella testata della vista Segreteria, tra Monitor e Camp — le pagine listino 2026/27 erano orfane. CUMULA v3.110 · 2026-07-10 · DEBITO-178 CORREZIONE PRESENZE CONTABILE: nuova fn correggiPresenzaPC → RPC rimarca_presenza_corso (credito + no-show coerenti in ogni direzione, mai sotto zero, audit in effetto_contabile); bottoni Correggi in assente / Correggi in presente / Ripristina prenotata nel dettaglio persona; rimuoviPresenza su prenotazioni_corso ora passa dalla RPC (fine UPDATE diretti senza effetti). CUMULA v3.109 · 2026-07-08 · PROPOSTA OPEN CON MEMORIA (richiede stripe-worker v3.66): inviaPropostaOpen gestisce il 409 gia_inviata del Worker — modale con data invio + Copia link WhatsApp + re-invio deliberato (force, con conferma); mandaPropostaOpenWA tratta il 409 come recupero link (nessun doppio invio email, feedback con data). Nuove fn: fmtDataProposta, mostraPropostaGiaInviata, copiaLinkProposta, forzaReinvioProposta, chiudiPropostaGiaInviata. CUMULA v3.108 · 2026-07-05 · COMUNITA IN BARRA: (1) kc-bar a 5 voci — nuova voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo, con toggle kc-on in showNav (la barra segue la vista Comunità/Profilo). (2) Su mobile la vecchia tab bar Profilo/Comunità (.sec-tog.nav-main, fixed bottom z50) era SEPOLTA sotto la kc-bar (z900) dal v3.91 — Comunità irraggiungibile da telefono (bug segnalato da Marco 5 lug). Ora nav-main display:none su mobile (su desktop resta in alto, invariata). CUMULA v3.107 · 2026-06-22 · FUNNEL FUORI DA SEGRETERIA (roadmap E.4): rimosso il blocco "Registro commerciale" (le 4 fasi, sm-wrap/sm-list) dalla vista segreteria -> sostituito da rimando "Gestione lead commerciali -> Console Commerciale" (commerciale.html). Il funnel di conquista (chiamate/fasi/prenotazioni) vive SOLO in commerciale.html, coerente col confine Segreteria/Commerciale = pagamento Prima Lezione. RESTANO: "Da contattare oggi" (dc-wrap, compatto) + fascicoli "Lead in arrivo" + box "Lead freddi" consultabile. renderSmistamento ha gia il guard (sm-list assente -> esce subito), smItem/routeCoda inerti ma NON rimosse (zero rischio). CUMULA v3.106 · 2026-06-22 · DA CONTATTARE OGGI a 3 stati: oltre a 🔴 Mai sentito·chiama e 🟠 Da richiamare, ora include e distingue 🟢 Da risentire·messaggia (contattato non ancora prenotato, prima escluso da isDaChiamare). +alert verde nel conteggio header. Il gia-sentito non sembra piu nuovo. CUMULA v3.105 · 2026-06-22 · LEAD FREDDI IN CONTENITORE: la lista contatti Segreteria non NASCONDE piu i lead freddi (commerciale pre-prima non convertiti) ma li raccoglie in un box collassabile "Lead freddi" sotto la lista (apri/chiudi, ricerca applicata). Estratto crmCardHtml riusato per caldi e freddi. CUMULA v3.104 · 2026-06-18 · SCALA STEP 1-BASED (Marco imperativo: il primo gradino e 1, lo 0 solo = nullo/nessun gradino). STEPS con placeholder a [0]; Prima=1, Open=2, Advance=3, Intro=4, Evo=5, Lavorato=6..Istruttore=9. Aggiornati: calcolaStepDerivato, renderProg (iterazione+gap+nodo corrente), renderKataGrid (sblocco kata avanzati da step 3), calcolaSubPallini, calcolaMemoRiga, DEMO. Allineato al trigger DB che impone la stessa scala su profile_data.step. -->
+<!-- KC-BUILD: portale v3.112 · 2026-09-03 · MINORE + REFERENTE IN SEGRETERIA (RPC inserisci_minore_con_referente + get_famiglia live, collaudate): (1) bottone "+ Minore + referente" accanto ad Aggiungi lead → modale mo-add-minore (figlio nome/cognome/nascita/fascia + genitore nome/cognome/email/telefono, almeno un recapito) → UN atto atomico a DB (genitore riusato se gia a sistema, dedup in garantisci_persona; figlio omonimo stessa famiglia riusato; crm_relazioni pagante=true) → ricarica lista e apre il fascicolo del minore; (2) blocco "👪 Famiglia" nel fascicolo lead: RPC get_famiglia(p_lead_id) ricompone il nucleo da qualunque ingresso (genitore o figlio) — referente con email/telefono + tutti i figli, nomi cliccabili se il lead e nella lista corrente. Base pronta per i corsi famiglia. CUMULA v3.111 · 2026-09-01 · LISTINI IN SEGRETERIA: link 💶 Listini (listini.html, target _blank) nella testata della vista Segreteria, tra Monitor e Camp — le pagine listino 2026/27 erano orfane. CUMULA v3.110 · 2026-07-10 · DEBITO-178 CORREZIONE PRESENZE CONTABILE: nuova fn correggiPresenzaPC → RPC rimarca_presenza_corso (credito + no-show coerenti in ogni direzione, mai sotto zero, audit in effetto_contabile); bottoni Correggi in assente / Correggi in presente / Ripristina prenotata nel dettaglio persona; rimuoviPresenza su prenotazioni_corso ora passa dalla RPC (fine UPDATE diretti senza effetti). CUMULA v3.109 · 2026-07-08 · PROPOSTA OPEN CON MEMORIA (richiede stripe-worker v3.66): inviaPropostaOpen gestisce il 409 gia_inviata del Worker — modale con data invio + Copia link WhatsApp + re-invio deliberato (force, con conferma); mandaPropostaOpenWA tratta il 409 come recupero link (nessun doppio invio email, feedback con data). Nuove fn: fmtDataProposta, mostraPropostaGiaInviata, copiaLinkProposta, forzaReinvioProposta, chiudiPropostaGiaInviata. CUMULA v3.108 · 2026-07-05 · COMUNITA IN BARRA: (1) kc-bar a 5 voci — nuova voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo, con toggle kc-on in showNav (la barra segue la vista Comunità/Profilo). (2) Su mobile la vecchia tab bar Profilo/Comunità (.sec-tog.nav-main, fixed bottom z50) era SEPOLTA sotto la kc-bar (z900) dal v3.91 — Comunità irraggiungibile da telefono (bug segnalato da Marco 5 lug). Ora nav-main display:none su mobile (su desktop resta in alto, invariata). CUMULA v3.107 · 2026-06-22 · FUNNEL FUORI DA SEGRETERIA (roadmap E.4): rimosso il blocco "Registro commerciale" (le 4 fasi, sm-wrap/sm-list) dalla vista segreteria -> sostituito da rimando "Gestione lead commerciali -> Console Commerciale" (commerciale.html). Il funnel di conquista (chiamate/fasi/prenotazioni) vive SOLO in commerciale.html, coerente col confine Segreteria/Commerciale = pagamento Prima Lezione. RESTANO: "Da contattare oggi" (dc-wrap, compatto) + fascicoli "Lead in arrivo" + box "Lead freddi" consultabile. renderSmistamento ha gia il guard (sm-list assente -> esce subito), smItem/routeCoda inerti ma NON rimosse (zero rischio). CUMULA v3.106 · 2026-06-22 · DA CONTATTARE OGGI a 3 stati: oltre a 🔴 Mai sentito·chiama e 🟠 Da richiamare, ora include e distingue 🟢 Da risentire·messaggia (contattato non ancora prenotato, prima escluso da isDaChiamare). +alert verde nel conteggio header. Il gia-sentito non sembra piu nuovo. CUMULA v3.105 · 2026-06-22 · LEAD FREDDI IN CONTENITORE: la lista contatti Segreteria non NASCONDE piu i lead freddi (commerciale pre-prima non convertiti) ma li raccoglie in un box collassabile "Lead freddi" sotto la lista (apri/chiudi, ricerca applicata). Estratto crmCardHtml riusato per caldi e freddi. CUMULA v3.104 · 2026-06-18 · SCALA STEP 1-BASED (Marco imperativo: il primo gradino e 1, lo 0 solo = nullo/nessun gradino). STEPS con placeholder a [0]; Prima=1, Open=2, Advance=3, Intro=4, Evo=5, Lavorato=6..Istruttore=9. Aggiornati: calcolaStepDerivato, renderProg (iterazione+gap+nodo corrente), renderKataGrid (sblocco kata avanzati da step 3), calcolaSubPallini, calcolaMemoRiga, DEMO. Allineato al trigger DB che impone la stessa scala su profile_data.step. -->
 <!-- KC-BUILD: portale v3.103 · 2026-06-18 · LEVA COMMERCIALE DA SEGRETERIA: la lista contatti di Segreteria nasconde i lead FREDDI (funnel_stage pre-prima + NON convertiti + coda commerciale/null) -> si lavorano nella console Commerciale. Restano allievi convertiti, chi è oltre la prima lezione, e coda segreteria/riacciuffo (es. minori da "+ figlio"). NB: coda='commerciale' è il default anche per ~34 allievi, quindi il filtro NON è sulla sola coda. La VIEW crm_leads ora espone coda+fascia (CREATE OR REPLACE, security_invoker preservato). Effetto: lista segreteria da 202 a ~57. CUMULA v3.102 · 2026-06-17 · FIX DIARIO NOTE: loadLeadFollowUps non mostrava nessuna nota (embed created_by_profile senza FK -> SELECT in errore silenzioso). Tolto embed, ordina per created_at, render data con fallback avvenuto_il||created_at. Le note c'erano sempre in crm_follow_ups, ora si VEDONO nel fascicolo. CUMULA v3.101 · 2026-06-17 · REGISTRO COMMERCIALE A FASI: rimpiazzati i 4 bottoni-coda di 'Gestione contatti' con 4 fasi (Da sentire / Sentiti-da far prenotare / Richiami di oggi / Prenotati) + toggle Adulti/Bambini (bambino+ragazzo). Bottone 'Manda link prenotazione' su ogni card (WhatsApp precompilato + link inizia.html, niente prenotazione fantasma -> no no-show). Zero RPC nuove, stessi filtri (isRosso/isArancio/funnel_stage), riusa smItem. CUMULA v3.100 · 2026-06-17 · Contatto sistemico: 'Salva in rubrica' via foglio di condivisione iOS (navigator.share -> Aggiungi ai contatti, no 'salva nei file'), fallback download desktop; + WhatsApp diretto. Bottoni Salva-in-rubrica + WhatsApp AGGIUNTI nel fascicolo lead di SEGRETERIA (oltre al registro chiamate). + Voce barra Portale -> Profilo (coerenza con oggi.html/profilo.html). CUMULA v3.99 · 2026-06-17 · Bottone ⚙️ Impostazioni sempre visibile nel blocco profilo (link impostazioni-profilo.html): cambio password + privacy per OGNI allievo loggato, non solo staff/corso_attivo. CUMULA v3.98 · 2026-06-16 · SCHEDA DI CONDUZIONE (livello 1): modale "Traccia chiamata" con le 4 domande leggere (lavoro / esperienza sport / perché ora / cosa ti frena) su ogni card chiamata. Legge e scrive su lead_data via RPC get_qualifica_lead + salva_qualifica_lead (COALESCE: salvataggi parziali non cancellano). Le 4 domande profonde restano per la scheda persona (livello 2). Richiede le 4 colonne lavoro/esperienza_sport/motivo_ora/freno + le 2 RPC. CUMULA v3.97 · 2026-06-16 · CODA: "Non risponde" -> resta ROSSO (da sentire), traccia tentativo (segnaNonRisponde); +1/+3/+7 ora = "ti ha chiesto di richiamare" (esito positivo), non piu su chi non risponde. + Pulsante "Salva in rubrica" (.vcf: nome · campagna · data nel nome, fonte/desiderio in nota) su ogni card chiamata. CUMULA v3.96 · 2026-06-16 · CODA CHIAMATE rifatta (feedback Marco): 2 alert ROSSO=mai sentiti / ARANCIONE=da richiamare; ordina per fascia oraria preferita (Mattina/Pomeriggio/Sera da ultima_nota) vs ora corrente; "Non risponde"->richiama tra +1/+3/+7gg (prossima_azione_il data LOCALE T#134) -> esce dal rosso, rientra arancione alla scadenza con la nota; chi viene sentito esce subito (sync dcData + nuovo->contattato). Tutto client-side, get_leads_da_contattare INVARIATA. CUMULA v3.95 · 2026-06-16 · FIX modali coperte dalla barra in fondo su mobile (feedback Marco): .mo z-index 100->950, ora sopra #kc-bar (900). I bottoni "Crea evento" (modale Nuovo evento) e "Salva" (scheda Registra contatto / note lead) non sono piu nascosti dalla barra. CUMULA v3.94 · 2026-06-15 · "Ha risposto"/"Contattato" ora aprono il fascicolo + modale Registra contatto precompilata (chiamata·ha risposto): esito e nota in un atto, niente note perse. CUMULA v3.93 · DEBITO-187-B: Comunità legge profiles_community (niente email/telefono/CF/persona_id al browser) - falla recapiti CHIUSA (richiede fix_falla_recapiti_community.sql). CUMULA v3.92 · Note dal modulo (orario richiamo + desiderio, fonte lead_richieste) ora visibili in segreteria: chip sotto il nome nella card "Da contattare oggi" + blocco "📩 Dal modulo" nella scheda lead. Richiede RPC get_leads_da_contattare con colonna ultima_nota + nuova RPC get_richieste_lead (fix_note_modulo_lead.sql). CUMULA v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
 <!-- KC-BUILD-PREV: portale v3.77 · 2026-06-11 19:10 · Registra contatto: checkbox "Sposta in Chiamate segreteria" (coda=segreteria via RPC imposta_coda_fascia, in un atto col follow-up) -->
@@ -1673,6 +1673,7 @@ fill="#1d4ed8" stroke="none">
             <span id="seg-leads-count" class="sl-head-count"></span>
           </div>
           <button class="btn btn-p" style="padding:8px 14px;font-size:13.5px" onclick="openAddLeadModal()">+ Aggiungi lead</button>
+          <button class="btn btn-g" style="padding:8px 14px;font-size:13.5px" onclick="openAddMinoreModal()">+ Minore + referente</button>
         </div>
         <input id="seg-search" class="input" placeholder="🔍 Cerca per nome..." style="margin-bottom:12px;font-size:14px;padding:10px 14px;margin-top:12px" oninput="setCrmSearch(this.value)">
         <div id="seg-urgency-filters" class="sl-filters"></div>
@@ -2005,6 +2006,39 @@ fill="#1d4ed8" stroke="none">
     <div style="display:flex;gap:7px">
       <button id="add-lead-submit" class="btn btn-p" style="flex:1" onclick="submitAddLead()">Crea lead</button>
       <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-add-lead')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Minore + referente (v3.112) — RPC inserisci_minore_con_referente -->
+<div id="mo-add-minore" class="mo hidden">
+  <div class="mo-box" style="max-width:480px">
+    <h3>Nuovo minore con referente</h3>
+    <p style="font-size:12.5px;color:var(--text2);margin-bottom:14px">Il profilo è a nome del minore; i contatti vivono sul genitore referente. Se il genitore è già a sistema viene riconosciuto e riusato.</p>
+
+    <div style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);margin-bottom:6px">Minore</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <input id="am-f-nome" class="inp" placeholder="Nome *">
+      <input id="am-f-cognome" class="inp" placeholder="Cognome *">
+      <input id="am-f-nascita" class="inp" type="date" title="Data di nascita">
+      <select id="am-f-fascia" class="inp"><option value="bambino">Bambini 6–11</option><option value="ragazzo">Ragazzi 12–17</option></select>
+    </div>
+
+    <div style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);margin-bottom:6px">Genitore referente</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <input id="am-g-nome" class="inp" placeholder="Nome *">
+      <input id="am-g-cognome" class="inp" placeholder="Cognome *">
+      <input id="am-g-email" class="inp" type="email" placeholder="Email">
+      <input id="am-g-telefono" class="inp" type="tel" placeholder="Telefono">
+    </div>
+    <div style="font-size:11.5px;color:var(--text2);margin-bottom:10px">Serve almeno un recapito del genitore (email o telefono).</div>
+
+    <textarea id="am-note" class="inp" placeholder="Note (facoltative)" style="width:100%;min-height:56px;margin-bottom:10px"></textarea>
+
+    <div id="am-msg" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:7px">
+      <button id="am-submit" class="btn btn-p" style="flex:1" onclick="submitAddMinore()">Crea minore</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-add-minore')">Annulla</button>
     </div>
   </div>
 </div>
@@ -3990,6 +4024,49 @@ function matchCorsia(l, key){
 // Stato del modal: trattenuto tra apertura e submit
 let addLeadState={pendingData:null,existingLead:null,conflictField:null};
 
+// v3.112 — Minore + referente in UN atto (RPC atomica, nessun INSERT diretto)
+function openAddMinoreModal(){
+  ['am-f-nome','am-f-cognome','am-f-nascita','am-g-nome','am-g-cognome','am-g-email','am-g-telefono','am-note'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('am-f-fascia').value='bambino';
+  document.getElementById('am-msg').innerHTML='';
+  openModal('mo-add-minore');
+}
+async function submitAddMinore(){
+  const v=id=>document.getElementById(id).value.trim();
+  const msg=document.getElementById('am-msg');
+  msg.innerHTML='';
+  if(!v('am-f-nome')||!v('am-f-cognome')){msg.innerHTML='<div class="ib warn">Nome e cognome del minore obbligatori.</div>';return}
+  if(!v('am-g-nome')||!v('am-g-cognome')){msg.innerHTML='<div class="ib warn">Nome e cognome del genitore obbligatori.</div>';return}
+  if(!v('am-g-email')&&!v('am-g-telefono')){msg.innerHTML='<div class="ib warn">Serve almeno un recapito del genitore (email o telefono).</div>';return}
+  const btn=document.getElementById('am-submit');
+  btn.disabled=true;btn.textContent='Creazione…';
+  try{
+    const{data,error}=await sb.rpc('inserisci_minore_con_referente',{
+      p_figlio_nome:v('am-f-nome'),
+      p_figlio_cognome:v('am-f-cognome'),
+      p_fascia:v('am-f-fascia'),
+      p_gen_nome:v('am-g-nome'),
+      p_gen_cognome:v('am-g-cognome'),
+      p_gen_email:v('am-g-email')||null,
+      p_gen_telefono:v('am-g-telefono')||null,
+      p_figlio_nascita:v('am-f-nascita')||null,
+      p_note:v('am-note')||null
+    });
+    if(error)throw error;
+    closeModal('mo-add-minore');
+    toast(data.figlio_riusato?'Minore già a sistema: apro il fascicolo':'Minore creato con referente ✓');
+    await loadCrmLeads();
+    renderCrmLeads();
+    if(crmLeadsData.find(l=>l.id===data.figlio_lead_id))showLeadDetail(data.figlio_lead_id);
+  }catch(err){
+    msg.innerHTML='<div class="ib warn">Errore: '+(err.message||err)+'</div>';
+  }finally{
+    btn.disabled=false;btn.textContent='Crea minore';
+  }
+}
+
 function openAddLeadModal(){
   // Reset campi
   ['add-lead-nome','add-lead-cognome','add-lead-telefono','add-lead-email','add-lead-note'].forEach(id=>{
@@ -4728,6 +4805,7 @@ function showLeadDetail(id){
   currentLeadTesseramenti=[];
   currentLeadFollowUps=[];
   currentLeadRichieste=[];
+  currentLeadFamiglia=[]; // v3.112 — nucleo famiglia (get_famiglia)
   document.getElementById('seg-lead-list-wrap').style.display='none';
   document.getElementById('seg-lead-detail').classList.remove('hidden');
   renderLeadDetail();
@@ -4737,6 +4815,7 @@ function showLeadDetail(id){
   loadLeadProfileData(lead); // v3.36 — campi corso Open per bottoni segreteria
   loadLeadIscrizioni(lead); // v3.68 — iscrizioni_corso per il blocco Percorso
   loadLeadTesseramenti(lead); // v3.71 — tesseramenti ASD per il blocco Tesseramento
+  loadLeadFamiglia(lead); // v3.112 — nucleo famiglia (referente + figli) per il blocco Famiglia
   subscribeLeadRealtime(lead); // v3.44 Sessione 8a — auto-refresh quando l'agenda cambia presenze/prenotazioni
 }
 
@@ -4864,6 +4943,18 @@ async function loadLeadTesseramenti(lead){
   if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
   currentLeadTesseramenti=data||[];
   renderLeadDetail();
+}
+
+// v3.112 — Famiglia: get_famiglia ricompone il nucleo da qualunque ingresso (genitore o figlio)
+let currentLeadFamiglia=[];
+async function loadLeadFamiglia(lead){
+  try{
+    const{data,error}=await sb.rpc('get_famiglia',{p_lead_id:lead.id});
+    if(error){console.warn('[loadLeadFamiglia]',error.message);return}
+    if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
+    currentLeadFamiglia=(data&&data.membri)||[];
+    renderLeadDetail();
+  }catch(e){console.warn('[loadLeadFamiglia]',e.message||e)}
 }
 
 async function aggiornaDataCorso(tipo,val){
@@ -5086,6 +5177,35 @@ function renderLeadDetail(){
     diaryBlock=`<div style="margin-top:16px;font-size:15px;color:var(--text2);font-weight:600">${l.tentativi_contatto} tentativi di contatto registrati (nessun diario).</div>`;
   }
 
+  // v3.112 — blocco FAMIGLIA: referente + figli da crm_relazioni (RPC get_famiglia)
+  let famigliaBlock='';
+  if(currentLeadFamiglia&&currentLeadFamiglia.length>=2){
+    const items=currentLeadFamiglia.map(m=>{
+      const isCorrente=m.lead_id===l.id;
+      const ruoloLbl=m.ruolo==='referente'?'Referente':'Allievo';
+      const ruoloCol=m.ruolo==='referente'?'#B45309':'#2563EB';
+      const fasciaLbl=m.fascia==='bambino'?'Bambini 6–11':m.fascia==='ragazzo'?'Ragazzi 12–17':'';
+      const nomeC=`${m.nome||''} ${m.cognome||''}`.trim();
+      const cliccabile=!isCorrente&&crmLeadsData.some(x=>x.id===m.lead_id);
+      const nomeHtml=cliccabile
+        ?`<a href="#" onclick="showLeadDetail('${m.lead_id}');return false" style="font-weight:700;color:var(--text)">${nomeC}</a>`
+        :`<strong>${nomeC}${isCorrente?' (questo fascicolo)':''}</strong>`;
+      const recapiti=m.ruolo==='referente'
+        ?[m.telefono,m.email].filter(Boolean).join(' · ')
+        :(m.data_nascita?'nascita '+fmtDate(m.data_nascita):'');
+      return`<div class="ld-prenot-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="ld-pill" style="background:${ruoloCol};color:#fff;font-weight:700">${ruoloLbl}</span>
+          ${nomeHtml}${fasciaLbl?`<span style="font-size:12px;color:var(--text2)">${fasciaLbl}</span>`:''}
+        </span>
+        ${recapiti?`<span style="font-size:13px;color:var(--text2)">${recapiti}</span>`:''}
+      </div>`;
+    }).join('');
+    famigliaBlock=`<div class="ld-section">
+      <div class="ld-section-h">👪 Famiglia</div>
+      ${items}
+    </div>`;
+  }
   // v3.68 — blocco PERCORSO: legge iscrizioni_corso (fonte di verità corsi), reso visibile nel fascicolo
   let percorsoBlock='';
   if(currentLeadIscrizioni&&currentLeadIscrizioni.length){
@@ -5173,6 +5293,7 @@ function renderLeadDetail(){
     </div>
     ${l.note?`<div class="ld-note">${l.note}</div>`:''}
     ${moduloBlock}
+    ${famigliaBlock}
     ${esitoBlock}
     ${percorsoBlock}
     ${tessBlock}
