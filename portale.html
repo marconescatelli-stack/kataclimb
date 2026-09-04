@@ -5038,6 +5038,12 @@ function questHaParole(q){return QUEST_DOMANDE.some(function(d){return questRisp
 
 let _questCache={};              // persona_id -> righe (evita di ri-chiamare la RPC a ogni renderLeadDetail)
 const _questMounts=new Map();    // elemento contenitore -> {personaId, opts}
+const _questLinks={};            // prenotazione_id -> link questionario (i bottoni passano solo l'uuid, mai l'URL)
+const QUEST_UUID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function questIdOk(v){return typeof v==='string'&&QUEST_UUID_RE.test(v)}
+/* Il link arriva dalla RPC (host fisso + uuid). Lo si accetta solo se e davvero quello:
+   nessun valore dinamico finisce mai dentro un attributo onclick. */
+function questLinkOk(u){return typeof u==='string'&&u.indexOf('https://kataclimb.com/questionario-prima.html?p=')===0&&questIdOk(u.slice(48))}
 
 /* Unico punto di render: fascicolo (modo 'staff') e diario del percorso (modo 'diario'). */
 async function renderQuestionariPersona(personaId,containerEl,opts){
@@ -5077,9 +5083,12 @@ function questFascicoloHtml(righe,opts){
       const stato=q.invitata_at
         ?'Invito partito il '+questDataOra(q.invitata_at)+' · nessuna risposta ancora'
         :'Invito automatico in partenza stanotte';
-      const link=q.link||'';
-      const btnCopia=link?'<button class="btn btn-g quest-btn" onclick="copiaLinkQuestionario(\''+link+'\')">📋 Copia link questionario</button>':'';
-      const btnWa=(link&&haTelefono)?'<button class="btn btn-g quest-btn" onclick="mandaQuestionarioWA(\''+link+'\')">💬 Manda su WhatsApp</button>':'';
+      const pid=questIdOk(q.prenotazione_id)?q.prenotazione_id:'';
+      const link=questLinkOk(q.link)?q.link:'';
+      if(pid&&link)_questLinks[pid]=link;
+      const ok=!!(pid&&link);
+      const btnCopia=ok?'<button class="btn btn-g quest-btn" onclick="copiaLinkQuestionario(\''+pid+'\')">📋 Copia link questionario</button>':'';
+      const btnWa=(ok&&haTelefono)?'<button class="btn btn-g quest-btn" onclick="mandaQuestionarioWA(\''+pid+'\')">💬 Manda su WhatsApp</button>':'';
       return'<div class="ld-prenot-row quest-row">'
         +'<div style="font-weight:700;font-size:14px">'+escapeHtml(testa)+'</div>'
         +'<div class="quest-meta">'+escapeHtml(stato)+'</div>'
@@ -5099,7 +5108,7 @@ function questFascicoloHtml(righe,opts){
     const parole=dom?'<details class="quest-parole"><summary>Le sue parole</summary><div style="margin-top:8px">'+dom+'</div></details>':'';
     // Curatela: solo creator e solo se la persona ha dato il consenso (senza consenso la RPC rifiuta comunque)
     let testim='';
-    if(creator&&q.consenso_pubblicazione===true){
+    if(creator&&q.consenso_pubblicazione===true&&questIdOk(q.questionario_id)){
       const approvata=q.approvata===true;
       const statoT=approvata
         ?'<span style="color:#15803D;font-weight:700">✅ approvata'+(q.approvata_at?' il '+questDataLunga(q.approvata_at):'')+'</span>'
@@ -5150,7 +5159,8 @@ function questDiarioHtml(righe){
     +'</div>';
 }
 
-async function copiaLinkQuestionario(link){
+async function copiaLinkQuestionario(prenotId){
+  const link=_questLinks[prenotId];
   if(!link)return;
   try{await navigator.clipboard.writeText(link);}
   catch(e){
@@ -5161,8 +5171,9 @@ async function copiaLinkQuestionario(link){
   }
   toast('Link copiato ✓');
 }
-function mandaQuestionarioWA(link){
+function mandaQuestionarioWA(prenotId){
   const l=currentLeadDetail;
+  const link=_questLinks[prenotId];
   if(!l||!link)return;
   const num=regWaNum(l.telefono);
   if(!num)return toast('Numero mancante per questo lead');
