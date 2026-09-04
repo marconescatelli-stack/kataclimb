@@ -18,7 +18,7 @@ html.kc-boot body::before{
 <script>/* v3.87 anti-flash con velo visibile + paracadute: se init non finisce entro 8s il velo cade e la landing riappare. */
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
-<!-- KC-BUILD: portale v3.113 · 2026-09-03 · CONSENSI MINORI NEL FASCICOLO (Cantieri A4; RPC get_consensi_minore + imposta_consenso_minore live, collaudate — concesso_at NOT NULL = data atto, revocato_at marca lo stato negativo, registrato_da uuid): blocco "📄 Consensi" nel fascicolo dei lead fascia bambino/ragazzo — 3 consensi fissi (Accesso al portale / Visibilita in Comunita / Utilizzo immagini) con stato e data, bottoni Concedi/Revoca in un tocco (upsert su persona+tipo), link al Modulo_Consensi_Minori_KataClimb.pdf in /docs/ (PDF ancora da caricare nel repo: 404 rilevato il 3/9). La visibilita in Comunita resta governata da persona_visibile_community: qui si registra la firma, il gate a DB ce gia. CUMULA v3.112 · 2026-09-03 · MINORE + REFERENTE IN SEGRETERIA (RPC inserisci_minore_con_referente + get_famiglia live, collaudate): (1) bottone "+ Minore + referente" accanto ad Aggiungi lead → modale mo-add-minore (figlio nome/cognome/nascita/fascia + genitore nome/cognome/email/telefono, almeno un recapito) → UN atto atomico a DB (genitore riusato se gia a sistema, dedup in garantisci_persona; figlio omonimo stessa famiglia riusato; crm_relazioni pagante=true) → ricarica lista e apre il fascicolo del minore; (2) blocco "👪 Famiglia" nel fascicolo lead: RPC get_famiglia(p_lead_id) ricompone il nucleo da qualunque ingresso (genitore o figlio) — referente con email/telefono + tutti i figli, nomi cliccabili se il lead e nella lista corrente. Base pronta per i corsi famiglia. CUMULA v3.111 · 2026-09-01 · LISTINI IN SEGRETERIA: link 💶 Listini (listini.html, target _blank) nella testata della vista Segreteria, tra Monitor e Camp — le pagine listino 2026/27 erano orfane. CUMULA v3.110 · 2026-07-10 · DEBITO-178 CORREZIONE PRESENZE CONTABILE: nuova fn correggiPresenzaPC → RPC rimarca_presenza_corso (credito + no-show coerenti in ogni direzione, mai sotto zero, audit in effetto_contabile); bottoni Correggi in assente / Correggi in presente / Ripristina prenotata nel dettaglio persona; rimuoviPresenza su prenotazioni_corso ora passa dalla RPC (fine UPDATE diretti senza effetti). CUMULA v3.109 · 2026-07-08 · PROPOSTA OPEN CON MEMORIA (richiede stripe-worker v3.66): inviaPropostaOpen gestisce il 409 gia_inviata del Worker — modale con data invio + Copia link WhatsApp + re-invio deliberato (force, con conferma); mandaPropostaOpenWA tratta il 409 come recupero link (nessun doppio invio email, feedback con data). Nuove fn: fmtDataProposta, mostraPropostaGiaInviata, copiaLinkProposta, forzaReinvioProposta, chiudiPropostaGiaInviata. CUMULA v3.108 · 2026-07-05 · COMUNITA IN BARRA: (1) kc-bar a 5 voci — nuova voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo, con toggle kc-on in showNav (la barra segue la vista Comunità/Profilo). (2) Su mobile la vecchia tab bar Profilo/Comunità (.sec-tog.nav-main, fixed bottom z50) era SEPOLTA sotto la kc-bar (z900) dal v3.91 — Comunità irraggiungibile da telefono (bug segnalato da Marco 5 lug). Ora nav-main display:none su mobile (su desktop resta in alto, invariata). CUMULA v3.107 · 2026-06-22 · FUNNEL FUORI DA SEGRETERIA (roadmap E.4): rimosso il blocco "Registro commerciale" (le 4 fasi, sm-wrap/sm-list) dalla vista segreteria -> sostituito da rimando "Gestione lead commerciali -> Console Commerciale" (commerciale.html). Il funnel di conquista (chiamate/fasi/prenotazioni) vive SOLO in commerciale.html, coerente col confine Segreteria/Commerciale = pagamento Prima Lezione. RESTANO: "Da contattare oggi" (dc-wrap, compatto) + fascicoli "Lead in arrivo" + box "Lead freddi" consultabile. renderSmistamento ha gia il guard (sm-list assente -> esce subito), smItem/routeCoda inerti ma NON rimosse (zero rischio). CUMULA v3.106 · 2026-06-22 · DA CONTATTARE OGGI a 3 stati: oltre a 🔴 Mai sentito·chiama e 🟠 Da richiamare, ora include e distingue 🟢 Da risentire·messaggia (contattato non ancora prenotato, prima escluso da isDaChiamare). +alert verde nel conteggio header. Il gia-sentito non sembra piu nuovo. CUMULA v3.105 · 2026-06-22 · LEAD FREDDI IN CONTENITORE: la lista contatti Segreteria non NASCONDE piu i lead freddi (commerciale pre-prima non convertiti) ma li raccoglie in un box collassabile "Lead freddi" sotto la lista (apri/chiudi, ricerca applicata). Estratto crmCardHtml riusato per caldi e freddi. CUMULA v3.104 · 2026-06-18 · SCALA STEP 1-BASED (Marco imperativo: il primo gradino e 1, lo 0 solo = nullo/nessun gradino). STEPS con placeholder a [0]; Prima=1, Open=2, Advance=3, Intro=4, Evo=5, Lavorato=6..Istruttore=9. Aggiornati: calcolaStepDerivato, renderProg (iterazione+gap+nodo corrente), renderKataGrid (sblocco kata avanzati da step 3), calcolaSubPallini, calcolaMemoRiga, DEMO. Allineato al trigger DB che impone la stessa scala su profile_data.step. -->
+<!-- KC-BUILD: portale v3.114 · 2026-09-04 · QUESTIONARIO NEL FASCICOLO PERSONA (RPC get_questionari_persona + approva_testimonianza live, collaudate — migrazione rpc_questionari_fascicolo_persona; nessuna query diretta su questionari_valorizzazione): il questionario di valorizzazione della Prima Lezione (live dal 22 lug, questionario-prima.html) finiva a DB ma non si vedeva da nessuna pagina — dato corretto ma invisibile. Ora: (1) blocco "📝 Questionario" nel fascicolo lead di Segreteria, una riga per ogni Prima Lezione fatta: invito partito ma nessuna risposta → data invito + Copia link questionario + Manda su WhatsApp (bottone nascosto se manca il telefono; invitata_at null → "Invito automatico in partenza stanotte"); ha risposto → data di consegna, se vuole la proposta per il percorso KataClimb Open, consenso testimonianza e "Le sue parole" (le 7 risposte integrali, mai troncate, apri/chiudi con default chiuso). (2) Curatela testimonianze SOLO creator (profile_data.role, non staff_role) e SOLO con consenso della persona: textarea estratto precompilata con la risposta 6 o 7 + Approva / Revoca su approva_testimonianza. Il doppio cancello consenso_pubblicazione AND approvata resta a DB: il frontend non aggiunge logica di autorizzazione, rispetta cosa gli torna (ok:false non_autorizzato → blocco assente, nessun errore rosso). (3) "Il tuo diario del percorso" nel profilo della persona, sotto la Linea del Percorso: solo le sue parole, niente stato testimonianza, niente bottoni staff; se non ha risposto il blocco non compare. Una sola funzione di render (renderQuestionariPersona) per fascicolo e diario, zero logica doppia. CUMULA v3.113 · 2026-09-03 · CONSENSI MINORI NEL FASCICOLO (Cantieri A4; RPC get_consensi_minore + imposta_consenso_minore live, collaudate — concesso_at NOT NULL = data atto, revocato_at marca lo stato negativo, registrato_da uuid): blocco "📄 Consensi" nel fascicolo dei lead fascia bambino/ragazzo — 3 consensi fissi (Accesso al portale / Visibilita in Comunita / Utilizzo immagini) con stato e data, bottoni Concedi/Revoca in un tocco (upsert su persona+tipo), link al Modulo_Consensi_Minori_KataClimb.pdf in /docs/ (PDF ancora da caricare nel repo: 404 rilevato il 3/9). La visibilita in Comunita resta governata da persona_visibile_community: qui si registra la firma, il gate a DB ce gia. CUMULA v3.112 · 2026-09-03 · MINORE + REFERENTE IN SEGRETERIA (RPC inserisci_minore_con_referente + get_famiglia live, collaudate): (1) bottone "+ Minore + referente" accanto ad Aggiungi lead → modale mo-add-minore (figlio nome/cognome/nascita/fascia + genitore nome/cognome/email/telefono, almeno un recapito) → UN atto atomico a DB (genitore riusato se gia a sistema, dedup in garantisci_persona; figlio omonimo stessa famiglia riusato; crm_relazioni pagante=true) → ricarica lista e apre il fascicolo del minore; (2) blocco "👪 Famiglia" nel fascicolo lead: RPC get_famiglia(p_lead_id) ricompone il nucleo da qualunque ingresso (genitore o figlio) — referente con email/telefono + tutti i figli, nomi cliccabili se il lead e nella lista corrente. Base pronta per i corsi famiglia. CUMULA v3.111 · 2026-09-01 · LISTINI IN SEGRETERIA: link 💶 Listini (listini.html, target _blank) nella testata della vista Segreteria, tra Monitor e Camp — le pagine listino 2026/27 erano orfane. CUMULA v3.110 · 2026-07-10 · DEBITO-178 CORREZIONE PRESENZE CONTABILE: nuova fn correggiPresenzaPC → RPC rimarca_presenza_corso (credito + no-show coerenti in ogni direzione, mai sotto zero, audit in effetto_contabile); bottoni Correggi in assente / Correggi in presente / Ripristina prenotata nel dettaglio persona; rimuoviPresenza su prenotazioni_corso ora passa dalla RPC (fine UPDATE diretti senza effetti). CUMULA v3.109 · 2026-07-08 · PROPOSTA OPEN CON MEMORIA (richiede stripe-worker v3.66): inviaPropostaOpen gestisce il 409 gia_inviata del Worker — modale con data invio + Copia link WhatsApp + re-invio deliberato (force, con conferma); mandaPropostaOpenWA tratta il 409 come recupero link (nessun doppio invio email, feedback con data). Nuove fn: fmtDataProposta, mostraPropostaGiaInviata, copiaLinkProposta, forzaReinvioProposta, chiudiPropostaGiaInviata. CUMULA v3.108 · 2026-07-05 · COMUNITA IN BARRA: (1) kc-bar a 5 voci — nuova voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo, con toggle kc-on in showNav (la barra segue la vista Comunità/Profilo). (2) Su mobile la vecchia tab bar Profilo/Comunità (.sec-tog.nav-main, fixed bottom z50) era SEPOLTA sotto la kc-bar (z900) dal v3.91 — Comunità irraggiungibile da telefono (bug segnalato da Marco 5 lug). Ora nav-main display:none su mobile (su desktop resta in alto, invariata). CUMULA v3.107 · 2026-06-22 · FUNNEL FUORI DA SEGRETERIA (roadmap E.4): rimosso il blocco "Registro commerciale" (le 4 fasi, sm-wrap/sm-list) dalla vista segreteria -> sostituito da rimando "Gestione lead commerciali -> Console Commerciale" (commerciale.html). Il funnel di conquista (chiamate/fasi/prenotazioni) vive SOLO in commerciale.html, coerente col confine Segreteria/Commerciale = pagamento Prima Lezione. RESTANO: "Da contattare oggi" (dc-wrap, compatto) + fascicoli "Lead in arrivo" + box "Lead freddi" consultabile. renderSmistamento ha gia il guard (sm-list assente -> esce subito), smItem/routeCoda inerti ma NON rimosse (zero rischio). CUMULA v3.106 · 2026-06-22 · DA CONTATTARE OGGI a 3 stati: oltre a 🔴 Mai sentito·chiama e 🟠 Da richiamare, ora include e distingue 🟢 Da risentire·messaggia (contattato non ancora prenotato, prima escluso da isDaChiamare). +alert verde nel conteggio header. Il gia-sentito non sembra piu nuovo. CUMULA v3.105 · 2026-06-22 · LEAD FREDDI IN CONTENITORE: la lista contatti Segreteria non NASCONDE piu i lead freddi (commerciale pre-prima non convertiti) ma li raccoglie in un box collassabile "Lead freddi" sotto la lista (apri/chiudi, ricerca applicata). Estratto crmCardHtml riusato per caldi e freddi. CUMULA v3.104 · 2026-06-18 · SCALA STEP 1-BASED (Marco imperativo: il primo gradino e 1, lo 0 solo = nullo/nessun gradino). STEPS con placeholder a [0]; Prima=1, Open=2, Advance=3, Intro=4, Evo=5, Lavorato=6..Istruttore=9. Aggiornati: calcolaStepDerivato, renderProg (iterazione+gap+nodo corrente), renderKataGrid (sblocco kata avanzati da step 3), calcolaSubPallini, calcolaMemoRiga, DEMO. Allineato al trigger DB che impone la stessa scala su profile_data.step. -->
 <!-- KC-BUILD: portale v3.103 · 2026-06-18 · LEVA COMMERCIALE DA SEGRETERIA: la lista contatti di Segreteria nasconde i lead FREDDI (funnel_stage pre-prima + NON convertiti + coda commerciale/null) -> si lavorano nella console Commerciale. Restano allievi convertiti, chi è oltre la prima lezione, e coda segreteria/riacciuffo (es. minori da "+ figlio"). NB: coda='commerciale' è il default anche per ~34 allievi, quindi il filtro NON è sulla sola coda. La VIEW crm_leads ora espone coda+fascia (CREATE OR REPLACE, security_invoker preservato). Effetto: lista segreteria da 202 a ~57. CUMULA v3.102 · 2026-06-17 · FIX DIARIO NOTE: loadLeadFollowUps non mostrava nessuna nota (embed created_by_profile senza FK -> SELECT in errore silenzioso). Tolto embed, ordina per created_at, render data con fallback avvenuto_il||created_at. Le note c'erano sempre in crm_follow_ups, ora si VEDONO nel fascicolo. CUMULA v3.101 · 2026-06-17 · REGISTRO COMMERCIALE A FASI: rimpiazzati i 4 bottoni-coda di 'Gestione contatti' con 4 fasi (Da sentire / Sentiti-da far prenotare / Richiami di oggi / Prenotati) + toggle Adulti/Bambini (bambino+ragazzo). Bottone 'Manda link prenotazione' su ogni card (WhatsApp precompilato + link inizia.html, niente prenotazione fantasma -> no no-show). Zero RPC nuove, stessi filtri (isRosso/isArancio/funnel_stage), riusa smItem. CUMULA v3.100 · 2026-06-17 · Contatto sistemico: 'Salva in rubrica' via foglio di condivisione iOS (navigator.share -> Aggiungi ai contatti, no 'salva nei file'), fallback download desktop; + WhatsApp diretto. Bottoni Salva-in-rubrica + WhatsApp AGGIUNTI nel fascicolo lead di SEGRETERIA (oltre al registro chiamate). + Voce barra Portale -> Profilo (coerenza con oggi.html/profilo.html). CUMULA v3.99 · 2026-06-17 · Bottone ⚙️ Impostazioni sempre visibile nel blocco profilo (link impostazioni-profilo.html): cambio password + privacy per OGNI allievo loggato, non solo staff/corso_attivo. CUMULA v3.98 · 2026-06-16 · SCHEDA DI CONDUZIONE (livello 1): modale "Traccia chiamata" con le 4 domande leggere (lavoro / esperienza sport / perché ora / cosa ti frena) su ogni card chiamata. Legge e scrive su lead_data via RPC get_qualifica_lead + salva_qualifica_lead (COALESCE: salvataggi parziali non cancellano). Le 4 domande profonde restano per la scheda persona (livello 2). Richiede le 4 colonne lavoro/esperienza_sport/motivo_ora/freno + le 2 RPC. CUMULA v3.97 · 2026-06-16 · CODA: "Non risponde" -> resta ROSSO (da sentire), traccia tentativo (segnaNonRisponde); +1/+3/+7 ora = "ti ha chiesto di richiamare" (esito positivo), non piu su chi non risponde. + Pulsante "Salva in rubrica" (.vcf: nome · campagna · data nel nome, fonte/desiderio in nota) su ogni card chiamata. CUMULA v3.96 · 2026-06-16 · CODA CHIAMATE rifatta (feedback Marco): 2 alert ROSSO=mai sentiti / ARANCIONE=da richiamare; ordina per fascia oraria preferita (Mattina/Pomeriggio/Sera da ultima_nota) vs ora corrente; "Non risponde"->richiama tra +1/+3/+7gg (prossima_azione_il data LOCALE T#134) -> esce dal rosso, rientra arancione alla scadenza con la nota; chi viene sentito esce subito (sync dcData + nuovo->contattato). Tutto client-side, get_leads_da_contattare INVARIATA. CUMULA v3.95 · 2026-06-16 · FIX modali coperte dalla barra in fondo su mobile (feedback Marco): .mo z-index 100->950, ora sopra #kc-bar (900). I bottoni "Crea evento" (modale Nuovo evento) e "Salva" (scheda Registra contatto / note lead) non sono piu nascosti dalla barra. CUMULA v3.94 · 2026-06-15 · "Ha risposto"/"Contattato" ora aprono il fascicolo + modale Registra contatto precompilata (chiamata·ha risposto): esito e nota in un atto, niente note perse. CUMULA v3.93 · DEBITO-187-B: Comunità legge profiles_community (niente email/telefono/CF/persona_id al browser) - falla recapiti CHIUSA (richiede fix_falla_recapiti_community.sql). CUMULA v3.92 · Note dal modulo (orario richiamo + desiderio, fonte lead_richieste) ora visibili in segreteria: chip sotto il nome nella card "Da contattare oggi" + blocco "📩 Dal modulo" nella scheda lead. Richiede RPC get_leads_da_contattare con colonna ultima_nota + nuova RPC get_richieste_lead (fix_note_modulo_lead.sql). CUMULA v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
 <!-- KC-BUILD-PREV: portale v3.77 · 2026-06-11 19:10 · Registra contatto: checkbox "Sposta in Chiamate segreteria" (coda=segreteria via RPC imposta_coda_fascia, in un atto col follow-up) -->
@@ -544,6 +544,21 @@ textarea.input{min-height:60px;resize:vertical}
 #seg-lead-detail .ld-pill{font-size:13px;font-weight:700;padding:5px 12px;border-radius:12px;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
 #seg-lead-detail .ld-section-foot{font-size:14px;color:var(--text2);margin-top:10px}
 #seg-lead-detail .ld-section-foot a{color:var(--text);font-weight:700;text-decoration:underline}
+/* v3.114 — blocco Questionario (fascicolo) + diario del percorso (profilo) */
+.quest-row{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.quest-btn{font-size:13px;padding:6px 12px;font-weight:700}
+.quest-btn-dark{background:var(--text);color:#F5F1EB;border:none}
+.quest-btn-dark:hover{background:#1e190f}
+.quest-parole{margin-top:6px}
+.quest-parole>summary{cursor:pointer;font-weight:700;font-size:13px;list-style:none}
+.quest-parole>summary::-webkit-details-marker{display:none}
+.quest-parole>summary::before{content:"\25B8 "}
+.quest-parole[open]>summary::before{content:"\25BE "}
+.quest-d{margin-bottom:10px}
+.quest-lbl{font-size:13px;font-weight:700;color:var(--text2)}
+.quest-txt{font-size:14px;line-height:1.55;white-space:pre-wrap;color:var(--text)}
+.quest-meta{font-size:13px;color:var(--text2)}
+#my-questionari-diario .quest-tappa{font-family:var(--serif);font-size:17px;font-weight:300;margin-bottom:2px}
 #seg-lead-detail .ld-esito{margin-top:10px;padding:12px;border-radius:12px}
 #seg-lead-detail .ld-esito-h{font-size:15px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px}
 #seg-lead-detail .ld-esito-val{font-size:18px;font-weight:700;margin-bottom:8px}
@@ -1461,6 +1476,9 @@ fill="#1d4ed8" stroke="none">
         <!-- v3.56 Home Duolingo: hero card dinamica -->
         <div id="my-hero-card" class="my-hero-card" style="display:none"></div>
       </div>
+
+      <!-- v3.114 — Il tuo diario del percorso: riempito da renderQuestionariPersona (modo diario) -->
+      <div id="my-questionari-diario"></div>
 
       <!-- ═══ Corso Open — counter + scadenza + freeze + prossime prenotazioni (v3.39) ═══ -->
 
@@ -4807,6 +4825,7 @@ function showLeadDetail(id){
   currentLeadRichieste=[];
   currentLeadFamiglia=[]; // v3.112 — nucleo famiglia (get_famiglia)
   currentLeadConsensi=null; // v3.113 — consensi minori (get_consensi_minore)
+  currentLeadPersonaId=null; // v3.114 — persona del lead (lead_data.persona_id) per il blocco Questionario
   document.getElementById('seg-lead-list-wrap').style.display='none';
   document.getElementById('seg-lead-detail').classList.remove('hidden');
   renderLeadDetail();
@@ -4818,6 +4837,7 @@ function showLeadDetail(id){
   loadLeadTesseramenti(lead); // v3.71 — tesseramenti ASD per il blocco Tesseramento
   loadLeadFamiglia(lead); // v3.112 — nucleo famiglia (referente + figli) per il blocco Famiglia
   if(lead.fascia==='bambino'||lead.fascia==='ragazzo')loadLeadConsensi(lead); // v3.113 — consensi minori
+  loadLeadPersonaId(lead); // v3.114 — persona_id per il blocco Questionario
   subscribeLeadRealtime(lead); // v3.44 Sessione 8a — auto-refresh quando l'agenda cambia presenze/prenotazioni
 }
 
@@ -4980,6 +5000,227 @@ async function setConsensoMinore(tipo,concesso){
     toast(concesso?'Consenso registrato ✓':'Consenso revocato');
     loadLeadConsensi(currentLeadDetail);
   }catch(err){toast('Errore consenso: '+(err.message||err))}
+}
+
+/* ═══ v3.114 — QUESTIONARIO DI VALORIZZAZIONE NEL FASCICOLO PERSONA ═══
+   Principio: ogni azione della persona resta in memoria nel suo profilo.
+   Il questionario compilato dopo la Prima Lezione (questionario-prima.html, live dal 22 lug)
+   finiva a DB e non si vedeva da nessuna parte. Qui si vede: fascicolo (staff) e
+   diario del percorso (la persona guarda sé stessa).
+
+   Autorizzazione: TUTTA a DB. get_questionari_persona risponde solo alla persona stessa o
+   allo staff (creator/segreteria/istruttore); il doppio cancello per la pubblicazione
+   (consenso_pubblicazione AND approvata) vive in approva_testimonianza. Qui NON si aggiunge
+   logica di autorizzazione: si rispetta cosa torna. ok:false → blocco assente, nessun errore rosso.
+   Nessuna query diretta su questionari_valorizzazione: solo le due RPC. */
+const QUEST_DOMANDE=[
+  ['d1','Entrando in Accademia'],
+  ['d2','Sulla parete'],
+  ['d3','La semplicità'],
+  ['d4','Uscendo'],
+  ['d5','Oggi'],
+  ['d6','Cosa ha scoperto di sé'],
+  ['d7','La trasformazione possibile']
+];
+// tappa è pronta per open/advance/intro/evo: oggi il DB produce solo prima_lezione.
+const QUEST_TAPPA_LBL={prima_lezione:'Prima Lezione'};
+function questTappaLbl(t){return QUEST_TAPPA_LBL[t]||'Prima Lezione'}
+function questDataLunga(d){if(!d)return'';try{return new Date(d).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'})}catch(e){return''}}
+function questDataOra(iso){
+  if(!iso)return'';
+  try{
+    const d=new Date(iso);
+    return d.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' alle '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){return''}
+}
+function questRisposta(q,k){return(((q&&q.risposte&&q.risposte[k])||'')+'').trim()}
+function questHaParole(q){return QUEST_DOMANDE.some(function(d){return questRisposta(q,d[0]).length>0})}
+
+let _questCache={};              // persona_id -> righe (evita di ri-chiamare la RPC a ogni renderLeadDetail)
+const _questMounts=new Map();    // elemento contenitore -> {personaId, opts}
+
+/* Unico punto di render: fascicolo (modo 'staff') e diario del percorso (modo 'diario'). */
+async function renderQuestionariPersona(personaId,containerEl,opts){
+  if(!containerEl)return;
+  opts=opts||{};
+  _questMounts.forEach(function(v,el){if(!el.isConnected)_questMounts.delete(el)});
+  if(!personaId){containerEl.innerHTML='';_questMounts.delete(containerEl);return}
+  _questMounts.set(containerEl,{personaId:personaId,opts:opts});
+  let righe=null;
+  if(opts.force!==true&&Object.prototype.hasOwnProperty.call(_questCache,personaId))righe=_questCache[personaId];
+  if(righe===null){
+    try{
+      const{data,error}=await sb.rpc('get_questionari_persona',{p_persona_id:personaId});
+      if(error)throw error;
+      righe=(data&&data.ok===true&&Array.isArray(data.questionari))?data.questionari:[];
+    }catch(e){console.warn('[renderQuestionariPersona]',e.message||e);righe=[]}
+    _questCache[personaId]=righe;
+  }
+  const modo=opts.modo==='diario'?'diario':'staff';
+  const html=modo==='diario'?questDiarioHtml(righe):questFascicoloHtml(righe,opts);
+  const sig=modo+'|'+(opts.telefono||'')+'|'+JSON.stringify(righe);
+  if(containerEl.dataset.questSig===sig)return; // evita di richiudere "Le sue parole" a ogni re-render
+  containerEl.dataset.questSig=sig;
+  containerEl.innerHTML=html;
+}
+
+/* Blocco "📝 Questionario" del fascicolo (Segreteria). */
+function questFascicoloHtml(righe,opts){
+  if(!righe||!righe.length)return'';
+  opts=opts||{};
+  const haTelefono=!!regWaNum(opts.telefono||'');
+  const creator=(typeof isCreator==='function')&&isCreator();
+  const rows=righe.map(function(q){
+    const testa=questTappaLbl(q.tappa)+(q.data_lezione?' del '+questDataLunga(q.data_lezione):'');
+    // Caso A — invitata, non ha ancora risposto
+    if(!q.questionario_id){
+      const stato=q.invitata_at
+        ?'Invito partito il '+questDataOra(q.invitata_at)+' · nessuna risposta ancora'
+        :'Invito automatico in partenza stanotte';
+      const link=q.link||'';
+      const btnCopia=link?'<button class="btn btn-g quest-btn" onclick="copiaLinkQuestionario(\''+link+'\')">📋 Copia link questionario</button>':'';
+      const btnWa=(link&&haTelefono)?'<button class="btn btn-g quest-btn" onclick="mandaQuestionarioWA(\''+link+'\')">💬 Manda su WhatsApp</button>':'';
+      return'<div class="ld-prenot-row quest-row">'
+        +'<div style="font-weight:700;font-size:14px">'+escapeHtml(testa)+'</div>'
+        +'<div class="quest-meta">'+escapeHtml(stato)+'</div>'
+        +((btnCopia||btnWa)?'<div style="display:flex;gap:6px;flex-wrap:wrap">'+btnCopia+btnWa+'</div>':'')
+        +'</div>';
+    }
+    // Caso B — ha risposto
+    const consegnato=q.compilato_at?' · consegnato il '+questDataLunga(q.compilato_at):'';
+    const vp=q.vuole_proposta===true?'Sì':(q.vuole_proposta===false?'No':'non indicato');
+    const cons=q.consenso_pubblicazione===true?'Sì':(q.consenso_pubblicazione===false?'No':'non indicato');
+    const dom=QUEST_DOMANDE.map(function(d,i){
+      const t=questRisposta(q,d[0]);
+      if(!t)return'';
+      return'<div class="quest-d"><div class="quest-lbl">'+(i+1)+'. '+d[1]+'</div>'
+        +'<div class="quest-txt">"'+escapeHtml(t)+'"</div></div>';
+    }).filter(Boolean).join('');
+    const parole=dom?'<details class="quest-parole"><summary>Le sue parole</summary><div style="margin-top:8px">'+dom+'</div></details>':'';
+    // Curatela: solo creator e solo se la persona ha dato il consenso (senza consenso la RPC rifiuta comunque)
+    let testim='';
+    if(creator&&q.consenso_pubblicazione===true){
+      const approvata=q.approvata===true;
+      const statoT=approvata
+        ?'<span style="color:#15803D;font-weight:700">✅ approvata'+(q.approvata_at?' il '+questDataLunga(q.approvata_at):'')+'</span>'
+          +(q.estratto?' <span style="color:var(--text2)">(estratto: "'+escapeHtml(q.estratto)+'")</span>':'')
+        :'<span style="color:#B45309;font-weight:700">⏳ da approvare</span>';
+      const pre=q.estratto||questRisposta(q,'d6')||questRisposta(q,'d7')||'';
+      const btns=approvata
+        ?'<button class="btn quest-btn quest-btn-dark" onclick="approvaTestimonianza(\''+q.questionario_id+'\',true)">✓ Aggiorna estratto</button>'
+          +'<button class="btn btn-g quest-btn" style="color:#B91C1C" onclick="approvaTestimonianza(\''+q.questionario_id+'\',false)">Revoca</button>'
+        :'<button class="btn quest-btn quest-btn-dark" onclick="approvaTestimonianza(\''+q.questionario_id+'\',true)">✓ Approva</button>';
+      testim='<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">'
+        +'<div style="font-size:13px">Testimonianza: '+statoT+'</div>'
+        +'<textarea id="quest-estratto-'+q.questionario_id+'" class="input" rows="3" placeholder="Estratto da pubblicare, firmato solo col nome" style="margin-top:6px">'+escapeHtml(pre)+'</textarea>'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+btns+'</div>'
+        +'</div>';
+    }
+    return'<div class="ld-prenot-row quest-row">'
+      +'<div style="font-weight:700;font-size:14px">'+escapeHtml(testa+consegnato)+'</div>'
+      +'<div class="quest-meta">Vuole la proposta per il percorso KataClimb Open: <strong style="color:var(--text)">'+vp+'</strong></div>'
+      +'<div class="quest-meta">Consenso testimonianza: <strong style="color:var(--text)">'+cons+'</strong></div>'
+      +parole
+      +testim
+      +'</div>';
+  }).join('');
+  return'<div class="ld-section"><div class="ld-section-h">📝 Questionario</div>'+rows+'</div>';
+}
+
+/* "Il tuo diario del percorso" — la persona guarda sé stessa: SOLO le sue parole. */
+function questDiarioHtml(righe){
+  const conParole=(righe||[]).filter(function(q){return q.questionario_id&&questHaParole(q)});
+  if(!conParole.length)return'';
+  const blocchi=conParole.map(function(q){
+    const dom=QUEST_DOMANDE.map(function(d,i){
+      const t=questRisposta(q,d[0]);
+      if(!t)return'';
+      return'<div class="quest-d"><div class="quest-lbl">'+(i+1)+'. '+d[1]+'</div>'
+        +'<div class="quest-txt">'+escapeHtml(t)+'</div></div>';
+    }).filter(Boolean).join('');
+    return'<div style="margin-bottom:18px">'
+      +'<div class="quest-tappa">'+questTappaLbl(q.tappa)+(q.data_lezione?' · '+questDataLunga(q.data_lezione):'')+'</div>'
+      +'<div class="quest-meta" style="margin-bottom:10px">Le tue parole'+(q.compilato_at?', consegnate il '+questDataLunga(q.compilato_at):'')+'</div>'
+      +dom
+      +'</div>';
+  }).join('');
+  return'<div class="card fu" style="margin-bottom:22px;padding:16px">'
+    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 12px">Il tuo <em>diario del percorso</em></h2>'
+    +blocchi
+    +'</div>';
+}
+
+async function copiaLinkQuestionario(link){
+  if(!link)return;
+  try{await navigator.clipboard.writeText(link);}
+  catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=link;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy')}catch(e2){}
+    ta.remove();
+  }
+  toast('Link copiato ✓');
+}
+function mandaQuestionarioWA(link){
+  const l=currentLeadDetail;
+  if(!l||!link)return;
+  const num=regWaNum(l.telefono);
+  if(!num)return toast('Numero mancante per questo lead');
+  const nome=(l.nome||'').trim();
+  const msg='Ciao '+nome+', ieri hai vissuto la tua prima esperienza con KataClimb. Due minuti per ripercorrerla con calma: '+link;
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+/* Unica scrittura di questo blocco: curatela testimonianze, solo creator (gate a DB). */
+async function approvaTestimonianza(qid,approva){
+  if(!qid)return;
+  let estratto=null;
+  if(approva===true){
+    const ta=document.getElementById('quest-estratto-'+qid);
+    estratto=ta?ta.value.trim():'';
+    if(!estratto)return toast("Scrivi l'estratto da pubblicare");
+    if(!confirm("Approvare questa testimonianza?\n\nL'estratto diventa pubblicabile, firmato solo col nome."))return;
+  }else{
+    if(!confirm("Revocare l'approvazione?\n\nL'estratto non sarà più pubblicabile."))return;
+  }
+  try{
+    const{data,error}=await sb.rpc('approva_testimonianza',{p_questionario_id:qid,p_estratto:estratto,p_approvata:approva===true});
+    if(error)throw error;
+    if(!data||data.ok!==true){
+      const err=(data&&data.errore)||'sconosciuto';
+      const msg={
+        solo_creator:'Solo il creator può approvare le testimonianze',
+        non_trovato:'Questionario non trovato',
+        senza_consenso_persona:'La persona non ha dato il consenso: non è approvabile'
+      }[err]||('Errore: '+err);
+      return toast(msg);
+    }
+    toast(approva===true?'Testimonianza approvata ✓':'Approvazione revocata');
+    ricaricaQuestionariMontati();
+  }catch(e){toast('Errore: '+(e.message||e))}
+}
+/* Ricarica i blocchi Questionario attualmente a video (fascicolo e/o diario). */
+function ricaricaQuestionariMontati(){
+  const mounts=[];
+  _questMounts.forEach(function(v,el){if(el.isConnected)mounts.push([el,v])});
+  mounts.forEach(function(m){
+    delete _questCache[m[1].personaId];
+    delete m[0].dataset.questSig;
+    const o=Object.assign({},m[1].opts,{force:true});
+    renderQuestionariPersona(m[1].personaId,m[0],o);
+  });
+}
+
+/* v3.114 — persona_id del lead: crm_leads NON lo espone, sta su lead_data (policy is_staff). */
+let currentLeadPersonaId=null;
+async function loadLeadPersonaId(lead){
+  try{
+    const{data,error}=await sb.from('lead_data').select('persona_id').eq('id',lead.id).maybeSingle();
+    if(error){console.warn('[loadLeadPersonaId]',error.message);return}
+    if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
+    currentLeadPersonaId=(data&&data.persona_id)||null;
+    renderLeadDetail();
+  }catch(e){console.warn('[loadLeadPersonaId]',e.message||e)}
 }
 
 async function aggiornaDataCorso(tipo,val){
@@ -5256,6 +5497,8 @@ function renderLeadDetail(){
       <div class="ld-section-foot" style="font-size:11.5px;color:var(--text2);margin-top:8px">Firma di entrambi i genitori sul <a href="/docs/Modulo_Consensi_Minori_KataClimb.pdf" target="_blank" style="color:var(--text);font-weight:600">Modulo Consensi Minori</a>. La registrazione qui vale come presa d'atto della segreteria.</div>
     </div>`;
   }
+  // v3.114 — blocco QUESTIONARIO: contenitore, riempito da renderQuestionariPersona (RPC get_questionari_persona)
+  const questionariBlock='<div id="ld-questionari"></div>';
   // v3.68 — blocco PERCORSO: legge iscrizioni_corso (fonte di verità corsi), reso visibile nel fascicolo
   let percorsoBlock='';
   if(currentLeadIscrizioni&&currentLeadIscrizioni.length){
@@ -5345,11 +5588,16 @@ function renderLeadDetail(){
     ${moduloBlock}
     ${famigliaBlock}
     ${consensiBlock}
+    ${questionariBlock}
     ${esitoBlock}
     ${percorsoBlock}
     ${tessBlock}
     ${prenotBlock}
   `;
+
+  // v3.114 — riempie il blocco Questionario (async: il fascicolo è già a video)
+  const qEl=document.getElementById('ld-questionari');
+  if(qEl)renderQuestionariPersona(currentLeadPersonaId,qEl,{modo:'staff',telefono:l.telefono||'',nome:l.nome||''});
 
   // v3.56b — Diario nella colonna destra (scrollabile su desktop)
   const diaryEl = document.getElementById('seg-lead-detail-diary');
@@ -6927,6 +7175,8 @@ function renderApp(){
   document.getElementById('coins-display').textContent='€'+(profile.coins||0);
   window.__memoRigaProfilo=calcolaMemoRiga(profile,myPrenotCorso,stepDerivato);
   renderProg('my-prog-bar','my-prog-current',stepDerivato,profile.enrolled_next||false,calcolaSubPallini(profile,myPrenotCorso,stepDerivato));
+  // v3.114 — Il tuo diario del percorso: solo le sue parole, sotto la Linea del Percorso
+  renderQuestionariPersona(profile.persona_id,document.getElementById('my-questionari-diario'),{modo:'diario'});
   // v3.56 Home Duolingo: streak + hero (async, non blocca render)
   refreshHomeDuolingo();
   // Avatar
