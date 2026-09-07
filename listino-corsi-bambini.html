@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: listino-corsi-bambini v1.1 · 2026-09-02 · CORSO GENITORI (nuovo, deciso 2 set): blocco dedicato — Prima Lezione Genitori 25€ (giovedì, riservata famiglie con figlio in lezione, già a DB come prima_lezione_genitori) · Corso Genitori KataClimb 70€/mese 1×/sett giovedì (Open→Advance con elementi corda; prosecuzione corda su Intro/Evo) · Ingresso lezione singola 20€ · sconto famiglia −25% dal 2° genitore. Settembre prove, da ottobre lezioni. CUMULA v1.0 · 2026-08-31 · Split di listino-corsi-minori (decisione 31 ago: Bambini e Ragazzi separati; Evo ed Expert in fondo alla lista Ragazzi). Gate = solo sessione (iscritti loggati). Contenuto dal documento canonico Listini_Accademia_2026_v1_1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
+<!-- KC-BUILD: listino-corsi-bambini v1.2 · 2026-09-07 · GATE A DUE CHIAVI: oltre alla sessione (iscritto loggato, invariata) la pagina si apre anche con ?u=<persona_id>, il link della mail di sistema del listino minori — RPC listino_gate(p_u) (SECURITY DEFINER, eseguibile da anon) che risponde SOLO con la fascia. Fascia della pagina -> #app; fascia dell'altra pagina -> redirect a quella giusta tenendo il ?u=; NULL, uuid malformato o errore -> gate come oggi (un uuid a caso non apre niente). Nessun dato personale sulla pagina: la RPC non restituisce ne nome ne recapiti, il frontend non legge tabelle. Contenuto e prezzi INVARIATI. CUMULA v1.1 · 2026-09-02 · CORSO GENITORI (nuovo, deciso 2 set): blocco dedicato — Prima Lezione Genitori 25€ (giovedì, riservata famiglie con figlio in lezione, già a DB come prima_lezione_genitori) · Corso Genitori KataClimb 70€/mese 1×/sett giovedì (Open→Advance con elementi corda; prosecuzione corda su Intro/Evo) · Ingresso lezione singola 20€ · sconto famiglia −25% dal 2° genitore. Settembre prove, da ottobre lezioni. CUMULA v1.0 · 2026-08-31 · Split di listino-corsi-minori (decisione 31 ago: Bambini e Ragazzi separati; Evo ed Expert in fondo alla lista Ragazzi). Gate = solo sessione (iscritti loggati). Contenuto dal documento canonico Listini_Accademia_2026_v1_1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Listino Corsi Bambini (6–11) · KataClimb</title>
@@ -156,11 +156,36 @@ const CFG={
   SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
 };
 
+/* ─── v1.2 — Gate a due chiavi ───
+   1) SESSIONE: iscritto loggato, vede il listino. Invariato.
+   2) ?u=<persona_id>: il link che arriva nella mail di sistema. La RPC
+      listino_gate (SECURITY DEFINER, eseguibile da anon) risponde SOLO con la
+      fascia — nessun nome, nessun recapito, nessun dato personale finisce su
+      questa pagina. Fascia diversa da quella della pagina -> mando alla pagina
+      giusta tenendo il ?u=. NULL o errore -> gate normale, come se il
+      parametro non ci fosse: un uuid a caso non apre niente. */
+const FASCIA_PAGINA='bambini';
+const PAGINA_FASCIA={bambini:'listino-corsi-bambini.html',ragazzi:'listino-corsi-ragazzi.html'};
+const RE_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function mostraApp(){document.getElementById('app').style.display='block'}
+function mostraGate(){document.getElementById('gate').style.display='block'}
+
 async function init(){
   const sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){document.getElementById('gate').style.display='block';return;}
-  document.getElementById('app').style.display='block';
+  if(session){mostraApp();return;}
+  const u=new URLSearchParams(location.search).get('u');
+  if(!u||!RE_UUID.test(u)){mostraGate();return;}
+  let fascia=null;
+  try{
+    const{data,error}=await sb.rpc('listino_gate',{p_u:u});
+    if(error)throw error;
+    fascia=data||null;
+  }catch(e){console.warn('[listino_gate]',e.message||e);mostraGate();return;}
+  if(fascia===FASCIA_PAGINA){mostraApp();return;}
+  if(fascia&&PAGINA_FASCIA[fascia]){location.replace(PAGINA_FASCIA[fascia]+'?u='+encodeURIComponent(u));return;}
+  mostraGate();
 }
 init();
 </script>
