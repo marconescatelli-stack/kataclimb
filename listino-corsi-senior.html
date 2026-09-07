@@ -2,10 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: listini v1.3 · 2026-09-07 · TILE Listino Corso Senior (over 60) tra Giovani e Bambini. CUMULA v1.2 · 2026-09-02 · INDICE: aggiunto 'Corso Genitori' nelle descrizioni delle tessere Bambini e Ragazzi (nuovo corso 70€/mese, giovedì, blocco sulle due pagine v1.1). CUMULA v1.1 · 2026-08-31 · Gate = solo sessione (tutti gli iscritti loggati). Tile veterani visibile solo a staff OPPURE rpc is_veterano(uid). Contenuto dal documento canonico Listini_Accademia_2026_v1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
+<!-- KC-BUILD: listino-corsi-senior v1.0 · 2026-09-07 · Nuovo listino Corso Senior KataClimb (over 60), clone struttura listino-corsi-giovani v1.0. Fonte: decisioni Marco 7 set 2026 (120€/mese fisso, corda solo da secondo, supplemento corda Intro +30/Evo +40 al mese finché lezioni residue, max 3 mesi). Gate = solo sessione (iscritti loggati). -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Listini Accademia · KataClimb</title>
+<title>Listino Corso Senior (over 60) · KataClimb</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -58,52 +58,71 @@ h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22re
 <button class="no-print" aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
 
 <div id="gate">
-  <h1>Listini Accademia</h1>
-  <p id="gate-msg">I listini sono riservati agli iscritti dell'Accademia. Accedi dal portale.</p>
+  <h1>Listino Corso Senior (over 60)</h1>
+  <p id="gate-msg">Listino riservato agli iscritti dell'Accademia. Accedi dal portale.</p>
   <a href="/portale.html">ENTRA</a>
 </div>
 
 <div id="app">
 <header class="testata">
-  <h1>Listini Accademia</h1>
+  <h1>Listino Corso Senior (over 60)</h1>
   <div class="sotto mono">Accademia ArrampiKata RCC</div>
   <div class="sotto">In vigore dal <b>1 settembre 2026</b> · Via Cassia 1634, La Storta — Roma</div>
 </header>
 
-<div class="zona mono">I listini dell'Accademia</div>
-<a class="blocco" style="display:block" href="/listino-corsi-adulti.html">
-  <h2 class="corso">Listino Corsi Adulti ›</h2>
-  <p class="nota">Prima Lezione · Open · Advance · Intro Corda · Evo Corda</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-corsi-giovani.html">
-  <h2 class="corso">Listino Corso Giovani (18–24) ›</h2>
-  <p class="nota">Prima Lezione Giovani · Corso Giovani KataClimb · passaggi Expert e Fly · sconto fratelli</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-corsi-senior.html">
-  <h2 class="corso">Listino Corso Senior (over 60) ›</h2>
-  <p class="nota">Prima Lezione · Corso Senior KataClimb · supplemento corda Intro ed Evo · sconto famiglia</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-corsi-bambini.html">
-  <h2 class="corso">Listino Corsi Bambini (6–11) ›</h2>
-  <p class="nota">Prima Lezione · Corso Bambini · Corso Genitori · sconto famiglia</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-corsi-ragazzi.html">
-  <h2 class="corso">Listino Corsi Ragazzi (12–17) ›</h2>
-  <p class="nota">Prima Lezione · Corso Ragazzi · Evo Ragazzi · Expert · Corso Genitori</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-frequenze.html">
-  <h2 class="corso">Listino Frequenze e Abbonamenti ›</h2>
-  <p class="nota">Sala con Monitor · corda · ingressi · formule · noleggio</p>
-</a>
-<a class="blocco" style="display:block" href="/listino-attivita-outdoor.html">
-  <h2 class="corso">Listino Attività Outdoor — Rimborsi Spesa ›</h2>
-  <p class="nota">Con istruttori RCC · con Nescatelli · uscita bambini</p>
-</a>
-<a class="blocco" id="tile-veterani" style="display:none" href="/listino-veterani.html">
-  <h2 class="corso">Listino Veterani ›</h2>
-  <p class="nota">Abbonamento e ingressi — riconosciuti dal maestro</p>
-</a>
-<p class="chiusa">In vigore dal 1 settembre 2026 · Documenti ufficiali dell'Accademia.</p>
+<div class="blocco">
+  <p class="nota">Il metodo KataClimb per chi ha più di sessant'anni: percezione, equilibrio, respiro — un gesto alla volta, con il tempo che serve. Un gruppo stabile, un istruttore che conosce ognuno, la corda vissuta da secondo: la sicurezza come esperienza, mai come limite.</p>
+</div>
+
+<div class="zona mono">Prima Lezione</div>
+<div class="blocco">
+  <table>
+    <tr><th>Voce</th><th>Prezzo</th></tr>
+    <tr><td>Prima Lezione Adulti<small>negli orari Prima Lezione Adulti del calendario</small></td><td><span class="p">25€</span></td></tr>
+  </table>
+  <p class="nota">Nessuna prova dedicata: la Prima Lezione è quella adulti. Dopo la Prima Lezione, se vuoi, c'è il Corso Senior: una scelta, non un obbligo — si può anche proseguire con il percorso adulti.</p>
+</div>
+
+<div class="zona mono">Corso</div>
+<div class="blocco">
+  <table>
+    <tr><th>Corso</th><th>Prezzo</th></tr>
+    <tr><td><b>Corso Senior KataClimb (over 60)</b><small>venerdì 18:00–19:00 · 1 lezione a settimana + Sala con Monitor</small></td><td><span class="p">120€/mese</span></td></tr>
+  </table>
+  <p class="nota">Quota mensile fissa, senza scadenza di percorso: si resta finché si vuole. Contenuto: fondamenta del metodo (Open → Advance) e corda <b>solo da secondo</b>, mai da primo. Chi vuole andare oltre aggiunge i corsi corda con il supplemento qui sotto.</p>
+</div>
+
+<div class="zona mono">Supplemento corda (solo per chi è nel Corso Senior)</div>
+<div class="blocco">
+  <table>
+    <tr><th>Corso aggiunto</th><th>Supplemento</th></tr>
+    <tr><td>Corso Intro Corda KataClimb<small>8 lezioni entro 75 giorni · listino 150€/mese</small></td><td><span class="p">+30€/mese</span></td></tr>
+    <tr><td>Corso Evo Corda KataClimb<small>8 lezioni entro 75 giorni · listino 160€/mese</small></td><td><span class="p">+40€/mese</span></td></tr>
+  </table>
+  <p class="nota">La quota Senior vale come acconto sul corso corda: paghi solo la differenza rispetto al listino adulti. Il supplemento si aggiunge alla quota mensile per ogni mese in cui il corso corda è attivo con lezioni residue, <b>fino a un massimo di 3 mesi</b>. Durante il corso corda si continua a frequentare anche il venerdì. Chi preferisce lasciare il Senior prende il Corso Intro o Evo Corda intero a listino (150/160€ al mese), come ogni altro allievo del percorso adulti. Le lezioni non fatte entro i 75 giorni si perdono, come per tutti.</p>
+</div>
+
+<div class="zona mono">Sconto famiglia</div>
+<div class="blocco">
+  <table>
+    <tr><th>Sconto</th><th></th></tr>
+    <tr><td>Dal 2° familiare<small>sulla quota corso: 120→90€ · non sul supplemento corda</small></td><td><span class="p">−25%</span></td></tr>
+  </table>
+  <p class="nota">Vale anche per le coppie. Mai su iscrizione annuale e Prima Lezione: sempre piene, a testa. A quota piena resta chi ha la quota più alta.</p>
+</div>
+
+<div class="zona mono">Attrezzatura</div>
+<div class="blocco">
+  <p class="nota">Le scarpette le fornisce l'Accademia per le <b>prime 4 lezioni</b>. Dopo, ogni allievo ha le sue: chiedi all'istruttore quali comprare. In alternativa, noleggio in Accademia a 5€ a ingresso. L'imbragatura la fornisce l'Accademia per il Corso Senior e per il Corso Intro Corda; dal Corso Evo Corda serve la propria, oppure noleggio 5€ a ingresso.</p>
+</div>
+
+<div class="zona mono">Iscrizione annuale</div>
+<div class="blocco">
+  <h2 class="corso">Iscrizione annuale Accademia — 40€</h2>
+  <p class="nota">Obbligatoria al primo corso. Scade il 31 dicembre dell'anno in corso.</p>
+</div>
+
+<p class="chiusa">Per iscrizioni e informazioni: segreteria Accademia.</p>
 </div>
 
 <script>
@@ -112,26 +131,12 @@ const CFG={
   SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
   SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
 };
-const SEG_ROLES=['creator','admin','segreteria'];
-const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istruttore_tutor'];
 
 async function init(){
   const sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
   const{data:{session}}=await sb.auth.getSession();
   if(!session){document.getElementById('gate').style.display='block';return;}
-  const uid=session.user.id;
   document.getElementById('app').style.display='block';
-  const[rp,rd]=await Promise.all([
-    sb.from('profiles').select('role').eq('user_id',uid).maybeSingle(),
-    sb.from('profile_data').select('staff_role').eq('user_id',uid).maybeSingle()
-  ]);
-  const role=(rp.data||{}).role, staff=(rd.data||{}).staff_role;
-  let vet=SEG_ROLES.includes(role)||STAFF_ISTRUTTORI.includes(staff);
-  if(!vet){
-    const{data:v}=await sb.rpc('is_veterano',{p_user_id:uid});
-    vet=(v===true);
-  }
-  if(vet){document.getElementById('tile-veterani').style.display='block';}
 }
 init();
 </script>
