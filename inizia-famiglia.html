@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-famiglia v4 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-26 · BONIFICA TERMINOLOGIA (solo testi utente, sostituzioni esatte decise da Marco): via il diminutivo "Mello" da tutti i testi utente — hero "col tuo istruttore", sottotitolo Passo 2 "col vostro istruttore", etichetta "Orario dei genitori (giovedì)", card orario "col tuo istruttore"; via "vera" e "muro" — "Un'ora in parete, ciascuno col suo gruppo" e "la sua prima ora in parete". CUMULA v3 · 2026-08-26 · DESCRIZIONI DELLE LEZIONI (solo testi, nessuna logica di prenotazione/pagamento toccata): tre descrizioni motivazionali approvate da Marco. Blocco figlio: due testi alternativi (DESC_FASCIA.bambini / DESC_FASCIA.ragazzi) in #desc-figlio sotto lo slot del figlio, commutati da aggiornaFiglio() sulla stessa fascia che già commuta slot e prezzo; se il figlio è "già iscritto" nessuna delle due è visibile. Blocco genitori: #desc-genitori sopra la scelta dell'orario, sempre visibile (statico in HTML). Stile .desc-lezione = testo secondario 13.5px con filetto a sinistra, non un box. CUMULA v2 · 2026-08-25 · AUTO-SELEZIONE ORARIO GENITORI: quando il figlio NON è già iscritto e la nascita determina la fascia, l'orario genitori viene selezionato in automatico abbinando ora_inizio (bambini 17–18 → genitori 17:00; ragazzi 18–19:30 → genitori 18:00), MAI per id. Scatta al cambio fascia (autoSelezionaOrario + lastAutoFascia), resta modificabile a mano (se l'utente cambia orario compare il warning di coerenza esistente); se cambia la nascita e cambia la fascia ri-auto-seleziona; figlio già iscritto → nessuna auto-selezione, scelta libera. CUMULA v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
+<!-- KC-BUILD: inizia-famiglia v5 · 2026-09-14 · FIGLI MULTIPLI (1-3) + PRIMA GENITORI 20€ (decisioni Marco 14 set, caso Claudia Coscia: madre di 2 figli non poteva inserire il secondo; il Worker v3.73 non aveva il ramo famiglia e rispondeva 'Dati anagrafici incompleti' — la pagina non ha mai potuto incassare dal 24 ago). Passo 1 = blocco figlio ripetibile (#figli-list, template #tpl-figlio) con '+ Aggiungi un altro figlio' fino a 3 e 'Rimuovi' dal 2°; ogni figlio ha nome/cognome, toggle 'già iscritto', nascita→fascia, email facoltativa, orario e descrizione della propria fascia. Genitori 1-2 invariati, PREZZO_GENITORE=20. Totale = 20€×genitori + 10/15€×figlio non iscritto, prezzi PIENI (nessuno sconto fratelli/2° genitore sulle Prime). Auto-selezione orario genitori sul PRIMO figlio non iscritto; avviso coerenza se un figlio ha un orario diverso dai genitori. POST al Worker: { famiglia:'1', slot_id, data_lezione, genitori[], figli[] {nome,cognome,iscritto,nascita,email,prodotto,slot_id}, accept_terms, consent } — RICHIEDE stripe-worker v3.74 (ramo famiglia + env STRIPE_PRICE_PRIMA_GENITORI). Testi utente al plurale dove serve. Letture DB/RPC, pixel, consent, cancel_url INVARIATI. CUMULA v4 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-26 · BONIFICA TERMINOLOGIA (solo testi utente, sostituzioni esatte decise da Marco): via il diminutivo "Mello" da tutti i testi utente — hero "col tuo istruttore", sottotitolo Passo 2 "col vostro istruttore", etichetta "Orario dei genitori (giovedì)", card orario "col tuo istruttore"; via "vera" e "muro" — "Un'ora in parete, ciascuno col suo gruppo" e "la sua prima ora in parete". CUMULA v3 · 2026-08-26 · DESCRIZIONI DELLE LEZIONI (solo testi, nessuna logica di prenotazione/pagamento toccata): tre descrizioni motivazionali approvate da Marco. Blocco figlio: due testi alternativi (DESC_FASCIA.bambini / DESC_FASCIA.ragazzi) in #desc-figlio sotto lo slot del figlio, commutati da aggiornaFiglio() sulla stessa fascia che già commuta slot e prezzo; se il figlio è "già iscritto" nessuna delle due è visibile. Blocco genitori: #desc-genitori sopra la scelta dell'orario, sempre visibile (statico in HTML). Stile .desc-lezione = testo secondario 13.5px con filetto a sinistra, non un box. CUMULA v2 · 2026-08-25 · AUTO-SELEZIONE ORARIO GENITORI: quando il figlio NON è già iscritto e la nascita determina la fascia, l'orario genitori viene selezionato in automatico abbinando ora_inizio (bambini 17–18 → genitori 17:00; ragazzi 18–19:30 → genitori 18:00), MAI per id. Scatta al cambio fascia (autoSelezionaOrario + lastAutoFascia), resta modificabile a mano (se l'utente cambia orario compare il warning di coerenza esistente); se cambia la nascita e cambia la fascia ri-auto-seleziona; figlio già iscritto → nessuna auto-selezione, scelta libera. CUMULA v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prima Lezione in Famiglia · Accademia RCC · KataClimb</title>
-<meta name="description" content="Il giovedì all'Accademia RCC: tuo figlio fa la sua prima lezione di arrampicata col suo gruppo, tu la tua con l'istruttore adulti, stessa ora. Un solo pagamento.">
+<meta name="description" content="Il giovedì all'Accademia RCC: i tuoi figli fanno la loro prima lezione di arrampicata col loro gruppo, tu la tua con l'istruttore adulti, stessa ora. Un solo pagamento.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Prima Lezione in Famiglia · Accademia RCC">
-<meta property="og:description" content="Il giovedì: tuo figlio arrampica col suo gruppo, tu (o entrambi i genitori) fai la tua Prima Lezione nella stessa ora. Un solo pagamento.">
+<meta property="og:description" content="Il giovedì: i tuoi figli arrampicano col loro gruppo, tu (o entrambi i genitori) fai la tua Prima Lezione nella stessa ora. Un solo pagamento.">
 <meta property="og:url" content="https://kataclimb.com/inizia-famiglia.html">
 <meta property="og:image" content="https://kataclimb.com/og-inizia-minori.jpg">
 <meta property="og:image:width" content="1200">
@@ -126,6 +126,15 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .desc-lezione{display:none;font-size:13.5px;line-height:1.65;color:var(--ink2);margin:0 0 14px;padding-left:12px;border-left:2px solid var(--border2)}
 .desc-lezione.show{display:block}
 
+/* figli multipli (v5) */
+.figlio-blk{margin-top:8px;padding-top:14px;border-top:1px dashed var(--border2)}
+.figlio-blk:first-child{margin-top:0;padding-top:0;border-top:0}
+.fg-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.fg-head span{font-size:12px;font-weight:900;letter-spacing:.06em;color:var(--ink3);text-transform:uppercase}
+.fg-remove{background:none;border:none;font-family:inherit;font-size:13px;color:var(--ink3);cursor:pointer;text-decoration:underline;padding:0}
+.add-figlio{background:#fff;border:1.5px dashed var(--border2);border-radius:var(--r);padding:11px 14px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer;width:100%;text-align:center;margin-bottom:4px}
+.add-figlio:hover{border-color:var(--sky);color:var(--sky)}
+
 /* aggiungi genitore */
 .add-genitore{background:#fff;border:1.5px dashed var(--border2);border-radius:var(--r);padding:11px 14px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer;width:100%;text-align:center}
 .add-genitore:hover{border-color:var(--sky);color:var(--sky)}
@@ -234,7 +243,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   <img src="/hero-prima-lezione-minori.jpg" alt="Genitore e figlio in arrampicata all'Accademia RCC" class="hero-img">
   <div class="hero-inner fu">
     <h1>La prima lezione di arrampicata <em>in famiglia</em></h1>
-    <p>Il giovedì all'Accademia RCC: tuo figlio arrampica col suo gruppo, tu (o entrambi i genitori) fai la tua Prima Lezione nella stessa ora, col tuo istruttore. Un solo pagamento.</p>
+    <p>Il giovedì all'Accademia RCC: i tuoi figli arrampicano col loro gruppo, tu (o entrambi i genitori) fai la tua Prima Lezione nella stessa ora, col tuo istruttore. Un solo pagamento.</p>
     <a href="#prenota" class="cta">Prenota →</a>
   </div>
 </section>
@@ -242,7 +251,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 <div class="spiega fu">
   <div class="spiega-card">
     <h3>Come funziona</h3>
-    <p>Mentre <b>tuo figlio</b> fa la sua prima ora in parete con il suo gruppo, <b>tu sali insieme a lui</b>: stesso giovedì, stessa fascia oraria, la tua Prima Lezione con l'istruttore adulti. Potete venire in due genitori. <b>Un unico pagamento</b> per tutta la famiglia.</p>
+    <p>Mentre <b>i tuoi figli</b> fanno la loro prima ora in parete con il loro gruppo, <b>tu sali insieme a loro</b>: stesso giovedì, stessa fascia oraria, la tua Prima Lezione con l'istruttore adulti. Potete venire in due genitori e con uno, due o tre figli. <b>Un unico pagamento</b> per tutta la famiglia.</p>
   </div>
 </div>
 
@@ -256,38 +265,46 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
   <div id="form-passi" style="display:none">
 
-    <!-- ═══ PASSO 1 — Il figlio ═══ -->
+    <!-- ═══ PASSO 1 — I figli (v5: 1-3 blocchi) ═══ -->
     <div class="passo">
       <div class="passo-testa">
         <div class="passo-num">1</div>
         <div>
-          <h3>Tuo figlio</h3>
-          <div class="sub-p">Chi arrampica col suo gruppo</div>
+          <h3>I tuoi figli</h3>
+          <div class="sub-p">Chi arrampica col suo gruppo — uno, due o tre</div>
         </div>
       </div>
 
-      <div class="fsplit">
-        <div class="fgroup"><label for="f-fnome">Nome*</label><input id="f-fnome" autocomplete="off"></div>
-        <div class="fgroup"><label for="f-fcognome">Cognome*</label><input id="f-fcognome" autocomplete="off"></div>
-      </div>
-
-      <label class="switch-row">
-        <input type="checkbox" id="f-iscritto">
-        <span class="tt">È già iscritto a un corso dell'Accademia
-          <small>Se è già in corso, non deve rifare la prima lezione: paghi solo per te.</small>
-        </span>
-      </label>
-
-      <div class="nota-iscritto" id="nota-iscritto">La segreteria verifica l'iscrizione: la Prima Lezione Genitori è riservata alle famiglie con un figlio in lezione.</div>
-
-      <div id="figlio-prenota">
-        <div class="fgroup"><label for="f-fnascita">Data di nascita*</label><input id="f-fnascita" type="date"></div>
-        <div class="eta-warn" id="eta-warn"></div>
-        <div class="figlio-orario" id="figlio-orario"></div>
-        <div class="desc-lezione" id="desc-figlio"></div>
-        <div class="fgroup"><label for="f-femail">Email di tuo figlio <small>(facoltativa — per il suo accesso al portale KataClimb)</small></label><input id="f-femail" type="email" inputmode="email" autocomplete="off"></div>
-      </div>
+      <div id="figli-list"></div>
+      <button type="button" class="add-figlio" id="add-figlio">+ Aggiungi un altro figlio</button>
     </div>
+
+    <template id="tpl-figlio">
+      <div class="figlio-blk">
+        <div class="fg-head">
+          <span data-r="titolo">Figlio</span>
+          <button type="button" class="fg-remove" data-r="remove">Rimuovi</button>
+        </div>
+        <div class="fsplit">
+          <div class="fgroup"><label>Nome*</label><input data-r="nome" autocomplete="off"></div>
+          <div class="fgroup"><label>Cognome*</label><input data-r="cognome" autocomplete="off"></div>
+        </div>
+        <label class="switch-row">
+          <input type="checkbox" data-r="iscritto">
+          <span class="tt">È già iscritto a un corso dell'Accademia
+            <small>Se è già in corso, non deve rifare la prima lezione: non paghi per lui.</small>
+          </span>
+        </label>
+        <div class="nota-iscritto" data-r="nota">La segreteria verifica l'iscrizione: la Prima Lezione Genitori è riservata alle famiglie con un figlio in lezione.</div>
+        <div data-r="prenota">
+          <div class="fgroup"><label>Data di nascita*</label><input data-r="nascita" type="date"></div>
+          <div class="eta-warn" data-r="warn"></div>
+          <div class="figlio-orario" data-r="orario"></div>
+          <div class="desc-lezione" data-r="desc"></div>
+          <div class="fgroup"><label>La sua email <small>(facoltativa — per il suo accesso al portale KataClimb)</small></label><input data-r="email" type="email" inputmode="email" autocomplete="off"></div>
+        </div>
+      </div>
+    </template>
 
     <!-- ═══ PASSO 2 — I genitori ═══ -->
     <div class="passo">
@@ -350,12 +367,12 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
       <label class="terms">
         <input type="checkbox" id="f-terms">
-        <span>In qualità di genitore/esercente la responsabilità genitoriale, accetto i <a href="/Termini_Prima_Lezione.pdf" target="_blank" rel="noopener">Termini della Prima Lezione</a> e acconsento alla creazione del profilo riservato di mio figlio/a sul portale KataClimb (non visibile al pubblico né alla Comunità).</span>
+        <span>In qualità di genitore/esercente la responsabilità genitoriale, accetto i <a href="/Termini_Prima_Lezione.pdf" target="_blank" rel="noopener">Termini della Prima Lezione</a> e acconsento alla creazione del profilo riservato dei miei figli sul portale KataClimb (non visibile al pubblico né alla Comunità).</span>
       </label>
 
       <button class="paga-btn" id="paga-btn"><span class="sp"></span><span id="paga-label">Paga e prenota</span></button>
       <div id="form-err"></div>
-      <p class="privacy-note">Il profilo di tuo figlio/a resta riservato: visibile solo agli istruttori e a voi. Potrete renderlo visibile nella Comunità dell'Accademia, se vorrete, con l'autorizzazione scritta in segreteria.</p>
+      <p class="privacy-note">Il profilo di ogni figlio resta riservato: visibile solo agli istruttori e a voi. Potrete renderlo visibile nella Comunità dell'Accademia, se vorrete, con l'autorizzazione scritta in segreteria.</p>
     </div>
 
   </div>
@@ -364,7 +381,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 <section class="section">
   <h2>Perché insieme</h2>
   <div class="info-list">
-    <div class="info-item"><span class="ic">🧗</span><span><b>Un'ora in parete, ciascuno col suo gruppo.</b> Tuo figlio con i suoi coetanei, tu con l'istruttore adulti — nella stessa fascia oraria.</span></div>
+    <div class="info-item"><span class="ic">🧗</span><span><b>Un'ora in parete, ciascuno col suo gruppo.</b> I tuoi figli con i loro coetanei, tu con l'istruttore adulti — nella stessa fascia oraria.</span></div>
     <div class="info-item"><span class="ic">👟</span><span><b>Serve solo abbigliamento comodo.</b> Scarpette, imbrago e tutto il materiale li mettiamo noi.</span></div>
     <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b> — Via Cassia 1634, La Storta, Roma.</span></div>
     <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
@@ -385,8 +402,9 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   const GIORNI_AVANTI = 40;   // finestra giorni-calendario scanditi
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  const PREZZO_GENITORE = 25;
+  const PREZZO_GENITORE = 20;   // v5: Prima Lezione Genitori 20€ (era 25)
   const PREZZO_FIGLIO   = { bambini: 10, ragazzi: 15 };
+  const MAX_FIGLI       = 3;
   const ETA             = { bambini: [6, 11], ragazzi: [12, 17] };
   const LABEL_FASCIA    = { bambini: 'Bambini 6–11', ragazzi: 'Ragazzi 12–17' };
   // descrizioni della lezione del figlio: alternative, si commutano con la fascia calcolata dalla nascita
@@ -395,6 +413,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     ragazzi: "Un'ora in parete con Claudia e Mattia: esercizi, circuiti e i primi Kata del metodo. Il gioco si fa più strutturato — regole precise, procedure da imparare passo dopo passo, e l'impegno che diventa progresso."
   };
   const PRODOTTO_FIGLIO = { bambini: 'prima_lezione_bambini', ragazzi: 'prima_lezione_ragazzi' };
+  const ORDINALE        = ['Primo figlio', 'Secondo figlio', 'Terzo figlio'];
 
   // Pausa estiva Accademia: nessuna Prima Lezione in questo intervallo.
   const CHIUSURA_DAL = '2026-08-01';
@@ -413,6 +432,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   let dataSel   = null;   // ISO giovedì selezionato
   let g2Attivo  = false;
   let lastAutoFascia = null;   // fascia per cui è già stato auto-selezionato l'orario genitori (rispetta le modifiche manuali)
+  let figli = [];         // v5: [{ el, r:{nome,cognome,iscritto,nascita,email,...} }]
 
   if (new URLSearchParams(location.search).get('cancelled') === '1') {
     $('cancel-banner').classList.add('show');
@@ -508,15 +528,51 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     if (m < 0 || (m === 0 && d.getDate() < n.getDate())) e--;
     return e;
   }
-  // fascia del figlio in base alla nascita (null se fuori 6–17); non blocca l'invio ma avvisa
-  function fasciaFiglio(){
-    if ($('f-iscritto').checked) return null;
-    const nascita = $('f-fnascita').value;
+  // fascia del figlio in base alla nascita (null se fuori 6–17 o se già iscritto)
+  function fasciaDi(f){
+    if (f.r.iscritto.checked) return null;
+    const nascita = f.r.nascita.value;
     if (!nascita) return null;
     const eta = etaAllaData(nascita, dataSel);
     if (eta >= ETA.bambini[0] && eta <= ETA.bambini[1]) return 'bambini';
     if (eta >= ETA.ragazzi[0] && eta <= ETA.ragazzi[1]) return 'ragazzi';
     return null;
+  }
+  // primo figlio che fa la Prima (non iscritto) con fascia determinata: guida l'auto-selezione orario
+  function fasciaGuida(){
+    for (const f of figli){ const fa = fasciaDi(f); if (fa) return fa; }
+    return null;
+  }
+
+  // ═══ v5: blocchi figlio ═══
+  function aggiungiFiglio(){
+    if (figli.length >= MAX_FIGLI) return;
+    const frag = $('tpl-figlio').content.cloneNode(true);
+    const el = frag.firstElementChild;
+    const r = {};
+    el.querySelectorAll('[data-r]').forEach(n => { r[n.dataset.r] = n; });
+    const f = { el, r };
+    figli.push(f);
+    $('figli-list').appendChild(el);
+    r.iscritto.addEventListener('change', aggiornaTutto);
+    r.nascita.addEventListener('change', aggiornaTutto);
+    r.remove.addEventListener('click', () => rimuoviFiglio(f));
+    rinumeraFigli();
+    aggiornaTutto();
+  }
+  function rimuoviFiglio(f){
+    if (figli.length <= 1) return;
+    figli = figli.filter(x => x !== f);
+    f.el.remove();
+    rinumeraFigli();
+    aggiornaTutto();
+  }
+  function rinumeraFigli(){
+    figli.forEach((f, i) => {
+      f.r.titolo.textContent = figli.length === 1 ? 'Tuo figlio' : (ORDINALE[i] || `Figlio ${i + 1}`);
+      f.r.remove.style.display = figli.length > 1 ? '' : 'none';
+    });
+    $('add-figlio').style.display = figli.length >= MAX_FIGLI ? 'none' : '';
   }
 
   // ═══ render orario genitori ═══
@@ -563,41 +619,38 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     });
   }
 
-  // ═══ orario del figlio + coerenza ═══
-  function aggiornaFiglio(){
-    const iscritto = $('f-iscritto').checked;
-    $('nota-iscritto').classList.toggle('show', iscritto);
-    $('figlio-prenota').style.display = iscritto ? 'none' : '';
-    verificaEta();
-    const box = $('figlio-orario');
-    const fascia = fasciaFiglio();
+  // ═══ orario/descrizione/età di ogni figlio ═══
+  function aggiornaFiglio(f){
+    const iscritto = f.r.iscritto.checked;
+    f.r.nota.classList.toggle('show', iscritto);
+    f.r.prenota.style.display = iscritto ? 'none' : '';
+    verificaEta(f);
+    const fascia = fasciaDi(f);
     if (!iscritto && fascia && slotFiglio[fascia]){
       const s = slotFiglio[fascia];
-      box.innerHTML = `Tuo figlio (<b>${LABEL_FASCIA[fascia]}</b>) fa la sua Prima il giovedì <b>${oraRange(s.ora_inizio, s.ora_fine)}</b> · ${PREZZO_FIGLIO[fascia]} €`;
-      box.classList.add('show');
+      f.r.orario.innerHTML = `${figli.length > 1 ? 'Questo figlio' : 'Tuo figlio'} (<b>${LABEL_FASCIA[fascia]}</b>) fa la sua Prima il giovedì <b>${oraRange(s.ora_inizio, s.ora_fine)}</b> · ${PREZZO_FIGLIO[fascia]} €`;
+      f.r.orario.classList.add('show');
     } else {
-      box.classList.remove('show');
+      f.r.orario.classList.remove('show');
     }
-    // descrizione della lezione del figlio: quella della fascia attiva; se è già iscritto, nessuna delle due
-    const desc = $('desc-figlio');
     if (!iscritto && fascia && DESC_FASCIA[fascia]){
-      desc.textContent = DESC_FASCIA[fascia];
-      desc.classList.add('show');
+      f.r.desc.textContent = DESC_FASCIA[fascia];
+      f.r.desc.classList.add('show');
     } else {
-      desc.classList.remove('show');
+      f.r.desc.classList.remove('show');
     }
   }
 
-  function verificaEta(){
-    const warn = $('eta-warn');
+  function verificaEta(f){
+    const warn = f.r.warn;
     warn.classList.remove('show');
-    if ($('f-iscritto').checked) return true;
-    const nascita = $('f-fnascita').value;
+    if (f.r.iscritto.checked) return true;
+    const nascita = f.r.nascita.value;
     if (!nascita) return true;
     const eta = etaAllaData(nascita, dataSel);
-    if (fasciaFiglio()) return true;
+    if (fasciaDi(f)) return true;
     if (eta >= 18) {
-      warn.innerHTML = `Alla data scelta tuo figlio avrà <b>${eta} anni</b>: per i maggiorenni c'è la <a href="/inizia.html">Prima Lezione adulti</a>.`;
+      warn.innerHTML = `Alla data scelta avrà <b>${eta} anni</b>: per i maggiorenni c'è la <a href="/inizia.html">Prima Lezione adulti</a> (18–24 anni: <a href="/inizia-giovani.html">Prima Lezione Giovani</a>).`;
     } else if (eta < 6) {
       warn.innerHTML = `Alla data scelta avrà <b>${eta} anni</b>: per i più piccoli scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>, troviamo la formula giusta.`;
     } else {
@@ -607,61 +660,59 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     return false;
   }
 
-  // vincolo di buon senso (non bloccante): figlio 17–18 ↔ genitore 17–18; ragazzi 18–19:30 ↔ genitore 18–19
+  // vincolo di buon senso (non bloccante): un figlio con orario diverso dai genitori → avviso
   function verificaCoerenza(){
     const w = $('coerenza-warn');
     w.classList.remove('show');
-    const fascia = fasciaFiglio();
-    if (!orarioSel || !fascia || !slotFiglio[fascia]) return;
-    const genInizio  = ora5(orarioSel.ora_inizio);
-    const figInizio  = ora5(slotFiglio[fascia].ora_inizio);
-    if (genInizio !== figInizio){
+    if (!orarioSel) return;
+    const genInizio = ora5(orarioSel.ora_inizio);
+    const diversi = [];
+    figli.forEach((f, i) => {
+      const fascia = fasciaDi(f);
+      if (!fascia || !slotFiglio[fascia]) return;
       const sf = slotFiglio[fascia];
-      w.innerHTML = `Tuo figlio (<b>${LABEL_FASCIA[fascia]}</b>) arrampica <b>${oraRange(sf.ora_inizio, sf.ora_fine)}</b>. L'orario genitori più comodo per stare in contemporanea è <b>quello che inizia alle ${figInizio}</b> — ma se preferite un altro orario va bene lo stesso.`;
+      if (ora5(sf.ora_inizio) !== genInizio) diversi.push(`${figli.length > 1 ? (ORDINALE[i] || 'figlio').toLowerCase() : 'tuo figlio'} (<b>${LABEL_FASCIA[fascia]}</b>, ${oraRange(sf.ora_inizio, sf.ora_fine)})`);
+    });
+    if (diversi.length){
+      w.innerHTML = `Attenzione: ${diversi.join(' e ')} arrampica in un orario diverso da quello dei genitori (${oraRange(orarioSel.ora_inizio, orarioSel.ora_fine)}). Con figli in fasce diverse è normale: uno di voi resta in Accademia per tutta la sera. Se preferite, scegliete l'orario genitori che coincide con uno dei due.`;
       w.classList.add('show');
     }
   }
 
   // ═══ totale dinamico ═══
-  function costoFiglio(){
-    if ($('f-iscritto').checked) return 0;
-    const fascia = fasciaFiglio();
-    return fascia ? PREZZO_FIGLIO[fascia] : null; // null = non ancora determinabile
-  }
   function aggiornaTotale(){
     const righe = $('totale-righe');
     const n = nGenitori();
     const rows = [`<div class="totale-riga"><span>Genitori · ${n} × ${PREZZO_GENITORE} €</span><span>${n * PREZZO_GENITORE} €</span></div>`];
     let tot = n * PREZZO_GENITORE;
     let incompleto = false;
-    if ($('f-iscritto').checked){
-      rows.push(`<div class="totale-riga"><span>Figlio · già iscritto</span><span>0 €</span></div>`);
-    } else {
-      const cf = costoFiglio();
-      const fascia = fasciaFiglio();
-      if (cf === null){
-        rows.push(`<div class="totale-riga"><span>Figlio · prima lezione</span><span>—</span></div>`);
+    figli.forEach((f, i) => {
+      const nome = f.r.nome.value.trim() || (figli.length > 1 ? (ORDINALE[i] || `Figlio ${i+1}`) : 'Figlio');
+      if (f.r.iscritto.checked){
+        rows.push(`<div class="totale-riga"><span>${nome} · già iscritto</span><span>0 €</span></div>`);
+        return;
+      }
+      const fascia = fasciaDi(f);
+      if (!fascia){
+        rows.push(`<div class="totale-riga"><span>${nome} · prima lezione</span><span>—</span></div>`);
         incompleto = true;
       } else {
-        rows.push(`<div class="totale-riga"><span>Figlio · Prima Lezione ${LABEL_FASCIA[fascia]}</span><span>${cf} €</span></div>`);
-        tot += cf;
+        rows.push(`<div class="totale-riga"><span>${nome} · Prima Lezione ${LABEL_FASCIA[fascia]}</span><span>${PREZZO_FIGLIO[fascia]} €</span></div>`);
+        tot += PREZZO_FIGLIO[fascia];
       }
-    }
+    });
     righe.innerHTML = rows.join('');
     $('totale-val').textContent = incompleto ? '—' : `${tot} €`;
     return incompleto ? null : tot;
   }
 
-  // Auto-selezione dell'orario genitori in base alla fascia del figlio (abbinamento per ora_inizio,
-  // MAI per id): fascia bambini (17–18) → slot genitori che inizia alle 17:00; ragazzi (18–19:30) →
-  // slot genitori che inizia alle 18:00. Scatta solo al cambio di fascia, così la scelta manuale
-  // dell'utente resta valida; se cambia la nascita e cambia la fascia, ri-auto-seleziona.
-  // Figlio "già iscritto": nessuna auto-selezione (non conosciamo l'orario del suo corso) → scelta libera.
+  // Auto-selezione dell'orario genitori sulla fascia del PRIMO figlio che fa la Prima (abbinamento per
+  // ora_inizio, MAI per id): bambini (17–18) → slot genitori delle 17:00; ragazzi (18–19:30) → 18:00.
+  // Scatta solo al cambio di fascia guida, così la scelta manuale dell'utente resta valida.
   function autoSelezionaOrario(){
-    if ($('f-iscritto').checked) { lastAutoFascia = null; return; }
-    const fascia = fasciaFiglio();
+    const fascia = fasciaGuida();
     if (!fascia || !slotFiglio[fascia]) { lastAutoFascia = null; return; }
-    if (fascia === lastAutoFascia) return;   // già auto-selezionato per questa fascia: non sovrascrivo scelte manuali
+    if (fascia === lastAutoFascia) return;
     const target = ora5(slotFiglio[fascia].ora_inizio);
     const match = slotGenitori.find(s => ora5(s.ora_inizio) === target);
     lastAutoFascia = fascia;
@@ -669,15 +720,14 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   }
 
   function aggiornaTutto(){
-    aggiornaFiglio();
+    figli.forEach(aggiornaFiglio);
     autoSelezionaOrario();
     verificaCoerenza();
     aggiornaTotale();
   }
 
   // ═══ interazioni ═══
-  $('f-iscritto').addEventListener('change', aggiornaTutto);
-  $('f-fnascita').addEventListener('change', aggiornaTutto);
+  $('add-figlio').addEventListener('click', aggiungiFiglio);
 
   $('add-genitore').addEventListener('click', () => {
     g2Attivo = true;
@@ -702,21 +752,36 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   $('paga-btn').addEventListener('click', async () => {
     $('form-err').style.display = 'none';
 
-    const iscritto       = $('f-iscritto').checked;
-    const figlio_nome    = $('f-fnome').value.trim();
-    const figlio_cognome = $('f-fcognome').value.trim();
-    const figlio_nascita = $('f-fnascita').value;
-    const figlio_email   = $('f-femail').value.trim().toLowerCase();
-
-    if (!figlio_nome || !figlio_cognome) { erroreForm('Nome e cognome di tuo figlio sono obbligatori.'); return; }
-
-    let fascia = null;
-    if (!iscritto){
-      if (!figlio_nascita) { erroreForm('Serve la data di nascita di tuo figlio: gli istruttori preparano la lezione sull\'età. Se è già iscritto, spunta la casella qui sopra.'); return; }
-      fascia = fasciaFiglio();
-      if (!fascia) { erroreForm('Controlla la fascia di tuo figlio: vedi l\'avviso nel Passo 1.'); return; }
-      if (figlio_email && !emailRe.test(figlio_email)) { erroreForm('L\'email di tuo figlio non sembra valida (o lasciala vuota).'); return; }
+    // figli
+    const figliBody = [];
+    const nomiVisti = new Set();
+    for (let i = 0; i < figli.length; i++){
+      const f = figli[i];
+      const chi = figli.length > 1 ? (ORDINALE[i] || `figlio ${i+1}`).toLowerCase() : 'tuo figlio';
+      const nome    = f.r.nome.value.trim();
+      const cognome = f.r.cognome.value.trim();
+      const iscritto = f.r.iscritto.checked;
+      const nascita = f.r.nascita.value;
+      const email   = f.r.email.value.trim().toLowerCase();
+      if (!nome || !cognome) { erroreForm(`Nome e cognome ${chi === 'tuo figlio' ? 'di tuo figlio' : 'del ' + chi} sono obbligatori.`); return; }
+      const chiave = `${nome} ${cognome}`.toLowerCase();
+      if (nomiVisti.has(chiave)) { erroreForm(`Hai inserito due volte ${nome} ${cognome}.`); return; }
+      nomiVisti.add(chiave);
+      const item = { nome, cognome, iscritto: iscritto ? '1' : '0' };
+      if (!iscritto){
+        if (!nascita) { erroreForm(`Serve la data di nascita ${chi === 'tuo figlio' ? 'di tuo figlio' : 'del ' + chi}: gli istruttori preparano la lezione sull'età. Se è già iscritto, spunta la casella.`); return; }
+        const fascia = fasciaDi(f);
+        if (!fascia) { erroreForm(`Controlla la fascia ${chi === 'tuo figlio' ? 'di tuo figlio' : 'del ' + chi}: vedi l'avviso nel Passo 1.`); return; }
+        if (email && !emailRe.test(email)) { erroreForm(`L'email ${chi === 'tuo figlio' ? 'di tuo figlio' : 'del ' + chi} non sembra valida (o lasciala vuota).`); return; }
+        if (!slotFiglio[fascia]) { erroreForm('Per questa fascia non c\'è uno slot del giovedì attivo: scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.'); return; }
+        item.nascita  = nascita;
+        item.email    = email;
+        item.prodotto = PRODOTTO_FIGLIO[fascia];
+        item.slot_id  = slotFiglio[fascia].id;
+      }
+      figliBody.push(item);
     }
+    if (!figliBody.length) { erroreForm('Inserisci almeno un figlio.'); return; }
 
     // genitore 1
     const g1 = {
@@ -767,20 +832,10 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       slot_id:       orarioSel.id,
       data_lezione:  dataSel,
       genitori,
-      figlio_nome,
-      figlio_cognome,
+      figli:         figliBody,
       accept_terms:  true,
       consent,
     };
-    if (iscritto){
-      body.figlio_iscritto = '1';
-    } else {
-      body.figlio_iscritto = '0';
-      body.figlio_nascita  = figlio_nascita;
-      body.figlio_email    = figlio_email;
-      body.figlio_prodotto = PRODOTTO_FIGLIO[fascia];
-      body.figlio_slot_id  = slotFiglio[fascia].id;
-    }
 
     try {
       const res = await fetch(`${WORKER_URL}/create-checkout-session`, {
@@ -813,6 +868,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       if (giovediDate.some(iso => iso >= '2026-09-01')) $('pausa-banner').style.display = '';
       $('slot-loading').style.display = 'none';
       $('form-passi').style.display = '';
+      aggiungiFiglio();   // v5: il primo blocco figlio è sempre presente
       renderOrario();
       renderDate();
       aggiornaTutto();
