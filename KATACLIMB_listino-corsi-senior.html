@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: listino-corsi-senior v1.1 · 2026-09-15 · "abbonamento Sala con Monitor incluso (90€/mese da listino)" + sconto famiglia −25% → −10% (120→108). Supplemento corda invariato. Fonte: Listini_Accademia_2026_v1_3. CUMULA v1.0 · 2026-09-07 · Nuovo listino Corso Senior KataClimb (over 60), clone struttura listino-corsi-giovani v1.0. Fonte: decisioni Marco 7 set 2026 (120€/mese fisso, corda solo da secondo, supplemento corda Intro +30/Evo +40 al mese finché lezioni residue, max 3 mesi). Gate = solo sessione (iscritti loggati). -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listino Corso Senior (over 60) · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
+  --fiducia:#FFD60A; --corpo:#FF5A1F; --gravita:#0A84FF; --cordata:#30D158;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--nero);color:var(--bianco);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;max-width:480px;margin:0 auto;padding:14px 12px 60px}
+.mono{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+a{color:inherit;text-decoration:none}
+#gate{display:none;padding:80px 24px;text-align:center}
+#gate h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:1.8rem;margin-bottom:10px}
+#gate p{color:var(--grigio);font-size:.92rem;margin-bottom:24px}
+#gate a{display:inline-block;padding:14px 28px;border-radius:12px;background:var(--fiducia);color:#000;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.05em;font-size:.9rem}
+#app{display:none}
+header.testata{padding:34px 2px 8px;text-align:center}
+header.testata h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:1.9rem;line-height:1.15}
+header.testata .sotto{color:var(--grigio);font-size:.8rem;margin-top:6px}
+header.testata .sotto b{color:var(--fiducia);font-weight:700}
+.zona{margin:22px 2px 8px;color:var(--grigio);font-weight:800;font-size:.6rem;display:flex;align-items:center;gap:8px}
+.zona::after{content:'';flex:1;height:1px;background:var(--velo)}
+.blocco{background:var(--tile);border:1px solid var(--velo);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.blocco p.nota{color:var(--grigio);font-size:.82rem;margin-top:8px}
+.blocco p.nota b{color:var(--bianco)}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--grigio);text-align:left;padding:4px 6px 6px;border-bottom:1px solid var(--velo)}
+td{padding:8px 6px;border-bottom:1px solid var(--velo);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td .p{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;font-weight:800;color:var(--fiducia);white-space:nowrap}
+td small{display:block;color:var(--grigio);font-size:.76rem;margin-top:2px;line-height:1.35}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroll table{min-width:430px}
+h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22rem;margin:2px 0 2px}
+.prezzo-hero{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;font-weight:800;font-size:1.3rem;color:var(--fiducia)}
+.prezzo-hero small{font-size:.78rem;color:var(--grigio);font-weight:600}
+.chiusa{color:var(--grigio);font-size:.82rem;font-style:italic;text-align:center;margin:26px 8px 0}
+@media print{
+  body{background:#fff;color:#000;max-width:none;padding:0}
+  :root{--tile:#fff;--bianco:#000;--grigio:#555;--velo:rgba(0,0,0,.15);--fiducia:#000}
+  .no-print,#gate{display:none!important}
+  #app{display:block!important}
+  .blocco{border:1px solid #ddd;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<button class="no-print" aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
+
+<div id="gate">
+  <h1>Listino Corso Senior (over 60)</h1>
+  <p id="gate-msg">Listino riservato agli iscritti dell'Accademia. Accedi dal portale.</p>
+  <a href="/portale.html">ENTRA</a>
+</div>
+
+<div id="app">
+<header class="testata">
+  <h1>Listino Corso Senior (over 60)</h1>
+  <div class="sotto mono">Accademia ArrampiKata RCC</div>
+  <div class="sotto">In vigore dal <b>1 settembre 2026</b> · Via Cassia 1634, La Storta — Roma</div>
+</header>
+
+<div class="blocco">
+  <p class="nota">Il metodo KataClimb per chi ha più di sessant'anni: percezione, equilibrio, respiro — un gesto alla volta, con il tempo che serve. Un gruppo stabile, un istruttore che conosce ognuno, la corda vissuta da secondo: la sicurezza come esperienza, mai come limite.</p>
+</div>
+
+<div class="zona mono">Prima Lezione</div>
+<div class="blocco">
+  <table>
+    <tr><th>Voce</th><th>Prezzo</th></tr>
+    <tr><td>Prima Lezione Adulti<small>negli orari Prima Lezione Adulti del calendario</small></td><td><span class="p">25€</span></td></tr>
+  </table>
+  <p class="nota">Nessuna prova dedicata: la Prima Lezione è quella adulti. Dopo la Prima Lezione, se vuoi, c'è il Corso Senior: una scelta, non un obbligo — si può anche proseguire con il percorso adulti.</p>
+</div>
+
+<div class="zona mono">Corso</div>
+<div class="blocco">
+  <table>
+    <tr><th>Corso</th><th>Prezzo</th></tr>
+    <tr><td><b>Corso Senior KataClimb (over 60)</b><small>venerdì 18:00–19:00 · 1 lezione a settimana + abbonamento Sala con Monitor incluso (90€/mese da listino)</small></td><td><span class="p">120€/mese</span></td></tr>
+  </table>
+  <p class="nota">Quota mensile fissa, senza scadenza di percorso: si resta finché si vuole. Contenuto: fondamenta del metodo (Open → Advance) e corda <b>solo da secondo</b>, mai da primo. Chi vuole andare oltre aggiunge i corsi corda con il supplemento qui sotto.</p>
+</div>
+
+<div class="zona mono">Supplemento corda (solo per chi è nel Corso Senior)</div>
+<div class="blocco">
+  <table>
+    <tr><th>Corso aggiunto</th><th>Supplemento</th></tr>
+    <tr><td>Corso Intro Corda KataClimb<small>8 lezioni entro 75 giorni · listino 150€/mese</small></td><td><span class="p">+30€/mese</span></td></tr>
+    <tr><td>Corso Evo Corda KataClimb<small>8 lezioni entro 75 giorni · listino 160€/mese</small></td><td><span class="p">+40€/mese</span></td></tr>
+  </table>
+  <p class="nota">La quota Senior vale come acconto sul corso corda: paghi solo la differenza rispetto al listino adulti. Il supplemento si aggiunge alla quota mensile per ogni mese in cui il corso corda è attivo con lezioni residue, <b>fino a un massimo di 3 mesi</b>. Durante il corso corda si continua a frequentare anche il venerdì. Chi preferisce lasciare il Senior prende il Corso Intro o Evo Corda intero a listino (150/160€ al mese), come ogni altro allievo del percorso adulti. Le lezioni non fatte entro i 75 giorni si perdono, come per tutti.</p>
+</div>
+
+<div class="zona mono">Sconto famiglia</div>
+<div class="blocco">
+  <table>
+    <tr><th>Sconto</th><th></th></tr>
+    <tr><td>Dal 2° familiare<small>sulla quota corso: 120→108€ · non sul supplemento corda</small></td><td><span class="p">−10%</span></td></tr>
+  </table>
+  <p class="nota">Vale anche per le coppie. Mai su iscrizione annuale e Prima Lezione: sempre piene, a testa. A quota piena resta chi ha la quota più alta.</p>
+</div>
+
+<div class="zona mono">Attrezzatura</div>
+<div class="blocco">
+  <p class="nota">Le scarpette le fornisce l'Accademia per le <b>prime 4 lezioni</b>. Dopo, ogni allievo ha le sue: chiedi all'istruttore quali comprare. In alternativa, noleggio in Accademia a 5€ a ingresso. L'imbragatura la fornisce l'Accademia per il Corso Senior e per il Corso Intro Corda; dal Corso Evo Corda serve la propria, oppure noleggio 5€ a ingresso.</p>
+</div>
+
+<div class="zona mono">Iscrizione annuale</div>
+<div class="blocco">
+  <h2 class="corso">Iscrizione annuale Accademia — 40€</h2>
+  <p class="nota">Obbligatoria al primo corso. Scade il 31 dicembre dell'anno in corso.</p>
+</div>
+
+<p class="chiusa">Per iscrizioni e informazioni: segreteria Accademia.</p>
+</div>
+
+<script>
+/* ─── CFG identica alle pagine live (oggi.html v2.12) ─── */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+};
+
+async function init(){
+  const sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){document.getElementById('gate').style.display='block';return;}
+  document.getElementById('app').style.display='block';
+}
+init();
+</script>
+</body>
+</html>
