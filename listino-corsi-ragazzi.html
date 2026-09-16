@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: listino-corsi-ragazzi v1.2 · 2026-09-07 · GATE A DUE CHIAVI: oltre alla sessione (iscritto loggato, invariata) la pagina si apre anche con ?u=<persona_id>, il link della mail di sistema del listino minori — RPC listino_gate(p_u) (SECURITY DEFINER, eseguibile da anon) che risponde SOLO con la fascia. Fascia della pagina -> #app; fascia dell'altra pagina -> redirect a quella giusta tenendo il ?u=; NULL, uuid malformato o errore -> gate come oggi (un uuid a caso non apre niente). Nessun dato personale sulla pagina: la RPC non restituisce ne nome ne recapiti, il frontend non legge tabelle. Contenuto e prezzi INVARIATI. CUMULA v1.1 · 2026-09-02 · CORSO GENITORI (nuovo, deciso 2 set): blocco dedicato — Prima Lezione Genitori 25€ (giovedì, riservata famiglie con figlio in lezione, già a DB come prima_lezione_genitori) · Corso Genitori KataClimb 70€/mese 1×/sett giovedì (Open→Advance con elementi corda; prosecuzione corda su Intro/Evo) · Ingresso lezione singola 20€ · sconto famiglia −25% dal 2° genitore. Settembre prove, da ottobre lezioni. CUMULA v1.0 · 2026-08-31 · Split di listino-corsi-minori (decisione 31 ago: Bambini e Ragazzi separati; Evo ed Expert in fondo alla lista Ragazzi). Gate = solo sessione (iscritti loggati). Contenuto dal documento canonico Listini_Accademia_2026_v1_1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
+<!-- KC-BUILD: listino-corsi-ragazzi v1.3 · 2026-09-16 · MEZZO MESE ai prezzi storici (Marco 16 set): 1×/sett 40→45€ · 2×/sett 42→50€ · settembre Evo/Expert 45→50€. Nient'altro toccato. Fonte: Listini_Accademia_2026_v1_4. CUMULA v1.2 · 2026-09-07 · GATE A DUE CHIAVI: oltre alla sessione (iscritto loggato, invariata) la pagina si apre anche con ?u=<persona_id>, il link della mail di sistema del listino minori — RPC listino_gate(p_u) (SECURITY DEFINER, eseguibile da anon) che risponde SOLO con la fascia. Fascia della pagina -> #app; fascia dell'altra pagina -> redirect a quella giusta tenendo il ?u=; NULL, uuid malformato o errore -> gate come oggi (un uuid a caso non apre niente). Nessun dato personale sulla pagina: la RPC non restituisce ne nome ne recapiti, il frontend non legge tabelle. Contenuto e prezzi INVARIATI. CUMULA v1.1 · 2026-09-02 · CORSO GENITORI (nuovo, deciso 2 set): blocco dedicato — Prima Lezione Genitori 25€ (giovedì, riservata famiglie con figlio in lezione, già a DB come prima_lezione_genitori) · Corso Genitori KataClimb 70€/mese 1×/sett giovedì (Open→Advance con elementi corda; prosecuzione corda su Intro/Evo) · Ingresso lezione singola 20€ · sconto famiglia −25% dal 2° genitore. Settembre prove, da ottobre lezioni. CUMULA v1.0 · 2026-08-31 · Split di listino-corsi-minori (decisione 31 ago: Bambini e Ragazzi separati; Evo ed Expert in fondo alla lista Ragazzi). Gate = solo sessione (iscritti loggati). Contenuto dal documento canonico Listini_Accademia_2026_v1_1. Mobile-first 480px, print pulita, P-NAV-BACK. -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Listino Corsi Ragazzi (12–17) · KataClimb</title>
@@ -95,7 +95,7 @@ h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22re
 </div>
 <div class="blocco">
   <p class="nota">La stagione 2026/27 si apre il 1° settembre e chiude il 30 giugno. La colonna Stagione è il prezzo pieno delle nove mensilità da ottobre a giugno: settembre si copre con la prova. Le formule di pagamento e gli sconti sono qui sotto.</p>
-  <p class="nota"><b>Corso Evo Ragazzi</b>: ingresso su selezione con invito diretto alle famiglie. Frequenza libera in sala nei giorni di corso. Entrambi i giorni col gruppo Ragazzi (lun e gio, oltre al mercoledì): supplemento 15€/mese. I corsi Evo Ragazzi ed Expert iniziano il 15 settembre: quota di settembre mezzo mese, 45€.</p>
+  <p class="nota"><b>Corso Evo Ragazzi</b>: ingresso su selezione con invito diretto alle famiglie. Frequenza libera in sala nei giorni di corso. Entrambi i giorni col gruppo Ragazzi (lun e gio, oltre al mercoledì): supplemento 15€/mese. I corsi Evo Ragazzi ed Expert iniziano il 15 settembre: quota di settembre mezzo mese, 50€.</p>
 </div>
 
 <div class="zona mono">I corsi</div>
@@ -111,8 +111,8 @@ h2.corso{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.22re
     <tr><th>Ingresso</th><th>Prezzo</th></tr>
     <tr><td>Primo mese di prova — 1×/sett<small>da inizio mese</small></td><td><span class="p">80€</span></td></tr>
     <tr><td>Primo mese di prova — 2×/sett<small>da inizio mese</small></td><td><span class="p">85€</span></td></tr>
-    <tr><td>Mezzo mese di prova — 1×/sett<small>da metà mese</small></td><td><span class="p">40€</span></td></tr>
-    <tr><td>Mezzo mese di prova — 2×/sett<small>da metà mese</small></td><td><span class="p">42€</span></td></tr>
+    <tr><td>Mezzo mese di prova — 1×/sett<small>da metà mese</small></td><td><span class="p">45€</span></td></tr>
+    <tr><td>Mezzo mese di prova — 2×/sett<small>da metà mese</small></td><td><span class="p">50€</span></td></tr>
   </table>
   <p class="nota">Il primo periodo è di prova e porta il ciclo al 1° del mese: si paga solo fino a fine mese, intero o mezzo secondo quando si entra. È l'unico periodo senza impegno. Chi prosegue paga a trimestri in Accademia, oppure sceglie la stagione intera: in contanti — unica o due soluzioni — o a rate mensili automatiche dal portale. Ogni periodo si paga sempre prima che inizi. Vale per Corso Bambini e Corso Ragazzi; l'Evo Ragazzi ha la sua quota di avvio (45€ a metà settembre).</p>
 </div>
