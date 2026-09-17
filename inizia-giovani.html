@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-giovani v5 · 2026-09-07 · ORARIO CORSO: giovedì 21:00–22:00 al posto di venerdì 18:00–19:00 (hero + banner sopra la griglia; DB aggiornato 7 set, il venerdì 18-19 va al Corso Senior). Nient'altro toccato. CUMULA v4 · 2026-09-03 · LUNEDI SOLO 7 SET + PORTING FIX RLS v12: (1) lo slot Prima Lezione del lunedi 20:00 vale SOLO per lun 7 set (dal 14 diventa Corso Open KataClimb) — occorrenze del lunedi con data > 2026-09-07 escluse dal calendario, condizione inerte dopo archiviazione DB dello slot; (2) caricaConteggi passa alla RPC pubblica conteggi_prima_lezione (era rimasta la lettura diretta di prenotazioni_prima_lezione da anon = RLS 0 righe = ESAURITO mai, stesso bug fixato su inizia v12 il 31 ago, qui mai portato). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-31 · BANNER RIFORMULATO: la prima lezione e' a 20€ per TUTTI i 18-24 a prescindere dal corso che seguiranno (il venerdi' riguarda solo il corso, non la prima lezione). CUMULA v2 · NOTA CORSO VENERDI: banner sopra la griglia date (prima lezione con gli adulti negli orari a calendario; il Corso Giovani sara' il venerdi 18-19; chi non puo' il venerdi prosegue col percorso adulti) + riga venerdi nel hero. NIENT'ALTRO toccato. CUMULA v1 · PRIMA LEZIONE GIOVANI (18-24) A 20€: clone di inizia v11 con prodotto 'prima_lezione_giovani' (RICHIEDE stripe-worker: voce CATALOGO + env STRIPE_PRICE_PRIMA_GIOVANI — senza, il checkout risponde 'Prodotto non disponibile sulla landing'), prezzi 25->20 ovunque (pill, modal, bottoni, riga termini, ViewContent/InitiateCheckout value 20, content_name 'Prima Lezione Giovani'), checkbox obbligatoria f-eta 'ho 18-24 anni' validata in entrambi i rami submit (verifica documento in Accademia), selettore gruppo NASCOSTO via display:none (il ramo gruppo del worker fattura il price adulti 25€: qui solo checkout singolo; fratelli/amici prenotano ognuno il proprio posto), cross-link: 25+ -> /inizia.html, 6-17 -> /inizia-minori.html, kc-lead pagina='inizia-giovani.html', Lead content_name 'Richiesta info Prima Lezione Giovani'. INVARIATO da inizia v11: stessi slot Prima Lezione fascia adulti, finestra 14gg fino al 15 set poi 7gg, giorni_chiusi, consent/CAPI, video variant. -->
+<!-- KC-BUILD: inizia-giovani v6 · 2026-09-17 · DATA DI NASCITA OBBLIGATORIA: campo f-nascita nel modal prenota, eta' 18-24 verificata in pagina (e lato server da stripe-worker v3.76, che la salva in persone.data_nascita), inviata come data_nascita al checkout; la checkbox f-eta resta come conferma. Sotto i 18 -> rimando a inizia-minori, sopra i 24 -> inizia.html. Nient'altro toccato. CUMULA v5 · 2026-09-07 · ORARIO CORSO: giovedì 21:00–22:00 al posto di venerdì 18:00–19:00 (hero + banner sopra la griglia; DB aggiornato 7 set, il venerdì 18-19 va al Corso Senior). Nient'altro toccato. CUMULA v4 · 2026-09-03 · LUNEDI SOLO 7 SET + PORTING FIX RLS v12: (1) lo slot Prima Lezione del lunedi 20:00 vale SOLO per lun 7 set (dal 14 diventa Corso Open KataClimb) — occorrenze del lunedi con data > 2026-09-07 escluse dal calendario, condizione inerte dopo archiviazione DB dello slot; (2) caricaConteggi passa alla RPC pubblica conteggi_prima_lezione (era rimasta la lettura diretta di prenotazioni_prima_lezione da anon = RLS 0 righe = ESAURITO mai, stesso bug fixato su inizia v12 il 31 ago, qui mai portato). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-31 · BANNER RIFORMULATO: la prima lezione e' a 20€ per TUTTI i 18-24 a prescindere dal corso che seguiranno (il venerdi' riguarda solo il corso, non la prima lezione). CUMULA v2 · NOTA CORSO VENERDI: banner sopra la griglia date (prima lezione con gli adulti negli orari a calendario; il Corso Giovani sara' il venerdi 18-19; chi non puo' il venerdi prosegue col percorso adulti) + riga venerdi nel hero. NIENT'ALTRO toccato. CUMULA v1 · PRIMA LEZIONE GIOVANI (18-24) A 20€: clone di inizia v11 con prodotto 'prima_lezione_giovani' (RICHIEDE stripe-worker: voce CATALOGO + env STRIPE_PRICE_PRIMA_GIOVANI — senza, il checkout risponde 'Prodotto non disponibile sulla landing'), prezzi 25->20 ovunque (pill, modal, bottoni, riga termini, ViewContent/InitiateCheckout value 20, content_name 'Prima Lezione Giovani'), checkbox obbligatoria f-eta 'ho 18-24 anni' validata in entrambi i rami submit (verifica documento in Accademia), selettore gruppo NASCOSTO via display:none (il ramo gruppo del worker fattura il price adulti 25€: qui solo checkout singolo; fratelli/amici prenotano ognuno il proprio posto), cross-link: 25+ -> /inizia.html, 6-17 -> /inizia-minori.html, kc-lead pagina='inizia-giovani.html', Lead content_name 'Richiesta info Prima Lezione Giovani'. INVARIATO da inizia v11: stessi slot Prima Lezione fascia adulti, finestra 14gg fino al 15 set poi 7gg, giorni_chiusi, consent/CAPI, video variant. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -307,7 +307,8 @@ body{
 }
 .modal-form input[type=text],
 .modal-form input[type=email],
-.modal-form input[type=tel]{
+.modal-form input[type=tel],
+.modal-form input[type=date]{
   background:#fff; border:2px solid var(--border2);
   border-radius:var(--r); padding:11px 13px;
   font-family:inherit; font-size:15px; color:var(--ink);
@@ -651,6 +652,10 @@ body{
       <div class="field">
         <label for="f-telefono">Telefono</label>
         <input id="f-telefono" name="telefono" type="tel" autocomplete="tel" inputmode="tel" required>
+      </div>
+      <div class="field">
+        <label for="f-nascita">Data di nascita</label>
+        <input id="f-nascita" name="data_nascita" type="date" autocomplete="bday" min="1930-01-01" required>
       </div>
 
       <div id="grp-extra"></div>
@@ -1054,6 +1059,18 @@ body{
     if(!terms){ showError('Devi accettare i Termini della Prima Lezione.'); return; }
     if(!document.getElementById('f-eta').checked){ showError('Devi confermare di avere tra i 18 e i 24 anni.'); return; }
 
+    // v6 — data di nascita obbligatoria, età 18-24
+    const data_nascita = document.getElementById('f-nascita').value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(data_nascita)){ showError('Inserisci la tua data di nascita.'); return; }
+    {
+      const n = new Date(data_nascita + 'T00:00:00'), o = new Date();
+      let eta = o.getFullYear() - n.getFullYear();
+      if (o.getMonth() < n.getMonth() || (o.getMonth() === n.getMonth() && o.getDate() < n.getDate())) eta--;
+      if (isNaN(eta) || eta < 0 || eta > 120){ showError('Controlla la data di nascita.'); return; }
+      if (eta < 18){ showError('Hai meno di 18 anni: la prima lezione per ragazzi si prenota dalla pagina dedicata (serve un genitore). Trovi il link qui sopra.'); return; }
+      if (eta > 24){ showError('La tariffa Giovani vale dai 18 ai 24 anni: prenota la Prima Lezione adulti, trovi il link qui sopra.'); return; }
+    }
+
     const btn = document.getElementById('btn-pay');
     btn.disabled = true;
     btn.innerHTML = '<span class="field-spinner"></span> Apro pagamento…';
@@ -1069,6 +1086,7 @@ body{
           slot_id:       modalCtx.slot_id,
           data_lezione:  modalCtx.data_lezione,
           nome, cognome, email, telefono,
+          data_nascita,
           accept_terms:  true,
           video_variant: variant,
           consent:       (localStorage.getItem('kc_consent') === 'granted' ? 'yes' : 'no'),
