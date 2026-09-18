@@ -48,17 +48,31 @@
   /* Guasti nostri sul checkout: il Worker li manda come codice secco, senza message. */
   var CODICI_PAGAMENTO = ['stripe_session_failed', 'rpc_gruppo_failed', 'gruppo_non_creato', 'price_id'];
 
-  /* snake_case puro = codice tecnico, non una frase per la persona. */
-  var SNAKE = /^[a-z0-9]+(?:_[a-z0-9]+)+$/;
+  /* Indirizzi email: si tolgono dal testo prima di cercare gli underscore, altrimenti
+     un mario_rossi@example.com farebbe scartare una frase scritta bene. */
+  var EMAIL = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
 
   function stringa(v) {
     return (typeof v === 'string') ? v.trim() : '';
   }
 
-  /* Frase già leggibile: ha spazi e non è un codice. Copre le validazioni del Worker
-     ("Persona 2: email non valida") e i messaggi età di inizia-giovani. */
-  function eFraseUmana(s) {
-    return !!s && s.indexOf(' ') !== -1 && !SNAKE.test(s);
+  /* Frase già leggibile, cioè scritta per la persona e non per noi. Tre condizioni.
+     (a) Ha spazi: un codice secco come stripe_session_failed non è una frase.
+     (b) Lo status è sotto il 500. Da 500 in su il campo error non è mai destinato alla
+         persona: è il guasto che racconta sé stesso ("duplicate key value violates
+         unique constraint ..."). Il campo message resta valido a qualsiasi status,
+         quello il Worker lo scrive apposta per chi legge.
+     (c) Non contiene underscore, una volta tolti gli indirizzi email. Un underscore è
+         il nome di un campo o di un vincolo, quindi roba nostra: "Slot Prima Lezione
+         mancante (slot_id + data_lezione)" ha l'aria di una frase ma non lo è. Le email
+         si tolgono prima perché il Worker le cita per esteso ("Email ripetuta nel
+         gruppo: mario_rossi@example.com") e l'underscore lì dentro non conta.
+     Restano umane le validazioni del Worker ("Persona 2: email non valida") e i
+     messaggi età di inizia-giovani. */
+  function eFraseUmana(s, status) {
+    if (!s || s.indexOf(' ') === -1) return false;
+    if (typeof status === 'number' && status >= 500) return false;
+    return s.replace(EMAIL, '').indexOf('_') === -1;
   }
 
   function eGuastoPagamento(s) {
@@ -102,7 +116,7 @@
       registraInConsole('errore_pagamento_nostro', status, body);
       return daCodice('errore_pagamento_nostro');
     }
-    if (eFraseUmana(error)) return daFrase(error);
+    if (eFraseUmana(error, status)) return daFrase(error);
 
     registraInConsole('errore_tecnico', status, body);
     return daCodice('errore_tecnico');
