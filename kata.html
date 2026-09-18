@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: kata v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
+<!-- KC-BUILD: kata v1.1 · 2026-09-18 · KATA VISIBILI PER CORSO (regola Marco, 18 set 2026: una persona vede i Kata dei corsi che sta svolgendo e di quelli gia' svolti; gli altri restano in lista col lucchetto). Via la soglia unica k>=12 legata allo step: era sbagliata nella SOGLIA (i Kata 8, 9 e 10 sono del Corso Advance KataClimb, non dell'Open) e nella FONTE (lo step era disallineato fra kata.html, che sbloccava a step>=2, e portale.html, che sbloccava a step>=3). Ora un solo blocco condiviso, IDENTICO nei due file: mappa KATA_PER_CORSO da KataClimb_Lista_Kata_v2 (open 1-7 e 11-15, advance 8-10, intro_corda 16-26, evo_corda 27-33, chiavi = i tipo_corso veri), kataVisibile(k, corsiSvolti), kataVedeTutto(role, staffRole) e kataCorsiSvolti(), che legge iscrizioni_corso — fonte autorevole, RLS iscrizioni_owner_read, stessa query di profilo.html loadPercorso, nessuna colonna nuova. Status che valgono corso svolto: attiva, terminata e completata_pregressa (quest'ultima e' il percorso riconosciuto a chi era in Accademia prima del sistema, ed e' la gran parte dello storico: senza, quasi nessuno vedrebbe i Kata dei corsi gia' fatti). 'sospesa' resta fuori. Chi non ha nessun corso vede i Kata dell'Open (KATA_SENZA_CORSO, default PROVVISORIO da confermare con Marco). Staff, creator e istruttori vedono tutto, come prima. Se la lettura delle iscrizioni fallisce si ricade sul default: nessuna pagina si rompe. NON toccati upload, validazione, slot video. CUMULA v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
      Tab corsi (CT) + griglia 2-slot (Memoria/Validazione) con TUTTI gli stati incl. 'rejected'.
      NOVITA': slot 2 'rejected' reso visibile (Da rifare ↻) e RICARICABILE (openUpload → il worker stream-bridge
      v2.12 fa il replace dello slot non-certificato), + blocco CORREZIONI del maestro (feedback_validazione)
@@ -220,6 +220,71 @@ const CREATOR_ID='27b04151-93a7-4ecc-824c-fe337cc631a6';
 
 /* ═══ STATE ═══ */
 let sb=null,user=null,profile=null,kataVids={},esempiMaestro={},myTabIdx=0;
+let kataCorsiMiei=[],kataVedoTutto=false;
+
+/* ═══ KATA VISIBILI PER CORSO — BLOCCO CONDIVISO ══════════════════════
+   REGOLA (Marco, 18 settembre 2026): una persona vede i Kata dei corsi che sta svolgendo
+   e di quelli gia' svolti. Gli altri restano in lista, col lucchetto.
+   MAPPA: KataClimb_Lista_Kata_v2, fonte autorevole. Le chiavi sono i tipo_corso VERI di
+   iscrizioni_corso — intro_corda ed evo_corda, non "intro" ed "evo".
+   Prima qui c'era una soglia unica k>=12 legata allo step del profilo: sbagliata nella
+   soglia (i Kata 8, 9 e 10 sono dell'Advance, non dell'Open) e nella fonte (lo step e'
+   disallineato fra le pagine; la fonte autorevole dei corsi e' iscrizioni_corso).
+   ⚠ QUESTO BLOCCO E' IDENTICO IN kata.html E portale.html: se cambia, si cambia in
+   entrambi, nello stesso giro. */
+const KATA_PER_CORSO = {
+  open:        [1,2,3,4,5,6,7,11,12,13,14,15],
+  advance:     [8,9,10],
+  intro_corda: [16,17,18,19,20,21,22,23,24,25,26],
+  evo_corda:   [27,28,29,30,31,32,33]
+};
+
+/* Chi non ha ancora nessun corso (e' passato solo dalla Prima Lezione) vede i Kata del
+   Corso Open KataClimb. DA CONFERMARE CON MARCO: default provvisorio. */
+const KATA_SENZA_CORSO = ['open'];
+
+/* Gli status di iscrizioni_corso che valgono "corso in svolgimento o gia' svolto".
+   completata_pregressa e' il percorso riconosciuto a chi era in Accademia prima del
+   sistema: e' un corso SVOLTO a tutti gli effetti, ed e' lo status di gran lunga piu'
+   diffuso nello storico. Anche profilo.html lo conta fra le tappe fatte.
+   'sospesa' resta fuori: il corso non lo sta svolgendo e non l'ha concluso. */
+const KATA_STATUS_SVOLTO = ['attiva', 'terminata', 'completata_pregressa'];
+
+/* Chi vede tutti i Kata comunque, come prima. */
+const KATA_RUOLI_VEDONO_TUTTO = ['creator','admin','segreteria','istruttore','monitor',
+  'assistente','istruttore_jr','istruttore_senior','istruttore_tutor','maestro'];
+
+function kataVedeTutto(role, staffRole){
+  return KATA_RUOLI_VEDONO_TUTTO.indexOf(String(role||'')) !== -1
+      || KATA_RUOLI_VEDONO_TUTTO.indexOf(String(staffRole||'')) !== -1;
+}
+
+function kataVisibile(k, corsiSvolti){
+  const corsi = (corsiSvolti && corsiSvolti.length) ? corsiSvolti : KATA_SENZA_CORSO;
+  for (let i = 0; i < corsi.length; i++){
+    const lista = KATA_PER_CORSO[corsi[i]];
+    if (lista && lista.indexOf(k) !== -1) return true;
+  }
+  return false;
+}
+
+/* I corsi svolti o in corso della persona. Fonte autorevole iscrizioni_corso, leggibile
+   dalla persona stessa (RLS iscrizioni_owner_read: user_id = auth.uid()). Stessa query
+   gia' usata da profilo.html loadPercorso: nessuna colonna nuova. Se la lettura fallisce
+   si torna una lista vuota e kataVisibile ricade sul default: nessuna pagina si rompe. */
+async function kataCorsiSvolti(sbClient, uid){
+  try{
+    const { data, error } = await sbClient.from('iscrizioni_corso').select('tipo_corso,status').eq('user_id', uid);
+    if (error) throw error;
+    const corsi = [];
+    (data||[]).forEach(r => {
+      if (KATA_STATUS_SVOLTO.indexOf(String(r.status||'')) !== -1 && corsi.indexOf(r.tipo_corso) === -1) corsi.push(r.tipo_corso);
+    });
+    return corsi;
+  }catch(e){ console.warn('[kata] iscrizioni non leggibili:', e.message); return []; }
+}
+/* ═══ fine blocco condiviso ══════════════════════════════════════ */
+
 let uploadKind='kata',uploadTgt=null,selFile=null;
 
 /* ═══ HELPERS ═══ */
@@ -279,7 +344,7 @@ function renderKataGrid(){
     const v=kataVids[k]||[];
     const cert=v.filter(x=>x.status==='certified').length;
     const present=v.filter(x=>x.status==='ready'||x.status==='certified').length;
-    const done=cert>=1,locked=k>=12&&step<2;
+    const done=cert>=1,locked=!kataVedoTutto&&!kataVisibile(k,kataCorsiMiei);
     const slots=Array.from({length:2},(_,i)=>{const f=v.find(x=>x.slot===i+1);return f||null});
     // Correzioni del maestro: slot 2 rifiutato con feedback. Visibile sempre qui (profilo proprio).
     const s2=slots[1];
@@ -502,8 +567,11 @@ async function submitUpload(){
 
 /* ═══ LOAD ═══ */
 async function loadAll(){
-  const{data:p}=await sb.from('profiles').select('user_id,nome,cognome,step,kata_certs,role').eq('user_id',user.id).maybeSingle();
+  const{data:p}=await sb.from('profiles').select('user_id,nome,cognome,step,kata_certs,role,staff_role').eq('user_id',user.id).maybeSingle();
   profile=p||{step:0,kata_certs:{}};
+  // Kata visibili: i corsi che la persona sta svolgendo o ha gia' svolto.
+  kataVedoTutto=kataVedeTutto(profile.role,profile.staff_role);
+  kataCorsiMiei=await kataCorsiSvolti(sb,user.id);
   const{data:v}=await sb.from('kata_videos').select('*').eq('user_id',user.id);
   kataVids={};
   (v||[]).forEach(row=>{(kataVids[row.kata_num]=kataVids[row.kata_num]||[]).push(row);});
