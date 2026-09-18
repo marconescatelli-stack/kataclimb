@@ -88,6 +88,11 @@
       testo: 'Il tuo {corso} è scaduto il {data}. Ogni corso ha un tempo entro cui fare le lezioni. Passa in segreteria per rinnovare.',
       whatsapp: false
     },
+    /* stessa frase, quando la scadenza non e' nota alla pagina (approvata da Marco) */
+    corso_scaduto_senza_data: {
+      testo: 'Il tuo corso è scaduto. Ogni corso ha un tempo entro cui fare le lezioni. Passa in segreteria per rinnovare.',
+      whatsapp: false
+    },
     fuori_validita: {
       testo: 'Questa lezione cade dopo la scadenza del tuo corso ({data}). Scegli una data precedente oppure passa in segreteria per rinnovare.',
       whatsapp: false
@@ -309,6 +314,9 @@
           var trovata = dataDalMessaggio(m);
           if (trovata) ctx = conData(ctx, trovata);
         }
+        /* "Pacchetto Open scaduto" non porta la data: se non ce l'ha nemmeno il chiamante
+           si usa la variante senza data, invece di ripiegare su errore_tecnico. */
+        if (codice === 'corso_scaduto' && !ctx.data) codice = 'corso_scaduto_senza_data';
         return daCodice(codice, ctx);
       }
     }
