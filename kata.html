@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: kata v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
+<!-- KC-BUILD: kata v1.1 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO D (E1, E2, E3): (E1) la scheda di un Kata col lucchetto non rispondeva al tocco — ora dice che si apre piu' avanti nel percorso; va nel modale e non nel toast, che dura 2,4s e questa e' una frase da leggere. (E2) caricamento video fallito: alla persona la frase del registro, il messaggio tecnico resta in console. (E3) 'Target mancante' e l'errore grezzo di apriSlotProblema diventano errore_tecnico. Pagina agganciata a /kc-avvisi.js?v=2. NESSUNA modifica alla regola di sblocco: kata.html sblocca i Kata 12+ a step>=2, portale.html a step>=3 (scala 1-based dal v3.104) — discrepanza verificata e riferita a Marco, non corretta in questo giro. CUMULA v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
      Tab corsi (CT) + griglia 2-slot (Memoria/Validazione) con TUTTI gli stati incl. 'rejected'.
      NOVITA': slot 2 'rejected' reso visibile (Da rifare ↻) e RICARICABILE (openUpload → il worker stream-bridge
      v2.12 fa il replace dello slot non-certificato), + blocco CORREZIONI del maestro (feedback_validazione)
@@ -197,6 +197,10 @@ a{color:inherit;text-decoration:none}
   <a href="/portale.html"><span>👤</span>Portale</a>
 </nav>
 
+<!-- kc-avvisi v2 — registro unico degli avvisi. Il ?v= e' obbligatorio: sw.js serve i .js
+     cache-first. Alzarlo a ogni modifica del registro. -->
+<script src="/kc-avvisi.js?v=2"></script>
+
 <script>
 /* ═══ CONFIG (copiato dal portale live) ═══ */
 const CFG={
@@ -227,6 +231,12 @@ function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').repl
 function fmtDate(d){if(!d)return'';const dt=new Date(d);return dt.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}
 function openModal(id){document.getElementById(id).classList.remove('hidden')}
 function closeModal(id){document.getElementById(id).classList.add('hidden');if(id==='mo-player')document.getElementById('player-box').innerHTML=''}
+// kc-avvisi v2 — E1: la scheda col lucchetto non rispondeva al tocco. Ora dice perche'.
+// Va nel modale e non nel toast: il toast dura 2,4s e questa e' una frase da leggere.
+function avvisoKataBloccato(ev){
+  if(ev)ev.stopPropagation();
+  if(window.kcAvvisi)feedbackErr(window.kcAvvisi.testo('kata_bloccato'));
+}
 function toast(m){const e=document.getElementById('toast-el');e.textContent=m;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2400)}
 function gate(msg){if(msg)document.getElementById('gate-msg').textContent=msg;document.getElementById('gate').style.display='block'}
 function goBack(){if(history.length>1){history.back()}else{location.href='/oggi.html'}}
@@ -292,7 +302,7 @@ function renderKataGrid(){
     const certStat=kataCertStatus(certs,k);
     const certBadge=certStat==='attivo'?' · 🏆':(certStat==='in_scadenza'?' · 🚩':(certStat==='scaduto'?' · 🔴':''));
     h+=`<div class="kr ${done?'done':''} ${locked?'locked':''}">
-      ${locked?'<div class="lock-ov">🔒</div>':''}
+      ${locked?'<div class="lock-ov" onclick="avvisoKataBloccato(event)" style="cursor:pointer">🔒</div>':''}
       <div class="ki"><div class="ki-inner">
         <div class="knum">${String(k).padStart(2,'0')}</div>
         <div><div class="kname">${KN[k]}</div><div class="kcount">${present}/2${done?' · ✓':''}${certBadge}</div></div>
@@ -353,7 +363,8 @@ async function apriSlotProblema(videoId,kataNum,slotIdx,status){
     if(error)throw error;
     await loadAll();
     toast(`Slot ${slotIdx+1} liberato — ora puoi ricaricare`);
-  }catch(e){toast('Errore: '+(e.message||e));console.error('[apriSlotProblema]',e);}
+  }catch(e){console.error('[apriSlotProblema]',e);
+    if(window.kcAvvisi)feedbackErr(window.kcAvvisi.testo('errore_tecnico'));else toast('Errore: '+(e.message||e));}
 }
 
 /* ═══ UPLOAD ═══ */
@@ -444,7 +455,8 @@ async function tusUpload(file,url,onProgress){
 async function submitUpload(){
   if(!selFile)return toast('Seleziona un video');
   if(!sb||!user)return toast('Login richiesto');
-  if(!uploadTgt)return toast('Target mancante');
+  // E3 — guasto interno: alla persona non arriva la parola tecnica.
+  if(!uploadTgt)return window.kcAvvisi?feedbackErr(window.kcAvvisi.testo('errore_tecnico')):toast('Target mancante');
   const prog=document.getElementById('upload-prog');
   prog.classList.remove('hidden');prog.style.display='flex';
   let createdStreamUid=null,isTusAttempt=false;
@@ -494,7 +506,8 @@ async function submitUpload(){
     if(createdStreamUid&&!(isTusAttempt&&tusSession)){
       try{await sb.from('kata_videos').delete().eq('stream_uid',createdStreamUid);}catch(_){}
     }
-    feedbackErr('Errore: '+(e.message||'sconosciuto'));
+    // E2 — il messaggio tecnico resta in console (sopra), alla persona va la frase.
+    feedbackErr(window.kcAvvisi?window.kcAvvisi.testo('upload_errore'):'Errore: '+(e.message||'sconosciuto'));
   }finally{
     document.getElementById('upload-prog').classList.add('hidden');
   }
