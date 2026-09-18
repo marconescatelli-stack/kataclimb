@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: sumisura v10 · 2026-09-18 · REGISTRO UNICO DEGLI AVVISI (kc-avvisi v1, punti B5b e A14 del Censimento Avvisi): nuovo file di radice kc-avvisi.js agganciato con un tag script src="/kc-avvisi.js?v=1" prima dello script principale — il ?v= e' OBBLIGATORIO perche' sw.js serve i .js cache-first e va alzato a ogni modifica del registro. I tre rami che parlano col Worker (checkout SINGOLO, checkout GRUPPO, INVIO RICHIESTA) non leggono piu' da soli errBody/data: passano da kcAvvisi.daRisposta / daEccezione e scrivono con kcAvvisi.mostra, cosi' i codici tecnici (stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato, price_id ... non configurato, 500 a corpo vuoto) diventano una frase con la via d'uscita WhatsApp e l'errore vero resta in console per noi. Anche la sessione Stripe senza url passa da errore_pagamento_nostro invece del vecchio 'URL pagamento non ricevuto'. TENUTA: ogni aggancio e' dietro if(window.kcAvvisi), se il file non si carica la pagina si comporta ESATTAMENTE come prima. Aggiunte solo le due regole CSS .kc-avviso-wa (riga WhatsApp, eredita i 13px e il colore del box errore). NON toccati: validazioni del modulo, calcolaRange, checkout, tracking, Worker, DB. CUMULA v9 · 2026-09-18 · ERRORE 409 LEGGIBILE (difetto B4 del Censimento Avvisi): la gestione errore leggeva solo errBody.error, quindi chi riprovava a prenotare la stessa lezione vedeva la parola tecnica nuda 'gia_prenotato'. Ora legge errBody.message (la frase umana che il Worker gia' manda) con fallback su errBody.error. Allineati entrambi i rami che avevano il difetto: checkout SINGOLO e 'Invio richiesta' (form-info). Nessun testo nuovo, nessuna logica toccata: due righe in tutto. Il ramo GRUPPO era gia' corretto in partenza, come inizia-minori e inizia-famiglia. RESTA APERTO B5b: i codici che il Worker manda senza campo message (price_id non configurato, stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato) arrivano ancora nudi e vanno tradotti dal registro avvisi. CUMULA v8 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v7 · 2026-08-03 · BANNER "SU MISURA" SPARATO: sfondo giallo pieno, testo nero maiuscolo grande su 2 righe (richiesta Marco: il celeste piccolo si perdeva). CUMULA v6 · 2026-08-03 · DISTINZIONE VISIVA da inizia.html: <title> "Su misura ·...", top-pill "Su misura · Tutte le date fino al 30 settembre · 25€", sottotitolo hero riscritto (dichiara subito la differenza — chi apre il link capisce al volo che NON è la pagina 7 giorni). CUMULA v5 · 2026-08-03 · TITOLO SEZIONE calendario "Prossimi 7 giorni" → "Tutte le date fino al 30 settembre" (era rimasto il copy statico della finestra 7gg). CUMULA v4 · 2026-08-03 · SCHEDE 02+03 riscritte dai testi ORIGINALI di Marco (Kata_02_L_Atterraggio, Kata_03_Il_Passo_Verticale) — le precedenti erano copy inventato (vedi Brief Bonifica Lista Kata). Approvate da Marco. CUMULA v3 · 2026-08-03 · COPY "Il Pronti" riscritto (via "imbrago, nodi": fuori linguaggio, un solo nodo insegnato) → procedure di sicurezza + movimento spiegato + sostegno = pronto dal concreto. CUMULA v2 · 2026-08-03 · TETTO DATA_MAX=2026-09-30 (niente ottobre; da aggiornare o rimuovere se la pagina servirà oltre settembre). CUMULA v1 · COPIA DI inizia.html v9 con FINESTRA 30 GIORNI VALIDI (anti-procrastinazione NON applicata: pagina per link diretto manuale a persone che rientrano tardi). Uniche differenze da inizia v9: finestra 7→30 giorni validi (tetto iterazioni 60→120 per scavalcare la pausa di agosto), og:url e label pagina=sumisura.html. Tutto il resto (checkout, kc-lead, fascia adulti, gruppo, minori→/inizia-minori.html, pausa agosto) IDENTICO. REGOLA: ogni futura modifica a inizia.html va valutata anche qui. -->
+<!-- KC-BUILD: sumisura v12 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO B (una cosa negata si mostra SPENTA con il motivo, mai nascosta): (B2) sotto il badge ESAURITO compare la frase del registro 'Esaurito. Scegli un'altra data.'; (B3) sotto il calendario una riga dice perche' le date finiscono li', con i giorni letti dalla finestra che calcolaRange usa davvero, mai riscritti a mano. Nuove regole CSS .slot-nota / .regola-finestra / .btn-choose:disabled (13px, colore leggibile, mai grigio chiaro sui dati operativi) e .slot-card a flex-wrap per far stare la riga del motivo sotto la card. Tutto dietro if(window.kcAvvisi): senza registro la pagina si comporta come prima. NON toccati conteggi, checkout, tracking, query. B1 non si applica: qui il calendario parte da domani, non esistono slot di oggi da spegnere. La riga B3 si dichiara solo quando le date finiscono per la finestra e non per il tetto DATA_MAX, altrimenti direbbe una cosa falsa. CUMULA v11 · 2026-09-18 · REGISTRO AVVISI v2 (Censimento Avvisi v0.2, blocco A): kc-avvisi.js passa a v2 con i testi ratificati per agenda, landing, minori, kata e pagine di servizio, il compilatore di segnaposto testo(codice, valori) e daErroreRpc(), che raccoglie in un punto solo la catena di traduzione dei RAISE di prenota_corso / disdici_corso. Qui cambia SOLO il numero di versione del tag, da ?v=1 a ?v=2: obbligatorio perche' sw.js serve i .js cache-first e senza questo i telefoni gia' passati di qui continuerebbero a eseguire il registro vecchio. Nessuna altra riga di questa pagina e' toccata. CUMULA v10 · 2026-09-18 · REGISTRO UNICO DEGLI AVVISI (kc-avvisi v1, punti B5b e A14 del Censimento Avvisi): nuovo file di radice kc-avvisi.js agganciato con un tag script src="/kc-avvisi.js?v=2" prima dello script principale — il ?v= e' OBBLIGATORIO perche' sw.js serve i .js cache-first e va alzato a ogni modifica del registro. I tre rami che parlano col Worker (checkout SINGOLO, checkout GRUPPO, INVIO RICHIESTA) non leggono piu' da soli errBody/data: passano da kcAvvisi.daRisposta / daEccezione e scrivono con kcAvvisi.mostra, cosi' i codici tecnici (stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato, price_id ... non configurato, 500 a corpo vuoto) diventano una frase con la via d'uscita WhatsApp e l'errore vero resta in console per noi. Anche la sessione Stripe senza url passa da errore_pagamento_nostro invece del vecchio 'URL pagamento non ricevuto'. TENUTA: ogni aggancio e' dietro if(window.kcAvvisi), se il file non si carica la pagina si comporta ESATTAMENTE come prima. Aggiunte solo le due regole CSS .kc-avviso-wa (riga WhatsApp, eredita i 13px e il colore del box errore). NON toccati: validazioni del modulo, calcolaRange, checkout, tracking, Worker, DB. CUMULA v9 · 2026-09-18 · ERRORE 409 LEGGIBILE (difetto B4 del Censimento Avvisi): la gestione errore leggeva solo errBody.error, quindi chi riprovava a prenotare la stessa lezione vedeva la parola tecnica nuda 'gia_prenotato'. Ora legge errBody.message (la frase umana che il Worker gia' manda) con fallback su errBody.error. Allineati entrambi i rami che avevano il difetto: checkout SINGOLO e 'Invio richiesta' (form-info). Nessun testo nuovo, nessuna logica toccata: due righe in tutto. Il ramo GRUPPO era gia' corretto in partenza, come inizia-minori e inizia-famiglia. RESTA APERTO B5b: i codici che il Worker manda senza campo message (price_id non configurato, stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato) arrivano ancora nudi e vanno tradotti dal registro avvisi. CUMULA v8 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v7 · 2026-08-03 · BANNER "SU MISURA" SPARATO: sfondo giallo pieno, testo nero maiuscolo grande su 2 righe (richiesta Marco: il celeste piccolo si perdeva). CUMULA v6 · 2026-08-03 · DISTINZIONE VISIVA da inizia.html: <title> "Su misura ·...", top-pill "Su misura · Tutte le date fino al 30 settembre · 25€", sottotitolo hero riscritto (dichiara subito la differenza — chi apre il link capisce al volo che NON è la pagina 7 giorni). CUMULA v5 · 2026-08-03 · TITOLO SEZIONE calendario "Prossimi 7 giorni" → "Tutte le date fino al 30 settembre" (era rimasto il copy statico della finestra 7gg). CUMULA v4 · 2026-08-03 · SCHEDE 02+03 riscritte dai testi ORIGINALI di Marco (Kata_02_L_Atterraggio, Kata_03_Il_Passo_Verticale) — le precedenti erano copy inventato (vedi Brief Bonifica Lista Kata). Approvate da Marco. CUMULA v3 · 2026-08-03 · COPY "Il Pronti" riscritto (via "imbrago, nodi": fuori linguaggio, un solo nodo insegnato) → procedure di sicurezza + movimento spiegato + sostegno = pronto dal concreto. CUMULA v2 · 2026-08-03 · TETTO DATA_MAX=2026-09-30 (niente ottobre; da aggiornare o rimuovere se la pagina servirà oltre settembre). CUMULA v1 · COPIA DI inizia.html v9 con FINESTRA 30 GIORNI VALIDI (anti-procrastinazione NON applicata: pagina per link diretto manuale a persone che rientrano tardi). Uniche differenze da inizia v9: finestra 7→30 giorni validi (tetto iterazioni 60→120 per scavalcare la pausa di agosto), og:url e label pagina=sumisura.html. Tutto il resto (checkout, kc-lead, fascia adulti, gruppo, minori→/inizia-minori.html, pausa agosto) IDENTICO. REGOLA: ogni futura modifica a inizia.html va valutata anche qui. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -251,6 +251,15 @@ body{
 }
 .btn-choose:hover{background:var(--sky)}
 .btn-choose::after{content:" →"}
+/* kc-avvisi v2 — una cosa negata si mostra SPENTA con il motivo, mai nascosta.
+   La riga del motivo è un dato operativo: 13px e colore leggibile, mai un grigio chiaro. */
+.slot-card{flex-wrap:wrap}
+.slot-nota{flex-basis:100%;font-size:13px;line-height:1.45;color:var(--ink2);margin-top:6px}
+.slot-nota a{color:inherit;font-weight:700;text-decoration:underline}
+.btn-choose:disabled{background:var(--border2);color:var(--ink2);cursor:not-allowed}
+.btn-choose:disabled:hover{background:var(--border2)}
+.btn-choose:disabled::after{content:""}
+.regola-finestra{font-size:13px;line-height:1.45;color:var(--ink2);margin-top:14px;text-align:center}
 
 .empty,.err{
   background:#fff; border:2px solid var(--border);
@@ -563,6 +572,7 @@ body{
   <div id="slot-grid" class="slot-grid">
     <div class="empty"><span class="loader"></span>Carico le date disponibili…</div>
   </div>
+  <div id="regola-finestra" class="regola-finestra"></div>
 </section>
 
 <section class="gallery">
@@ -766,7 +776,7 @@ body{
 <!-- kc-avvisi v1 — registro unico degli avvisi. Il ?v= e' obbligatorio: sw.js serve
      i .js cache-first, senza query di versione i telefoni gia' passati di qui
      continuerebbero a eseguire la copia vecchia. Alzarlo a ogni modifica del file. -->
-<script src="/kc-avvisi.js?v=1"></script>
+<script src="/kc-avvisi.js?v=2"></script>
 
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -834,6 +844,9 @@ body{
   // Tetto pagina su misura: mai proporre date oltre questa (niente ottobre).
   const DATA_MAX = '2026-09-30';
 
+  // kc-avvisi v2 — B3: la finestra decisa da calcolaRange, letta fuori senza
+  // ricalcolarla altrove (P-VERITÀ-UNICA). null = non si dichiara la regola.
+  let finestraGiorni = null;
   function calcolaRange(){
     const oggi = new Date(); oggi.setHours(0,0,0,0);
     const giorni = [];
@@ -854,6 +867,10 @@ body{
       const gs = ((d.getDay()+6)%7)+1;
       giorni.push({ data:d, iso:isoG, giorno_settimana:gs });
     }
+    // B3: la riga si dichiara SOLO se le date finiscono per la finestra. Se ha morso
+    // il tetto DATA_MAX la ragione e' un'altra e dire "si aprono N giorni prima"
+    // sarebbe falso: meglio non dire niente.
+    finestraGiorni = (raccolti >= 30) ? 30 : null;
     return giorni;
   }
 
@@ -905,11 +922,18 @@ body{
       const max = o.slot.capienza_max;
       const liberi = max - count;
 
+      // kc-avvisi v2 — B1/B2: la card negata si mostra spenta con il motivo sotto.
+      const chiuso = !!o.chiuso;
+      let avviso = null;
       let badgeClass, badgeText, isFull = false;
-      if(count === 0){
+      if(chiuso){
+        badgeClass = 'full'; badgeText = 'CHIUSO'; isFull = true;
+        if(window.kcAvvisi) avviso = window.kcAvvisi.daCodice('cutoff_oggi', { ore: o.ore_cutoff });
+      } else if(count === 0){
         badgeClass = 'ok'; badgeText = 'DISPONIBILE';
       } else if(count >= max){
         badgeClass = 'full'; badgeText = 'ESAURITO'; isFull = true;
+        if(window.kcAvvisi) avviso = window.kcAvvisi.daCodice('esaurito_landing');
       } else {
         badgeClass = 'warn';
         badgeText = liberi === 1 ? '1 POSTO' : `${liberi} POSTI`;
@@ -930,8 +954,15 @@ body{
         </div>
         <div class="slot-action">
           <div class="slot-badge ${badgeClass}">${badgeText}</div>
-          ${!isFull ? `<button class="btn-choose" data-slot-id="${o.slot.id}" data-data-lezione="${o.data_lezione}" data-label="${dataLabel} · ${oraLabel}">SCEGLI</button>` : ''}
+          ${chiuso ? `<button class="btn-choose" disabled>SCEGLI</button>`
+            : (!isFull ? `<button class="btn-choose" data-slot-id="${o.slot.id}" data-data-lezione="${o.data_lezione}" data-label="${dataLabel} · ${oraLabel}">SCEGLI</button>` : '')}
         </div>`;
+      if(avviso){
+        const nota = document.createElement('div');
+        nota.className = 'slot-nota';
+        window.kcAvvisi.mostra(nota, avviso);
+        card.appendChild(nota);
+      }
       grid.appendChild(card);
     });
 
@@ -1343,6 +1374,12 @@ body{
       const counts = await caricaConteggi(slotIds, dal, al);
 
       renderOccorrenze(occorrenze, counts);
+
+      // kc-avvisi v2 — B3: perche' il calendario finisce li'.
+      if(window.kcAvvisi && finestraGiorni){
+        const rf = document.getElementById('regola-finestra');
+        if(rf) window.kcAvvisi.mostra(rf, window.kcAvvisi.daCodice('fuori_finestra', { giorni: finestraGiorni }));
+      }
 
     } catch(err){
       console.error('sumisura.html init error:', err);

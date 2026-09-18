@@ -23,6 +23,9 @@
   .vtoggle{ background:#fff; border:1.5px solid #e0d8cc; border-radius:999px; padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .12s; }
   .vtoggle.on{ color:var(--sage); border-color:var(--sage); }
   .vtoggle.off{ color:var(--warm-gray); }
+  /* kc-avvisi v2 — F1: l'avviso compare accanto al toggle, 13px, colore leggibile. */
+  .kc-vis-msg{ font-size:13px; line-height:1.45; margin-top:6px; color:var(--coral); }
+  .kc-vis-msg a{ color:inherit; font-weight:700; text-decoration:underline; }
   .vempty{ font-size:13px; color:var(--warm-gray); padding:4px 2px; }
   .field{ margin-bottom:12px; }
   label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
@@ -118,6 +121,10 @@
   </div>
 </div>
 
+<!-- kc-avvisi v2 — registro unico degli avvisi. Il ?v= e' obbligatorio: sw.js serve i .js
+     cache-first. Alzarlo a ogni modifica del registro. -->
+<script src="/kc-avvisi.js?v=2"></script>
+
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -198,7 +205,16 @@ document.addEventListener('click', async (e) => {
     b.className = 'vtoggle ' + (nuovo?'on':'off');
     b.textContent = nuovo ? '🌍 Visibile' : '🔒 Nascosto';
   }catch(err){
-    alert('Errore: ' + err.message);
+    // F1 — niente finestra di sistema col testo tecnico: la frase va in pagina, accanto
+    // al bottone che la persona ha appena toccato. L'errore vero resta in console.
+    console.error('[visibilita]', err);
+    if(window.kcAvvisi){
+      let box = b.parentNode.querySelector('.kc-vis-msg');
+      if(!box){ box = document.createElement('div'); box.className = 'kc-vis-msg'; b.parentNode.appendChild(box); }
+      window.kcAvvisi.mostra(box, window.kcAvvisi.daCodice('errore_tecnico'));
+    } else {
+      alert('Errore: ' + err.message);
+    }
   }finally{
     b.disabled = false;
   }
@@ -219,7 +235,9 @@ window.salvaPassword = async function(){
     $('pwd1').value = ''; $('pwd2').value = '';
     m('Password aggiornata. Da ora entri con email e password ✓', true);
   }catch(e){
-    m('Errore: ' + e.message, false);
+    // F1 — stessa regola: il testo tecnico resta in console.
+    console.error('[salvaPassword]', e);
+    m(window.kcAvvisi ? window.kcAvvisi.testo('errore_tecnico') : 'Errore: ' + e.message, false);
   }finally{
     btn.disabled = false; btn.textContent = old;
   }
