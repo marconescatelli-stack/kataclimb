@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: kata v1.1 · 2026-09-18 · KATA VISIBILI PER CORSO (regola Marco, 18 set 2026: una persona vede i Kata dei corsi che sta svolgendo e di quelli gia' svolti; gli altri restano in lista col lucchetto). Via la soglia unica k>=12 legata allo step: era sbagliata nella SOGLIA (i Kata 8, 9 e 10 sono del Corso Advance KataClimb, non dell'Open) e nella FONTE (lo step era disallineato fra kata.html, che sbloccava a step>=2, e portale.html, che sbloccava a step>=3). Ora un solo blocco condiviso, IDENTICO nei due file: mappa KATA_PER_CORSO da KataClimb_Lista_Kata_v2 (open 1-7 e 11-15, advance 8-10, intro_corda 16-26, evo_corda 27-33, chiavi = i tipo_corso veri), kataVisibile(k, corsiSvolti), kataVedeTutto(role, staffRole) e kataCorsiSvolti(), che legge iscrizioni_corso — fonte autorevole, RLS iscrizioni_owner_read, stessa query di profilo.html loadPercorso, nessuna colonna nuova. Status che valgono corso svolto: attiva, terminata e completata_pregressa (quest'ultima e' il percorso riconosciuto a chi era in Accademia prima del sistema, ed e' la gran parte dello storico: senza, quasi nessuno vedrebbe i Kata dei corsi gia' fatti). 'sospesa' resta fuori. Chi non ha nessun corso vede i Kata dell'Open (KATA_SENZA_CORSO, default PROVVISORIO da confermare con Marco). Staff, creator e istruttori vedono tutto, come prima. Se la lettura delle iscrizioni fallisce si ricade sul default: nessuna pagina si rompe. NON toccati upload, validazione, slot video. CUMULA v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
+<!-- KC-BUILD: kata v1.1 · 2026-09-18 · KATA VISIBILI PER CORSO (regola Marco, 18 set 2026: una persona vede i Kata dei corsi che sta svolgendo e di quelli gia' svolti; gli altri restano in lista col lucchetto). Via la soglia unica k>=12 legata allo step: era sbagliata nella SOGLIA (i Kata 8, 9 e 10 sono del Corso Advance KataClimb, non dell'Open) e nella FONTE (lo step era disallineato fra kata.html, che sbloccava a step>=2, e portale.html, che sbloccava a step>=3). Ora un solo blocco condiviso, IDENTICO nei due file: mappa KATA_PER_CORSO da KataClimb_Lista_Kata_v2 (open 1-7 e 11-15, advance 8-10, intro_corda 16-26, evo_corda 27-33, chiavi = i tipo_corso veri), kataVisibile(k, corsiSvolti), kataVedeTutto(role, staffRole) e kataCorsiSvolti(), che legge iscrizioni_corso — fonte autorevole, RLS iscrizioni_owner_read, stessa query di profilo.html loadPercorso, nessuna colonna nuova. Status che valgono corso svolto: attiva, terminata e completata_pregressa (quest'ultima e' il percorso riconosciuto a chi era in Accademia prima del sistema, ed e' la gran parte dello storico: senza, quasi nessuno vedrebbe i Kata dei corsi gia' fatti). 'sospesa' vale come gli altri: chi ha un corso sospeso lo ha iniziato, quei Kata li ha gia' visti. Chi non ha nessun corso vede i Kata dell'Open (KATA_SENZA_CORSO, default PROVVISORIO da confermare con Marco). Staff, creator e istruttori vedono tutto, come prima. Se la lettura delle iscrizioni fallisce si ricade sul default: nessuna pagina si rompe. NON toccati upload, validazione, slot video. CUMULA v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
      Tab corsi (CT) + griglia 2-slot (Memoria/Validazione) con TUTTI gli stati incl. 'rejected'.
      NOVITA': slot 2 'rejected' reso visibile (Da rifare ↻) e RICARICABILE (openUpload → il worker stream-bridge
      v2.12 fa il replace dello slot non-certificato), + blocco CORREZIONI del maestro (feedback_validazione)
@@ -243,12 +243,12 @@ const KATA_PER_CORSO = {
    Corso Open KataClimb. DA CONFERMARE CON MARCO: default provvisorio. */
 const KATA_SENZA_CORSO = ['open'];
 
-/* Gli status di iscrizioni_corso che valgono "corso in svolgimento o gia' svolto".
+/* Gli status di iscrizioni_corso che valgono "corso iniziato": tutti.
    completata_pregressa e' il percorso riconosciuto a chi era in Accademia prima del
-   sistema: e' un corso SVOLTO a tutti gli effetti, ed e' lo status di gran lunga piu'
-   diffuso nello storico. Anche profilo.html lo conta fra le tappe fatte.
-   'sospesa' resta fuori: il corso non lo sta svolgendo e non l'ha concluso. */
-const KATA_STATUS_SVOLTO = ['attiva', 'terminata', 'completata_pregressa'];
+   sistema — e' un corso svolto a tutti gli effetti ed e' la gran parte dello storico;
+   anche profilo.html lo conta fra le tappe fatte. sospesa vale come gli altri (Marco,
+   18 set 2026): chi ha un corso sospeso lo ha iniziato, quei Kata li ha gia' visti. */
+const KATA_STATUS_SVOLTO = ['attiva', 'terminata', 'completata_pregressa', 'sospesa'];
 
 /* Chi vede tutti i Kata comunque, come prima. */
 const KATA_RUOLI_VEDONO_TUTTO = ['creator','admin','segreteria','istruttore','monitor',
