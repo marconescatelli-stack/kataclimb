@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-giovani v6 · 2026-09-17 · DATA DI NASCITA OBBLIGATORIA: campo f-nascita nel modal prenota, eta' 18-24 verificata in pagina (e lato server da stripe-worker v3.76, che la salva in persone.data_nascita), inviata come data_nascita al checkout; la checkbox f-eta resta come conferma. Sotto i 18 -> rimando a inizia-minori, sopra i 24 -> inizia.html. Nient'altro toccato. CUMULA v5 · 2026-09-07 · ORARIO CORSO: giovedì 21:00–22:00 al posto di venerdì 18:00–19:00 (hero + banner sopra la griglia; DB aggiornato 7 set, il venerdì 18-19 va al Corso Senior). Nient'altro toccato. CUMULA v4 · 2026-09-03 · LUNEDI SOLO 7 SET + PORTING FIX RLS v12: (1) lo slot Prima Lezione del lunedi 20:00 vale SOLO per lun 7 set (dal 14 diventa Corso Open KataClimb) — occorrenze del lunedi con data > 2026-09-07 escluse dal calendario, condizione inerte dopo archiviazione DB dello slot; (2) caricaConteggi passa alla RPC pubblica conteggi_prima_lezione (era rimasta la lettura diretta di prenotazioni_prima_lezione da anon = RLS 0 righe = ESAURITO mai, stesso bug fixato su inizia v12 il 31 ago, qui mai portato). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-31 · BANNER RIFORMULATO: la prima lezione e' a 20€ per TUTTI i 18-24 a prescindere dal corso che seguiranno (il venerdi' riguarda solo il corso, non la prima lezione). CUMULA v2 · NOTA CORSO VENERDI: banner sopra la griglia date (prima lezione con gli adulti negli orari a calendario; il Corso Giovani sara' il venerdi 18-19; chi non puo' il venerdi prosegue col percorso adulti) + riga venerdi nel hero. NIENT'ALTRO toccato. CUMULA v1 · PRIMA LEZIONE GIOVANI (18-24) A 20€: clone di inizia v11 con prodotto 'prima_lezione_giovani' (RICHIEDE stripe-worker: voce CATALOGO + env STRIPE_PRICE_PRIMA_GIOVANI — senza, il checkout risponde 'Prodotto non disponibile sulla landing'), prezzi 25->20 ovunque (pill, modal, bottoni, riga termini, ViewContent/InitiateCheckout value 20, content_name 'Prima Lezione Giovani'), checkbox obbligatoria f-eta 'ho 18-24 anni' validata in entrambi i rami submit (verifica documento in Accademia), selettore gruppo NASCOSTO via display:none (il ramo gruppo del worker fattura il price adulti 25€: qui solo checkout singolo; fratelli/amici prenotano ognuno il proprio posto), cross-link: 25+ -> /inizia.html, 6-17 -> /inizia-minori.html, kc-lead pagina='inizia-giovani.html', Lead content_name 'Richiesta info Prima Lezione Giovani'. INVARIATO da inizia v11: stessi slot Prima Lezione fascia adulti, finestra 14gg fino al 15 set poi 7gg, giorni_chiusi, consent/CAPI, video variant. -->
+<!-- KC-BUILD: inizia-giovani v7 · 2026-09-18 · OGGI PRENOTABILE: calcolaRange propone anche il giorno corrente (non consuma la finestra), con taglio a 4 ore dall'inizio dello slot (CUTOFF_OGGI_MIN=240). Prima il calendario partiva da domani e chi voleva venire la sera stessa non vedeva lo slot. NIENT'ALTRO toccato. CUMULA v6 · 2026-09-17 · DATA DI NASCITA OBBLIGATORIA: campo f-nascita nel modal prenota, eta' 18-24 verificata in pagina (e lato server da stripe-worker v3.76, che la salva in persone.data_nascita), inviata come data_nascita al checkout; la checkbox f-eta resta come conferma. Sotto i 18 -> rimando a inizia-minori, sopra i 24 -> inizia.html. Nient'altro toccato. CUMULA v5 · 2026-09-07 · ORARIO CORSO: giovedì 21:00–22:00 al posto di venerdì 18:00–19:00 (hero + banner sopra la griglia; DB aggiornato 7 set, il venerdì 18-19 va al Corso Senior). Nient'altro toccato. CUMULA v4 · 2026-09-03 · LUNEDI SOLO 7 SET + PORTING FIX RLS v12: (1) lo slot Prima Lezione del lunedi 20:00 vale SOLO per lun 7 set (dal 14 diventa Corso Open KataClimb) — occorrenze del lunedi con data > 2026-09-07 escluse dal calendario, condizione inerte dopo archiviazione DB dello slot; (2) caricaConteggi passa alla RPC pubblica conteggi_prima_lezione (era rimasta la lettura diretta di prenotazioni_prima_lezione da anon = RLS 0 righe = ESAURITO mai, stesso bug fixato su inizia v12 il 31 ago, qui mai portato). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-31 · BANNER RIFORMULATO: la prima lezione e' a 20€ per TUTTI i 18-24 a prescindere dal corso che seguiranno (il venerdi' riguarda solo il corso, non la prima lezione). CUMULA v2 · NOTA CORSO VENERDI: banner sopra la griglia date (prima lezione con gli adulti negli orari a calendario; il Corso Giovani sara' il venerdi 18-19; chi non puo' il venerdi prosegue col percorso adulti) + riga venerdi nel hero. NIENT'ALTRO toccato. CUMULA v1 · PRIMA LEZIONE GIOVANI (18-24) A 20€: clone di inizia v11 con prodotto 'prima_lezione_giovani' (RICHIEDE stripe-worker: voce CATALOGO + env STRIPE_PRICE_PRIMA_GIOVANI — senza, il checkout risponde 'Prodotto non disponibile sulla landing'), prezzi 25->20 ovunque (pill, modal, bottoni, riga termini, ViewContent/InitiateCheckout value 20, content_name 'Prima Lezione Giovani'), checkbox obbligatoria f-eta 'ho 18-24 anni' validata in entrambi i rami submit (verifica documento in Accademia), selettore gruppo NASCOSTO via display:none (il ramo gruppo del worker fattura il price adulti 25€: qui solo checkout singolo; fratelli/amici prenotano ognuno il proprio posto), cross-link: 25+ -> /inizia.html, 6-17 -> /inizia-minori.html, kc-lead pagina='inizia-giovani.html', Lead content_name 'Richiesta info Prima Lezione Giovani'. INVARIATO da inizia v11: stessi slot Prima Lezione fascia adulti, finestra 14gg fino al 15 set poi 7gg, giorni_chiusi, consent/CAPI, video variant. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -854,6 +854,14 @@ body{
     if(calTitolo) calTitolo.innerHTML = (finestra === 14)
       ? 'Due settimane di <span class="accent">date utili</span>.'
       : 'Prossimi <span class="accent">7 giorni</span>.';
+    // OGGI PRENOTABILE: il giorno corrente entra nel range senza consumare la finestra
+    // (gli slot gia' troppo vicini vengono scartati nel blocco occorrenze, CUTOFF_OGGI_MIN).
+    {
+      const isoOggi = isoDate(oggi);
+      if(!(isoOggi >= CHIUSURA_DAL && isoOggi <= CHIUSURA_AL) && !GIORNI_CHIUSI.has(isoOggi)){
+        giorni.push({ data:new Date(oggi), iso:isoOggi, giorno_settimana:((oggi.getDay()+6)%7)+1, oggi:true });
+      }
+    }
     let raccolti = 0, offset = 0;
     while(raccolti < finestra && offset < 90){
       offset++;
@@ -1323,6 +1331,13 @@ body{
       range.forEach(giorno => {
         slots.forEach(s => {
           if(s.giorno_settimana === giorno.giorno_settimana){
+            // OGGI PRENOTABILE: slot di oggi solo se mancano almeno CUTOFF_OGGI_MIN minuti all'inizio
+            if(giorno.oggi){
+              const CUTOFF_OGGI_MIN = 240;
+              const hm = String(s.ora_inizio).split(':');
+              const inizio = new Date(); inizio.setHours(+hm[0], +hm[1]||0, 0, 0);
+              if(inizio.getTime() - Date.now() < CUTOFF_OGGI_MIN*60000) return;
+            }
             // v4: lo slot del lunedì fa Prima Lezione SOLO fino a lun 7 set 2026 incluso;
             // dal 14 quello slot è Corso Open KataClimb. Dopo l'archiviazione dello slot
             // prima_lezione del lunedì nel DB questa condizione diventa inerte (rimuovere in un bump futuro).
