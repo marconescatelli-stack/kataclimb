@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<!-- KC-BUILD: essence v1 · 2026-09-19 · PAGINA DEDICATA ESSENCE 10-11 OTTOBRE 2026 (non pubblica: noindex, nessun link dal sito). Proposta completa + termini/liberatoria + due bottoni verso i Payment Link Stripe di Syncrolink Ltd. NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. I due link di pagamento si impostano nelle costanti LINK_FUORI_SEDE e LINK_ROMA in fondo al file: finche' sono vuoti il bottone apre una mail di conferma a marco@syncrolink.co (mai un bottone morto). Prezzi: listino 596/796, prima edizione 496/696 (fonte: Listino_Intensivi_Syncrolink). -->
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E3B54">
+<meta name="robots" content="noindex,nofollow">
+<title>ESSENCE · 10 e 11 ottobre 2026 · Roma</title>
+<meta name="description" content="ESSENCE: due giorni con Marco Nescatelli, sabato in Accademia RCC e domenica su roccia. Massimo 6 persone.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kataclimb.com/essence.html">
+<meta property="og:title" content="ESSENCE · 10 e 11 ottobre 2026 · Roma">
+<meta property="og:description" content="Due giorni con Marco Nescatelli. Sabato in Accademia, domenica su roccia. Massimo 6 persone.">
+<meta property="og:image" content="https://kataclimb.com/essence-volo.jpg">
+<meta property="og:locale" content="it_IT">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --chalk:#F5F0E8; --paper:#FFFFFF; --rope:#D4A03C; --rope-light:#E8C97A;
+    --sky:#4AADE0; --void:#0E3B54; --deep:#0B2E42; --ink:#1F2A33; --ink2:#46535E;
+    --line:#DDD5C6; --skybg:#EAF2F8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--chalk);color:var(--ink);font-size:17px;line-height:1.65;font-weight:300;-webkit-font-smoothing:antialiased}
+  img{max-width:100%;display:block}
+  a{color:var(--void)}
+  .bar{background:var(--void);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;letter-spacing:.18em;font-weight:600}
+  .bar span{color:#C8D3DD;font-weight:300;letter-spacing:.04em}
+  .bar b{color:var(--sky);font-weight:600}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+  section{padding:44px 0;border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:0}
+  .kicker{font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--rope);font-weight:600;margin-bottom:10px}
+  .kicker.dark{color:var(--void)}
+  h1{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:clamp(52px,13vw,84px);line-height:1;color:var(--void);letter-spacing:.01em}
+  h2{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:clamp(26px,5.5vw,34px);line-height:1.2;color:var(--void);margin-bottom:14px}
+  h3{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:22px;color:var(--void);margin-bottom:6px}
+  p{margin-bottom:14px}
+  p:last-child{margin-bottom:0}
+  strong{font-weight:600}
+  .when{font-weight:500;font-size:18px;margin:16px 0 4px;color:var(--ink)}
+  .when small{display:block;font-weight:300;font-size:16px;color:var(--ink2)}
+  .lead{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:clamp(20px,4.4vw,24px);line-height:1.45;color:var(--void);margin:22px 0 26px}
+  .hero-img{border-bottom:5px solid var(--rope);margin-bottom:26px}
+  .quote{background:var(--paper);border-left:4px solid var(--void);padding:22px 22px 18px;margin:26px 0 0}
+  .quote p{font-family:'DM Serif Display',Georgia,serif;font-size:19px;line-height:1.55;color:var(--void)}
+  .quote cite{display:block;text-align:right;font-style:normal;font-size:14px;color:var(--ink2);margin-top:8px}
+  .quote .def{font-family:'Outfit',sans-serif;font-size:15px;color:var(--ink2);border-top:1px solid var(--line);margin-top:14px;padding-top:12px;line-height:1.55}
+  .grid2{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:700px){.grid2{grid-template-columns:1fr 1fr}}
+  .card{background:var(--paper);border-left:4px solid var(--rope);padding:20px}
+  .card .t{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:8px}
+  .card .t b{font-weight:600;font-size:18px;color:var(--void)}
+  .card .t em{font-style:normal;font-size:16px;color:var(--ink2);white-space:nowrap}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:18px 16px;margin-top:26px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  @media(min-width:700px){.facts{grid-template-columns:repeat(4,1fr)}}
+  .facts div span{display:block;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--rope);font-weight:600}
+  .facts div b{font-weight:500;font-size:16px}
+  .rows{margin-top:6px}
+  .row{display:grid;grid-template-columns:1fr;gap:4px;padding:16px 0;border-top:1px solid var(--line)}
+  .row:first-child{border-top:0}
+  @media(min-width:700px){.row{grid-template-columns:120px 1fr;gap:20px}}
+  .who{display:grid;grid-template-columns:1fr;gap:20px;align-items:start}
+  @media(min-width:700px){.who{grid-template-columns:220px 1fr}}
+  .who img{border-bottom:5px solid var(--rope)}
+  .tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--rope);font-weight:600;margin-bottom:12px}
+  .it{font-family:'DM Serif Display',Georgia,serif;font-style:italic;color:var(--void);font-size:19px;line-height:1.5}
+  .steps{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px}
+  @media(min-width:700px){.steps{grid-template-columns:repeat(3,1fr)}}
+  .step{background:var(--paper);padding:18px}
+  .step .n{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--void);color:#fff;font-weight:600;align-items:center;justify-content:center;font-size:15px;margin-bottom:10px}
+  .step .d{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--rope);font-weight:600}
+  .step b{display:block;font-weight:600;color:var(--void);font-size:18px;margin-bottom:6px}
+  .step p{font-size:16px;line-height:1.55}
+  .portal{background:var(--skybg);padding:22px;margin-top:20px}
+  .portal b.h{display:block;font-weight:600;color:var(--void);font-size:18px;margin-bottom:6px}
+  .price{display:grid;grid-template-columns:1fr;gap:16px;margin-top:18px}
+  @media(min-width:700px){.price{grid-template-columns:1fr 1fr}}
+  .opt{background:var(--paper);border:1px solid var(--line);padding:24px 22px;display:flex;flex-direction:column}
+  .opt.dark{background:var(--void);border-color:var(--void);color:#fff}
+  .opt .for{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--rope);font-weight:600}
+  .opt.dark .for{color:var(--rope-light)}
+  .opt h3{margin:6px 0 10px}
+  .opt.dark h3{color:#fff}
+  .amount{display:flex;align-items:flex-end;gap:12px;margin-bottom:14px}
+  .amount b{font-weight:700;font-size:44px;line-height:1;color:var(--void)}
+  .opt.dark .amount b{color:#fff}
+  .amount span{font-size:15px;line-height:1.35;color:var(--ink2)}
+  .opt.dark .amount span{color:#C8D3DD}
+  .amount s{opacity:.85}
+  .opt ul{list-style:none;margin-bottom:18px}
+  .opt li{position:relative;padding-left:18px;margin-bottom:8px;font-size:16px;line-height:1.5}
+  .opt li::before{content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--rope)}
+  .opt .foot{font-family:'DM Serif Display',Georgia,serif;font-style:italic;color:var(--void);font-size:17px;margin-top:auto;margin-bottom:18px}
+  .opt.dark .foot{color:#DBE6EF}
+  .btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;cursor:pointer;font-family:inherit;font-size:17px;font-weight:600;padding:16px 18px;border-radius:4px;background:var(--deep);color:#fff}
+  .opt.dark .btn{background:var(--rope);color:var(--deep)}
+  .btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+  .note{font-size:15px;color:var(--ink2);margin-top:16px;line-height:1.55}
+  .consent{background:var(--paper);border:1px solid var(--line);padding:22px;margin-top:18px}
+  .consent h3{font-size:20px}
+  .consent ol{margin:10px 0 16px 20px}
+  .consent li{margin-bottom:8px;font-size:16px;line-height:1.55}
+  .check{display:flex;gap:12px;align-items:flex-start;background:var(--chalk);padding:16px;cursor:pointer}
+  .check input{width:24px;height:24px;margin-top:2px;flex:0 0 auto;accent-color:var(--void)}
+  .check span{font-size:16px;line-height:1.5;font-weight:400}
+  .why{font-size:15px;color:var(--void);font-weight:500;margin-top:10px;min-height:1.4em}
+  footer{padding:28px 20px 48px;text-align:center;font-size:14px;color:var(--ink2);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="bar"><div>SYNCRO<b>LINK</b></div><span>Metodo KataClimb · Marco Nescatelli</span></div>
+
+<div class="wrap">
+
+<section>
+  <div class="kicker">Il primo passo — per tutti</div>
+  <h1>ESSENCE</h1>
+  <p class="when">Sabato 10 ottobre 2026, 13:30 – 18:00 · Domenica 11 ottobre 2026, 8:00 – 16:00
+    <small>Roma — sabato in Accademia RCC, domenica su roccia</small></p>
+  <p class="lead">Dai respiro al tuo corpo e nuovi orizzonti alla tua mente.<br>Integra e nutri te stesso — e portalo nel mondo.</p>
+  <img class="hero-img" src="essence-volo.jpg" alt="Marco Nescatelli in volo durante un'arrampicata su roccia" width="1152" height="768">
+
+  <p><strong>Cosa ottieni.</strong> In due giorni scopri come sei fatto quando non puoi fingere: come respiri, come decidi, come ti affidi. Su una parete ogni azione ha un riscontro immediato. Sei tu — e lo vedi.</p>
+  <p><strong>Su cosa lavora.</strong> Sul radicamento: come stai in piedi, dove metti il peso, come respiri. E sul fare silenzio dentro — lo zero — per sentire davvero cosa succede nel corpo. Da lì il gesto si ripulisce e nasce un modo nuovo di muoversi e di stare con gli altri.</p>
+  <p><strong>Per chi.</strong> Per chi non ha mai arrampicato. E per chi arrampica già ma si è bloccato: paura di cadere, rigidità, fatica a fidarsi di chi tiene la corda. Si parte da zero.</p>
+
+  <div class="quote">
+    <p>Il metodo aiuta le persone nel procedere. Per KataClimb procedere è essere Uno +, e per esserlo bisogna essere capaci di generare lo zero. Il «no limits» non ha verso né direzione: noi vagliamo tutto, per poi scegliere passo passo. Insieme, in relazione equilibrata e armoniosa.</p>
+    <cite>— Marco Nescatelli</cite>
+    <div class="def"><strong>Uno +</strong>: siamo uno, nella nostra unicità, valore, straordinarietà — e siamo veicoli perché anche altri lo possano essere.</div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker dark">Non è un corso individuale</div>
+  <p>È un gruppo ristretto di persone che si incontrano fuori dal ruolo sociale, imparano ad affidarsi, a fidarsi, a mettere la propria vita nelle mani di un altro. <strong>Non per coraggio — per metodo.</strong> Il sistema KataClimb rende tutto questo possibile con una condotta limpida, trasparente e lineare.</p>
+  <p>ESSENCE può essere prenotato da un'azienda come esperienza esclusiva per un gruppo di manager. O da persone singole che si incontrano per la prima volta. In entrambi i casi — è l'inizio di tutto.</p>
+</section>
+
+<section>
+  <div class="kicker dark">Il metodo KataClimb — 33 Kata, 33 anni di pratica diretta</div>
+  <p>KataClimb non è una filosofia — è un sistema didattico preciso. Ogni Kata è una procedura misurabile: un gesto, una sequenza, un protocollo che si impara, si pratica e si verifica. Il corpo non mente. Su una parete ogni azione ha un riscontro immediato e oggettivo. Non puoi fingere, non puoi rimandare, non puoi delegare.</p>
+  <p>Non solo arrampicata: una condotta che porti nel lavoro, nelle relazioni, nelle decisioni.</p>
+</section>
+
+<section>
+  <div class="kicker dark">Programma del weekend</div>
+  <div class="grid2">
+    <div class="card">
+      <div class="t"><b>Sabato 10 ottobre</b><em>13:30 – 18:00</em></div>
+      <p>Accoglienza alle 13:30. In Accademia RCC — la struttura indoor più alta di Roma, con pareti fino a 12 metri. Via Cassia 1634, La Storta. Il corpo: postura, asse, equilibrio, gestione del peso. I primi Kata.</p>
+    </div>
+    <div class="card">
+      <div class="t"><b>Domenica 11 ottobre</b><em>8:00 – 16:00</em></div>
+      <p>In natura, su roccia. La destinazione si definisce il giorno stesso in base al meteo. Ritrovo la mattina al bar — qui si prende anche il pranzo al sacco — e si parte insieme per la falesia.</p>
+    </div>
+  </div>
+  <div class="facts">
+    <div><span>Con chi</span><b>Marco Nescatelli in persona</b></div>
+    <div><span>Gruppo</span><b>Massimo 6 persone</b></div>
+    <div><span>Livello</span><b>Da zero</b></div>
+    <div><span>Scarpette</span><b>Fornite per il weekend</b></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker dark">In due giorni</div>
+  <div class="rows">
+    <div class="row"><h3>Si fa</h3><p>Prima senza corda, vicino a terra, su parete con materassi paracadute: come stai in piedi, come sposti il peso, come scarichi, come scendi e atterri. Poi con la corda: ti appendi, ti affidi a chi ti tiene, dondoli nel vuoto in sicurezza. I primi verbi comando, i primi Kata.</p></div>
+    <div class="row"><h3>Si vive</h3><p>Instabilità, paura iniziale. Poi ascolto, presenza.</p></div>
+    <div class="row"><h3>Serve a</h3><p>Sentire il tuo equilibrio. Ascoltare quello che provi — paura, tensione, fatica — e dargli valore, invece di scacciarlo. Constatare che lo puoi reggere. E che, se lo mantieni, ti fa salire: quello che pensavi negativo diventa potere e azione verticale. Ti muovi senza rigidità, smetti di reagire, ti fidi del corpo.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker dark">Chi ti guida</div>
+  <div class="who">
+    <img src="essence-marco.jpg" alt="Marco Nescatelli sul Sinai" width="720" height="960" loading="lazy">
+    <div>
+      <h2>Marco Nescatelli</h2>
+      <div class="tag">Fondatore KataClimb · Autore · Coppa del Mondo di arrampicata</div>
+      <p>Formatore e guida esperienziale con oltre 33 anni di attività in ambienti verticali, estremi e ad alta esposizione. Il suo lavoro nasce dall'esperienza diretta sul campo, dove rischio, decisione e responsabilità non sono concetti teorici ma condizioni reali da gestire.</p>
+      <p>75+ KataCamp internazionali in 10 paesi. Autore di <em>Scalare l'Impossibile</em>, il libro che racconta il metodo KataClimb.</p>
+      <p class="it">«Meno teoria, più esperienza. Perché è nella gestione concreta del rischio che una persona smette di evitare.»</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker dark">Dove — sabato</div>
+  <h2>Accademia RCC</h2>
+  <p>La struttura di arrampicata indoor più alta di Roma: pareti fino a 12 metri. È la base didattica del metodo KataClimb — dove si praticano i 33 Kata e si formano i futuri Maestri di Cordata. Un ambiente dove corpo, mente e relazione vengono allenati insieme, con metodo, continuità e misurabilità.</p>
+  <p><strong>Via Cassia 1634, La Storta — Roma.</strong> <a href="https://maps.google.com/?q=Via+Cassia+1634+Roma" target="_blank" rel="noopener">Apri in Google Maps →</a></p>
+  <img src="essence-accademia.jpg" alt="Le pareti dell'Accademia RCC a Roma" width="1200" height="900" loading="lazy" style="margin-top:18px">
+</section>
+
+<section>
+  <div class="kicker dark">Non è un weekend: sono cinque settimane</div>
+  <p>Un'esperienza fuori dagli schemi ha bisogno di tempo per essere preparata e poi metabolizzata. Per questo ESSENCE comincia prima del weekend e continua dopo.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="d">Dal 28 settembre</div><b>2 settimane prima</b><p>Entri nel gruppo della tua cordata. Marco ti guida con brevi video: ti presenti, conosci i compagni, arrivi già dentro il lavoro. Un passo a settimana.</p></div>
+    <div class="step"><div class="n">2</div><div class="d">10 – 11 ottobre</div><b>Il weekend</b><p>Sabato in Accademia, domenica su roccia. I tuoi video vengono caricati sul tuo profilo: vedi da dove parti.</p></div>
+    <div class="step"><div class="n">3</div><div class="d">Fino al 25 ottobre</div><b>2 settimane dopo</b><p>Un passo a settimana per portare nella tua vita quello che il corpo ha imparato. E per vedere il tuo progresso. Alla fine Marco monta il video del percorso del gruppo: ti rivedi dal primo giorno all'ultimo.</p></div>
+  </div>
+  <div class="portal">
+    <b class="h">Il tuo profilo sul portale KataClimb — incluso</b>
+    <p>È lo strumento di tutti i percorsi KataClimb. Vale per tutti, anche per chi viene da fuori Roma. Qui restano la tua presentazione, i video dei tuoi Kata e quelli di Marco da rivedere, i passi certificati. Dal portale ricevi l'attestato di partecipazione e, quando i tuoi Kata vengono validati, le loro certificazioni. Non un ricordo del weekend: una traccia del tuo percorso, che ritrovi e che cresce con te.</p>
+  </div>
+</section>
+
+<section id="partecipa">
+  <div class="kicker dark">Due modi di partecipare — prezzo riservato al primo gruppo</div>
+  <h2>Scegli la tua formula</h2>
+  <p>Questa è la prima edizione di ESSENCE in questo formato. Per il primo gruppo il prezzo è di 100 € in meno sul listino. In cambio ti chiediamo una breve video-testimonianza a fine percorso.</p>
+
+  <div class="consent">
+    <h3>Prima di pagare: termini e liberatoria</h3>
+    <p>L'arrampicata è un'attività con rischi reali, anche quando è condotta con metodo. Per questo ti chiediamo di leggere e accettare tre cose:</p>
+    <ol>
+      <li><strong>Condizioni di partecipazione</strong> — cosa acquisti, pagamento, rinunce, maltempo.</li>
+      <li><strong>Salute e rischio</strong> — dichiari di essere in buona salute e di aver compreso la natura dell'attività.</li>
+      <li><strong>Immagini e video</strong> — i tuoi video vanno sul tuo profilo, che controlli tu. Per il video pubblico del percorso del gruppo scegli tu se esserci: <em>puoi dire no e partecipare lo stesso</em>. Te lo chiediamo nel passaggio di pagamento.</li>
+    </ol>
+    <p><a href="essence-termini.html" target="_blank" rel="noopener"><strong>Leggi il testo completo di termini e liberatoria →</strong></a></p>
+    <label class="check" for="ok">
+      <input type="checkbox" id="ok">
+      <span>Ho letto i termini e la liberatoria di ESSENCE e li accetto. Confermo di essere maggiorenne.</span>
+    </label>
+    <div class="why" id="why" role="status">Spunta la casella per attivare i bottoni di pagamento.</div>
+  </div>
+
+  <div class="price">
+    <div class="opt">
+      <div class="for">Se vieni da fuori Roma</div>
+      <h3>ESSENCE</h3>
+      <div class="amount"><b>496 €</b><span>prima edizione<br>listino <s>596 €</s></span></div>
+      <ul>
+        <li>Il weekend del 10 – 11 ottobre</li>
+        <li>Le 5 settimane con Marco e la tua cordata</li>
+        <li>Il tuo profilo sul portale KataClimb, con attestato e certificazioni dei Kata validati</li>
+        <li>I tuoi video caricati sul profilo: li rivedi quando vuoi, insieme ai Kata eseguiti da Marco</li>
+        <li>Scarpette fornite per il weekend</li>
+      </ul>
+      <div class="foot">Il metodo continua da casa, sul portale.</div>
+      <a class="btn" id="btn-fuori" href="#partecipa" aria-disabled="true">Partecipo — 496 €</a>
+    </div>
+    <div class="opt dark">
+      <div class="for">Se vivi a Roma, o ci vieni spesso</div>
+      <h3>ESSENCE + Corso Open KataClimb</h3>
+      <div class="amount"><b>696 €</b><span>prima edizione<br>listino <s>796 €</s></span></div>
+      <ul>
+        <li>Tutto quello che c'è in ESSENCE</li>
+        <li><strong>Corso Open KataClimb — Linguaggio del Corpo</strong>: 7 lezioni in Accademia RCC, dopo il weekend</li>
+        <li>Iscrizione annuale all'Accademia inclusa</li>
+        <li>Scarpette fornite nel weekend e per le prime 4 lezioni del Corso Open KataClimb</li>
+      </ul>
+      <div class="foot">Quello che hai aperto in due giorni diventa pratica, ogni settimana.</div>
+      <a class="btn" id="btn-roma" href="#partecipa" aria-disabled="true">Partecipo — 696 €</a>
+    </div>
+  </div>
+
+  <p class="note">Il pagamento avviene su Stripe, a favore di Syncrolink Ltd. Fattura Syncrolink Ltd — deducibile come formazione. IVA non applicabile per partita IVA italiana.</p>
+  <p class="note">Il gruppo della cordata parte lunedì 28 settembre: conferma entro domenica 27 per partire con il gruppo dal primo giorno. Hai una domanda prima di decidere? Scrivi a <a href="mailto:marco@syncrolink.co">marco@syncrolink.co</a>.</p>
+</section>
+
+</div>
+
+<footer>
+  Syncrolink Ltd — Registered in England and Wales · Company N. 15702722<br>
+  Accademia RCC — Via Cassia 1634, La Storta, Roma · Metodo KataClimb di Marco Nescatelli
+</footer>
+
+<script>
+/* ============================================================
+   LINK DI PAGAMENTO STRIPE (Payment Link di Syncrolink Ltd)
+   Incolla qui i due link creati nella dashboard Stripe.
+   Finche' restano vuoti, il bottone apre una mail di conferma:
+   nessun bottone morto.
+   ============================================================ */
+var LINK_FUORI_SEDE = '';   // es. 'https://buy.stripe.com/xxxxxxxx'  → ESSENCE 496 €
+var LINK_ROMA       = '';   // es. 'https://buy.stripe.com/yyyyyyyy'  → ESSENCE + Corso Open KataClimb 696 €
+
+(function(){
+  var ok   = document.getElementById('ok');
+  var why  = document.getElementById('why');
+  var btns = [
+    { el: document.getElementById('btn-fuori'), link: LINK_FUORI_SEDE, nome: 'ESSENCE (496 €)' },
+    { el: document.getElementById('btn-roma'),  link: LINK_ROMA,       nome: 'ESSENCE + Corso Open KataClimb (696 €)' }
+  ];
+
+  function mailto(nome){
+    var s = 'Partecipo a ESSENCE 10-11 ottobre';
+    var b = 'Ciao Marco,\nconfermo la mia partecipazione a ' + nome + '.\nHo letto e accetto termini e liberatoria.\n\nNome e cognome:\nTelefono:\n';
+    return 'mailto:marco@syncrolink.co?subject=' + encodeURIComponent(s) + '&body=' + encodeURIComponent(b);
+  }
+
+  function aggiorna(){
+    var attivo = ok.checked;
+    btns.forEach(function(b){
+      b.el.setAttribute('aria-disabled', attivo ? 'false' : 'true');
+      b.el.setAttribute('href', attivo ? (b.link || mailto(b.nome)) : '#partecipa');
+      if (attivo && b.link) { b.el.setAttribute('target', '_blank'); b.el.setAttribute('rel', 'noopener'); }
+      else { b.el.removeAttribute('target'); }
+    });
+    why.textContent = attivo
+      ? 'Bottoni attivi. Nel passaggio di pagamento confermi i termini e scegli se comparire nel video pubblico del gruppo.'
+      : 'Spunta la casella per attivare i bottoni di pagamento.';
+  }
+
+  btns.forEach(function(b){
+    b.el.addEventListener('click', function(e){
+      if (!ok.checked){
+        e.preventDefault();
+        why.textContent = 'Prima spunta la casella qui sopra: serve la tua accettazione di termini e liberatoria.';
+        ok.focus();
+      }
+    });
+  });
+  ok.addEventListener('change', aggiorna);
+  aggiorna();
+})();
+</script>
+</body>
+</html>

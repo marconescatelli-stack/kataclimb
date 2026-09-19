@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!-- KC-BUILD: essence-benvenuto v1 · 2026-09-19 · PAGINA DI ARRIVO DOPO IL PAGAMENTO ESSENCE (da impostare come "pagina di conferma" nei Payment Link Stripe). Statica, noindex, nessuna scrittura DB. Il link del gruppo WhatsApp si imposta nella costante LINK_GRUPPO_WA in fondo: finche' e' vuoto il passo 3 dice che il link arriva da Marco. -->
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E3B54">
+<meta name="robots" content="noindex,nofollow">
+<title>Benvenuto in ESSENCE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--chalk:#F5F0E8;--paper:#fff;--rope:#D4A03C;--void:#0E3B54;--deep:#0B2E42;--ink:#1F2A33;--ink2:#46535E;--line:#DDD5C6;--skybg:#EAF2F8}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Outfit',system-ui,sans-serif;background:var(--chalk);color:var(--ink);font-size:17px;line-height:1.65;font-weight:300}
+  .bar{background:var(--void);color:#fff;padding:14px 20px;font-size:13px;letter-spacing:.18em;font-weight:600}
+  .bar b{color:#4AADE0}
+  .wrap{max-width:680px;margin:0 auto;padding:40px 20px 60px}
+  .kicker{font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--rope);font-weight:600;margin-bottom:10px}
+  h1{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:clamp(36px,9vw,54px);line-height:1.08;color:var(--void);margin-bottom:16px}
+  .lead{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:21px;line-height:1.45;color:var(--void);margin-bottom:28px}
+  p{margin-bottom:12px}
+  strong{font-weight:600}
+  .step{background:var(--paper);padding:22px;margin-bottom:14px;border-left:4px solid var(--rope)}
+  .step .n{display:inline-flex;width:32px;height:32px;border-radius:50%;background:var(--void);color:#fff;font-weight:600;align-items:center;justify-content:center;margin-bottom:10px}
+  .step h2{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:23px;color:var(--void);margin-bottom:6px}
+  .step ul{margin:6px 0 14px 22px}
+  .step li{margin-bottom:6px}
+  .btn{display:inline-block;text-decoration:none;font-weight:600;font-size:17px;padding:14px 20px;border-radius:4px;background:var(--deep);color:#fff;margin-top:4px}
+  .info{background:var(--skybg);padding:20px;margin-top:22px}
+  .info b{display:block;font-weight:600;color:var(--void);margin-bottom:4px}
+  a{color:var(--void)}
+  footer{font-size:14px;color:var(--ink2);margin-top:34px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="bar">SYNCRO<b>LINK</b></div>
+<div class="wrap">
+  <div class="kicker">Il tuo posto è confermato</div>
+  <h1>Benvenuto in ESSENCE</h1>
+  <p class="lead">Da adesso sei nella cordata. Il lavoro comincia prima del weekend — e comincia da tre passi semplici.</p>
+
+  <div class="step">
+    <div class="n">1</div>
+    <h2>Crea il tuo profilo sul portale KataClimb</h2>
+    <p>È lo strumento di tutto il percorso: qui restano la tua presentazione, i tuoi video, i Kata che vengono validati. Registrati con la stessa email che hai usato per il pagamento.</p>
+    <a class="btn" href="https://kataclimb.com/portale.html" target="_blank" rel="noopener">Apri il portale →</a>
+  </div>
+
+  <div class="step">
+    <div class="n">2</div>
+    <h2>Registra il tuo video di presentazione</h2>
+    <p>Massimo 2 minuti, con il telefono, senza prepararti troppo. Rispondi a queste due domande:</p>
+    <ul>
+      <li><strong>Perché ti sei affacciato a KataClimb?</strong></li>
+      <li><strong>Cosa ti aspetti da ESSENCE?</strong></li>
+    </ul>
+    <p>Caricalo sul tuo profilo, nella sezione «Presentazione». È il tuo punto di partenza: alla fine del percorso lo riguarderai e vedrai la distanza.</p>
+  </div>
+
+  <div class="step">
+    <div class="n">3</div>
+    <h2>Entra nel gruppo della tua cordata</h2>
+    <p id="wa-testo">Il gruppo WhatsApp parte lunedì 28 settembre. Marco ti manda il link di ingresso sul numero che hai indicato nel pagamento. Lì ricevi i suoi video, conosci i compagni, e vi fate domande tra voi.</p>
+    <a class="btn" id="wa-btn" href="#" style="display:none" target="_blank" rel="noopener">Entra nel gruppo WhatsApp →</a>
+  </div>
+
+  <div class="info">
+    <b>Segnati le date</b>
+    <p>Sabato 10 ottobre 2026, 13:30 – 18:00 (accoglienza alle 13:30) — Accademia RCC, Via Cassia 1634, La Storta, Roma.<br>
+    Domenica 11 ottobre 2026, 8:00 – 16:00 — su roccia. Ritrovo la mattina al bar; pranzo al sacco.</p>
+    <p>Porta abbigliamento sportivo comodo, adatto anche all'esterno, e acqua. Le scarpette le forniamo noi.</p>
+  </div>
+
+  <div class="info">
+    <b>Hai preso anche il Corso Open KataClimb?</b>
+    <p>Le 7 lezioni in Accademia RCC partono dopo il weekend. Ti spieghiamo come prenotarle dal portale quando ci vediamo.</p>
+  </div>
+
+  <p style="margin-top:24px">La ricevuta del pagamento ti arriva da Stripe via email; la fattura la emette Syncrolink Ltd. Per qualsiasi cosa: <a href="mailto:marco@syncrolink.co">marco@syncrolink.co</a>.</p>
+
+  <footer>Syncrolink Ltd — Registered in England and Wales · Company N. 15702722<br>Accademia RCC · Metodo KataClimb di Marco Nescatelli</footer>
+</div>
+<script>
+/* Link di invito al gruppo WhatsApp della cordata. Se vuoto, il passo 3 resta in forma testuale. */
+var LINK_GRUPPO_WA = '';   // es. 'https://chat.whatsapp.com/xxxxxxxx'
+(function(){
+  if (LINK_GRUPPO_WA){
+    var b = document.getElementById('wa-btn');
+    b.href = LINK_GRUPPO_WA; b.style.display = 'inline-block';
+    document.getElementById('wa-testo').textContent = 'Il gruppo WhatsApp parte lunedì 28 settembre. Lì ricevi i video di Marco, conosci i compagni, e vi fate domande tra voi.';
+  }
+})();
+</script>
+</body>
+</html>
