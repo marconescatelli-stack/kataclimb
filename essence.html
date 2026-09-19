@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: essence v2 · 2026-09-19 · FILE UNICO: le tre foto sono incorporate nel file (data URI), nessun .jpg esterno da caricare. CUMULA v1 · PAGINA DEDICATA ESSENCE 10-11 OTTOBRE 2026 (non pubblica: noindex, nessun link dal sito). Proposta completa + termini/liberatoria + due bottoni verso i Payment Link Stripe di Syncrolink Ltd. NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. I due link di pagamento si impostano nelle costanti LINK_FUORI_SEDE e LINK_ROMA in fondo al file: finche' sono vuoti il bottone apre una mail di conferma a marco@syncrolink.co (mai un bottone morto). Prezzi: listino 596/796, prima edizione 496/696 (fonte: Listino_Intensivi_Syncrolink). -->
+<!-- KC-BUILD: essence v4 · 2026-09-19 · FIX FOTO DEFORMATE: mancava height:auto sulle immagini (l'attributo height restava fisso mentre la larghezza si adattava). CUMULA v3 · LOGISTICA DOMENICA: trasporto organizzato nel gruppo con le auto dei partecipanti, spese di viaggio divise. CUMULA v2 · FILE UNICO: le tre foto sono incorporate nel file (data URI), nessun .jpg esterno da caricare. CUMULA v1 · PAGINA DEDICATA ESSENCE 10-11 OTTOBRE 2026 (non pubblica: noindex, nessun link dal sito). Proposta completa + termini/liberatoria + due bottoni verso i Payment Link Stripe di Syncrolink Ltd. NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. I due link di pagamento si impostano nelle costanti LINK_FUORI_SEDE e LINK_ROMA in fondo al file: finche' sono vuoti il bottone apre una mail di conferma a marco@syncrolink.co (mai un bottone morto). Prezzi: listino 596/796, prima edizione 496/696 (fonte: Listino_Intensivi_Syncrolink). -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -26,7 +26,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--chalk);color:var(--ink);font-size:17px;line-height:1.65;font-weight:300;-webkit-font-smoothing:antialiased}
-  img{max-width:100%;display:block}
+  img{max-width:100%;height:auto;display:block}
   a{color:var(--void)}
   .bar{background:var(--void);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;letter-spacing:.18em;font-weight:600}
   .bar span{color:#C8D3DD;font-weight:300;letter-spacing:.04em}
@@ -158,7 +158,7 @@
     </div>
     <div class="card">
       <div class="t"><b>Domenica 11 ottobre</b><em>8:00 – 16:00</em></div>
-      <p>In natura, su roccia. La destinazione si definisce il giorno stesso in base al meteo. Ritrovo la mattina al bar — qui si prende anche il pranzo al sacco — e si parte insieme per la falesia.</p>
+      <p>In natura, su roccia. La destinazione si definisce il giorno stesso in base al meteo. Ritrovo la mattina al bar — qui si prende anche il pranzo al sacco — e si parte insieme per la falesia. La logistica si organizza nel gruppo: si viaggia con le auto di chi mette a disposizione il proprio mezzo, e le spese di viaggio — autostrada e carburante — si dividono tra i partecipanti.</p>
     </div>
   </div>
   <div class="facts">
