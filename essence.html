@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: essence v4 · 2026-09-19 · FIX FOTO DEFORMATE: mancava height:auto sulle immagini (l'attributo height restava fisso mentre la larghezza si adattava). CUMULA v3 · LOGISTICA DOMENICA: trasporto organizzato nel gruppo con le auto dei partecipanti, spese di viaggio divise. CUMULA v2 · FILE UNICO: le tre foto sono incorporate nel file (data URI), nessun .jpg esterno da caricare. CUMULA v1 · PAGINA DEDICATA ESSENCE 10-11 OTTOBRE 2026 (non pubblica: noindex, nessun link dal sito). Proposta completa + termini/liberatoria + due bottoni verso i Payment Link Stripe di Syncrolink Ltd. NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. I due link di pagamento si impostano nelle costanti LINK_FUORI_SEDE e LINK_ROMA in fondo al file: finche' sono vuoti il bottone apre una mail di conferma a marco@syncrolink.co (mai un bottone morto). Prezzi: listino 596/796, prima edizione 496/696 (fonte: Listino_Intensivi_Syncrolink). -->
+<!-- KC-BUILD: essence v11 · 2026-09-19 · LINK STRIPE ESSENCE 496 impostato (Payment Link Syncrolink Ltd, creato 19 set 20:45): 'Paga ora — 496 €' ora attivo. CUMULA v10 · REGOLA MARCO: conferma su WhatsApp con pagamento concordato SOLO per la formula con Corso Open KataClimb; ESSENCE da solo = solo 'Paga ora' (se il link Stripe manca il bottone e' spento con il motivo + richiesta link su WhatsApp). CUMULA v9 · DUE VIE PER OGNI FORMULA: 'Paga ora' (Payment Link Stripe, visibile solo se il link e' impostato) + 'Confermo su WhatsApp' (wa.me/393318743953, messaggio precompilato). Via il fallback mailto. CUMULA v8 · punto 4 riscritto con le parole di Marco (ogni articolazione ascoltata, postura primaria); tolto l'elenco dei segmenti scritto da Claude. CUMULA v7 · apertura del blocco 'In concreto' con le parole di Marco (nulla a caso, pensare in verticale, propedeutica e didattica profonda). CUMULA v6 · chiusura del blocco 'In concreto': regola per la progressione, fiducia attraverso la percezione, equilibrio (parole di Marco). CUMULA v5 · BLOCCO 'IN CONCRETO' (7 punti di lavoro fisico, dalle parole di Marco e dalle schede Kata 01-02-03) inserito prima della citazione. CUMULA v4 · FIX FOTO DEFORMATE: mancava height:auto sulle immagini (l'attributo height restava fisso mentre la larghezza si adattava). CUMULA v3 · LOGISTICA DOMENICA: trasporto organizzato nel gruppo con le auto dei partecipanti, spese di viaggio divise. CUMULA v2 · FILE UNICO: le tre foto sono incorporate nel file (data URI), nessun .jpg esterno da caricare. CUMULA v1 · PAGINA DEDICATA ESSENCE 10-11 OTTOBRE 2026 (non pubblica: noindex, nessun link dal sito). Proposta completa + termini/liberatoria + due bottoni verso i Payment Link Stripe di Syncrolink Ltd. NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. I due link di pagamento si impostano nelle costanti LINK_FUORI_SEDE e LINK_ROMA in fondo al file: finche' sono vuoti il bottone apre una mail di conferma a marco@syncrolink.co (mai un bottone morto). Prezzi: listino 596/796, prima edizione 496/696 (fonte: Listino_Intensivi_Syncrolink). -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -46,6 +46,15 @@
   .when small{display:block;font-weight:300;font-size:16px;color:var(--ink2)}
   .lead{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:clamp(20px,4.4vw,24px);line-height:1.45;color:var(--void);margin:22px 0 26px}
   .hero-img{border-bottom:5px solid var(--rope);margin-bottom:26px}
+  .work{margin:30px 0 4px}
+  .work h2{margin-bottom:4px}
+  .work .sub{color:var(--ink2);margin-bottom:10px}
+  .wk{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:16px 0;border-top:1px solid var(--line)}
+  .wk .n{width:30px;height:30px;border-radius:50%;background:var(--void);color:#fff;font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .wk b{display:block;font-weight:600;color:var(--void);font-size:18px;margin-bottom:2px}
+  .wk p{font-size:16px;line-height:1.55;margin:0}
+  .rule{font-family:'DM Serif Display',Georgia,serif;font-size:21px;line-height:1.45;color:var(--void);border-top:3px solid var(--rope);padding-top:18px;margin-top:6px}
+  .rule strong{font-weight:400;font-style:italic}
   .quote{background:var(--paper);border-left:4px solid var(--void);padding:22px 22px 18px;margin:26px 0 0}
   .quote p{font-family:'DM Serif Display',Georgia,serif;font-size:19px;line-height:1.55;color:var(--void)}
   .quote cite{display:block;text-align:right;font-style:normal;font-size:14px;color:var(--ink2);margin-top:8px}
@@ -100,6 +109,13 @@
   .btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;cursor:pointer;font-family:inherit;font-size:17px;font-weight:600;padding:16px 18px;border-radius:4px;background:var(--deep);color:#fff}
   .opt.dark .btn{background:var(--rope);color:var(--deep)}
   .btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+  .btn.wa{background:transparent;color:var(--deep);border:2px solid var(--deep);margin-top:10px;padding:14px 18px}
+  .opt.dark .btn.wa{background:transparent;color:#fff;border-color:#fff}
+  .btn.solo{background:var(--deep);color:#fff;border-color:var(--deep);margin-top:0}
+  .opt.dark .btn.solo{background:var(--rope);color:var(--deep);border-color:var(--rope)}
+  .btnnote a{color:inherit;font-weight:600}
+  .btnnote{font-size:14px;line-height:1.45;margin-top:10px;color:var(--ink2)}
+  .opt.dark .btnnote{color:#C8D3DD}
   .note{font-size:15px;color:var(--ink2);margin-top:16px;line-height:1.55}
   .consent{background:var(--paper);border:1px solid var(--line);padding:22px;margin-top:18px}
   .consent h3{font-size:20px}
@@ -129,6 +145,20 @@
   <p><strong>Cosa ottieni.</strong> In due giorni scopri come sei fatto quando non puoi fingere: come respiri, come decidi, come ti affidi. Su una parete ogni azione ha un riscontro immediato. Sei tu — e lo vedi.</p>
   <p><strong>Su cosa lavora.</strong> Sul radicamento: come stai in piedi, dove metti il peso, come respiri. E sul fare silenzio dentro — lo zero — per sentire davvero cosa succede nel corpo. Da lì il gesto si ripulisce e nasce un modo nuovo di muoversi e di stare con gli altri.</p>
   <p><strong>Per chi.</strong> Per chi non ha mai arrampicato. E per chi arrampica già ma si è bloccato: paura di cadere, rigidità, fatica a fidarsi di chi tiene la corda. Si parte da zero.</p>
+
+  <div class="work">
+    <div class="kicker dark">In concreto</div>
+    <h2>Su cosa lavori, con le mani e con i piedi</h2>
+    <p class="sub">Nulla sarà a caso. Comprenderemo la verticalità pensando in verticale: ogni pezzo è la diretta conseguenza del precedente, e tutto prenderà forma. Propedeutica e didattica profonda.</p>
+    <div class="wk"><div class="n">1</div><div><b>Il Pronti</b><p>Sei in piedi, piedi pari, peso uguale. Sposti un piede avanti: il peso cambia, il centro scende, il corpo è pronto. Avanti, indietro, destra, sinistra — tutto è possibile. Si comincia da qui.</p></div></div>
+    <div class="wk"><div class="n">2</div><div><b>Sentire l'asse</b><p>Davanti a una parete l'istinto ti avvicina col petto. Sembra sicuro: prima non vedi più niente, poi scivoli. Impari a sentire l'asse del tuo corpo e a mantenere la distanza dalla parete.</p></div></div>
+    <div class="wk"><div class="n">3</div><div><b>Calzare un appiglio</b><p>Come si calza un appiglio con il piede, e come con le mani. Un gradino di dieci centimetri sembra niente: ogni singolo passo contiene già tutto.</p></div></div>
+    <div class="wk"><div class="n">4</div><div><b>La postura primaria, articolazione per articolazione</b><p>Ogni articolazione verrà ascoltata e fatta lavorare secondo la postura primaria: una alla volta, impostata corretta. Poi senti la postura intera e integri le sensazioni.</p></div></div>
+    <div class="wk"><div class="n">5</div><div><b>L'atterraggio</b><p>Impari a cadere. Scendi verso terra rallentando, generi l'incontro con il suolo — soave, morbido, scelto — e ti rialzi con la stessa attenzione. È accogliere l'errore fisicamente. La caduta fa paura su due livelli: il corpo, per il dolore, e la personalità, per la brutta figura e il fallimento. Entrambi reali, entrambi trasformabili.</p></div></div>
+    <div class="wk"><div class="n">6</div><div><b>Lo scorrere</b><p>Passare da un appoggio all'altro senza strappi: il movimento diventa continuo.</p></div></div>
+    <div class="wk"><div class="n">7</div><div><b>Tutto videoregistrato</b><p>Ogni postura impostata viene ripresa in video. Ti rivedi, vedi cosa cambia, e il video resta sul tuo profilo: è così che misuri il tuo progresso.</p></div></div>
+    <p class="rule">Ogni pezzo diventa una regola per la progressione: <strong>edificare la fiducia attraverso la percezione.</strong> Equilibrio.</p>
+  </div>
 
   <div class="quote">
     <p>Il metodo aiuta le persone nel procedere. Per KataClimb procedere è essere Uno +, e per esserlo bisogna essere capaci di generare lo zero. Il «no limits» non ha verso né direzione: noi vagliamo tutto, per poi scegliere passo passo. Insieme, in relazione equilibrata e armoniosa.</p>
@@ -220,19 +250,19 @@
   <p>Questa è la prima edizione di ESSENCE in questo formato. Per il primo gruppo il prezzo è di 100 € in meno sul listino. In cambio ti chiediamo una breve video-testimonianza a fine percorso.</p>
 
   <div class="consent">
-    <h3>Prima di pagare: termini e liberatoria</h3>
+    <h3>Prima di confermare: termini e liberatoria</h3>
     <p>L'arrampicata è un'attività con rischi reali, anche quando è condotta con metodo. Per questo ti chiediamo di leggere e accettare tre cose:</p>
     <ol>
       <li><strong>Condizioni di partecipazione</strong> — cosa acquisti, pagamento, rinunce, maltempo.</li>
       <li><strong>Salute e rischio</strong> — dichiari di essere in buona salute e di aver compreso la natura dell'attività.</li>
-      <li><strong>Immagini e video</strong> — i tuoi video vanno sul tuo profilo, che controlli tu. Per il video pubblico del percorso del gruppo scegli tu se esserci: <em>puoi dire no e partecipare lo stesso</em>. Te lo chiediamo nel passaggio di pagamento.</li>
+      <li><strong>Immagini e video</strong> — i tuoi video vanno sul tuo profilo, che controlli tu. Per il video pubblico del percorso del gruppo scegli tu se esserci: <em>puoi dire no e partecipare lo stesso</em>. Te lo chiediamo al momento del pagamento, o della conferma su WhatsApp.</li>
     </ol>
     <p><a href="essence-termini.html" target="_blank" rel="noopener"><strong>Leggi il testo completo di termini e liberatoria →</strong></a></p>
     <label class="check" for="ok">
       <input type="checkbox" id="ok">
       <span>Ho letto i termini e la liberatoria di ESSENCE e li accetto. Confermo di essere maggiorenne.</span>
     </label>
-    <div class="why" id="why" role="status">Spunta la casella per attivare i bottoni di pagamento.</div>
+    <div class="why" id="why" role="status">Spunta la casella per attivare i bottoni.</div>
   </div>
 
   <div class="price">
@@ -248,7 +278,8 @@
         <li>Scarpette fornite per il weekend</li>
       </ul>
       <div class="foot">Il metodo continua da casa, sul portale.</div>
-      <a class="btn" id="btn-fuori" href="#partecipa" aria-disabled="true">Partecipo — 496 €</a>
+      <a class="btn" id="btn-fuori" href="#partecipa" aria-disabled="true">Paga ora — 496 €</a>
+      <div class="btnnote" id="nota-fuori"></div>
     </div>
     <div class="opt dark">
       <div class="for">Se vivi a Roma, o ci vieni spesso</div>
@@ -261,12 +292,14 @@
         <li>Scarpette fornite nel weekend e per le prime 4 lezioni del Corso Open KataClimb</li>
       </ul>
       <div class="foot">Quello che hai aperto in due giorni diventa pratica, ogni settimana.</div>
-      <a class="btn" id="btn-roma" href="#partecipa" aria-disabled="true">Partecipo — 696 €</a>
+      <a class="btn" id="btn-roma" href="#partecipa" aria-disabled="true">Paga ora — 696 €</a>
+      <a class="btn wa" id="wa-roma" href="#partecipa" aria-disabled="true">Confermo su WhatsApp</a>
+      <div class="btnnote" id="nota-roma"></div>
     </div>
   </div>
 
-  <p class="note">Il pagamento avviene su Stripe, a favore di Syncrolink Ltd. Fattura Syncrolink Ltd — deducibile come formazione. IVA non applicabile per partita IVA italiana.</p>
-  <p class="note">Il gruppo della cordata parte lunedì 28 settembre: conferma entro domenica 27 per partire con il gruppo dal primo giorno. Hai una domanda prima di decidere? Scrivi a <a href="mailto:marco@syncrolink.co">marco@syncrolink.co</a>.</p>
+  <p class="note">ESSENCE si paga online con carta, in un'unica soluzione. Con la formula ESSENCE + Corso Open KataClimb puoi anche confermare su WhatsApp e concordare con Marco il modo di pagamento. Il pagamento online avviene su Stripe, a favore di Syncrolink Ltd. Fattura Syncrolink Ltd — deducibile come formazione. IVA non applicabile per partita IVA italiana.</p>
+  <p class="note">Il gruppo della cordata parte lunedì 28 settembre: conferma entro domenica 27 per partire con il gruppo dal primo giorno. Hai una domanda prima di decidere? <a href="https://wa.me/393318743953?text=Ciao%20Marco%2C%20ho%20una%20domanda%20su%20ESSENCE%20del%2010-11%20ottobre." target="_blank" rel="noopener">Scrivimi su WhatsApp</a> al +39 331 874 3953, oppure a <a href="mailto:marco@syncrolink.co">marco@syncrolink.co</a>.</p>
 </section>
 
 </div>
@@ -280,48 +313,79 @@
 /* ============================================================
    LINK DI PAGAMENTO STRIPE (Payment Link di Syncrolink Ltd)
    Incolla qui i due link creati nella dashboard Stripe.
-   Finche' restano vuoti, il bottone apre una mail di conferma:
-   nessun bottone morto.
+   Finche' restano vuoti, 'Paga ora' resta nascosto e il bottone
+   WhatsApp diventa il principale: nessun bottone morto.
+   ATTENZIONE: sui prodotti Stripe di ESSENCE NON mettere il
+   metadato brand=kataclimb, altrimenti il Worker li prende in carico.
    ============================================================ */
-var LINK_FUORI_SEDE = '';   // es. 'https://buy.stripe.com/xxxxxxxx'  → ESSENCE 496 €
+var LINK_FUORI_SEDE = 'https://buy.stripe.com/28E8wR9g43WI48O2Uyfbq01';   // es. 'https://buy.stripe.com/xxxxxxxx'  → ESSENCE 496 €
 var LINK_ROMA       = '';   // es. 'https://buy.stripe.com/yyyyyyyy'  → ESSENCE + Corso Open KataClimb 696 €
 
-(function(){
-  var ok   = document.getElementById('ok');
-  var why  = document.getElementById('why');
-  var btns = [
-    { el: document.getElementById('btn-fuori'), link: LINK_FUORI_SEDE, nome: 'ESSENCE (496 €)' },
-    { el: document.getElementById('btn-roma'),  link: LINK_ROMA,       nome: 'ESSENCE + Corso Open KataClimb (696 €)' }
-  ];
+var WHATSAPP = '393318743953';
 
-  function mailto(nome){
-    var s = 'Partecipo a ESSENCE 10-11 ottobre';
-    var b = 'Ciao Marco,\nconfermo la mia partecipazione a ' + nome + '.\nHo letto e accetto termini e liberatoria.\n\nNome e cognome:\nTelefono:\n';
-    return 'mailto:marco@syncrolink.co?subject=' + encodeURIComponent(s) + '&body=' + encodeURIComponent(b);
+(function(){
+  var ok  = document.getElementById('ok');
+  var why = document.getElementById('why');
+  /* REGOLA (Marco, 19 set 2026): la conferma su WhatsApp con pagamento concordato
+     esiste SOLO per la formula con Corso Open KataClimb. ESSENCE da solo si paga online:
+     non c'e' tempo per diluire il pagamento. */
+  var fuori = { pay: document.getElementById('btn-fuori'), nota: document.getElementById('nota-fuori'), link: LINK_FUORI_SEDE };
+  var roma  = { pay: document.getElementById('btn-roma'),  wa: document.getElementById('wa-roma'), nota: document.getElementById('nota-roma'), link: LINK_ROMA,
+                nome: 'ESSENCE + Corso Open KataClimb (696 €, prima edizione)' };
+
+  function waUrl(testo){ return 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(testo); }
+  function apri(el, url, attivo){
+    el.setAttribute('aria-disabled', attivo ? 'false' : 'true');
+    el.setAttribute('href', attivo ? url : '#partecipa');
+    if (attivo){ el.setAttribute('target','_blank'); el.setAttribute('rel','noopener'); } else { el.removeAttribute('target'); }
   }
 
   function aggiorna(){
     var attivo = ok.checked;
-    btns.forEach(function(b){
-      b.el.setAttribute('aria-disabled', attivo ? 'false' : 'true');
-      b.el.setAttribute('href', attivo ? (b.link || mailto(b.nome)) : '#partecipa');
-      if (attivo && b.link) { b.el.setAttribute('target', '_blank'); b.el.setAttribute('rel', 'noopener'); }
-      else { b.el.removeAttribute('target'); }
-    });
+
+    // --- ESSENCE (fuori Roma): solo pagamento online
+    if (fuori.link){
+      apri(fuori.pay, fuori.link, attivo);
+      fuori.nota.textContent = 'Pagamento online con carta, in un\'unica soluzione.';
+    } else {
+      // link non ancora impostato: bottone SPENTO con il motivo, mai morto in silenzio
+      apri(fuori.pay, '#partecipa', false);
+      fuori.nota.innerHTML = 'Il pagamento online è in attivazione. Se vuoi bloccare il posto adesso, <a href="' +
+        waUrl('Ciao Marco, voglio partecipare a ESSENCE (496 €) del 10-11 ottobre. Mi mandi il link per pagare?') +
+        '" target="_blank" rel="noopener">chiedi a Marco il link di pagamento su WhatsApp</a>.';
+    }
+
+    // --- ESSENCE + Corso Open KataClimb (Roma): paga ora oppure conferma su WhatsApp
+    var testoRoma = 'Ciao Marco, confermo la mia partecipazione a ' + roma.nome + ' del 10-11 ottobre. Ho letto e accetto termini e liberatoria.\nNome e cognome: ';
+    if (roma.link){
+      roma.pay.style.display = 'block';
+      apri(roma.pay, roma.link, attivo);
+      roma.wa.classList.remove('solo');
+      roma.wa.textContent = 'Confermo su WhatsApp e concordo il pagamento';
+      roma.nota.textContent = 'Con il Corso Open KataClimb puoi concordare con Marco il modo di pagamento.';
+    } else {
+      roma.pay.style.display = 'none';
+      roma.wa.classList.add('solo');
+      roma.wa.textContent = 'Partecipo — confermo su WhatsApp';
+      roma.nota.textContent = 'Si apre una chat con Marco con il messaggio già scritto. Il pagamento lo concordate lì.';
+    }
+    apri(roma.wa, waUrl(testoRoma), attivo);
+
     why.textContent = attivo
-      ? 'Bottoni attivi. Nel passaggio di pagamento confermi i termini e scegli se comparire nel video pubblico del gruppo.'
-      : 'Spunta la casella per attivare i bottoni di pagamento.';
+      ? 'Bottoni attivi. Se paghi online, nel passaggio di pagamento confermi i termini e scegli se comparire nel video pubblico del gruppo.'
+      : 'Spunta la casella per attivare i bottoni.';
   }
 
-  btns.forEach(function(b){
-    b.el.addEventListener('click', function(e){
-      if (!ok.checked){
-        e.preventDefault();
-        why.textContent = 'Prima spunta la casella qui sopra: serve la tua accettazione di termini e liberatoria.';
-        ok.focus();
-      }
-    });
-  });
+  function blocca(e){
+    if (!ok.checked){
+      e.preventDefault();
+      why.textContent = 'Prima spunta la casella qui sopra: serve la tua accettazione di termini e liberatoria.';
+      ok.focus();
+    } else if (this.getAttribute('aria-disabled') === 'true'){
+      e.preventDefault();
+    }
+  }
+  [fuori.pay, roma.pay, roma.wa].forEach(function(el){ el.addEventListener('click', blocca); });
   ok.addEventListener('change', aggiorna);
   aggiorna();
 })();
