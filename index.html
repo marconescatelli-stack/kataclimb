@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: index · 2026-09-20 · (1) riquadro portale: da 'sta arrivando' a 'è attivo' + bottone 'Entra nel portale' + '2 video per Kata' (era 5, superato dall'11 giu). (2) DECISIONE MARCO 20 set: la voce diventa 'Prodotti Esclusivi — imprenditori, professionisti, atleti' (lista modi, menu Inizia, menu mobile, card) + NUOVA voce 'Scuole, associazioni, enti' che porta a palestra-arrampicata-roma.it/progetti-scolastici/. CSS: .what-visual da altezza fissa (380/320px, overflow hidden) a min-height, altrimenti la quinta voce veniva tagliata. Storico: intensivi NON piu' legati al solo 'Imprenditore' (menu Inizia, menu mobile, voce 'modi di praticare', card): ora 'Intensivi — un weekend con il Maestro, in persona'. Card 'Con il Maestro, in persona' (posizionamento Marco 20 set: intensivi = porta stretta, su selezione, senza calendario fisso, non spinti a tutti), link a syncrolink.co/#essence. Nessun prezzo in pagina: kataclimb.com non vende corsi. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -510,7 +511,8 @@
   }
 
   .what-visual {
-    height: 380px;
+    min-height: 380px;
+    height: auto;
     background: linear-gradient(160deg, var(--void) 0%, var(--sky-dark) 100%);
     border-radius: 4px;
     display: flex;
@@ -1511,7 +1513,7 @@
   /* === RESPONSIVE === */
   @media (max-width: 900px) {
     .what-grid { grid-template-columns: 1fr; gap: 2rem; }
-    .what-visual { height: 320px; }
+    .what-visual { min-height: 320px; height: auto; }
     .event-header { grid-template-columns: 1fr; }
     .event-date-box { max-width: 220px; }
     .event-what { grid-template-columns: 1fr; }
@@ -1555,8 +1557,9 @@
       <a href="#inizia" class="nav-cta">Inizia</a>
       <div class="nav-dropdown-menu">
         <a href="#inizia">Persona <span>Percorso completo in Accademia</span></a>
-        <a href="#inizia">Imprenditore <span>Intensivi weekend</span></a>
+        <a href="#inizia">Prodotti esclusivi <span>Per chi vuole massimizzare il tempo</span></a>
         <a href="#inizia">Azienda <span>Team building e leadership</span></a>
+        <a href="#inizia">Scuole ed enti <span>Scuole, associazioni, enti</span></a>
       </div>
     </li>
   </ul>
@@ -1577,7 +1580,7 @@
   <a href="libro.html">Libro</a>
   <a href="portale.html">Portale</a>
   <a href="#inizia" class="mobile-cta" onclick="closeMobile()">Persona</a>
-  <a href="#inizia" class="mobile-cta" onclick="closeMobile()" style="background:var(--sky); color:var(--void);">Imprenditore</a>
+  <a href="#inizia" class="mobile-cta" onclick="closeMobile()" style="background:var(--sky); color:var(--void);">Prodotti esclusivi</a>
   <a href="#inizia" class="mobile-cta" onclick="closeMobile()" style="background:var(--moss); color:var(--chalk);">Azienda</a>
 </div>
 
@@ -1648,11 +1651,11 @@
             <p>Percorso completo con pratica monitorata</p>
           </div>
         </a>
-        <a href="https://syncrolink.co/" target="_blank" class="mode-item" style="text-decoration:none; color:inherit;">
+        <a href="https://syncrolink.co/#essence" target="_blank" class="mode-item" style="text-decoration:none; color:inherit;">
           <svg class="mode-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="5" width="20" height="22" rx="2"/><path d="M11 12h10M11 17h7"/></svg>
           <div>
-            <h4>Imprenditori</h4>
-            <p>Intensivi per chi ha poco tempo</p>
+            <h4>Prodotti Esclusivi</h4>
+            <p>Imprenditori, professionisti, atleti: per chi vuole massimizzare il tempo</p>
           </div>
         </a>
         <a href="https://syncrolink.co/" target="_blank" class="mode-item" style="text-decoration:none; color:inherit;">
@@ -1660,6 +1663,13 @@
           <div>
             <h4>Aziende</h4>
             <p>Team building e leadership in cordata</p>
+          </div>
+        </a>
+        <a href="https://palestra-arrampicata-roma.it/progetti-scolastici/" target="_blank" class="mode-item" style="text-decoration:none; color:inherit;">
+          <svg class="mode-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 13l12-7 12 7-12 7z"/><path d="M9 16v6c2 2.5 12 2.5 14 0v-6"/><path d="M28 13v8"/></svg>
+          <div>
+            <h4>Scuole, associazioni, enti</h4>
+            <p>Progetti di arrampicata e consapevolezza</p>
           </div>
         </a>
         <a href="pro.html" class="mode-item" style="text-decoration:none; color:inherit;">
@@ -1889,16 +1899,22 @@
         </p>
       </div>
       <div class="event-card" style="border-left-color:var(--sky);">
-        <h4>Imprenditore e professionista</h4>
+        <h4>Prodotti esclusivi — con il Maestro, in persona</h4>
         <p>
-          Poco tempo, massimo impatto. Intensivi nel weekend —
-          quello che nel percorso lungo si fa in un mese,
-          qui si comprime in due giorni.
-          Mindset, strategia, corpo in azione.
+          La via di KataClimb aperta a tutti è il percorso in Accademia: ogni settimana, passo dopo passo.
+        </p>
+        <p style="margin-top:0.8rem;">
+          Esiste anche un'altra porta, più stretta. Pochi weekend l'anno, sei persone alla volta,
+          con Marco Nescatelli in persona: gli intensivi. Non hanno un calendario fisso.
+          Nascono quando Marco decide di aprirne uno, per le persone con cui sceglie di lavorare.
+        </p>
+        <p style="margin-top:0.8rem;">
+          Sono pensati per imprenditori, professionisti e atleti: per chi vuole massimizzare il tempo. Non sono per tutti, e non spingiamo nessuno a farli.
+          Se senti che è la tua porta, si comincia da <strong>ESSENCE</strong>. Li cura Syncrolink.
         </p>
         <p style="margin-top:1rem;">
-          <a href="https://syncrolink.co/" target="_blank" style="color:var(--sky); text-decoration:none; font-weight:500; font-size:0.9rem; letter-spacing:0.04em;">
-            Syncrolink.co →
+          <a href="https://syncrolink.co/#essence" target="_blank" style="color:var(--sky); text-decoration:none; font-weight:500; font-size:0.9rem; letter-spacing:0.04em;">
+            Chiedi di entrare — Syncrolink.co →
           </a>
         </p>
       </div>
@@ -2061,7 +2077,7 @@
     <!-- PORTALE TEASER -->
     <div class="portale-teaser fade-in">
       <div class="portale-teaser-content">
-        <h3>Il portale sta arrivando</h3>
+        <h3>Il portale è attivo</h3>
         <p>
           Il tuo profilo personale: video di progressione, punti guadagnati,
           certificazioni visibili. Non diplomi — corpi che dimostrano.
@@ -2070,10 +2086,17 @@
           Scopri la tua straordinarietà, dichiarala, e trova le tue cordate:
           di arrampicata, di vita, di impresa.
         </p>
+        <p>
+          È lo strumento di tutti i percorsi KataClimb — i corsi in Accademia
+          e gli intensivi nel weekend: qui restano i tuoi video, i tuoi Kata, il tuo progresso.
+        </p>
+        <p style="margin-top:1.2rem;">
+          <a href="portale.html" style="display:inline-block; background:var(--rope); color:var(--deep); text-decoration:none; font-weight:600; padding:0.85rem 1.4rem; letter-spacing:0.04em; font-size:0.95rem;">Entra nel portale →</a>
+        </p>
         <div class="portale-features">
           <div class="portale-feature">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            5 video per Kata
+            2 video per Kata: Memoria e Validazione
           </div>
           <div class="portale-feature">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
