@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-minori v10 · 2026-09-21 · OGGI PRENOTABILE ANCHE PER I MINORI: generaDate() mette in lista anche il giorno corrente (non consuma la finestra GIORNI_AVANTI, rispetta pausa estiva e giorni_chiusi), con lo stesso taglio a 4 ore di inizia.html (CUTOFF_OGGI_MIN=240). Lo slot di oggi oltre il taglio resta in lista SPENTO (.slot-card.off, non cliccabile) con sotto la frase cutoff_oggi del registro e le ore lette da CUTOFF_OGGI_MIN/60, mai scritte a mano; lo slot gia' iniziato resta nascosto; senza window.kcAvvisi lo slot oltre il taglio non si mostra (comportamento di prima). TOLTA la riga fissa C1 'minori_da_domani' (elemento #regola-giorno-prima e suo aggancio): da oggi direbbe una cosa falsa. La voce resta inerte nel registro: kc-avvisi.js NON e' toccato (modificarlo obbligherebbe ad alzare ?v= su tutte le pagine, sw.js serve i .js cache-first). Nuove regole CSS .slot-card.off / .slot-nota / .kc-avviso-wa (13px, colore leggibile: cutoff_oggi ha whatsapp:true e kcAvvisi.mostra appende la riga WhatsApp). La validazione eta'/fascia resta calcolata sulla data della lezione e funziona con data = oggi. NON toccati: query slot, checkout, tracking, consenso, prezzi, testi. CUMULA v9 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO D (C1): riga fissa sopra il calendario che dice perche' le lezioni dei minori si prenotano entro il giorno prima (gli istruttori preparano la lezione sull'eta' di chi arriva) — prima il calendario partiva da domani senza dirlo. Testo dal registro kc-avvisi v2, pagina agganciata a /kc-avvisi.js?v=2. Logica, slot, fasce, checkout invariati. CUMULA v8 · 2026-08-24 · RIMANDO PRIMA LEZIONE IN FAMIGLIA: blocco caldo (sezione sopra "Come funziona") che invita il genitore alla Prima Lezione in Famiglia del giovedì -> /inizia-famiglia.html. Solo contenuto, nessuna modifica al funnel/checkout minori. CUMULA v7 · 2026-08-16 · CRITERIO ANNO SOLARE (caso Bertie/Georgia, 16 ago): il minimo di fascia è soddisfatto se l'età minima si compie entro il 31 dicembre dell'anno della lezione (chi compie 12 a dicembre può scegliere Ragazzi già a settembre); il massimo resta sull'età effettiva alla data della lezione (un 17enne che compie 18 a dicembre resta Ragazzi fino al compleanno). Solo frontend: nuova fasciaOk() in verificaEta(), nessuna modifica a worker/DB. CUMULA v6 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (generaDate avanza a finestra piena, la pausa non consuma i giorni; giorni_chiusi puntuali invariati) + banner riapertura 1° settembre (classe .nota-estate). CUMULA v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
+<!-- KC-BUILD: inizia-minori v10 · 2026-09-21 · OGGI PRENOTABILE ANCHE PER I MINORI: generaDate() mette in lista anche il giorno corrente (non consuma la finestra GIORNI_AVANTI, rispetta pausa estiva e giorni_chiusi), con lo stesso taglio a 4 ore di inizia.html (CUTOFF_OGGI_MIN=240). Lo slot di oggi oltre il taglio resta in lista SPENTO (.slot-card.off, non cliccabile) con sotto la frase cutoff_oggi del registro e le ore lette da CUTOFF_OGGI_MIN/60, mai scritte a mano; lo slot gia' iniziato resta nascosto; senza window.kcAvvisi lo slot oltre il taglio non si mostra (comportamento di prima). TOLTA la riga fissa C1 'minori_da_domani' (elemento #regola-giorno-prima e suo aggancio): da oggi direbbe una cosa falsa. La voce resta inerte nel registro: kc-avvisi.js NON e' toccato (modificarlo obbligherebbe ad alzare ?v= su tutte le pagine, sw.js serve i .js cache-first). Nuove regole CSS .slot-card.off / .slot-nota / .kc-avviso-wa (13px, colore leggibile: cutoff_oggi ha whatsapp:true e kcAvvisi.mostra appende la riga WhatsApp). La validazione eta'/fascia resta calcolata sulla data della lezione e funziona con data = oggi. + DOPO CODE REVIEW: la decisione del taglio non e' piu' congelata alla generazione della lista ma ricalcolata a ogni render (statoRiga/mostrabile): la pagina puo' restare aperta per ore e la riga di oggi passa da prenotabile a spenta e poi sparisce da sola, e un giorno ormai passato non si mostra e non si prenota. RETE AL CHECKOUT: il taglio e' ricontrollato al click su Paga PRIMA del POST (prima si poteva scegliere lo slot delle 17:00 alle 12:00 e pagarlo alle 16:30). Se scatta, la selezione decade, la lista si riallinea, il modulo si chiude e compare la frase del registro. Payload al Worker invariato. NON toccati: query slot, checkout, tracking, consenso, prezzi, testi. CUMULA v9 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO D (C1): riga fissa sopra il calendario che dice perche' le lezioni dei minori si prenotano entro il giorno prima (gli istruttori preparano la lezione sull'eta' di chi arriva) — prima il calendario partiva da domani senza dirlo. Testo dal registro kc-avvisi v2, pagina agganciata a /kc-avvisi.js?v=2. Logica, slot, fasce, checkout invariati. CUMULA v8 · 2026-08-24 · RIMANDO PRIMA LEZIONE IN FAMIGLIA: blocco caldo (sezione sopra "Come funziona") che invita il genitore alla Prima Lezione in Famiglia del giovedì -> /inizia-famiglia.html. Solo contenuto, nessuna modifica al funnel/checkout minori. CUMULA v7 · 2026-08-16 · CRITERIO ANNO SOLARE (caso Bertie/Georgia, 16 ago): il minimo di fascia è soddisfatto se l'età minima si compie entro il 31 dicembre dell'anno della lezione (chi compie 12 a dicembre può scegliere Ragazzi già a settembre); il massimo resta sull'età effettiva alla data della lezione (un 17enne che compie 18 a dicembre resta Ragazzi fino al compleanno). Solo frontend: nuova fasciaOk() in verificaEta(), nessuna modifica a worker/DB. CUMULA v6 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (generaDate avanza a finestra piena, la pausa non consuma i giorni; giorni_chiusi puntuali invariati) + banner riapertura 1° settembre (classe .nota-estate). CUMULA v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -359,6 +359,35 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   // la vecchia "minori entro il giorno prima" e' superata.
   const CUTOFF_OGGI_MIN = 240;
 
+  // ms che mancano all'inizio di uno slot di OGGI (componenti locali, trappola #134)
+  function mancanoOggi(oraInizio){
+    const hm = String(oraInizio).split(':');
+    const inizio = new Date(); inizio.setHours(+hm[0], +hm[1] || 0, 0, 0);
+    return inizio.getTime() - Date.now();
+  }
+
+  // Stato di una riga rispetto al taglio, calcolato SEMPRE sull'ora corrente e mai
+  // congelato alla generazione: la lista vive quanto la pagina, che puo' restare
+  // aperta per ore e oltre la mezzanotte.
+  //   null     = si prenota
+  //   'taglio' = oggi, sotto le CUTOFF_OGGI_MIN: si mostra spenta col motivo
+  //   'via'    = passata o gia' iniziata: non si mostra, non c'e' piu' niente da dire
+  function mostrabile(s){
+    const stato = statoRiga(s);
+    if (stato === 'via') return false;                      // passata o gia' iniziata
+    if (stato === 'taglio' && !window.kcAvvisi) return false; // non potremmo dire il perche'
+    return true;
+  }
+
+  function statoRiga(s){
+    const oggiIso = isoLocale(new Date());
+    if (s.dataISO < oggiIso) return 'via';
+    if (s.dataISO !== oggiIso) return null;
+    const mancano = mancanoOggi(s.ora_inizio);
+    if (mancano <= 0) return 'via';
+    return mancano < CUTOFF_OGGI_MIN * 60000 ? 'taglio' : null;
+  }
+
   function generaDate(slots){
     const out = [];
     const oggi = new Date(); oggi.setHours(0,0,0,0);
@@ -370,21 +399,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       if (!(isoOggi >= CHIUSURA_DAL && isoOggi <= CHIUSURA_AL) && !giorniChiusi.has(isoOggi)) {
         for (const s of slots) {
           if (s.giorno_settimana !== dowOggi) continue;
-          const hm = String(s.ora_inizio).split(':');
-          const inizio = new Date(); inizio.setHours(+hm[0], +hm[1] || 0, 0, 0);
-          const mancano = inizio.getTime() - Date.now();
-          const base = { key: `${s.id}|${isoOggi}`, slot_id: s.id, fascia: s.fascia,
-                         dataISO: isoOggi, ora_inizio: s.ora_inizio, ora_fine: s.ora_fine };
-          if (mancano < CUTOFF_OGGI_MIN * 60000) {
-            // Oltre il taglio: la card resta in lista, spenta, col motivo sotto.
-            // Lo slot gia' iniziato no: non c'e' piu' niente da dire. Senza registro,
-            // comportamento di prima (slot nascosto), come su inizia.html.
-            if (window.kcAvvisi && mancano > 0) {
-              out.push(Object.assign(base, { chiuso: true, ore_cutoff: CUTOFF_OGGI_MIN / 60 }));
-            }
-            continue;
-          }
-          out.push(base);
+          out.push({ key: `${s.id}|${isoOggi}`, slot_id: s.id, fascia: s.fascia,
+                     dataISO: isoOggi, ora_inizio: s.ora_inizio, ora_fine: s.ora_fine });
         }
       }
     }
@@ -421,29 +437,30 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   function render(){
     const list = $('slot-list');
     list.innerHTML = '';
-    const visibili = slotDate.filter(s => filtro === 'tutte' || s.fascia === filtro);
+    const visibili = slotDate.filter(s => (filtro === 'tutte' || s.fascia === filtro) && mostrabile(s));
     if (!visibili.length) {
       list.innerHTML = '<p style="color:var(--ink3);font-size:14px">Nessuna data disponibile al momento — scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</p>';
       return;
     }
     for (const s of visibili) {
-      const div = document.createElement('div');
       // kc-avvisi v2 — B1: lo slot di oggi oltre il taglio si mostra spento, non sparisce.
-      div.className = 'slot-card' + (s.chiuso ? ' off' : '')
-                    + (!s.chiuso && selezione && selezione.key === s.key ? ' sel' : '');
+      // Quello passato o gia' iniziato sparisce: non c'e' piu' niente da dire. Senza
+      // registro non potremmo dire il perche', quindi nemmeno lo mostriamo (come inizia.html).
+      const chiuso = statoRiga(s) === 'taglio';
+      const div = document.createElement('div');
+      div.className = 'slot-card' + (chiuso ? ' off' : '')
+                    + (!chiuso && selezione && selezione.key === s.key ? ' sel' : '');
       div.innerHTML = `
         <div class="riga1">
           <span class="data">${labelData(s.dataISO)}</span>
           <span class="tag tag-${s.fascia}">${LABEL[s.fascia]}</span>
         </div>
         <div class="riga2"><b>${oraRange(s.ora_inizio, s.ora_fine)}</b> · con Claudia e Mattia · <b>${PREZZO[s.fascia]} €</b></div>`;
-      if (s.chiuso) {
-        if (window.kcAvvisi) {
-          const nota = document.createElement('div');
-          nota.className = 'slot-nota';
-          window.kcAvvisi.mostra(nota, window.kcAvvisi.daCodice('cutoff_oggi', { ore: s.ore_cutoff }));
-          div.appendChild(nota);
-        }
+      if (chiuso) {
+        const nota = document.createElement('div');
+        nota.className = 'slot-nota';
+        window.kcAvvisi.mostra(nota, window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN / 60 }));
+        div.appendChild(nota);
       } else {
         div.addEventListener('click', () => seleziona(s));
       }
@@ -516,6 +533,30 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   $('paga-btn').addEventListener('click', async () => {
     $('form-err').style.display = 'none';
     if (!selezione) { erroreForm('Scegli prima una data qui sopra.'); return; }
+
+    // OGGI PRENOTABILE — ultimo controllo del taglio PRIMA del POST. Tra la scelta
+    // della data e il click possono passare ore: senza questo si potrebbe pagare una
+    // lezione che inizia fra mezz'ora, o una data passata se la pagina e' rimasta
+    // aperta oltre la mezzanotte. La selezione decade e la lista si riallinea.
+    const stato = statoRiga(selezione);
+    if (stato) {
+      const scaduta = stato === 'via' && selezione.dataISO < isoLocale(new Date());
+      selezione = null;
+      render();
+      $('form-wrap').classList.remove('show');
+      const e = $('form-err');
+      e.innerHTML = '';
+      if (scaduta) {
+        e.textContent = 'Quella data è passata: scegline un\'altra qui sopra.';
+      } else if (window.kcAvvisi) {
+        window.kcAvvisi.mostra(e, window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN / 60 }));
+      } else {
+        e.textContent = `Prenotazioni chiuse. Per oggi si prenota fino a ${CUTOFF_OGGI_MIN / 60} ore prima dell'inizio. Scegli un'altra data.`;
+      }
+      e.style.display = 'block';
+      e.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
 
     const figlio_nome    = $('f-fnome').value.trim();
     const figlio_cognome = $('f-fcognome').value.trim();
