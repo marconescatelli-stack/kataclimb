@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-famiglia v5 · 2026-09-14 · FIGLI MULTIPLI (1-3) + PRIMA GENITORI 20€ (decisioni Marco 14 set, caso Claudia Coscia: madre di 2 figli non poteva inserire il secondo; il Worker v3.73 non aveva il ramo famiglia e rispondeva 'Dati anagrafici incompleti' — la pagina non ha mai potuto incassare dal 24 ago). Passo 1 = blocco figlio ripetibile (#figli-list, template #tpl-figlio) con '+ Aggiungi un altro figlio' fino a 3 e 'Rimuovi' dal 2°; ogni figlio ha nome/cognome, toggle 'già iscritto', nascita→fascia, email facoltativa, orario e descrizione della propria fascia. Genitori 1-2 invariati, PREZZO_GENITORE=20. Totale = 20€×genitori + 10/15€×figlio non iscritto, prezzi PIENI (nessuno sconto fratelli/2° genitore sulle Prime). Auto-selezione orario genitori sul PRIMO figlio non iscritto; avviso coerenza se un figlio ha un orario diverso dai genitori. POST al Worker: { famiglia:'1', slot_id, data_lezione, genitori[], figli[] {nome,cognome,iscritto,nascita,email,prodotto,slot_id}, accept_terms, consent } — RICHIEDE stripe-worker v3.74 (ramo famiglia + env STRIPE_PRICE_PRIMA_GENITORI). Testi utente al plurale dove serve. Letture DB/RPC, pixel, consent, cancel_url INVARIATI. CUMULA v4 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-26 · BONIFICA TERMINOLOGIA (solo testi utente, sostituzioni esatte decise da Marco): via il diminutivo "Mello" da tutti i testi utente — hero "col tuo istruttore", sottotitolo Passo 2 "col vostro istruttore", etichetta "Orario dei genitori (giovedì)", card orario "col tuo istruttore"; via "vera" e "muro" — "Un'ora in parete, ciascuno col suo gruppo" e "la sua prima ora in parete". CUMULA v3 · 2026-08-26 · DESCRIZIONI DELLE LEZIONI (solo testi, nessuna logica di prenotazione/pagamento toccata): tre descrizioni motivazionali approvate da Marco. Blocco figlio: due testi alternativi (DESC_FASCIA.bambini / DESC_FASCIA.ragazzi) in #desc-figlio sotto lo slot del figlio, commutati da aggiornaFiglio() sulla stessa fascia che già commuta slot e prezzo; se il figlio è "già iscritto" nessuna delle due è visibile. Blocco genitori: #desc-genitori sopra la scelta dell'orario, sempre visibile (statico in HTML). Stile .desc-lezione = testo secondario 13.5px con filetto a sinistra, non un box. CUMULA v2 · 2026-08-25 · AUTO-SELEZIONE ORARIO GENITORI: quando il figlio NON è già iscritto e la nascita determina la fascia, l'orario genitori viene selezionato in automatico abbinando ora_inizio (bambini 17–18 → genitori 17:00; ragazzi 18–19:30 → genitori 18:00), MAI per id. Scatta al cambio fascia (autoSelezionaOrario + lastAutoFascia), resta modificabile a mano (se l'utente cambia orario compare il warning di coerenza esistente); se cambia la nascita e cambia la fascia ri-auto-seleziona; figlio già iscritto → nessuna auto-selezione, scelta libera. CUMULA v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
+<!-- KC-BUILD: inizia-famiglia v6 · 2026-09-21 · OGGI PRENOTABILE ANCHE QUI: se oggi e' giovedi', oggi entra tra le date (generaGiovedi non consuma la finestra, rispetta pausa estiva e giorni_chiusi) con lo stesso taglio a 4 ore delle altre landing (CUTOFF_OGGI_MIN=240). PRENOTAZIONE MULTI-PERSONA: il taglio si misura sull'inizio PIU' PRESTO tra le persone che entrano in Accademia — orario genitori scelto e slot della fascia di ogni figlio che fa la Prima (inizioPiuPresto()) — perche' con genitori alle 18:00 e un figlio bambini alle 17:00 la famiglia arriva alle 17:00. Il giovedi' di oggi non si propone affatto se NESSUN orario di oggi (genitori + figli) e' ancora sopra il taglio. renderDate() spegne la card di oggi (.slot-card.off, badge CHIUSO, nessun click) con sotto la frase cutoff_oggi del registro e le ore lette da CUTOFF_OGGI_MIN/60, mai scritte a mano; renderDate() e' ora chiamata da aggiornaTutto() perche' il taglio dipende anche dalla fascia dei figli, che si inserisce al Passo 3. MAI UN AZZERAMENTO SILENZIOSO: se la data scelta finisce sotto il taglio viene liberata, ma sopra il calendario compare 'Abbiamo liberato il giovedi' che avevi scelto' con la frase del registro (#data-hint.avviso, colore leggibile, mai var(--ink3) su un dato operativo) e il bottone Paga resta disabilitato finche' non se ne sceglie un'altra. RETE AL CHECKOUT: il taglio e' ricontrollato al click su Paga, dopo la validazione delle fasce e PRIMA del POST al Worker, cosi' data_lezione = oggi non puo' mai partire con un orario sotto taglio anche se la pagina e' rimasta aperta per ore. La pagina ora carica /kc-avvisi.js?v=2 (registro NON toccato: cutoff_oggi c'e' gia' dal v2, nessun bump di ?v= altrove); senza registro il giovedi' di oggi semplicemente non si propone, cioe' il comportamento del v5. Nuove regole CSS .slot-card.off / .slot-nota / .kc-avviso-wa / #data-hint.avviso. + DOPO CODE REVIEW: (a) DATA PASSATA — da quando oggi entra in lista, una pagina lasciata aperta oltre la mezzanotte poteva mostrare il giovedi' appena trascorso ancora cliccabile e mandarlo al Worker: ora dataPassata() lo toglie dalla lista, libera la selezione con il suo motivo ('Quella data e' passata') e lo blocca anche al click su Paga. (b) BOTTONE SENZA VIA D'USCITA — dataLiberataDalTaglio diventa motivoLiberazione e il bottone si disabilita solo se esiste almeno una card cliccabile (alternativeSelezionabili > 0): se tutti gli altri giovedi' sono esauriti il bottone resta vivo e a parlare e' la validazione, invece di restare morto con l'unica uscita nel link WhatsApp. + BANNER PAUSA AGOSTO legato alla pausa vera: la condizione era solo 'esistono date dopo il 1 set', vera per qualsiasi data futura, quindi 'Ad agosto l'Accademia e' in pausa' restava acceso tutto l'anno (gia' il 21 set diceva una cosa falsa). Ora si aggiunge isoOggi <= CHIUSURA_AL: una riga. NON toccati: query slot, conteggi, payload al Worker, checkout, tracking, consenso, prezzi, testi. CUMULA v5 · 2026-09-14 · FIGLI MULTIPLI (1-3) + PRIMA GENITORI 20€ (decisioni Marco 14 set, caso Claudia Coscia: madre di 2 figli non poteva inserire il secondo; il Worker v3.73 non aveva il ramo famiglia e rispondeva 'Dati anagrafici incompleti' — la pagina non ha mai potuto incassare dal 24 ago). Passo 1 = blocco figlio ripetibile (#figli-list, template #tpl-figlio) con '+ Aggiungi un altro figlio' fino a 3 e 'Rimuovi' dal 2°; ogni figlio ha nome/cognome, toggle 'già iscritto', nascita→fascia, email facoltativa, orario e descrizione della propria fascia. Genitori 1-2 invariati, PREZZO_GENITORE=20. Totale = 20€×genitori + 10/15€×figlio non iscritto, prezzi PIENI (nessuno sconto fratelli/2° genitore sulle Prime). Auto-selezione orario genitori sul PRIMO figlio non iscritto; avviso coerenza se un figlio ha un orario diverso dai genitori. POST al Worker: { famiglia:'1', slot_id, data_lezione, genitori[], figli[] {nome,cognome,iscritto,nascita,email,prodotto,slot_id}, accept_terms, consent } — RICHIEDE stripe-worker v3.74 (ramo famiglia + env STRIPE_PRICE_PRIMA_GENITORI). Testi utente al plurale dove serve. Letture DB/RPC, pixel, consent, cancel_url INVARIATI. CUMULA v4 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v3 · 2026-08-26 · BONIFICA TERMINOLOGIA (solo testi utente, sostituzioni esatte decise da Marco): via il diminutivo "Mello" da tutti i testi utente — hero "col tuo istruttore", sottotitolo Passo 2 "col vostro istruttore", etichetta "Orario dei genitori (giovedì)", card orario "col tuo istruttore"; via "vera" e "muro" — "Un'ora in parete, ciascuno col suo gruppo" e "la sua prima ora in parete". CUMULA v3 · 2026-08-26 · DESCRIZIONI DELLE LEZIONI (solo testi, nessuna logica di prenotazione/pagamento toccata): tre descrizioni motivazionali approvate da Marco. Blocco figlio: due testi alternativi (DESC_FASCIA.bambini / DESC_FASCIA.ragazzi) in #desc-figlio sotto lo slot del figlio, commutati da aggiornaFiglio() sulla stessa fascia che già commuta slot e prezzo; se il figlio è "già iscritto" nessuna delle due è visibile. Blocco genitori: #desc-genitori sopra la scelta dell'orario, sempre visibile (statico in HTML). Stile .desc-lezione = testo secondario 13.5px con filetto a sinistra, non un box. CUMULA v2 · 2026-08-25 · AUTO-SELEZIONE ORARIO GENITORI: quando il figlio NON è già iscritto e la nascita determina la fascia, l'orario genitori viene selezionato in automatico abbinando ora_inizio (bambini 17–18 → genitori 17:00; ragazzi 18–19:30 → genitori 18:00), MAI per id. Scatta al cambio fascia (autoSelezionaOrario + lastAutoFascia), resta modificabile a mano (se l'utente cambia orario compare il warning di coerenza esistente); se cambia la nascita e cambia la fascia ri-auto-seleziona; figlio già iscritto → nessuna auto-selezione, scelta libera. CUMULA v1 · 2026-08-24 · PRIMA LEZIONE IN FAMIGLIA (giovedì): il figlio fa la sua Prima col suo gruppo, il genitore (o entrambi) la propria Prima in contemporanea con Mello, stessa ora. Un solo pagamento. Form a 3 passi (ordine fisso deciso da Marco): (1) figlio — nome/cognome + toggle "già iscritto" (SÌ: niente nascita/slot/costo; NO: nascita→fascia 6-11 Bambini / 12-17 Ragazzi, email opzionale portale, Prima nello slot minori del giovedì, 10€/15€); (2) genitori — 1 obbligatorio + secondo aggiungibile (email diversa), scelta UNICA slot giovedì 17-18 o 18-19 (Mello), data giovedì (rispetta giorni_chiusi + pausa agosto); (3) totale dinamico 25€×genitori + figlio + Termini + consenso Pixel gated (banner identico a inizia-minori). Slot da corsi_attivi_settimanali (tipo prima_lezione_genitori per genitori; prima_lezione_bambini|ragazzi giorno_settimana=4 per figlio) — MAI id cablati. Posti residui slot genitori: capienza_max, conta prenotazioni_prima_lezione stato in (prenotato,fatto) per slot+data (pattern inizia.html). Date con componenti LOCALI (trappola #134). Nessuna scrittura DB dal frontend: solo letture anon + POST famiglia a stripe-worker v3.70 (create-checkout-session). cancel_url ?cancelled=1. Immagini hero/OG riusate da inizia-minori (dedicate da aggiungere). -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -156,12 +156,24 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
 /* date giovedì */
 #data-hint{font-size:13.5px;color:var(--ink3);padding:12px 0}
+#data-hint.avviso{color:#0C4A6E;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:var(--r);padding:12px 14px;font-size:14px;line-height:1.45}
+#data-hint.avviso b{font-weight:900}
 .slot-list{display:flex;flex-direction:column;gap:10px}
 .slot-card{border:1.5px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;background:#fff;transition:border-color .15s;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .slot-card.sel{border-color:var(--sky);box-shadow:0 0 0 3px rgba(14,165,233,.15)}
 .slot-card.full{background:#fafafa;border-color:var(--border2);opacity:.6;cursor:default}
 .slot-card .data{font-weight:900;font-size:16px;text-transform:capitalize}
 .slot-card .badge{font-size:11px;font-weight:900;letter-spacing:.04em;padding:4px 11px;border-radius:var(--r-pill);white-space:nowrap}
+/* kc-avvisi v2 — B1: la data negata resta in lista, spenta, col motivo sotto.
+   L'opacita' sta sui figli e non sulla card, cosi' il motivo resta leggibile. */
+.slot-card{flex-wrap:wrap}
+.slot-card.off{background:#FAFAFA;border-color:var(--border2);cursor:default}
+.slot-card.off .data,.slot-card.off .badge{opacity:.55}
+.slot-nota{flex-basis:100%;font-size:13px;line-height:1.45;color:var(--ink2);margin-top:6px}
+.slot-nota a{color:inherit;font-weight:700;text-decoration:underline}
+/* riga WhatsApp che kcAvvisi.mostra appende agli avvisi con whatsapp:true (cutoff_oggi) */
+.kc-avviso-wa{margin-top:6px}
+.kc-avviso-wa a{color:inherit;font-weight:700;text-decoration:underline}
 .badge.ok{background:#DCFCE7;color:#166534}
 .badge.warn{background:#FEF9C3;color:#854D0E}
 .badge.full{background:var(--red);color:#fff}
@@ -393,6 +405,10 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   <a href="https://kataclimb.com">kataclimb.com</a>
 </footer>
 
+<!-- kc-avvisi v2 — registro unico degli avvisi. Il ?v= e' obbligatorio: sw.js serve i .js
+     cache-first. Alzarlo a ogni modifica del registro (qui il registro NON e' toccato). -->
+<script src="/kc-avvisi.js?v=2"></script>
+
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -481,10 +497,88 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     return out;
   }
 
+  // ═══ OGGI PRENOTABILE (v6) ═══
+  // Stesso taglio a 4 ore delle altre landing: il giorno corrente si prenota fino a
+  // CUTOFF_OGGI_MIN minuti prima dell'inizio. Qui la prenotazione e' multi-persona,
+  // quindi l'inizio che conta e' il PIU' PRESTO tra le persone che entrano in
+  // Accademia: i genitori (orario scelto) e ogni figlio che fa la Prima (slot della
+  // sua fascia). Con genitori alle 18:00 e un figlio bambini alle 17:00 la famiglia
+  // arriva alle 17:00, ed e' quella l'ora che decide.
+  const CUTOFF_OGGI_MIN = 240;
+
+  // Se la data scelta e' stata liberata, perche' e' stato: 'taglio' (oggi, sotto le
+  // 4 ore) o 'passata' (pagina rimasta aperta oltre la mezzanotte). Il pagamento
+  // resta chiuso finche' non se ne sceglie un'altra e la riga sopra il calendario
+  // dice perche'. alternativeSelezionabili conta le card cliccabili dell'ultimo
+  // render: se sono zero il bottone NON si disabilita, altrimenti resterebbe morto
+  // senza via d'uscita (tutti gli altri giovedi' esauriti).
+  let motivoLiberazione = null;
+  let alternativeSelezionabili = 0;
+
+  // La pagina puo' restare aperta oltre la mezzanotte: da quando oggi entra in lista,
+  // una data puo' diventare passata sotto gli occhi di chi sta compilando.
+  function dataPassata(iso){ return !!iso && iso < isoLocale(new Date()); }
+
+  function mancanoOggi(hhmm){
+    const p = String(hhmm).split(':');
+    const inizio = new Date(); inizio.setHours(+p[0], +p[1] || 0, 0, 0);
+    return inizio.getTime() - Date.now();
+  }
+
+  // ora_inizio piu' presto tra genitori e figli che fanno la Prima; null se non si sa ancora
+  function inizioPiuPresto(){
+    const ore = [];
+    if (orarioSel) ore.push(ora5(orarioSel.ora_inizio));
+    figli.forEach(f => {
+      const fa = fasciaDi(f);
+      if (fa && slotFiglio[fa]) ore.push(ora5(slotFiglio[fa].ora_inizio));
+    });
+    if (!ore.length) return null;
+    return ore.sort()[0];
+  }
+
+  // null = la data si prenota. Altrimenti il motivo per cui e' spenta.
+  // Il taglio vale SOLO per oggi: le altre date non ne hanno.
+  function tagliaOggi(iso){
+    if (!iso || iso !== isoLocale(new Date())) return null;
+    const hhmm = inizioPiuPresto();
+    if (!hhmm) return null;
+    if (mancanoOggi(hhmm) >= CUTOFF_OGGI_MIN * 60000) return null;
+    return { ore: CUTOFF_OGGI_MIN / 60 };
+  }
+
+  // frase del registro; senza registro una frase di riserva con lo stesso contenuto
+  function fraseTaglio(){
+    if (window.kcAvvisi) return window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN / 60 });
+    return { codice: 'cutoff_oggi', whatsapp: false,
+             testo: `Prenotazioni chiuse. Per oggi si prenota fino a ${CUTOFF_OGGI_MIN / 60} ore prima dell'inizio. Scegli un'altra data.` };
+  }
+  function scriviAvviso(el, avviso){
+    if (window.kcAvvisi) { window.kcAvvisi.mostra(el, avviso); return el; }
+    el.textContent = avviso.testo;
+    return el;
+  }
+
   // giovedì disponibili nella finestra (rispetta pausa estiva + giorni_chiusi)
   function generaGiovedi(){
     const out = [];
     const oggi = new Date(); oggi.setHours(0,0,0,0);
+    // OGGI PRENOTABILE: se oggi e' giovedi' entra in lista senza consumare la finestra
+    // (rispetta pausa estiva e giorni_chiusi). Il taglio per orario lo applica
+    // renderDate(), che conosce l'orario scelto e le fasce dei figli; qui si scarta
+    // solo il giovedi' in cui NESSUN orario di oggi e' piu' prenotabile, e quello
+    // senza registro avvisi, dove non potremmo dire il perche' (come su inizia.html).
+    {
+      const iso = isoLocale(oggi);
+      const dow = oggi.getDay() === 0 ? 7 : oggi.getDay();
+      if (dow === 4 && window.kcAvvisi
+          && !(iso >= CHIUSURA_DAL && iso <= CHIUSURA_AL)
+          && !giorniChiusi.has(iso)) {
+        const tuttiGliOrari = slotGenitori.map(s => ora5(s.ora_inizio))
+          .concat(Object.keys(slotFiglio).map(k => ora5(slotFiglio[k].ora_inizio)));
+        if (tuttiGliOrari.some(h => mancanoOggi(h) >= CUTOFF_OGGI_MIN * 60000)) out.push(iso);
+      }
+    }
     let raccolti = 0, offset = 0;
     while (raccolti < GIORNI_AVANTI && offset < 120) {
       offset++;
@@ -589,34 +683,89 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   }
 
   // ═══ render date giovedì (posti per l'orario scelto) ═══
+  // Torna true se il taglio di oggi ha liberato la data gia' scelta: chi chiama
+  // rifa' i conti che dipendono da dataSel (eta' alla data, totale).
   function renderDate(){
     const list = $('slot-list');
     const hint = $('data-hint');
+    const TESTO_HINT = 'Scegli prima l\'orario dei genitori qui sopra.';
     list.innerHTML = '';
-    if (!orarioSel){ hint.style.display = ''; return; }
-    hint.style.display = 'none';
-    if (!giovediDate.length){
+    if (!orarioSel){
+      hint.className = ''; hint.textContent = TESTO_HINT; hint.style.display = '';
+      return false;
+    }
+    // OGGI PRENOTABILE: se la data scelta e' oggi ed e' finita sotto il taglio
+    // (l'orario dei genitori e' cambiato, o la fascia di un figlio l'ha anticipato),
+    // la liberiamo — ma MAI in silenzio: sotto si vede la riga del motivo e il
+    // pagamento resta chiuso finche' non se ne sceglie un'altra.
+    let liberata = false;
+    if (dataSel && (dataPassata(dataSel) || tagliaOggi(dataSel))){
+      motivoLiberazione = dataPassata(dataSel) ? 'passata' : 'taglio';
+      dataSel = null;
+      liberata = true;
+    }
+    if (motivoLiberazione && !dataSel){
+      hint.className = 'avviso';
+      hint.innerHTML = '<b>Abbiamo liberato il giovedì che avevi scelto.</b>';
+      const perche = document.createElement('div');
+      if (motivoLiberazione === 'passata') perche.textContent = 'Quella data è passata: scegline un\'altra qui sotto.';
+      else scriviAvviso(perche, fraseTaglio());
+      hint.appendChild(perche);
+      hint.style.display = '';
+    } else {
+      hint.className = ''; hint.textContent = TESTO_HINT; hint.style.display = 'none';
+    }
+    // Un giovedi' ormai passato non si mostra e non si prenota: non e' una cosa
+    // negata da spiegare, e' una data che non c'e' piu'.
+    const dateVive = giovediDate.filter(iso => !dataPassata(iso));
+    if (!dateVive.length){
       list.innerHTML = '<p style="color:var(--ink3);font-size:14px">Nessun giovedì disponibile al momento — scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</p>';
-      return;
+      return liberata;
     }
     const max = orarioSel.capienza_max || 6;
     const need = nGenitori();
-    giovediDate.forEach(iso => {
+    alternativeSelezionabili = 0;
+    dateVive.forEach(iso => {
+      const taglio = tagliaOggi(iso);
       const count = countsGenitori[`${orarioSel.id}_${iso}`] || 0;
       const liberi = max - count;
       const isFull = liberi < need;
       let badgeClass, badgeText;
-      if (liberi <= 0){ badgeClass = 'full'; badgeText = 'ESAURITO'; }
+      if (taglio){ badgeClass = 'full'; badgeText = 'CHIUSO'; }
+      else if (liberi <= 0){ badgeClass = 'full'; badgeText = 'ESAURITO'; }
       else if (isFull){ badgeClass = 'full'; badgeText = need === 2 ? 'SOLO 1 POSTO' : 'ESAURITO'; }
       else if (count === 0){ badgeClass = 'ok'; badgeText = 'DISPONIBILE'; }
       else { badgeClass = 'warn'; badgeText = liberi === 1 ? '1 POSTO' : `${liberi} POSTI`; }
 
       const div = document.createElement('div');
-      div.className = 'slot-card' + (isFull ? ' full' : '') + (dataSel === iso && !isFull ? ' sel' : '');
+      div.className = 'slot-card' + (taglio ? ' off' : (isFull ? ' full' : ''))
+                    + (!taglio && !isFull && dataSel === iso ? ' sel' : '');
       div.innerHTML = `<span class="data">${labelData(iso)}</span><span class="badge ${badgeClass}">${badgeText}</span>`;
-      if (!isFull) div.addEventListener('click', () => { dataSel = iso; renderDate(); aggiornaTutto(); });
+      if (taglio){
+        const nota = document.createElement('div');
+        nota.className = 'slot-nota';
+        scriviAvviso(nota, fraseTaglio());
+        div.appendChild(nota);
+      } else if (!isFull){
+        alternativeSelezionabili++;
+        div.addEventListener('click', () => {
+          dataSel = iso; motivoLiberazione = null;
+          renderDate(); aggiornaTutto();
+        });
+      }
       list.appendChild(div);
     });
+    return liberata;
+  }
+
+  // v6: il pagamento resta chiuso finche' la data liberata non e' sostituita — ma solo
+  // se c'e' davvero un'altra data da scegliere. Se non ce n'e' nessuna (tutti gli altri
+  // giovedi' esauriti) il bottone resta vivo e a parlare e' la validazione, invece di
+  // lasciare un bottone morto con l'unica uscita nel link WhatsApp dell'avviso.
+  function aggiornaPaga(){
+    const btn = $('paga-btn');
+    if (!btn || btn.classList.contains('loading')) return;
+    btn.disabled = !!motivoLiberazione && !dataSel && alternativeSelezionabili > 0;
   }
 
   // ═══ orario/descrizione/età di ogni figlio ═══
@@ -722,8 +871,13 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   function aggiornaTutto(){
     figli.forEach(aggiornaFiglio);
     autoSelezionaOrario();
+    // v6: il taglio di oggi dipende anche dalla fascia dei figli, quindi la lista
+    // delle date va rifatta a ogni modifica. Se la data e' stata liberata, eta' alla
+    // data e totale vanno ricalcolati sulla nuova (nessuna) selezione.
+    if (renderDate()) figli.forEach(aggiornaFiglio);
     verificaCoerenza();
     aggiornaTotale();
+    aggiornaPaga();
   }
 
   // ═══ interazioni ═══
@@ -812,6 +966,24 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     if (!orarioSel) { erroreForm('Scegli l\'orario dei genitori nel Passo 2.'); return; }
     if (!dataSel)   { erroreForm('Scegli il giovedì nel Passo 2.'); return; }
 
+    // OGGI PRENOTABILE: ultimo controllo del taglio PRIMA del POST al Worker. Qui
+    // ogni figlio ha gia' una fascia determinata (validata sopra), quindi
+    // inizioPiuPresto() vede tutti gli orari della famiglia. Tra il render e il
+    // click possono passare ore: senza questo, data_lezione = oggi potrebbe partire
+    // con un orario ormai sotto taglio.
+    if (dataPassata(dataSel) || tagliaOggi(dataSel)) {
+      const scaduta = dataPassata(dataSel);
+      renderDate();          // libera la data e mostra il motivo sopra il calendario
+      aggiornaPaga();
+      const box = $('form-err');
+      box.innerHTML = '';
+      if (scaduta) box.textContent = 'Quella data è passata: scegline un\'altra nel Passo 2.';
+      else scriviAvviso(box, fraseTaglio());   // frase del registro, link WhatsApp incluso
+      box.style.display = 'block';
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     // controllo posti lato client (il Worker è comunque autoritativo)
     const max = orarioSel.capienza_max || 6;
     const liberi = max - (countsGenitori[`${orarioSel.id}_${dataSel}`] || 0);
@@ -865,7 +1037,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       if (!slotGenitori.length) throw new Error('nessuno slot genitori attivo');
       giovediDate = generaGiovedi();
       countsGenitori = await caricaConteggi();
-      if (giovediDate.some(iso => iso >= '2026-09-01')) $('pausa-banner').style.display = '';
+      if (isoLocale(new Date()) <= CHIUSURA_AL && giovediDate.some(iso => iso >= '2026-09-01')) $('pausa-banner').style.display = '';
       $('slot-loading').style.display = 'none';
       $('form-passi').style.display = '';
       aggiungiFiglio();   // v5: il primo blocco figlio è sempre presente
