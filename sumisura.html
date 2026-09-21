@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: sumisura v12 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO B (una cosa negata si mostra SPENTA con il motivo, mai nascosta): (B2) sotto il badge ESAURITO compare la frase del registro 'Esaurito. Scegli un'altra data.'; (B3) sotto il calendario una riga dice perche' le date finiscono li', con i giorni letti dalla finestra che calcolaRange usa davvero, mai riscritti a mano. Nuove regole CSS .slot-nota / .regola-finestra / .btn-choose:disabled (13px, colore leggibile, mai grigio chiaro sui dati operativi) e .slot-card a flex-wrap per far stare la riga del motivo sotto la card. Tutto dietro if(window.kcAvvisi): senza registro la pagina si comporta come prima. NON toccati conteggi, checkout, tracking, query. B1 non si applica: qui il calendario parte da domani, non esistono slot di oggi da spegnere. La riga B3 si dichiara solo quando le date finiscono per la finestra e non per il tetto DATA_MAX, altrimenti direbbe una cosa falsa. CUMULA v11 · 2026-09-18 · REGISTRO AVVISI v2 (Censimento Avvisi v0.2, blocco A): kc-avvisi.js passa a v2 con i testi ratificati per agenda, landing, minori, kata e pagine di servizio, il compilatore di segnaposto testo(codice, valori) e daErroreRpc(), che raccoglie in un punto solo la catena di traduzione dei RAISE di prenota_corso / disdici_corso. Qui cambia SOLO il numero di versione del tag, da ?v=1 a ?v=2: obbligatorio perche' sw.js serve i .js cache-first e senza questo i telefoni gia' passati di qui continuerebbero a eseguire il registro vecchio. Nessuna altra riga di questa pagina e' toccata. CUMULA v10 · 2026-09-18 · REGISTRO UNICO DEGLI AVVISI (kc-avvisi v1, punti B5b e A14 del Censimento Avvisi): nuovo file di radice kc-avvisi.js agganciato con un tag script src="/kc-avvisi.js?v=2" prima dello script principale — il ?v= e' OBBLIGATORIO perche' sw.js serve i .js cache-first e va alzato a ogni modifica del registro. I tre rami che parlano col Worker (checkout SINGOLO, checkout GRUPPO, INVIO RICHIESTA) non leggono piu' da soli errBody/data: passano da kcAvvisi.daRisposta / daEccezione e scrivono con kcAvvisi.mostra, cosi' i codici tecnici (stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato, price_id ... non configurato, 500 a corpo vuoto) diventano una frase con la via d'uscita WhatsApp e l'errore vero resta in console per noi. Anche la sessione Stripe senza url passa da errore_pagamento_nostro invece del vecchio 'URL pagamento non ricevuto'. TENUTA: ogni aggancio e' dietro if(window.kcAvvisi), se il file non si carica la pagina si comporta ESATTAMENTE come prima. Aggiunte solo le due regole CSS .kc-avviso-wa (riga WhatsApp, eredita i 13px e il colore del box errore). NON toccati: validazioni del modulo, calcolaRange, checkout, tracking, Worker, DB. CUMULA v9 · 2026-09-18 · ERRORE 409 LEGGIBILE (difetto B4 del Censimento Avvisi): la gestione errore leggeva solo errBody.error, quindi chi riprovava a prenotare la stessa lezione vedeva la parola tecnica nuda 'gia_prenotato'. Ora legge errBody.message (la frase umana che il Worker gia' manda) con fallback su errBody.error. Allineati entrambi i rami che avevano il difetto: checkout SINGOLO e 'Invio richiesta' (form-info). Nessun testo nuovo, nessuna logica toccata: due righe in tutto. Il ramo GRUPPO era gia' corretto in partenza, come inizia-minori e inizia-famiglia. RESTA APERTO B5b: i codici che il Worker manda senza campo message (price_id non configurato, stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato) arrivano ancora nudi e vanno tradotti dal registro avvisi. CUMULA v8 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v7 · 2026-08-03 · BANNER "SU MISURA" SPARATO: sfondo giallo pieno, testo nero maiuscolo grande su 2 righe (richiesta Marco: il celeste piccolo si perdeva). CUMULA v6 · 2026-08-03 · DISTINZIONE VISIVA da inizia.html: <title> "Su misura ·...", top-pill "Su misura · Tutte le date fino al 30 settembre · 25€", sottotitolo hero riscritto (dichiara subito la differenza — chi apre il link capisce al volo che NON è la pagina 7 giorni). CUMULA v5 · 2026-08-03 · TITOLO SEZIONE calendario "Prossimi 7 giorni" → "Tutte le date fino al 30 settembre" (era rimasto il copy statico della finestra 7gg). CUMULA v4 · 2026-08-03 · SCHEDE 02+03 riscritte dai testi ORIGINALI di Marco (Kata_02_L_Atterraggio, Kata_03_Il_Passo_Verticale) — le precedenti erano copy inventato (vedi Brief Bonifica Lista Kata). Approvate da Marco. CUMULA v3 · 2026-08-03 · COPY "Il Pronti" riscritto (via "imbrago, nodi": fuori linguaggio, un solo nodo insegnato) → procedure di sicurezza + movimento spiegato + sostegno = pronto dal concreto. CUMULA v2 · 2026-08-03 · TETTO DATA_MAX=2026-09-30 (niente ottobre; da aggiornare o rimuovere se la pagina servirà oltre settembre). CUMULA v1 · COPIA DI inizia.html v9 con FINESTRA 30 GIORNI VALIDI (anti-procrastinazione NON applicata: pagina per link diretto manuale a persone che rientrano tardi). Uniche differenze da inizia v9: finestra 7→30 giorni validi (tetto iterazioni 60→120 per scavalcare la pausa di agosto), og:url e label pagina=sumisura.html. Tutto il resto (checkout, kc-lead, fascia adulti, gruppo, minori→/inizia-minori.html, pausa agosto) IDENTICO. REGOLA: ogni futura modifica a inizia.html va valutata anche qui. -->
+<!-- KC-BUILD: sumisura v13 · 2026-09-21 · OGGI PRENOTABILE (B1 ora si applica anche qui): calcolaRange() propone anche il giorno corrente senza consumare la finestra (rispetta la pausa estiva e giorni_chiusi), e il blocco occorrenze applica lo stesso taglio a 4 ore di inizia.html (CUTOFF_OGGI_MIN=240). Lo slot di oggi oltre il taglio resta in lista spento, badge CHIUSO, bottone disabilitato e sotto la frase cutoff_oggi con le ore lette da CUTOFF_OGGI_MIN/60; lo slot gia' iniziato resta nascosto; senza window.kcAvvisi non si mostra. Il ramo 'chiuso' del render e le regole CSS .slot-nota / .btn-choose:disabled c'erano gia' dal v12. SUPERA la nota del v12 'B1 non si applica: qui il calendario parte da domani'. + TOLTO IL TETTO DATA_MAX (decisione Marco 21 set: la pagina resta in uso oltre settembre). Via la costante DATA_MAX='2026-09-30' e il break che la usava: la finestra diventa 30 giorni-finestra validi a scorrimento, senza data di scadenza. Il numero sta in una sola costante nuova, FINESTRA_GIORNI, letta da calcolaRange, dalla riga B3 e dai tre testi della pagina (segnaposto #pill-giorni / #hero-giorni / #cal-giorni, valore gia' scritto in HTML perche' il modulo e' deferred e riscritto all'avvio dalla costante, stesso pattern di #cal-titolo su inizia.html): 'Tutte le date fino al 30 settembre' -> 'Tutte le date dei prossimi 30 giorni' nella top-pill, nel sottotitolo hero e nel titolo del calendario. B3: senza tetto le date finiscono sempre per la finestra, quindi la riga fuori_finestra si dichiara sempre coi giorni veri; resta null solo nel caso limite in cui il tetto di sicurezza di 120 iterazioni morde prima (pausa lunghissima), dove dire 'si aprono N giorni prima' sarebbe falso. + GUARDIA SUL RANGE VUOTO: se calcolaRange() torna zero giorni la pagina mostra il messaggio neutro 'Nessuna data disponibile al momento' invece di andare in TypeError su range[0].iso e restare sullo spinner (difetto presente dal v2, poteva ripresentarsi con una pausa lunga). + DOPO CODE REVIEW: CUTOFF_OGGI_MIN passa a costante di modulo e i DUE rami di checkout (singolo e gruppo) ricontrollano il taglio PRIMA del POST, con motivoNonPrenotabile(modalCtx): la griglia e' disegnata una volta sola, quindi senza questo si poteva scegliere lo slot di stasera a mezzogiorno e pagarlo mezz'ora prima dell'inizio, o pagare una data gia' passata con la pagina rimasta aperta oltre la mezzanotte. Il contesto del modale porta ora anche ora_inizio (data-ora-inizio sul bottone SCEGLI): serve solo al controllo, NON entra nel payload al Worker, che resta identico. + BANNER PAUSA AGOSTO legato alla pausa vera: la condizione era solo 'esistono date dopo il 1 set', vera per qualsiasi data futura, quindi 'Ad agosto l'Accademia e' in pausa' restava acceso tutto l'anno (gia' il 21 set diceva una cosa falsa). Ora si aggiunge isoOggi <= CHIUSURA_AL: una riga. NON toccati: conteggi, checkout, tracking, query, prezzi, altri testi. CUMULA v12 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO B (una cosa negata si mostra SPENTA con il motivo, mai nascosta): (B2) sotto il badge ESAURITO compare la frase del registro 'Esaurito. Scegli un'altra data.'; (B3) sotto il calendario una riga dice perche' le date finiscono li', con i giorni letti dalla finestra che calcolaRange usa davvero, mai riscritti a mano. Nuove regole CSS .slot-nota / .regola-finestra / .btn-choose:disabled (13px, colore leggibile, mai grigio chiaro sui dati operativi) e .slot-card a flex-wrap per far stare la riga del motivo sotto la card. Tutto dietro if(window.kcAvvisi): senza registro la pagina si comporta come prima. NON toccati conteggi, checkout, tracking, query. B1 non si applica: qui il calendario parte da domani, non esistono slot di oggi da spegnere. La riga B3 si dichiara solo quando le date finiscono per la finestra e non per il tetto DATA_MAX, altrimenti direbbe una cosa falsa. CUMULA v11 · 2026-09-18 · REGISTRO AVVISI v2 (Censimento Avvisi v0.2, blocco A): kc-avvisi.js passa a v2 con i testi ratificati per agenda, landing, minori, kata e pagine di servizio, il compilatore di segnaposto testo(codice, valori) e daErroreRpc(), che raccoglie in un punto solo la catena di traduzione dei RAISE di prenota_corso / disdici_corso. Qui cambia SOLO il numero di versione del tag, da ?v=1 a ?v=2: obbligatorio perche' sw.js serve i .js cache-first e senza questo i telefoni gia' passati di qui continuerebbero a eseguire il registro vecchio. Nessuna altra riga di questa pagina e' toccata. CUMULA v10 · 2026-09-18 · REGISTRO UNICO DEGLI AVVISI (kc-avvisi v1, punti B5b e A14 del Censimento Avvisi): nuovo file di radice kc-avvisi.js agganciato con un tag script src="/kc-avvisi.js?v=2" prima dello script principale — il ?v= e' OBBLIGATORIO perche' sw.js serve i .js cache-first e va alzato a ogni modifica del registro. I tre rami che parlano col Worker (checkout SINGOLO, checkout GRUPPO, INVIO RICHIESTA) non leggono piu' da soli errBody/data: passano da kcAvvisi.daRisposta / daEccezione e scrivono con kcAvvisi.mostra, cosi' i codici tecnici (stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato, price_id ... non configurato, 500 a corpo vuoto) diventano una frase con la via d'uscita WhatsApp e l'errore vero resta in console per noi. Anche la sessione Stripe senza url passa da errore_pagamento_nostro invece del vecchio 'URL pagamento non ricevuto'. TENUTA: ogni aggancio e' dietro if(window.kcAvvisi), se il file non si carica la pagina si comporta ESATTAMENTE come prima. Aggiunte solo le due regole CSS .kc-avviso-wa (riga WhatsApp, eredita i 13px e il colore del box errore). NON toccati: validazioni del modulo, calcolaRange, checkout, tracking, Worker, DB. CUMULA v9 · 2026-09-18 · ERRORE 409 LEGGIBILE (difetto B4 del Censimento Avvisi): la gestione errore leggeva solo errBody.error, quindi chi riprovava a prenotare la stessa lezione vedeva la parola tecnica nuda 'gia_prenotato'. Ora legge errBody.message (la frase umana che il Worker gia' manda) con fallback su errBody.error. Allineati entrambi i rami che avevano il difetto: checkout SINGOLO e 'Invio richiesta' (form-info). Nessun testo nuovo, nessuna logica toccata: due righe in tutto. Il ramo GRUPPO era gia' corretto in partenza, come inizia-minori e inizia-famiglia. RESTA APERTO B5b: i codici che il Worker manda senza campo message (price_id non configurato, stripe_session_failed, rpc_gruppo_failed, gruppo_non_creato) arrivano ancora nudi e vanno tradotti dal registro avvisi. CUMULA v8 · 2026-08-31 · FIX CONTEGGI RLS PRE-CAMPAGNA (migration rpc_conteggi_prima_lezione_pubblici live): caricaConteggi leggeva prenotazioni_prima_lezione direttamente da anon ma RLS torna 0 righe, quindi ogni data risultava SEMPRE DISPONIBILE anche a slot pieno (badge ESAURITO mai scattato, rischio pagamento 25 euro senza prenotazione, alert doppione al webhook come unica rete). Ora RPC aggregata pubblica conteggi_prima_lezione(p_dal,p_al) — solo slot_id/data/occupati, zero dati personali — stati allineati al trigger enforce_slot_capacity (fix concorrenza in pari data: FOR UPDATE + esclusione cancellate/scadute + UNIQUE parziale per riprenotare dopo cancellazione). NIENT'ALTRO toccato. CUMULA v7 · 2026-08-03 · BANNER "SU MISURA" SPARATO: sfondo giallo pieno, testo nero maiuscolo grande su 2 righe (richiesta Marco: il celeste piccolo si perdeva). CUMULA v6 · 2026-08-03 · DISTINZIONE VISIVA da inizia.html: <title> "Su misura ·...", top-pill "Su misura · Tutte le date fino al 30 settembre · 25€", sottotitolo hero riscritto (dichiara subito la differenza — chi apre il link capisce al volo che NON è la pagina 7 giorni). CUMULA v5 · 2026-08-03 · TITOLO SEZIONE calendario "Prossimi 7 giorni" → "Tutte le date fino al 30 settembre" (era rimasto il copy statico della finestra 7gg). CUMULA v4 · 2026-08-03 · SCHEDE 02+03 riscritte dai testi ORIGINALI di Marco (Kata_02_L_Atterraggio, Kata_03_Il_Passo_Verticale) — le precedenti erano copy inventato (vedi Brief Bonifica Lista Kata). Approvate da Marco. CUMULA v3 · 2026-08-03 · COPY "Il Pronti" riscritto (via "imbrago, nodi": fuori linguaggio, un solo nodo insegnato) → procedure di sicurezza + movimento spiegato + sostegno = pronto dal concreto. CUMULA v2 · 2026-08-03 · TETTO DATA_MAX=2026-09-30 (niente ottobre; da aggiornare o rimuovere se la pagina servirà oltre settembre). CUMULA v1 · COPIA DI inizia.html v9 con FINESTRA 30 GIORNI VALIDI (anti-procrastinazione NON applicata: pagina per link diretto manuale a persone che rientrano tardi). Uniche differenze da inizia v9: finestra 7→30 giorni validi (tetto iterazioni 60→120 per scavalcare la pausa di agosto), og:url e label pagina=sumisura.html. Tutto il resto (checkout, kc-lead, fascia adulti, gruppo, minori→/inizia-minori.html, pausa agosto) IDENTICO. REGOLA: ogni futura modifica a inizia.html va valutata anche qui. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -484,7 +484,7 @@ body{
 </div>
 
 <div class="top-pill-wrap fu">
-  <div class="top-pill">Su misura<br><span style="font-size:.72em;font-weight:800">Tutte le date fino al 30 settembre · <u>25€</u></span></div>
+  <div class="top-pill">Su misura<br><span style="font-size:.72em;font-weight:800">Tutte le date dei prossimi <span id="pill-giorni">30</span> giorni · <u>25€</u></span></div>
 </div>
 
 <section class="hero fu fu1">
@@ -493,7 +493,7 @@ body{
       La tua <span class="accent">prima lezione</span> di KataClimb.
     </h1>
     <p>
-      <strong>Su misura per te:</strong> qui trovi tutte le date fino al 30 settembre.
+      <strong>Su misura per te:</strong> qui trovi tutte le date dei prossimi <span id="hero-giorni">30</span> giorni.
       Scegli il giorno giusto per il tuo rientro e assicurati il posto.
     </p>
   </div>
@@ -562,7 +562,7 @@ body{
 
 <section class="picker fu fu5">
   <div class="section-eyebrow">Scegli quando</div>
-  <h2>Tutte le date fino al <span class="accent">30 settembre</span>.</h2>
+  <h2>Tutte le date dei <span class="accent">prossimi <span id="cal-giorni">30</span> giorni</span>.</h2>
   <p class="sub">Disponibilità in tempo reale.</p>
   <p class="lead-cta">
     <strong>Prenota la tua prima lezione</strong><br>
@@ -841,8 +841,21 @@ body{
   // Rimuovere o aggiornare per le chiusure future.
   const CHIUSURA_DAL = '2026-08-01';
   const CHIUSURA_AL  = '2026-08-31';
-  // Tetto pagina su misura: mai proporre date oltre questa (niente ottobre).
-  const DATA_MAX = '2026-09-30';
+  // v13: il tetto DATA_MAX (2026-09-30) e' stato rimosso — decisione Marco 21 set:
+  // la pagina resta in uso oltre settembre. La finestra e' a scorrimento, senza scadenza.
+  // FINESTRA_GIORNI e' l'unica fonte del numero: calcolaRange, la riga B3 e i testi
+  // della pagina lo leggono da qui, nessuno lo riscrive a mano.
+  const FINESTRA_GIORNI = 30;
+  // Taglio del giorno corrente, unica fonte: calcolaRange/occorrenze e i due rami
+  // di checkout lo leggono da qui.
+  const CUTOFF_OGGI_MIN = 240;
+  // Il 30 dei testi non e' scritto a mano: i tre segnaposto lo prendono da qui.
+  // In HTML il valore c'e' gia' scritto, cosi' la pagina e' corretta anche prima
+  // che il modulo (deferred) giri; questa riga tiene tutto allineato se cambia.
+  ['pill-giorni','hero-giorni','cal-giorni'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = FINESTRA_GIORNI;
+  });
 
   // kc-avvisi v2 — B3: la finestra decisa da calcolaRange, letta fuori senza
   // ricalcolarla altrove (P-VERITÀ-UNICA). null = non si dichiara la regola.
@@ -850,27 +863,38 @@ body{
   function calcolaRange(){
     const oggi = new Date(); oggi.setHours(0,0,0,0);
     const giorni = [];
-    // Parte da domani e avanza finché non raccoglie 30 giorni-finestra validi (tetto DATA_MAX):
-    // la pausa estiva viene saltata SENZA consumare la finestra; il giorno chiuso
+    // Parte da domani e avanza finché non raccoglie FINESTRA_GIORNI giorni-finestra
+    // validi: la pausa estiva viene saltata SENZA consumare la finestra; il giorno chiuso
     // puntuale (GIORNI_CHIUSI) consuma la finestra ma non si propone (comportamento
-    // preesistente). Tetto di sicurezza: 60 iterazioni.
+    // preesistente). Tetto di sicurezza: 120 iterazioni.
+    // OGGI PRENOTABILE (v13): il giorno corrente entra nel range senza consumare la
+    // finestra (gli slot gia' troppo vicini vengono scartati nel blocco occorrenze,
+    // CUTOFF_OGGI_MIN). Rispetta la pausa estiva e i giorni chiusi.
+    {
+      const isoOggi = isoDate(oggi);
+      if(!(isoOggi >= CHIUSURA_DAL && isoOggi <= CHIUSURA_AL)
+         && !GIORNI_CHIUSI.has(isoOggi)){
+        giorni.push({ data:new Date(oggi), iso:isoOggi, giorno_settimana:((oggi.getDay()+6)%7)+1, oggi:true });
+      }
+    }
     let raccolti = 0, offset = 0;
-    while(raccolti < 30 && offset < 120){
+    while(raccolti < FINESTRA_GIORNI && offset < 120){
       offset++;
       const d = new Date(oggi);
       d.setDate(d.getDate()+offset);
       const isoG = isoDate(d);
-      if(isoG > DATA_MAX) break; // tetto: fine settembre
       if(isoG >= CHIUSURA_DAL && isoG <= CHIUSURA_AL) continue; // pausa estiva
       raccolti++;
       if(GIORNI_CHIUSI.has(isoG)) continue; // giorno chiuso: non proponibile
       const gs = ((d.getDay()+6)%7)+1;
       giorni.push({ data:d, iso:isoG, giorno_settimana:gs });
     }
-    // B3: la riga si dichiara SOLO se le date finiscono per la finestra. Se ha morso
-    // il tetto DATA_MAX la ragione e' un'altra e dire "si aprono N giorni prima"
-    // sarebbe falso: meglio non dire niente.
-    finestraGiorni = (raccolti >= 30) ? 30 : null;
+    // B3: senza piu' il tetto DATA_MAX le date finiscono SEMPRE per la finestra, quindi
+    // la riga si dichiara sempre, coi giorni letti dalla finestra vera. Resta il caso
+    // limite del tetto di sicurezza (pausa cosi' lunga da esaurire le 120 iterazioni):
+    // li' la finestra non e' stata raggiunta e dire "si aprono N giorni prima" sarebbe
+    // falso, meglio non dire niente.
+    finestraGiorni = (raccolti >= FINESTRA_GIORNI) ? FINESTRA_GIORNI : null;
     return giorni;
   }
 
@@ -955,7 +979,7 @@ body{
         <div class="slot-action">
           <div class="slot-badge ${badgeClass}">${badgeText}</div>
           ${chiuso ? `<button class="btn-choose" disabled>SCEGLI</button>`
-            : (!isFull ? `<button class="btn-choose" data-slot-id="${o.slot.id}" data-data-lezione="${o.data_lezione}" data-label="${dataLabel} · ${oraLabel}">SCEGLI</button>` : '')}
+            : (!isFull ? `<button class="btn-choose" data-slot-id="${o.slot.id}" data-data-lezione="${o.data_lezione}" data-ora-inizio="${o.slot.ora_inizio}" data-label="${dataLabel} · ${oraLabel}">SCEGLI</button>` : '')}
         </div>`;
       if(avviso){
         const nota = document.createElement('div');
@@ -970,6 +994,7 @@ body{
       b.onclick = () => apriModal({
         slot_id:      b.dataset.slotId,
         data_lezione: b.dataset.dataLezione,
+        ora_inizio:   b.dataset.oraInizio,   // serve al ricontrollo del taglio, non va al Worker
         label:        b.dataset.label,
       });
     });
@@ -977,6 +1002,28 @@ body{
 
   let modalCtx = null;
   let nPersone = 1;
+
+  // OGGI PRENOTABILE — rete prima del POST. La griglia e' disegnata una volta sola
+  // all'avvio: tra la scelta della data e il click su "paga" possono passare ore, e la
+  // pagina puo' restare aperta oltre la mezzanotte. Senza questo si potrebbe pagare una
+  // lezione che inizia fra mezz'ora, o una data ormai passata.
+  // Torna null se si prenota, altrimenti la frase da mostrare.
+  function motivoNonPrenotabile(ctx){
+    if(!ctx) return null;
+    const oggiIso = isoDate(new Date());
+    if(ctx.data_lezione < oggiIso){
+      return 'Quella data è passata. Ricarica la pagina e scegline un\'altra.';
+    }
+    if(ctx.data_lezione === oggiIso && ctx.ora_inizio){
+      const hm = String(ctx.ora_inizio).split(':');
+      const inizio = new Date(); inizio.setHours(+hm[0], +hm[1]||0, 0, 0);
+      if(inizio.getTime() - Date.now() < CUTOFF_OGGI_MIN*60000){
+        if(window.kcAvvisi) return window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN/60 }).testo;
+        return `Prenotazioni chiuse. Per oggi si prenota fino a ${CUTOFF_OGGI_MIN/60} ore prima dell'inizio. Scegli un'altra data.`;
+      }
+    }
+    return null;
+  }
 
   // genera/aggiorna i blocchi profilo dei partecipanti extra (2..N)
   function renderPartecipanti(){
@@ -1077,6 +1124,9 @@ body{
     if(!telefono || telefono.length < 6){ showError('Inserisci un numero di telefono valido.'); return; }
     if(!terms){ showError('Devi accettare i Termini della Prima Lezione.'); return; }
 
+    const stopTaglio = motivoNonPrenotabile(modalCtx);   // ultimo controllo prima del POST
+    if(stopTaglio){ showError(stopTaglio); return; }
+
     const btn = document.getElementById('btn-pay');
     btn.disabled = true;
     btn.innerHTML = '<span class="field-spinner"></span> Apro pagamento…';
@@ -1156,6 +1206,9 @@ body{
       emailsViste.add(email);
       partecipanti.push({ nome, cognome, email, telefono });
     }
+
+    const stopTaglio = motivoNonPrenotabile(modalCtx);   // ultimo controllo prima del POST
+    if(stopTaglio){ showError(stopTaglio); return; }
 
     const btn = document.getElementById('btn-pay');
     const tot = nPersone * 25;
@@ -1352,13 +1405,38 @@ body{
       }
 
       const range = calcolaRange();
-      if(range.some(g => g.iso >= '2026-09-01')){
+      // Range vuoto (es. una pausa cosi' lunga da coprire tutta la finestra): niente
+      // da proporre, messaggio neutro. Senza questa guardia range[0].iso qui sotto
+      // andrebbe in TypeError e il calendario resterebbe sullo spinner.
+      if(range.length === 0){
+        document.getElementById('slot-grid').innerHTML =
+          '<div class="empty">Nessuna data disponibile al momento. Riprova più tardi.</div>';
+        return;
+      }
+      if(isoDate(new Date()) <= CHIUSURA_AL && range.some(g => g.iso >= '2026-09-01')){
         document.getElementById('pausa-banner').classList.add('show');
       }
       const occorrenze = [];
       range.forEach(giorno => {
         slots.forEach(s => {
           if(s.giorno_settimana === giorno.giorno_settimana){
+            // OGGI PRENOTABILE: slot di oggi solo se mancano almeno CUTOFF_OGGI_MIN minuti all'inizio
+            if(giorno.oggi){
+              const hm = String(s.ora_inizio).split(':');
+              const inizio = new Date(); inizio.setHours(+hm[0], +hm[1]||0, 0, 0);
+              const mancano = inizio.getTime() - Date.now();
+              if(mancano < CUTOFF_OGGI_MIN*60000){
+                // kc-avvisi v2 — B1: chi guarda stamattina deve capire perche' la lezione di
+                // stasera non si prenota piu'. Lo slot resta in lista, spento, col motivo.
+                // Quello gia' iniziato no: non c'e' piu' niente da dire. Senza registro,
+                // comportamento di prima (slot nascosto).
+                if(window.kcAvvisi && mancano > 0){
+                  occorrenze.push({ slot:s, data_lezione:giorno.iso, dataObj:giorno.data,
+                                    chiuso:true, ore_cutoff: CUTOFF_OGGI_MIN/60 });
+                }
+                return;
+              }
+            }
             occorrenze.push({ slot:s, data_lezione:giorno.iso, dataObj:giorno.data });
           }
         });

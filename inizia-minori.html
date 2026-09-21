@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: inizia-minori v9 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO D (C1): riga fissa sopra il calendario che dice perche' le lezioni dei minori si prenotano entro il giorno prima (gli istruttori preparano la lezione sull'eta' di chi arriva) — prima il calendario partiva da domani senza dirlo. Testo dal registro kc-avvisi v2, pagina agganciata a /kc-avvisi.js?v=2. Logica, slot, fasce, checkout invariati. CUMULA v8 · 2026-08-24 · RIMANDO PRIMA LEZIONE IN FAMIGLIA: blocco caldo (sezione sopra "Come funziona") che invita il genitore alla Prima Lezione in Famiglia del giovedì -> /inizia-famiglia.html. Solo contenuto, nessuna modifica al funnel/checkout minori. CUMULA v7 · 2026-08-16 · CRITERIO ANNO SOLARE (caso Bertie/Georgia, 16 ago): il minimo di fascia è soddisfatto se l'età minima si compie entro il 31 dicembre dell'anno della lezione (chi compie 12 a dicembre può scegliere Ragazzi già a settembre); il massimo resta sull'età effettiva alla data della lezione (un 17enne che compie 18 a dicembre resta Ragazzi fino al compleanno). Solo frontend: nuova fasciaOk() in verificaEta(), nessuna modifica a worker/DB. CUMULA v6 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (generaDate avanza a finestra piena, la pausa non consuma i giorni; giorni_chiusi puntuali invariati) + banner riapertura 1° settembre (classe .nota-estate). CUMULA v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
+<!-- KC-BUILD: inizia-minori v10 · 2026-09-21 · OGGI PRENOTABILE ANCHE PER I MINORI: generaDate() mette in lista anche il giorno corrente (non consuma la finestra GIORNI_AVANTI, rispetta pausa estiva e giorni_chiusi), con lo stesso taglio a 4 ore di inizia.html (CUTOFF_OGGI_MIN=240). Lo slot di oggi oltre il taglio resta in lista SPENTO (.slot-card.off, non cliccabile) con sotto la frase cutoff_oggi del registro e le ore lette da CUTOFF_OGGI_MIN/60, mai scritte a mano; lo slot gia' iniziato resta nascosto; senza window.kcAvvisi lo slot oltre il taglio non si mostra (comportamento di prima). TOLTA la riga fissa C1 'minori_da_domani' (elemento #regola-giorno-prima e suo aggancio): da oggi direbbe una cosa falsa. La voce resta inerte nel registro: kc-avvisi.js NON e' toccato (modificarlo obbligherebbe ad alzare ?v= su tutte le pagine, sw.js serve i .js cache-first). Nuove regole CSS .slot-card.off / .slot-nota / .kc-avviso-wa (13px, colore leggibile: cutoff_oggi ha whatsapp:true e kcAvvisi.mostra appende la riga WhatsApp). La validazione eta'/fascia resta calcolata sulla data della lezione e funziona con data = oggi. + DOPO CODE REVIEW: la decisione del taglio non e' piu' congelata alla generazione della lista ma ricalcolata a ogni render (statoRiga/mostrabile): la pagina puo' restare aperta per ore e la riga di oggi passa da prenotabile a spenta e poi sparisce da sola, e un giorno ormai passato non si mostra e non si prenota. RETE AL CHECKOUT: il taglio e' ricontrollato al click su Paga PRIMA del POST (prima si poteva scegliere lo slot delle 17:00 alle 12:00 e pagarlo alle 16:30). Se scatta, la selezione decade, la lista si riallinea, il modulo si chiude e la frase del registro compare in #avviso-calendario, un elemento FUORI da #form-wrap e sopra la lista date (classe .nota-estate riusata, 14px, #0C4A6E): #form-err e' figlio di #form-wrap, quindi col modulo chiuso sarebbe rimasto display:none e lo scrollIntoView sarebbe andato a vuoto — click su Paga, modulo che sparisce, nessuna spiegazione. L'avviso si spegne da solo alla scelta della data successiva. + IMPAGINAZIONE (decisioni Marco 21 set): (1) tolta la nota fissa 'Quando il corso non e' ancora attivo (ad esempio a luglio)...' sotto il sottotitolo del calendario, residuo del lancio di luglio: i corsi sono attivi. (2) La sezione 'Come funziona' sale dal fondo pagina a subito dopo le due card fascia, PRIMA di <section id="calendario"> — ordine finale hero > fasce > Come funziona > calendario > blocco famiglia. Solo spostamento del blocco HTML, byte per byte: nessun testo riscritto, nessun id, ancora o script toccato (#calendario dalla CTA dell'hero funziona come prima). Spazi verticali: fasce > Come funziona 36px come prima, Come funziona > calendario 36+36=72px, cioe' lo stesso accostamento tra due .section che la pagina gia' aveva in fondo; calendario > famiglia resta 44px. (3) TERMINOLOGIA (decisione Marco 21 set): "Un'ora vera sul muro" -> "Una lezione verticale, in parete e nel gruppo" nei tre punti in cui compariva — sottotitolo hero, primo punto di 'Come funziona', og:description. Sostituzioni esatte, tre righe in tutto; fuori dal KC-BUILD non resta ne' 'vera' ne' 'muro' (stessa bonifica gia' fatta su inizia-famiglia v3). Nessun altro testo toccato. (4) FINESTRA A DUE SETTIMANE (decisione Marco 21 set): GIORNI_AVANTI da 30 a 14, stessa logica anti-procrastinazione delle landing adulti. Nessun testo della pagina cita la finestra, quindi cambia solo la costante; il giorno corrente continua a NON consumarla (entra fuori dal ciclo) e il tetto di sicurezza di 90 iterazioni resta abbondante. Col 21 set l'ultima data proposta e' lunedi' 5 ottobre. Payload al Worker invariato. + BANNER PAUSA AGOSTO legato alla pausa vera: la condizione era solo 'esistono date dopo il 1 set', vera per qualsiasi data futura, quindi 'Ad agosto l'Accademia e' in pausa' restava acceso tutto l'anno (gia' il 21 set diceva una cosa falsa). Ora si aggiunge isoOggi <= CHIUSURA_AL: una riga. NON toccati: query slot, checkout, tracking, consenso, prezzi, testi. CUMULA v9 · 2026-09-18 · CENSIMENTO AVVISI, BLOCCO D (C1): riga fissa sopra il calendario che dice perche' le lezioni dei minori si prenotano entro il giorno prima (gli istruttori preparano la lezione sull'eta' di chi arriva) — prima il calendario partiva da domani senza dirlo. Testo dal registro kc-avvisi v2, pagina agganciata a /kc-avvisi.js?v=2. Logica, slot, fasce, checkout invariati. CUMULA v8 · 2026-08-24 · RIMANDO PRIMA LEZIONE IN FAMIGLIA: blocco caldo (sezione sopra "Come funziona") che invita il genitore alla Prima Lezione in Famiglia del giovedì -> /inizia-famiglia.html. Solo contenuto, nessuna modifica al funnel/checkout minori. CUMULA v7 · 2026-08-16 · CRITERIO ANNO SOLARE (caso Bertie/Georgia, 16 ago): il minimo di fascia è soddisfatto se l'età minima si compie entro il 31 dicembre dell'anno della lezione (chi compie 12 a dicembre può scegliere Ragazzi già a settembre); il massimo resta sull'età effettiva alla data della lezione (un 17enne che compie 18 a dicembre resta Ragazzi fino al compleanno). Solo frontend: nuova fasciaOk() in verificaEta(), nessuna modifica a worker/DB. CUMULA v6 · 2026-07-20 · PAUSA AGOSTO: calendario salta 1–31 ago e aggancia settembre (generaDate avanza a finestra piena, la pausa non consuma i giorni; giorni_chiusi puntuali invariati) + banner riapertura 1° settembre (classe .nota-estate). CUMULA v5 · 2026-07-16 · CONSENSO GDPR (Onda 1.1 roadmap audit): il Pixel non parte più incondizionato — architettura gated identica a inizia.html v8 (kcInitPixel + kcTrack + banner Accetta/Rifiuta kc_consent). PageView/ViewContent solo a consenso granted; InitiateCheckout via kcTrack (no-op se denied). Era l'unica pagina funnel senza gate, e per giunta quella dei minori. CUMULA v4 · 2026-07-15 · SPLIT TIPI (migration split_tipo_prima_lezione_minori live): la query slot legge i nuovi tipo_corso prima_lezione_bambini|prima_lezione_ragazzi (filtro fascia mantenuto come cintura). Motivo: i 4 slot minori condividevano tipo_corso='prima_lezione' con gli adulti -> le copie cache pre-13-lug di inizia.html (senza filtro fascia) li mostravano come Prima Lezione Adulti (segnalazione Marco 15 lug, signora delle 18:00). Dopo lo split, tipo_corso='prima_lezione' = SOLO adulti, per qualsiasi copia in giro. CUMULA v3 · 2026-07-14 · OG TAGS: anteprima WhatsApp/social con og-inizia-minori.jpg (1200x630, ritaglio orizzontale della hero) + titolo e descrizione dedicati — prima usciva il logo di default (segnalazione Marco). CUMULA v2 · 2026-07-14 · FIX link Termini: /Termini_Prima_Lezione.pdf (il .html non esiste, era 404). CUMULA v1 · 2026-07-13 · PRIMA LEZIONE MINORI: calendario unico bambini (6-11, lun+gio 17:00-18:00, 10€) + ragazzi (12-17, lun+gio 18:00-19:30, 15€). Paga il genitore, arrampica il figlio. Slot da corsi_attivi_settimanali fascia in (bambini,ragazzi) status=attivo; rispetta giorni_chiusi; date con componenti LOCALI (trappola #134). Form famiglia: genitore (referente) + figlio (nome, cognome, data nascita, email opzionale per il portale) + consenso genitore. Validazione età vs fascia alla data della lezione. Checkout -> stripe-worker v3.67 prodotto prima_lezione_bambini|prima_lezione_ragazzi. Deep-link ?fascia=bambini|ragazzi pre-filtra. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 <meta name="description" content="Prima lezione di arrampicata per bambini (6-11) e ragazzi (12-17) all'Accademia RCC, La Storta Roma. Lunedì e giovedì, con Claudia e Mattia.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Prima Lezione Bambini e Ragazzi · Accademia RCC">
-<meta property="og:description" content="Bambini 6-11 e ragazzi 12-17, lunedì e giovedì con Claudia e Mattia. Un'ora vera sul muro: tutto il materiale lo mettiamo noi.">
+<meta property="og:description" content="Bambini 6-11 e ragazzi 12-17, lunedì e giovedì con Claudia e Mattia. Una lezione verticale, in parete e nel gruppo: tutto il materiale lo mettiamo noi.">
 <meta property="og:url" content="https://kataclimb.com/inizia-minori.html">
 <meta property="og:image" content="https://kataclimb.com/og-inizia-minori.jpg">
 <meta property="og:image:width" content="1200">
@@ -113,6 +113,14 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .tag-ragazzi{background:#E0F2FE;color:#075985}
 .slot-card .riga2{margin-top:4px;font-size:14px;color:var(--ink2)}
 .slot-card .riga2 b{color:var(--ink)}
+/* kc-avvisi v2 — B1: la card negata resta in lista, spenta, col motivo sotto. */
+.slot-card.off{background:#FAFAFA;border-color:var(--border2);cursor:default}
+.slot-card.off .riga1,.slot-card.off .riga2{opacity:.55}
+.slot-nota{margin-top:8px;font-size:13px;line-height:1.45;color:var(--ink2)}
+.slot-nota a{color:inherit;font-weight:700;text-decoration:underline}
+/* riga WhatsApp che kcAvvisi.mostra appende agli avvisi con whatsapp:true (cutoff_oggi) */
+.kc-avviso-wa{margin-top:6px}
+.kc-avviso-wa a{color:inherit;font-weight:700;text-decoration:underline}
 
 .form-wrap{background:var(--bg2);border-radius:14px;padding:20px 16px;margin-top:26px;display:none}
 .form-wrap.show{display:block}
@@ -192,7 +200,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   <img src="/hero-prima-lezione-minori.jpg" alt="Allieva in arrampicata con istruttore all'Accademia RCC" class="hero-img">
   <div class="hero-inner fu">
     <h1>La prima lezione di arrampicata <em>per bambini e ragazzi</em></h1>
-    <p>All'Accademia RCC, con Claudia e Mattia. Un'ora vera sul muro, tutto il materiale lo mettiamo noi.</p>
+    <p>All'Accademia RCC, con Claudia e Mattia. Una lezione verticale, in parete e nel gruppo. Tutto il materiale lo mettiamo noi.</p>
     <a href="#calendario" class="cta">Scegli il giorno →</a>
   </div>
 </section>
@@ -212,13 +220,19 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   </div>
 </div>
 
+<section class="section">
+  <h2>Come funziona</h2>
+  <div class="info-list">
+    <div class="info-item"><span class="ic">🧗</span><span><b>Una lezione verticale, in parete e nel gruppo</b> con Claudia e Mattia: gioco, tecnica e prime salite in sicurezza.</span></div>
+    <div class="info-item"><span class="ic">👟</span><span><b>Serve solo abbigliamento comodo.</b> Scarpette, imbrago e tutto il materiale li mettiamo noi.</span></div>
+    <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b> — Via Cassia 1634, La Storta, Roma.</span></div>
+    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
+  </div>
+</section>
+
 <section class="section" id="calendario">
   <h2>Scegli il giorno</h2>
   <p class="sub">Gli orari sono quelli dei corsi. Prenoti ora, in segreteria vi accogliamo 10 minuti prima.</p>
-  <div class="nota-estate">ℹ️ Quando il corso non è ancora attivo (ad esempio a luglio) la prima lezione si svolge <b>in un'ora</b>, all'inizio della fascia oraria.</div>
-
-  <!-- kc-avvisi v2 — C1: la regola del giorno prima detta prima, non scoperta dopo. -->
-  <div class="nota-estate" id="regola-giorno-prima" style="display:none"></div>
 
   <div class="filtro-fascia" id="filtro-fascia">
     <button data-f="tutte" class="on">Tutte</button>
@@ -229,6 +243,10 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   <div id="slot-loading"><span class="sp"></span> Carico le date disponibili…</div>
   <div id="slot-err">Non riesco a caricare le date. Riprova tra poco o scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
   <div class="nota-estate" id="pausa-banner" style="display:none">Ad agosto l'Accademia è in pausa: si riparte il 1° settembre. Le date di settembre sono già prenotabili — assicurati il tuo posto.</div>
+  <!-- Avviso del calendario: sta FUORI da #form-wrap apposta. Quando una guardia
+       chiude il modulo, il motivo deve restare visibile dove si sceglie la data. -->
+  <div class="nota-estate" id="avviso-calendario" style="display:none"></div>
+
   <div class="slot-list" id="slot-list"></div>
 
   <div class="form-wrap" id="form-wrap">
@@ -272,16 +290,6 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   </div>
 </section>
 
-<section class="section">
-  <h2>Come funziona</h2>
-  <div class="info-list">
-    <div class="info-item"><span class="ic">🧗</span><span><b>Un'ora vera sul muro</b> con Claudia e Mattia: gioco, tecnica e prime salite in sicurezza.</span></div>
-    <div class="info-item"><span class="ic">👟</span><span><b>Serve solo abbigliamento comodo.</b> Scarpette, imbrago e tutto il materiale li mettiamo noi.</span></div>
-    <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b> — Via Cassia 1634, La Storta, Roma.</span></div>
-    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
-  </div>
-</section>
-
 <footer class="footer">
   Accademia ArrampiKata RCC · Via Cassia 1634, La Storta, Roma<br>
   <a href="https://kataclimb.com">kataclimb.com</a>
@@ -292,17 +300,12 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 <script src="/kc-avvisi.js?v=2"></script>
 
 <script type="module">
-  // kc-avvisi v2 — C1: perche' il calendario parte da domani.
-  if (window.kcAvvisi) {
-    const _rg = document.getElementById('regola-giorno-prima');
-    if (_rg) { window.kcAvvisi.mostra(_rg, window.kcAvvisi.daCodice('minori_da_domani')); _rg.style.display = ''; }
-  }
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   const SUPABASE_URL  = 'https://wbtougychlhnlcnonqge.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
   const WORKER_URL    = 'https://stripe-worker.marconescatelli.workers.dev';
-  const GIORNI_AVANTI = 30;   // finestra date mostrate
+  const GIORNI_AVANTI = 14;   // finestra date mostrate: due settimane (anti-procrastinazione, come le landing adulti)
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
   const PRODOTTO = { bambini: 'prima_lezione_bambini', ragazzi: 'prima_lezione_ragazzi' };
@@ -354,10 +357,57 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   const CHIUSURA_DAL = '2026-08-01';
   const CHIUSURA_AL  = '2026-08-31';
 
+  // OGGI PRENOTABILE (v10): il giorno corrente si prenota fino a CUTOFF_OGGI_MIN
+  // minuti prima dell'inizio. Stesso valore e stessa regola di inizia.html:
+  // la vecchia "minori entro il giorno prima" e' superata.
+  const CUTOFF_OGGI_MIN = 240;
+
+  // ms che mancano all'inizio di uno slot di OGGI (componenti locali, trappola #134)
+  function mancanoOggi(oraInizio){
+    const hm = String(oraInizio).split(':');
+    const inizio = new Date(); inizio.setHours(+hm[0], +hm[1] || 0, 0, 0);
+    return inizio.getTime() - Date.now();
+  }
+
+  // Stato di una riga rispetto al taglio, calcolato SEMPRE sull'ora corrente e mai
+  // congelato alla generazione: la lista vive quanto la pagina, che puo' restare
+  // aperta per ore e oltre la mezzanotte.
+  //   null     = si prenota
+  //   'taglio' = oggi, sotto le CUTOFF_OGGI_MIN: si mostra spenta col motivo
+  //   'via'    = passata o gia' iniziata: non si mostra, non c'e' piu' niente da dire
+  function mostrabile(s){
+    const stato = statoRiga(s);
+    if (stato === 'via') return false;                      // passata o gia' iniziata
+    if (stato === 'taglio' && !window.kcAvvisi) return false; // non potremmo dire il perche'
+    return true;
+  }
+
+  function statoRiga(s){
+    const oggiIso = isoLocale(new Date());
+    if (s.dataISO < oggiIso) return 'via';
+    if (s.dataISO !== oggiIso) return null;
+    const mancano = mancanoOggi(s.ora_inizio);
+    if (mancano <= 0) return 'via';
+    return mancano < CUTOFF_OGGI_MIN * 60000 ? 'taglio' : null;
+  }
+
   function generaDate(slots){
     const out = [];
     const oggi = new Date(); oggi.setHours(0,0,0,0);
-    // Parte da domani e avanza finché non raccoglie GIORNI_AVANTI giorni-finestra
+    // OGGI PRENOTABILE: il giorno corrente entra in lista senza consumare la finestra
+    // (rispetta pausa estiva e giorni chiusi come gli altri giorni).
+    {
+      const isoOggi = isoLocale(oggi);
+      const dowOggi = oggi.getDay() === 0 ? 7 : oggi.getDay();
+      if (!(isoOggi >= CHIUSURA_DAL && isoOggi <= CHIUSURA_AL) && !giorniChiusi.has(isoOggi)) {
+        for (const s of slots) {
+          if (s.giorno_settimana !== dowOggi) continue;
+          out.push({ key: `${s.id}|${isoOggi}`, slot_id: s.id, fascia: s.fascia,
+                     dataISO: isoOggi, ora_inizio: s.ora_inizio, ora_fine: s.ora_fine });
+        }
+      }
+    }
+    // Poi da domani: avanza finché non raccoglie GIORNI_AVANTI giorni-finestra
     // validi: la pausa estiva viene saltata SENZA consumare la finestra; il giorno
     // chiuso puntuale (giorniChiusi) consuma la finestra ma non si propone
     // (comportamento preesistente). Tetto di sicurezza: 90 iterazioni.
@@ -390,21 +440,33 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   function render(){
     const list = $('slot-list');
     list.innerHTML = '';
-    const visibili = slotDate.filter(s => filtro === 'tutte' || s.fascia === filtro);
+    const visibili = slotDate.filter(s => (filtro === 'tutte' || s.fascia === filtro) && mostrabile(s));
     if (!visibili.length) {
       list.innerHTML = '<p style="color:var(--ink3);font-size:14px">Nessuna data disponibile al momento — scrivici su <a href="https://wa.me/393318743953">WhatsApp</a>.</p>';
       return;
     }
     for (const s of visibili) {
+      // kc-avvisi v2 — B1: lo slot di oggi oltre il taglio si mostra spento, non sparisce.
+      // Quello passato o gia' iniziato sparisce: non c'e' piu' niente da dire. Senza
+      // registro non potremmo dire il perche', quindi nemmeno lo mostriamo (come inizia.html).
+      const chiuso = statoRiga(s) === 'taglio';
       const div = document.createElement('div');
-      div.className = 'slot-card' + (selezione && selezione.key === s.key ? ' sel' : '');
+      div.className = 'slot-card' + (chiuso ? ' off' : '')
+                    + (!chiuso && selezione && selezione.key === s.key ? ' sel' : '');
       div.innerHTML = `
         <div class="riga1">
           <span class="data">${labelData(s.dataISO)}</span>
           <span class="tag tag-${s.fascia}">${LABEL[s.fascia]}</span>
         </div>
         <div class="riga2"><b>${oraRange(s.ora_inizio, s.ora_fine)}</b> · con Claudia e Mattia · <b>${PREZZO[s.fascia]} €</b></div>`;
-      div.addEventListener('click', () => seleziona(s));
+      if (chiuso) {
+        const nota = document.createElement('div');
+        nota.className = 'slot-nota';
+        window.kcAvvisi.mostra(nota, window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN / 60 }));
+        div.appendChild(nota);
+      } else {
+        div.addEventListener('click', () => seleziona(s));
+      }
       list.appendChild(div);
     }
     document.querySelectorAll('#filtro-fascia button').forEach(b => {
@@ -414,6 +476,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
   function seleziona(s){
     selezione = s;
+    const a = $('avviso-calendario');
+    a.style.display = 'none'; a.innerHTML = '';   // scelta fatta: l'avviso ha esaurito il suo compito
     render();
     $('riepilogo').innerHTML = `<b>${LABEL[s.fascia]}</b> · ${labelData(s.dataISO)} · <b>${oraRange(s.ora_inizio, s.ora_fine)}</b> · ${PREZZO[s.fascia]} €`;
     $('form-wrap').classList.add('show');
@@ -475,6 +539,33 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     $('form-err').style.display = 'none';
     if (!selezione) { erroreForm('Scegli prima una data qui sopra.'); return; }
 
+    // OGGI PRENOTABILE — ultimo controllo del taglio PRIMA del POST. Tra la scelta
+    // della data e il click possono passare ore: senza questo si potrebbe pagare una
+    // lezione che inizia fra mezz'ora, o una data passata se la pagina e' rimasta
+    // aperta oltre la mezzanotte. La selezione decade e la lista si riallinea.
+    const stato = statoRiga(selezione);
+    if (stato) {
+      const scaduta = stato === 'via' && selezione.dataISO < isoLocale(new Date());
+      selezione = null;
+      render();
+      $('form-wrap').classList.remove('show');
+      $('form-err').style.display = 'none';
+      // Il motivo va sopra la lista, FUORI dal modulo appena chiuso: dentro sarebbe
+      // display:none e lo scroll andrebbe a vuoto. E' anche dove si deve agire ora.
+      const a = $('avviso-calendario');
+      a.innerHTML = '';
+      if (scaduta) {
+        a.textContent = 'Quella data è passata: scegline un\'altra qui sotto.';
+      } else if (window.kcAvvisi) {
+        window.kcAvvisi.mostra(a, window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN / 60 }));
+      } else {
+        a.textContent = `Prenotazioni chiuse. Per oggi si prenota fino a ${CUTOFF_OGGI_MIN / 60} ore prima dell'inizio. Scegli un'altra data.`;
+      }
+      a.style.display = '';
+      a.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     const figlio_nome    = $('f-fnome').value.trim();
     const figlio_cognome = $('f-fcognome').value.trim();
     const figlio_nascita = $('f-fnascita').value;
@@ -534,7 +625,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       await caricaGiorniChiusi();
       const slots = await caricaSlot();
       slotDate = generaDate(slots);
-      if (slotDate.some(s => s.dataISO >= '2026-09-01')) {
+      if (isoLocale(new Date()) <= CHIUSURA_AL && slotDate.some(s => s.dataISO >= '2026-09-01')) {
         $('pausa-banner').style.display = '';
       }
       $('slot-loading').style.display = 'none';
