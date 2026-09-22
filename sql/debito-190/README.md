@@ -70,6 +70,27 @@ In fondo al file ci sono tre query pronte, `V1`, `V2`, `V3`.
   zero, il conteggio va scopato alla finestra e la view va corretta.
 - **V3** — `get_contatori` risponde: `[]` per un utente inesistente, un array per uno reale.
 
+### Dopo il 03 — `V-firme`, la verifica che non va saltata
+
+`CREATE OR REPLACE FUNCTION` sostituisce **solo a parità di firma**. Se la firma cambia, Postgres
+crea una funzione nuova e **lascia in piedi la vecchia**: da quel momento ogni chiamata che potrebbe
+risolvere su entrambe fallisce con `function ... is not unique`.
+
+Non è un rischio teorico: è già successo a `staff_attiva_corso`, che a DB ha `(uuid,text)` e
+`(uuid,text,boolean DEFAULT)`, e per cui **oggi una chiamata a due argomenti dà errore**.
+
+Tre funzioni del 03 cambiano firma, e ognuna ha il suo `DROP FUNCTION IF EXISTS` subito prima del
+`CREATE` — verificato confrontando una per una le 29 firme del file con `pg_proc`:
+
+| Funzione | Prima | Dopo |
+|---|---|---|
+| `applica_no_show` | `(uuid)` | `(uuid, text)` |
+| `prenota_corso_admin` | 4 argomenti | 5 (`p_omaggio_motivo`) |
+| `staff_attiva_corso` | **due** firme | una sola, quella a 3 argomenti |
+
+In fondo al 03 c'è la query `V-firme`: dopo l'applicazione ogni nome deve avere **un solo** overload,
+e le quattro funzioni eliminate non devono comparire affatto. Nessun overload doppio è voluto.
+
 ### Dopo il 02 — cosa verificare
 Il file produce quattro elenchi, tutti in righe leggibili senza conoscere il DB.
 

@@ -384,6 +384,11 @@ DROP FUNCTION IF EXISTS public.marca_presenza_open(uuid, boolean);
 --          chiamata a un argomento sola continua a funzionare. Senza
 --          tipo_corso si usa profile_data.corso_attivo, come faceva prima.
 -- ---------------------------------------------------------------------------
+-- CAMBIA FIRMA: da (uuid) a (uuid, text). CREATE OR REPLACE non sostituisce una
+-- firma diversa, la AFFIANCA: senza questo DROP resterebbero due overload e la
+-- chiamata a un argomento diventerebbe ambigua ("is not unique").
+DROP FUNCTION IF EXISTS public.applica_no_show(uuid);
+
 CREATE OR REPLACE FUNCTION public.applica_no_show(p_user_id uuid, p_tipo_corso text DEFAULT NULL)
 RETURNS void
 LANGUAGE plpgsql
@@ -1664,66 +1669,12 @@ $function$;
 -- quella scritta qui; per gli altri corsi non c'era una scadenza, quindi
 -- l'iscrizione nasce senza data_fine_validita, che la view accetta.
 
-CREATE OR REPLACE FUNCTION public.staff_attiva_corso(p_user_id uuid, p_corso text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_default_lezioni int; v_scadenza timestamptz; v_funnel_stage text;
-  v_lead_id uuid; v_profile_exists boolean; v_freq text := NULL;
-BEGIN
-  IF NOT is_staff() THEN
-    RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
-  END IF;
-  IF p_corso NOT IN ('open','advance','intro_corda','evo_corda') THEN
-    RAISE EXCEPTION 'Corso non valido: %. Valori ammessi: open, advance, intro_corda, evo_corda', p_corso;
-  END IF;
-  SELECT EXISTS(SELECT 1 FROM profile_data WHERE user_id = p_user_id) INTO v_profile_exists;
-  IF NOT v_profile_exists THEN RAISE EXCEPTION 'Profilo non trovato per user_id %', p_user_id; END IF;
-
-  v_default_lezioni := CASE p_corso
-    WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 8 WHEN 'evo_corda' THEN 8 END;
-  v_funnel_stage := CASE p_corso
-    WHEN 'open' THEN 'iscritto_open' WHEN 'advance' THEN 'iscritto_advance'
-    WHEN 'intro_corda' THEN 'iscritto_intro' WHEN 'evo_corda' THEN 'iscritto_evo' END;
-  IF p_corso = 'open' THEN v_freq := 'bisett'; v_scadenza := now() + interval '45 days'; END IF;
-
-  -- DEBITO-190: la fonte. Prima non veniva creata: c'era solo il contatore.
-  IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
-                 WHERE user_id = p_user_id AND tipo_corso = p_corso AND status = 'attiva') THEN
-    INSERT INTO iscrizioni_corso (
-      user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
-      lezioni_totali, lezioni_completate, status, stato_pagamento, note
-    ) VALUES (
-      p_user_id, p_corso, CURRENT_DATE, CURRENT_DATE,
-      CASE WHEN p_corso = 'open' THEN v_scadenza::date ELSE NULL END,
-      v_default_lezioni, 0, 'attiva', 'saldato',
-      format('Attivato dalla segreteria (staff_attiva_corso): %s lezioni.', v_default_lezioni)
-    );
-  END IF;
-
-  -- DEBITO-190: via lezioni_residue e lezioni_iniziali_residue.
-  UPDATE profile_data
-    SET corso_attivo          = p_corso,
-        iscrizione_paid       = true,
-        frequenza_open        = COALESCE(v_freq, frequenza_open),
-        scadenza_consumo_open = CASE WHEN p_corso='open' THEN v_scadenza ELSE scadenza_consumo_open END,
-        updated_at            = now()
-    WHERE user_id = p_user_id;
-
-  SELECT id INTO v_lead_id FROM crm_leads WHERE converted_profile_id = p_user_id LIMIT 1;
-  IF v_lead_id IS NOT NULL THEN
-    UPDATE crm_leads SET funnel_stage = v_funnel_stage, stato_gestione = 'attivo', updated_at = now()
-      WHERE id = v_lead_id
-        AND funnel_stage NOT IN ('concluso_lavorato','maestro_di_cordata','ibernato','perso');
-    INSERT INTO crm_follow_ups (lead_id, tipo, esito, testo, created_by)
-    VALUES (v_lead_id, 'altro', 'corso_attivato',
-      format('Attivato corso %s (default: %s lezioni)', p_corso, v_default_lezioni), auth.uid());
-  END IF;
-
-  RETURN jsonb_build_object('success', true, 'user_id', p_user_id, 'corso', p_corso,
-    'lezioni', v_default_lezioni, 'lead_id', v_lead_id, 'funnel_stage', v_funnel_stage);
-END;
-$function$;
+-- UNA SOLA FIRMA. Oggi a DB ne convivono due, (uuid,text) e (uuid,text,boolean
+-- DEFAULT): ogni chiamata a due argomenti fallisce con "function
+-- staff_attiva_corso(uuid, unknown) is not unique", perche' Postgres non sa
+-- quale scegliere. Si tiene solo quella a tre argomenti col default, che copre
+-- anche le chiamate a due, e si elimina l'altra.
+DROP FUNCTION IF EXISTS public.staff_attiva_corso(uuid, text);
 
 CREATE OR REPLACE FUNCTION public.staff_attiva_corso(p_user_id uuid, p_corso text, p_skip_staff_check boolean DEFAULT false)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
@@ -1797,7 +1748,6 @@ $function$;
 -- Cintura: attivare un corso non e' mai un'operazione da utente anonimo.
 -- Nessuna pagina del repo chiama staff_attiva_corso (verificato il 22 set),
 -- quindi togliere anon non rompe niente di quello che c'e' oggi.
-REVOKE EXECUTE ON FUNCTION public.staff_attiva_corso(uuid, text) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.staff_attiva_corso(uuid, text, boolean) FROM anon;
 
 -- ─── get_cruscotto_percorsi ─────────────────────────────────────────────────
@@ -1934,6 +1884,11 @@ $function$;
 --     togliere la spunta dara' un errore leggibile invece di regalare la
 --     lezione. E' voluto: meglio un no chiaro che un omaggio senza storia.
 --     Richiede 03b_omaggio.sql applicato.
+-- CAMBIA FIRMA: da 4 a 5 argomenti (p_omaggio_motivo). Stesso motivo del DROP
+-- qui sopra. agenda.html continua a chiamarla con 4 argomenti nominati: dopo il
+-- drop risolvono sull'unica firma rimasta, col motivo al suo default.
+DROP FUNCTION IF EXISTS public.prenota_corso_admin(uuid, uuid, date, boolean);
+
 CREATE OR REPLACE FUNCTION public.prenota_corso_admin(p_user_id uuid, p_slot_id uuid, p_data_lezione date, p_scala_credito boolean DEFAULT true, p_omaggio_motivo text DEFAULT NULL)
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $function$
@@ -2340,3 +2295,50 @@ END; $function$;
 -- Cintura, come su staff_attiva_corso: riscrivere un percorso non e' mai
 -- un'operazione da utente anonimo.
 REVOKE EXECUTE ON FUNCTION public.riconosci_percorso_pregresso(uuid, text, text, boolean, date) FROM anon;
+
+
+-- ============================================================================
+-- V-FIRME · DA LANCIARE SUBITO DOPO AVER APPLICATO QUESTO FILE
+-- ============================================================================
+-- Perche' esiste: CREATE OR REPLACE FUNCTION sostituisce solo a PARITA' di
+-- firma. Se la firma cambia, Postgres crea una funzione NUOVA e lascia in piedi
+-- la vecchia; da quel momento ogni chiamata che potrebbe risolvere su entrambe
+-- fallisce con "function ... is not unique". E' esattamente quello che e' gia'
+-- successo a staff_attiva_corso, che a DB aveva (uuid,text) e
+-- (uuid,text,boolean DEFAULT): oggi chiamarla con due argomenti da' errore.
+--
+-- Questa query dice, per ogni funzione toccata dal file, quanti overload sono
+-- rimasti. ATTESO: la colonna "esito" tutta a "ok", nessuna riga "DOPPIA".
+-- Nessun overload doppio e' voluto: dopo questo file ogni nome ha una firma sola.
+--
+--   SELECT p.proname,
+--          count(*) AS overload,
+--          string_agg('(' || pg_get_function_identity_arguments(p.oid) || ')', '  ·  ' ORDER BY p.oid) AS firme,
+--          CASE WHEN count(*) = 1 THEN 'ok' ELSE '>>> DOPPIA, da sistemare <<<' END AS esito
+--   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+--   WHERE n.nspname = 'public' AND p.proname IN (
+--     '_chiudi_corso_se_finito','_get_lezioni_residue','_get_spostamenti_residui','_snapshot_contabile',
+--     '_trg_open_presenza_garantisce_corso','applica_no_show','disdici_corso','disdici_corso_admin',
+--     'get_cruscotto_percorsi','prenota_corso','prenota_corso_admin','registra_pagamento_manuale_admin',
+--     'riconosci_percorso_pregresso','rimarca_presenza_corso','staff_attiva_corso',
+--     'accredita_acconto_open','accredita_advance_2xsett','accredita_advance_intero','accredita_advance_mese1',
+--     'accredita_advance_mese2','accredita_evo_intero','accredita_evo_mese1','accredita_evo_mese2',
+--     'accredita_intro_intero','accredita_intro_mese1','accredita_intro_mese2','accredita_iscrizione_meta_open',
+--     'accredita_mezza1_open','accredita_mezza2_open','accredita_pacchetto_meta_open',
+--     'accredita_pacchetto_open_intero','accredita_saldo_open_intero')
+--   GROUP BY p.proname
+--   ORDER BY (count(*) > 1) DESC, p.proname;
+--
+-- ATTESO, 32 righe:
+--   applica_no_show        → 1 · (p_user_id uuid, p_tipo_corso text)
+--   prenota_corso_admin    → 1 · (…, p_scala_credito boolean, p_omaggio_motivo text)
+--   staff_attiva_corso     → 1 · (p_user_id uuid, p_corso text, p_skip_staff_check boolean)
+--   tutte le altre         → 1 · firma invariata
+--
+-- E le quattro che il file elimina non devono comparire affatto:
+--   SELECT p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' AS ancora_viva
+--   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+--   WHERE n.nspname = 'public'
+--     AND p.proname IN ('tg_update_lezioni_residue','trg_riaccredita_su_delete_prenotazione',
+--                       'marca_presenza_open','prenota_open');
+--   ATTESO: nessuna riga.
