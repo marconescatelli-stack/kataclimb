@@ -12,12 +12,22 @@
 --
 -- MAPPATURA DEGLI STATI (decisa da Marco — i 5 stati reali NON si normalizzano,
 -- la mappatura vive solo qui dentro):
---   stato reale           significato            consuma?   budget spostamenti?
---   presente              fatta                  sì         no
---   assente               ghostata (no-show)     sì         no
---   cancellato_tardi      disdetta fuori tempo   sì         no
---   cancellato_in_tempo   spostata in tempo      no         sì
---   prenotato             in agenda (futura)     non ancora no
+--   stato reale           significato            consuma?            budget spostamenti?
+--   presente              fatta                  sì, 1 a 1           no
+--   assente               ghostata (no-show)     ogni N, vedi sotto  no
+--   cancellato_tardi      disdetta fuori tempo   sì, 1 a 1           no
+--   cancellato_in_tempo   spostata in tempo      no                  sì
+--   prenotato             in agenda (futura)     non ancora          no
+--
+-- LA REGOLA DEL NO-SHOW (Modello Open, confermata da Marco il 22 set)
+--   Una ghostata da sola NON scala niente: ne servono N, dove N e' la soglia
+--   letta da tipi_corso_config.noshow_soglia_penalita (oggi 2 su tutti e
+--   quattro i corsi). Mai un 2 scritto a mano: se domani la soglia cambia,
+--   cambia qui e basta.
+--     1 ghostata  → 0 lezioni scalate      3 ghostate → 1 lezione scalata
+--     2 ghostate  → 1 lezione scalata      4 ghostate → 2 lezioni scalate
+--   E' una divisione intera: ghostate / soglia.
+--   Nessun contatore da azzerare: il numero e' sempre ricavato dal COUNT.
 --
 -- PREREQUISITI
 --   - Nessuno. Si applica su DB live senza fermare nulla.
@@ -36,6 +46,8 @@
 --      lo intercetta la query di controllo in fondo a questo file.
 --   3) totali usa la divisione intera: lezioni_totali/2 su 8 dà 4, su 7 darebbe 3.
 --      Oggi advance/intro_corda/evo_corda hanno pacchetti da 8, quindi non morde.
+--   4b) La soglia del no-show viene da tipi_corso_config.noshow_soglia_penalita
+--      e non da un 2 scritto a mano: se domani la penale cambia, cambia li'.
 --   4) restano e prenotabili NON sono limitati a zero di proposito: devono poter
 --      andare negativi, altrimenti la 02_audit_scarti non vedrebbe i dati storti.
 --      Le guardie delle RPC (Fase B) useranno "prenotabili > 0".
@@ -87,6 +99,9 @@ base AS (
       THEN i.lezioni_totali / 2
       ELSE i.lezioni_totali
     END                                 AS totali,
+    -- soglia della penale no-show, dal config del tipo corso. GREATEST(...,1)
+    -- e' solo una cintura contro una divisione per zero se il config fosse 0.
+    GREATEST(coalesce(tc.noshow_soglia_penalita, 2), 1) AS soglia_ghost,
     coalesce(c.fatte,             0)    AS fatte,
     coalesce(c.ghostate,          0)    AS ghostate,
     coalesce(c.disdette_tardi,    0)    AS disdette_tardi,
@@ -94,6 +109,7 @@ base AS (
     coalesce(c.in_agenda,         0)    AS in_agenda
   FROM public.iscrizioni_corso i
   LEFT JOIN public.profile_data pd ON pd.user_id = i.user_id
+  LEFT JOIN public.tipi_corso_config tc ON tc.tipo_corso = i.tipo_corso
   LEFT JOIN conteggi c             ON c.user_id  = i.user_id
                                   AND c.tipo_corso = i.tipo_corso
   WHERE i.status = 'attiva'
@@ -108,12 +124,16 @@ SELECT
   b.totali,
   b.fatte,
   b.ghostate,
+  b.soglia_ghost,
+  -- quante lezioni hanno davvero eroso le ghostate: divisione intera sulla soglia
+  (b.ghostate / b.soglia_ghost)                                           AS ghostate_scalate,
   b.disdette_tardi,
   -- quello che ha davvero eroso il pacchetto
-  (b.fatte + b.ghostate + b.disdette_tardi)                               AS consumate,
-  (b.totali - (b.fatte + b.ghostate + b.disdette_tardi))                  AS restano,
+  (b.fatte + b.disdette_tardi + b.ghostate / b.soglia_ghost)              AS consumate,
+  (b.totali - (b.fatte + b.disdette_tardi + b.ghostate / b.soglia_ghost)) AS restano,
   b.in_agenda,
-  (b.totali - (b.fatte + b.ghostate + b.disdette_tardi) - b.in_agenda)    AS prenotabili,
+  (b.totali - (b.fatte + b.disdette_tardi + b.ghostate / b.soglia_ghost)
+            - b.in_agenda)                                                AS prenotabili,
   b.spostamenti_usati,
   b.spostamenti_max,
   (b.spostamenti_max - b.spostamenti_usati)                               AS spostamenti_residui,
@@ -125,7 +145,8 @@ COMMENT ON VIEW public.contatori_corso IS
   'DEBITO-190: unica fonte dei contatori di percorso. Ogni numero e'' derivato da '
   'prenotazioni_corso + iscrizioni_corso.lezioni_totali. Nessuna funzione deve '
   'scrivere contatori: si legge da qui. Una riga per iscrizione attiva dei 4 tipi '
-  'con prenotazioni. consumate = presente + assente + cancellato_tardi.';
+  'con prenotazioni. consumate = presente + cancellato_tardi + (assente / soglia), '
+  'con la soglia letta da tipi_corso_config.noshow_soglia_penalita.';
 
 -- ---------------------------------------------------------------------------
 -- Funzione di lettura per la UI (Fase C). Stessa verità della view.
@@ -157,6 +178,13 @@ GRANT EXECUTE ON FUNCTION public.get_contatori(uuid, text) TO authenticated;
 -- ============================================================================
 -- VERIFICA DOPO L'APPLICAZIONE (da lanciare a mano, sola lettura)
 -- ============================================================================
+-- V0 · La regola del no-show incide su qualcuno? (informativa)
+--   SELECT tipo_corso, ghostate, soglia_ghost, ghostate_scalate
+--   FROM public.contatori_corso WHERE ghostate > 0;
+--   Il 22 set 2026: NESSUNA riga. L'unica ghostata a DB sta su un profilo senza
+--   iscrizione Open attiva, quindi fuori dalla view. Formula esercitata a vuoto:
+--   quando la prima ghostata arrivera' su un'iscrizione viva, si rivedra' qui.
+--
 -- V1 · La view si legge e i numeri quadrano fra loro:
 --   SELECT tipo_corso, count(*) AS iscrizioni,
 --          sum(CASE WHEN restano <> totali - consumate THEN 1 ELSE 0 END)        AS restano_incoerenti,

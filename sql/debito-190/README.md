@@ -40,13 +40,22 @@ eseguito da Claude Code: li applica Marco da chat dopo revisione.
 
 Stato oggi: **01 e 02 applicati e verificati**. Il **03 è a metà**: contiene la parte che non dipende dal nodo aperto sul no-show (vedi sotto), e non va applicato finché non è completo.
 
-### Nodo aperto — la penale del no-show cambia di significato
+### La regola del no-show (chiusa il 22 set)
 
-Il codice live non toglie una lezione al primo no-show: `applica_no_show` incrementa `no_show_count` e solo al raggiungimento della soglia (`noshow_soglia_penalita`, 2 su tutti i corsi) azzera il contatore **e** toglie una lezione. In pratica **due no-show = una lezione persa**.
+Resta la regola del Modello Open: **servono N ghostate perché ne venga scalata una lezione**, dove
+N è `tipi_corso_config.noshow_soglia_penalita` (oggi 2 su tutti e quattro i corsi). Mai un 2 scritto
+a mano: se domani la penale cambia, cambia lì.
 
-Il modello nuovo dice che `assente` consuma la lezione, sempre: **un no-show = una lezione persa**. È un raddoppio della penale, ed è una regola di business. Va deciso prima di scrivere la parte 2 del 03.
+| ghostate | lezioni scalate |
+|---|---|
+| 1 | 0 |
+| 2 | 1 |
+| 3 | 1 |
+| 4 | 2 |
 
-Impatto sui dati di oggi: **una sola riga `assente`** a DB (Corso Open) e **un solo profilo** con `no_show_count = 1`. Qualunque scelta, oggi non fa danni a nessuno.
+Da cui: `consumate = presente + cancellato_tardi + (assente / soglia)`, divisione intera. Nessun
+contatore da azzerare: il numero è sempre ricavato dal COUNT. Nella tabella degli stati qui sopra,
+`assente` **non consuma da solo**.
 
 ### Dopo il 01 — cosa verificare
 In fondo al file ci sono tre query pronte, `V1`, `V2`, `V3`.

@@ -358,7 +358,6 @@ $function$;
 --   Qualunque chiamata fallirebbe con "relation does not exist".
 --   Nessuna pagina del repo la chiama.
 --
---   Proposta: DROP. Non la elimino di mia iniziativa perche' potrebbe essere
---   chiamata dal Worker (repo separato, non ispezionato).
---   Da decidere prima della parte 2:
--- DROP FUNCTION IF EXISTS public.marca_presenza_open(uuid, boolean);
+--   Marco ha verificato il 22 set: 0 chiamate nel Worker (v3.78), 0 nelle pagine.
+--   Si elimina.
+DROP FUNCTION IF EXISTS public.marca_presenza_open(uuid, boolean);
