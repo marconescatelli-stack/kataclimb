@@ -105,6 +105,17 @@ lezioni pagate restano da prenotare.
 togliere la spunta darà un errore leggibile invece di regalare la lezione. È voluto: meglio un no
 chiaro che un omaggio senza storia. In Fase C la spunta si rinomina «Lezione omaggio» e apre il campo.
 
+### Intro Corda sono 8 lezioni
+
+`staff_attiva_corso` e `prenota_corso_admin` usavano **6** lezioni per Intro Corda, mentre
+`accredita_intro_mese1` e `riconosci_percorso_pregresso` ne usano **8**. Il Listino v1.4 dice 8
+(4 al mese 1 + 4 al mese 2): il 6 era un errore, corretto in tutti e tre i punti.
+
+Vale la pena notare perché è emerso solo adesso: finché il numero viveva in una cache che nessuno
+confrontava con nient'altro, due funzioni potevano dire cose diverse per mesi senza che si vedesse.
+Da adesso è `lezioni_totali` sull'iscrizione, cioè la base di `restano`: una differenza del genere
+salterebbe fuori al primo allievo.
+
 ## Decisioni prese, per non ridiscuterle
 
 - **Si scala quando la lezione è fatta, non quando è prenotata.** Il contatore vecchio scalava
@@ -156,8 +167,10 @@ chiave anon si chiama la RPC direttamente e si riscrive il percorso di qualunque
 pregresse, flag pagato, funnel, e un'iscrizione **attiva da 8 lezioni**, che col modello derivato
 sono lezioni davvero prenotabili.
 
-Il file 03 rimette la guardia e revoca `EXECUTE` ad `anon`. Il solo chiamante è il portale, dove
-l'utente è staff autenticato: non cambia niente per chi la usa davvero.
+`EXECUTE` ad `anon` è già stato revocato a mano in produzione il 22 settembre. Il file 03 tiene
+comunque la guardia `is_staff()`, così è corretto anche applicato da solo su un database che non
+avesse ricevuto la revoca. Il solo chiamante è il portale, dove l'utente è staff autenticato: non
+cambia niente per chi la usa davvero.
 
 ## Cosa resta fuori da questa cartella
 

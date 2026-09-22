@@ -1651,11 +1651,13 @@ $function$;
 -- DOPO:  crea l'iscrizione (la fonte) e lascia a profile_data solo
 --        corso_attivo, iscrizione_paid, frequenza e scadenza Open.
 --
--- ⚠ DOMANDA PER MARCO, non l'ho decisa io.
---   Questa funzione usa 6 lezioni per Intro Corda, mentre accredita_intro_mese1
---   crea l'iscrizione con 8 (4 al mese 1 + 4 al mese 2). Gli altri combaciano:
---   Open 7, Advance 8, Evo 8. Ho lasciato il 6 per non cambiare comportamento,
---   ma uno dei due numeri e' sbagliato. Da allineare prima di applicare.
+-- CORRETTO UN NUMERO SBAGLIATO: questa funzione usava 6 lezioni per Intro
+--   Corda, mentre accredita_intro_mese1 e riconosci_percorso_pregresso ne
+--   usano 8. Il Listino v1.4 dice 8 (4 al mese 1 + 4 al mese 2): il 6 era un
+--   errore, corretto qui e in prenota_corso_admin su decisione di Marco del
+--   22 set. Finche' il numero viveva in una cache che nessuno confrontava la
+--   differenza non si vedeva; da adesso e' lezioni_totali sull'iscrizione,
+--   cioe' la base di "restano", e si sarebbe vista subito.
 --
 -- Nota: l'INSERT e' condizionato come nelle sorelle, cosi' riattivare un corso
 -- gia' attivo non crea doppioni. La validita' di 45 giorni per Open era gia'
@@ -1679,7 +1681,7 @@ BEGIN
   IF NOT v_profile_exists THEN RAISE EXCEPTION 'Profilo non trovato per user_id %', p_user_id; END IF;
 
   v_default_lezioni := CASE p_corso
-    WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 6 WHEN 'evo_corda' THEN 8 END;
+    WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 8 WHEN 'evo_corda' THEN 8 END;
   v_funnel_stage := CASE p_corso
     WHEN 'open' THEN 'iscritto_open' WHEN 'advance' THEN 'iscritto_advance'
     WHEN 'intro_corda' THEN 'iscritto_intro' WHEN 'evo_corda' THEN 'iscritto_evo' END;
@@ -1750,7 +1752,7 @@ BEGIN
   IF NOT v_profile_exists THEN RAISE EXCEPTION 'Profilo non trovato per user_id %', p_user_id; END IF;
 
   v_default_lezioni := CASE p_corso
-    WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 6 WHEN 'evo_corda' THEN 8 END;
+    WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 8 WHEN 'evo_corda' THEN 8 END;
   v_funnel_stage := CASE p_corso
     WHEN 'open' THEN 'iscritto_open' WHEN 'advance' THEN 'iscritto_advance'
     WHEN 'intro_corda' THEN 'iscritto_intro' WHEN 'evo_corda' THEN 'iscritto_evo' END;
@@ -1998,11 +2000,11 @@ BEGIN
   IF v_profile.corso_attivo IS NULL THEN
     v_setup_corso := true;
     v_default_lezioni := CASE v_slot.tipo_corso
-      WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 6 WHEN 'evo_corda' THEN 8 ELSE 8 END;
+      WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 8 WHEN 'evo_corda' THEN 8 ELSE 8 END;
 
     -- DEBITO-190: qui si creava il contatore e basta. Ora si crea la fonte.
-    -- (Stesso disallineamento segnalato su staff_attiva_corso: Intro 6 qui,
-    --  8 in accredita_intro_mese1. Da decidere.)
+    -- Intro Corda 8, non 6: allineato al Listino v1.4 e al resto delle
+    -- funzioni (il 6 che c'era qui era un errore, come su staff_attiva_corso).
     IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
                    WHERE user_id = p_user_id AND tipo_corso = v_slot.tipo_corso AND status = 'attiva') THEN
       INSERT INTO iscrizioni_corso (
@@ -2190,10 +2192,9 @@ $function$;
 --   rimette la stessa, non si inventa una regola nuova.
 --   Nessuna pagina del repo chiama questa funzione (verificato).
 --
--- NOTA UTILE PER LA DOMANDA APERTA SU INTRO: qui v_lez_map dice intro_corda 8,
--- come accredita_intro_mese1. I 6 di staff_attiva_corso e di prenota_corso_admin
--- sono gli unici due posti che dicono un numero diverso: due contro uno a
--- favore dell'8, ma la parola resta a Marco.
+-- Qui v_lez_map diceva gia' intro_corda 8, come accredita_intro_mese1 e come
+-- il Listino v1.4. Erano staff_attiva_corso e prenota_corso_admin a dire 6:
+-- corretti entrambi il 22 set.
 CREATE OR REPLACE FUNCTION public.riconosci_percorso_pregresso(p_user_id uuid, p_completato_fino_a text, p_corso_attuale text DEFAULT NULL::text, p_attuale_paid boolean DEFAULT true, p_data date DEFAULT NULL::date)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $function$
