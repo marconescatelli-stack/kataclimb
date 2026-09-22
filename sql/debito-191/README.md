@@ -1,6 +1,20 @@
 # DEBITO-191 · Sicurezza delle funzioni SECURITY DEFINER
 
-**Niente di questo è stato applicato.** Il database è stato solo letto. I file SQL li applica Marco.
+## Stato
+
+**`03a_urgente.sql` è stato applicato in produzione il 22 settembre 2026 alle 19:47**, da Marco,
+dal SQL Editor di Supabase. Le tre verifiche sono passate:
+
+- `V-ACL`: tredici righe `authenticated + service_role`, nessuna ancora aperta ad `anon` e nessuna
+  con `PUBLIC`;
+- `V-ANON`: `get_leads_da_contattare()` chiamata da `anon` risponde `42501 permission denied`,
+  dove prima rispondeva 410 righe;
+- flusso pubblico e `orari.html` funzionanti.
+
+I dati personali e quelli dei minori non sono più leggibili da un anonimo.
+
+**Tutti gli altri file restano non applicati**: `03`, `04a`, `04b`, `04c`, `05`, `06`. Il database,
+per il resto, è stato solo letto.
 
 Il cantiere nasce da tre falle trovate per caso il 22 settembre, tutte della stessa forma:
 `SECURITY DEFINER` più `EXECUTE` ad `anon` più una protezione che sta solo nell'interfaccia.
@@ -37,7 +51,7 @@ Il ragionamento completo, con le tre forme del difetto, è in `02_piano.md`.
 | 00 | `00_censimento.md` | le 153 funzioni con ACL, guardia e priorità | no, è un documento |
 | 01 | `01_mappa_chiamanti.md` | chi chiama cosa, e se prima o dopo il login | no, è un documento |
 | 02 | `02_piano.md` | la classificazione A/B/C/D e il perché | no, è un documento |
-| 03a | `03a_urgente.sql` | **da applicare per primo**: le 13 funzioni con dati personali o di minori | no, solo privilegi |
+| 03a | `03a_urgente.sql` | le 13 funzioni con dati personali o di minori · **APPLICATO il 22 set, 19:47** | no, solo privilegi |
 | 03 | `03_revoke.sql` | toglie i privilegi a chi non deve chiamare, tutte le altre | no, solo privilegi |
 | 04a | `04a_guardie_crm.sql` | corregge la guardia di 20 funzioni del CRM | no, solo `CREATE OR REPLACE` |
 | 04b | `04b_guardie_contabili.sql` | aggiunge la guardia a 5 funzioni che non ne avevano | no, solo `CREATE OR REPLACE` |
@@ -56,19 +70,24 @@ quindi nessun `DROP FUNCTION` è necessario. Il file più grande è `04a`, 48 KB
 
 ## In che ordine, e cosa guardare dopo ciascuno
 
-### 0. `03a_urgente.sql` — prima di tutto
+### 0. `03a_urgente.sql` — fatto il 22 settembre alle 19:47
 
 Sottoinsieme del `03`: tredici funzioni, quelle che espongono dati personali o di minori e che
-nessuna pagina pubblica chiama. Si applica in un minuto e si annulla con un `GRANT`.
-In testa al file c'è l'elenco delle funzioni che **non** vanno revocate, con scritto cosa si
-romperebbe: `get_eventi_calendario`, `get_evento_pubblico`, le due del questionario, le due di
-completa-contatti e `listino_gate`. Quelle vanno chiuse con un filtro sul contenuto, non con una
-revoca.
+nessuna pagina pubblica chiama. Applicato, verificato, niente da rifare.
 
-Dopo il `03a`, da `anon`, `get_leads_da_contattare()` deve rispondere *permission denied*, e le
-pagine pubbliche devono continuare a funzionare. Le due prove sono in fondo al file.
+In testa al file resta l'elenco delle funzioni che **non** sono state revocate, con scritto cosa
+si sarebbe rotto: `get_eventi_calendario`, `get_evento_pubblico`, le due del questionario, le due
+di completa-contatti e `listino_gate`. Quelle vanno chiuse con un filtro sul contenuto, e la
+decisione è ancora aperta.
 
-### 1. `03_revoke.sql` — subito dopo
+Per tornare indietro su una singola funzione basta ridarle il privilegio:
+`GRANT EXECUTE ON FUNCTION <firma> TO anon;`
+
+### 1. `03_revoke.sql` — il prossimo
+
+**Le tredici del `03a` sono anche qui dentro.** Non è un problema: `REVOKE` e `GRANT` sugli stessi
+ruoli lasciano lo stesso stato, quindi riapplicarle non cambia niente e non serve toglierle dal
+file. Il `03` aggiunge le altre ottantatré.
 
 È quello che ferma il danno. Non cambia logica, toglie privilegi.
 
@@ -257,6 +276,13 @@ Cosa cambia dopo: una RPC che deve servire una pagina pubblica non funziona finc
 distrazione. Dopo, lo diventa per scelta, e la scelta lascia una riga scritta.
 
 ---
+
+## Dopo il 03a, da rifare sui log
+
+Le due query di `07_log_chiamate_anon.md`, un giorno dopo l'applicazione. La seconda deve
+continuare a mostrare solo `get_eventi_calendario` e `conteggi_prima_lezione` fra le RPC chiamate
+da `anon`. Se compare un 401 o un 403 su una funzione del flusso pubblico, una revoca è andata
+oltre il bersaglio: in fondo a quel file c'è la query che li elenca.
 
 ## La falla è mai stata usata?
 

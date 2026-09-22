@@ -1,5 +1,16 @@
 -- ==========================================================================
--- DEBITO-191 · 03a · URGENTE — dati personali e minori · NON APPLICATO
+-- DEBITO-191 · 03a · URGENTE — dati personali e minori
+--
+-- ##########################################################################
+-- #  APPLICATO IN PRODUZIONE il 22 settembre 2026 alle 19:47, da Marco,    #
+-- #  dal SQL Editor di Supabase. Le tre verifiche sono passate:            #
+-- #    · V-ACL: 13 righe 'authenticated + service_role', nessun'altra      #
+-- #    · V-ANON: get_leads_da_contattare respinta con 42501                #
+-- #    · flusso pubblico e orari.html funzionanti                          #
+-- #  NON va riapplicato. Se serve rifarlo e' comunque ripetibile: REVOKE   #
+-- #  e GRANT sugli stessi ruoli lasciano lo stesso stato.                  #
+-- #  Per tornare indietro:  GRANT EXECUTE ON FUNCTION <firma> TO anon;     #
+-- ##########################################################################
 --
 -- Sottoinsieme del 03: solo le funzioni che espongono dati di persone o di
 -- minori E che nessuna pagina pubblica chiama. Si applica da solo e non tocca
