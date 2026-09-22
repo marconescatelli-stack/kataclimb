@@ -1638,3 +1638,258 @@ BEGIN
     'message', 'Open saldato accreditato: 7 lezioni, 215€.');
 END;
 $function$;
+
+
+-- ============================================================================
+-- PARTE 4 · LE FUNZIONI DI SEGRETERIA E I CRUSCOTTI
+-- ============================================================================
+
+-- ─── staff_attiva_corso · DUE OVERLOAD ──────────────────────────────────────
+-- PRIMA: scriveva lezioni_residue e lezioni_iniziali_residue su profile_data,
+--        e NON creava nessuna riga in iscrizioni_corso. Stesso buco di
+--        accredita_mezza1_open: la fonte non esisteva, esisteva solo la cache.
+-- DOPO:  crea l'iscrizione (la fonte) e lascia a profile_data solo
+--        corso_attivo, iscrizione_paid, frequenza e scadenza Open.
+--
+-- ⚠ DOMANDA PER MARCO, non l'ho decisa io.
+--   Questa funzione usa 6 lezioni per Intro Corda, mentre accredita_intro_mese1
+--   crea l'iscrizione con 8 (4 al mese 1 + 4 al mese 2). Gli altri combaciano:
+--   Open 7, Advance 8, Evo 8. Ho lasciato il 6 per non cambiare comportamento,
+--   ma uno dei due numeri e' sbagliato. Da allineare prima di applicare.
+--
+-- Nota: l'INSERT e' condizionato come nelle sorelle, cosi' riattivare un corso
+-- gia' attivo non crea doppioni. La validita' di 45 giorni per Open era gia'
+-- quella scritta qui; per gli altri corsi non c'era una scadenza, quindi
+-- l'iscrizione nasce senza data_fine_validita, che la view accetta.
+
+CREATE OR REPLACE FUNCTION public.staff_attiva_corso(p_user_id uuid, p_corso text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_default_lezioni int; v_scadenza timestamptz; v_funnel_stage text;
+  v_lead_id uuid; v_profile_exists boolean; v_freq text := NULL;
+BEGIN
+  IF NOT is_staff() THEN
+    RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
+  END IF;
+  IF p_corso NOT IN ('open','advance','intro_corda','evo_corda') THEN
+    RAISE EXCEPTION 'Corso non valido: %. Valori ammessi: open, advance, intro_corda, evo_corda', p_corso;
+  END IF;
+  SELECT EXISTS(SELECT 1 FROM profile_data WHERE user_id = p_user_id) INTO v_profile_exists;
+  IF NOT v_profile_exists THEN RAISE EXCEPTION 'Profilo non trovato per user_id %', p_user_id; END IF;
+
+  v_default_lezioni := CASE p_corso
+    WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 6 WHEN 'evo_corda' THEN 8 END;
+  v_funnel_stage := CASE p_corso
+    WHEN 'open' THEN 'iscritto_open' WHEN 'advance' THEN 'iscritto_advance'
+    WHEN 'intro_corda' THEN 'iscritto_intro' WHEN 'evo_corda' THEN 'iscritto_evo' END;
+  IF p_corso = 'open' THEN v_freq := 'bisett'; v_scadenza := now() + interval '45 days'; END IF;
+
+  -- DEBITO-190: la fonte. Prima non veniva creata: c'era solo il contatore.
+  IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
+                 WHERE user_id = p_user_id AND tipo_corso = p_corso AND status = 'attiva') THEN
+    INSERT INTO iscrizioni_corso (
+      user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+      lezioni_totali, lezioni_completate, status, stato_pagamento, note
+    ) VALUES (
+      p_user_id, p_corso, CURRENT_DATE, CURRENT_DATE,
+      CASE WHEN p_corso = 'open' THEN v_scadenza::date ELSE NULL END,
+      v_default_lezioni, 0, 'attiva', 'saldato',
+      format('Attivato dalla segreteria (staff_attiva_corso): %s lezioni.', v_default_lezioni)
+    );
+  END IF;
+
+  -- DEBITO-190: via lezioni_residue e lezioni_iniziali_residue.
+  UPDATE profile_data
+    SET corso_attivo          = p_corso,
+        iscrizione_paid       = true,
+        frequenza_open        = COALESCE(v_freq, frequenza_open),
+        scadenza_consumo_open = CASE WHEN p_corso='open' THEN v_scadenza ELSE scadenza_consumo_open END,
+        updated_at            = now()
+    WHERE user_id = p_user_id;
+
+  SELECT id INTO v_lead_id FROM crm_leads WHERE converted_profile_id = p_user_id LIMIT 1;
+  IF v_lead_id IS NOT NULL THEN
+    UPDATE crm_leads SET funnel_stage = v_funnel_stage, stato_gestione = 'attivo', updated_at = now()
+      WHERE id = v_lead_id
+        AND funnel_stage NOT IN ('concluso_lavorato','maestro_di_cordata','ibernato','perso');
+    INSERT INTO crm_follow_ups (lead_id, tipo, esito, testo, created_by)
+    VALUES (v_lead_id, 'altro', 'corso_attivato',
+      format('Attivato corso %s (default: %s lezioni)', p_corso, v_default_lezioni), auth.uid());
+  END IF;
+
+  RETURN jsonb_build_object('success', true, 'user_id', p_user_id, 'corso', p_corso,
+    'lezioni', v_default_lezioni, 'lead_id', v_lead_id, 'funnel_stage', v_funnel_stage);
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.staff_attiva_corso(p_user_id uuid, p_corso text, p_skip_staff_check boolean DEFAULT false)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_default_lezioni int; v_scadenza timestamptz; v_funnel_stage text;
+  v_lead_id uuid; v_profile_exists boolean; v_freq text := NULL;
+BEGIN
+  IF NOT p_skip_staff_check AND NOT is_staff() THEN
+    RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
+  END IF;
+  IF p_corso NOT IN ('open','advance','intro_corda','evo_corda') THEN
+    RAISE EXCEPTION 'Corso non valido: %. Valori ammessi: open, advance, intro_corda, evo_corda', p_corso;
+  END IF;
+  SELECT EXISTS(SELECT 1 FROM profile_data WHERE user_id = p_user_id) INTO v_profile_exists;
+  IF NOT v_profile_exists THEN RAISE EXCEPTION 'Profilo non trovato per user_id %', p_user_id; END IF;
+
+  v_default_lezioni := CASE p_corso
+    WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 6 WHEN 'evo_corda' THEN 8 END;
+  v_funnel_stage := CASE p_corso
+    WHEN 'open' THEN 'iscritto_open' WHEN 'advance' THEN 'iscritto_advance'
+    WHEN 'intro_corda' THEN 'iscritto_intro' WHEN 'evo_corda' THEN 'iscritto_evo' END;
+  IF p_corso = 'open' THEN v_freq := 'bisett'; v_scadenza := now() + interval '45 days'; END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
+                 WHERE user_id = p_user_id AND tipo_corso = p_corso AND status = 'attiva') THEN
+    INSERT INTO iscrizioni_corso (
+      user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+      lezioni_totali, lezioni_completate, status, stato_pagamento, note
+    ) VALUES (
+      p_user_id, p_corso, CURRENT_DATE, CURRENT_DATE,
+      CASE WHEN p_corso = 'open' THEN v_scadenza::date ELSE NULL END,
+      v_default_lezioni, 0, 'attiva', 'saldato',
+      format('Backfill segreteria (staff_attiva_corso): %s lezioni.', v_default_lezioni)
+    );
+  END IF;
+
+  UPDATE profile_data
+    SET corso_attivo          = p_corso,
+        iscrizione_paid       = true,
+        frequenza_open        = COALESCE(v_freq, frequenza_open),
+        scadenza_consumo_open = CASE WHEN p_corso='open' THEN v_scadenza ELSE scadenza_consumo_open END,
+        updated_at            = now()
+    WHERE user_id = p_user_id;
+
+  SELECT id INTO v_lead_id FROM crm_leads WHERE converted_profile_id = p_user_id LIMIT 1;
+  IF v_lead_id IS NOT NULL THEN
+    UPDATE crm_leads SET funnel_stage = v_funnel_stage, stato_gestione = 'attivo', updated_at = now()
+      WHERE id = v_lead_id
+        AND funnel_stage NOT IN ('concluso_lavorato','maestro_di_cordata','ibernato','perso');
+    INSERT INTO crm_follow_ups (lead_id, tipo, esito, testo, created_by)
+    VALUES (v_lead_id, 'nota', 'appuntamento_preso',
+      format('🎯 Attivato corso %s (default: %s lezioni) — backfill segreteria', p_corso, v_default_lezioni), auth.uid());
+  END IF;
+
+  RETURN jsonb_build_object('success', true, 'user_id', p_user_id, 'corso', p_corso,
+    'lezioni', v_default_lezioni, 'lead_id', v_lead_id, 'funnel_stage', v_funnel_stage);
+END;
+$function$;
+
+-- ─── get_cruscotto_percorsi ─────────────────────────────────────────────────
+-- PRIMA: leggeva le quattro colonne salvate (lezioni_residue,
+--        advance_/intro_/evo_lezioni_residue) per decidere i bucket
+--        "corso finito" e l'alert di scadenza, e contava a parte le
+--        prenotazioni future.
+-- DOPO:  legge tutto da contatori_corso. Nessuna scrittura, ne' prima ne' ora.
+--        La firma e le colonne di ritorno restano IDENTICHE: commerciale.html
+--        (riga 769) le usa per nome.
+--        "residue_*" ora significa "prenotabili ora" per quel corso, cioe'
+--        esattamente quello che il contatore salvato voleva dire.
+--        Le prenotazioni future vengono da in_agenda, senza ricontarle.
+CREATE OR REPLACE FUNCTION public.get_cruscotto_percorsi()
+RETURNS TABLE(persona_id uuid, user_id uuid, nome text, cognome text, telefono text, email text, bucket text, corso_attivo text, residue_open integer, residue_advance integer, residue_intro integer, residue_evo integer, scadenza_open timestamp with time zone, scadenza_advance timestamp with time zone, scadenza_intro timestamp with time zone, scadenza_evo timestamp with time zone, prenotazioni_future integer, alert_scaduto boolean, data_prima_lezione date, recensione_inviata_at timestamp with time zone)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF auth.uid() IS NOT NULL
+     AND auth.uid() <> '27b04151-93a7-4ecc-824c-fe337cc631a6'::uuid
+     AND NOT EXISTS (
+       SELECT 1 FROM profile_data pd0
+       WHERE pd0.user_id = auth.uid()
+         AND pd0.staff_role IN ('creator','admin','segreteria','staff_istruttore_sr','istruttore_senior')
+     )
+  THEN
+    RAISE EXCEPTION 'non autorizzato';
+  END IF;
+
+  RETURN QUERY
+  WITH base AS (
+    SELECT
+      pd.persona_id, pd.user_id, pe.nome, pe.cognome, pe.telefono, pe.email,
+      pd.corso_attivo, pd.prima_done, pd.data_prima_lezione,
+      pd.meta_open_paid, pd.acconto_open_paid, pd.advance_paid, pd.intro_paid, pd.evo_paid,
+      -- DEBITO-190: prenotabili e in_agenda dalla view, non piu' dalle colonne salvate
+      COALESCE(co.prenotabili, 0) AS r_open,   COALESCE(co.in_agenda, 0) AS f_open,
+      COALESCE(ca.prenotabili, 0) AS r_adv,    COALESCE(ca.in_agenda, 0) AS f_adv,
+      COALESCE(ci.prenotabili, 0) AS r_intro,  COALESCE(ci.in_agenda, 0) AS f_intro,
+      COALESCE(ce.prenotabili, 0) AS r_evo,    COALESCE(ce.in_agenda, 0) AS f_evo,
+      pd.scadenza_consumo_open, pd.scadenza_consumo_advance, pd.scadenza_consumo_intro, pd.scadenza_consumo_evo,
+      EXISTS (
+        SELECT 1 FROM iscrizioni_corso ic
+        WHERE ic.user_id = pd.user_id AND ic.tipo_corso = 'open' AND ic.stato_pagamento = 'saldato'
+      ) AS open_fonte,
+      ldr.recensione_inviata_at AS rec_at
+    FROM profile_data pd
+    JOIN persone pe ON pe.id = pd.persona_id
+    LEFT JOIN contatori_corso co ON co.user_id = pd.user_id AND co.tipo_corso = 'open'
+    LEFT JOIN contatori_corso ca ON ca.user_id = pd.user_id AND ca.tipo_corso = 'advance'
+    LEFT JOIN contatori_corso ci ON ci.user_id = pd.user_id AND ci.tipo_corso = 'intro_corda'
+    LEFT JOIN contatori_corso ce ON ce.user_id = pd.user_id AND ce.tipo_corso = 'evo_corda'
+    LEFT JOIN LATERAL (
+      SELECT ld.recensione_inviata_at FROM lead_data ld
+      WHERE ld.persona_id = pd.persona_id
+      ORDER BY ld.recensione_inviata_at DESC NULLS LAST LIMIT 1
+    ) ldr ON true
+    WHERE pd.staff_role IS NULL
+  ),
+  calc AS (
+    SELECT b.*,
+      (COALESCE(b.meta_open_paid,false) OR COALESCE(b.acconto_open_paid,false) OR b.open_fonte) AS open_pagato,
+      ((COALESCE(b.meta_open_paid,false) OR COALESCE(b.acconto_open_paid,false) OR b.open_fonte) AND b.r_open=0  AND b.f_open=0)  AS open_fin,
+      (COALESCE(b.advance_paid,false) AND b.r_adv=0   AND b.f_adv=0)   AS adv_fin,
+      (COALESCE(b.intro_paid,false)   AND b.r_intro=0 AND b.f_intro=0) AS intro_fin,
+      (COALESCE(b.evo_paid,false)     AND b.r_evo=0   AND b.f_evo=0)   AS evo_fin,
+      ( (b.r_open>0  AND b.scadenza_consumo_open    IS NOT NULL AND b.scadenza_consumo_open    < now())
+     OR (b.r_adv>0   AND b.scadenza_consumo_advance IS NOT NULL AND b.scadenza_consumo_advance < now())
+     OR (b.r_intro>0 AND b.scadenza_consumo_intro   IS NOT NULL AND b.scadenza_consumo_intro   < now())
+     OR (b.r_evo>0   AND b.scadenza_consumo_evo     IS NOT NULL AND b.scadenza_consumo_evo     < now()) ) AS scaduto
+    FROM base b
+  )
+  SELECT
+    c.persona_id, c.user_id, c.nome, c.cognome, c.telefono, c.email,
+    CASE
+      WHEN c.evo_fin                                THEN 'evo_finito'
+      WHEN c.corso_attivo='evo_corda'               THEN 'in_evo'
+      WHEN c.intro_fin AND NOT COALESCE(c.evo_paid,false)     THEN 'intro_finito_no_evo'
+      WHEN c.corso_attivo='intro_corda'             THEN 'in_intro'
+      WHEN c.adv_fin AND NOT COALESCE(c.intro_paid,false)     THEN 'advance_finito_no_intro'
+      WHEN c.corso_attivo='advance'                 THEN 'in_advance'
+      WHEN c.open_fin AND NOT COALESCE(c.advance_paid,false)  THEN 'open_finito_no_advance'
+      WHEN c.corso_attivo='open'                    THEN 'in_open'
+      WHEN COALESCE(c.prima_done,false) AND c.corso_attivo IS NULL
+           AND NOT c.open_pagato
+           AND NOT COALESCE(c.advance_paid,false)
+           AND NOT COALESCE(c.intro_paid,false)
+           AND NOT COALESCE(c.evo_paid,false)       THEN 'prima_non_proseguita'
+      ELSE NULL
+    END AS bucket,
+    c.corso_attivo,
+    c.r_open, c.r_adv, c.r_intro, c.r_evo,
+    c.scadenza_consumo_open, c.scadenza_consumo_advance, c.scadenza_consumo_intro, c.scadenza_consumo_evo,
+    (c.f_open + c.f_adv + c.f_intro + c.f_evo)::int AS prenotazioni_future,
+    c.scaduto AS alert_scaduto,
+    c.data_prima_lezione,
+    c.rec_at
+  FROM calc c
+  WHERE c.scaduto
+     OR CASE
+      WHEN c.evo_fin THEN true
+      WHEN c.corso_attivo IS NOT NULL THEN true
+      WHEN c.intro_fin AND NOT COALESCE(c.evo_paid,false) THEN true
+      WHEN c.adv_fin AND NOT COALESCE(c.intro_paid,false) THEN true
+      WHEN c.open_fin AND NOT COALESCE(c.advance_paid,false) THEN true
+      WHEN COALESCE(c.prima_done,false) AND c.corso_attivo IS NULL
+           AND NOT c.open_pagato AND NOT COALESCE(c.advance_paid,false)
+           AND NOT COALESCE(c.intro_paid,false) AND NOT COALESCE(c.evo_paid,false) THEN true
+      ELSE false
+     END
+  ORDER BY c.cognome NULLS LAST, c.nome;
+END;
+$function$;
