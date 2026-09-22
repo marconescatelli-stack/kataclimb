@@ -2168,3 +2168,140 @@ BEGIN
   );
 END;
 $function$;
+
+-- ─── riconosci_percorso_pregresso ───────────────────────────────────────────
+-- DANNO: il blocco del "corso attuale" scriveva la colonna del corso E
+--        lezioni_residue (Open) per advance, intro_corda ed evo_corda — lo
+--        stesso difetto della famiglia accredita_*. In piu' azzerava
+--        lezioni_residue e lezioni_iniziali_residue "di default" prima di
+--        risettarli, un giro che il modello derivato non chiede piu'.
+-- DOPO:  crea e aggiorna solo le iscrizioni — cosa che questa funzione faceva
+--        gia' bene, ed e' il motivo per cui e' la meno toccata di tutte — e i
+--        flag *_paid. Nessun contatore.
+--
+-- NOTA UTILE PER LA DOMANDA APERTA SU INTRO: qui v_lez_map dice intro_corda 8,
+-- come accredita_intro_mese1. I 6 di staff_attiva_corso e di prenota_corso_admin
+-- sono gli unici due posti che dicono un numero diverso: due contro uno a
+-- favore dell'8, ma la parola resta a Marco.
+CREATE OR REPLACE FUNCTION public.riconosci_percorso_pregresso(p_user_id uuid, p_completato_fino_a text, p_corso_attuale text DEFAULT NULL::text, p_attuale_paid boolean DEFAULT true, p_data date DEFAULT NULL::date)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_ordine  text[] := ARRAY['prima_lezione','open','advance','intro_corda','evo_corda'];
+  v_lez_map jsonb  := '{"prima_lezione":1,"open":7,"advance":8,"intro_corda":8,"evo_corda":8}'::jsonb;
+  v_note    text   := 'BACKFILL pregresso (riconosci_percorso_pregresso) - segreteria da correggere la data';
+  v_idx_max int; v_idx_att int; v_tipo text; v_lez int;
+  v_creati  text[] := '{}';
+  v_saltate text[] := '{}';
+  v_funnel  text; i int;
+BEGIN
+  v_idx_max := array_position(v_ordine, p_completato_fino_a);
+  IF v_idx_max IS NULL THEN
+    RAISE EXCEPTION 'p_completato_fino_a non valido: %', p_completato_fino_a;
+  END IF;
+
+  -- ── 1) Corsi COMPLETATI -> completata_pregressa — INVARIATO ──
+  FOR i IN 1..v_idx_max LOOP
+    v_tipo := v_ordine[i];
+    v_lez  := (v_lez_map ->> v_tipo)::int;
+
+    IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id = p_user_id AND tipo_corso = v_tipo AND status = 'attiva')
+       AND (p_corso_attuale IS NULL OR p_corso_attuale <> v_tipo) THEN
+      v_saltate := array_append(v_saltate, v_tipo);
+      CONTINUE;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id = p_user_id AND tipo_corso = v_tipo AND status <> 'attiva') THEN
+      UPDATE iscrizioni_corso
+         SET status             = 'completata_pregressa',
+             lezioni_totali     = v_lez,
+             lezioni_completate = v_lez,
+             stato_pagamento    = 'saldato',
+             data_iscrizione    = COALESCE(p_data, data_iscrizione),
+             note               = COALESCE(NULLIF(note,'') || ' · ', '') || v_note,
+             updated_at         = now()
+       WHERE user_id = p_user_id AND tipo_corso = v_tipo
+         AND status <> 'attiva' AND status <> 'completata_pregressa';
+    ELSIF NOT EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id = p_user_id AND tipo_corso = v_tipo) THEN
+      INSERT INTO iscrizioni_corso
+        (user_id, tipo_corso, status, lezioni_totali, lezioni_completate,
+         stato_pagamento, note, data_iscrizione, created_by)
+      VALUES
+        (p_user_id, v_tipo, 'completata_pregressa', v_lez, v_lez,
+         'saldato', v_note, COALESCE(p_data, CURRENT_DATE), auth.uid());
+      v_creati := array_append(v_creati, v_tipo);
+    END IF;
+  END LOOP;
+
+  -- ── 2) Flag profile_data dei livelli COMPLETATI — INVARIATO ──
+  IF v_idx_max >= 2 THEN UPDATE profile_data SET iscrizione_paid = true                         WHERE user_id = p_user_id; END IF;
+  IF v_idx_max >= 3 THEN UPDATE profile_data SET advance_paid = true, advance_mese2_paid = true WHERE user_id = p_user_id; END IF;
+  IF v_idx_max >= 4 THEN UPDATE profile_data SET intro_paid   = true, intro_mese2_paid   = true WHERE user_id = p_user_id; END IF;
+  IF v_idx_max >= 5 THEN UPDATE profile_data SET evo_paid     = true, evo_mese2_paid     = true WHERE user_id = p_user_id; END IF;
+
+  -- DEBITO-190: qui si azzeravano lezioni_residue e lezioni_iniziali_residue
+  -- "di default", per poi risettarli piu' sotto. Niente da azzerare: i corsi
+  -- passati a completata_pregressa escono da soli dalla view, che guarda solo
+  -- le attive.
+
+  -- ── 3) Corso ATTUALE ──
+  IF p_corso_attuale IS NOT NULL THEN
+    v_idx_att := array_position(v_ordine, p_corso_attuale);
+    IF v_idx_att IS NULL THEN
+      RAISE EXCEPTION 'p_corso_attuale non valido: %', p_corso_attuale;
+    END IF;
+    v_lez := (v_lez_map ->> p_corso_attuale)::int;
+
+    UPDATE profile_data SET corso_attivo = p_corso_attuale, updated_at = now() WHERE user_id = p_user_id;
+
+    -- DEBITO-190: restano i soli flag. Le lezioni del corso attuale sono
+    -- lezioni_totali sull'iscrizione creata qui sotto, non un contatore.
+    IF p_attuale_paid THEN
+      CASE p_corso_attuale
+        WHEN 'open'        THEN UPDATE profile_data SET iscrizione_paid = true WHERE user_id = p_user_id;
+        WHEN 'advance'     THEN UPDATE profile_data SET advance_paid    = true WHERE user_id = p_user_id;
+        WHEN 'intro_corda' THEN UPDATE profile_data SET intro_paid      = true WHERE user_id = p_user_id;
+        WHEN 'evo_corda'   THEN UPDATE profile_data SET evo_paid        = true WHERE user_id = p_user_id;
+        ELSE NULL;
+      END CASE;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id = p_user_id AND tipo_corso = p_corso_attuale AND status = 'attiva') THEN
+      INSERT INTO iscrizioni_corso
+        (user_id, tipo_corso, status, lezioni_totali, lezioni_completate,
+         stato_pagamento, note, data_iscrizione, created_by)
+      VALUES
+        (p_user_id, p_corso_attuale, 'attiva', v_lez, 0,
+         CASE WHEN p_attuale_paid THEN 'saldato' ELSE 'da_incassare' END,
+         'Corso attuale (pregresso riconosciuto) - deve ancora iniziare',
+         COALESCE(p_data, CURRENT_DATE), auth.uid());
+    END IF;
+  ELSE
+    UPDATE profile_data SET corso_attivo = NULL, updated_at = now() WHERE user_id = p_user_id;
+  END IF;
+
+  -- ── 4) funnel_stage — INVARIATO ──
+  IF p_corso_attuale IS NOT NULL THEN
+    v_funnel := CASE p_corso_attuale
+      WHEN 'open' THEN 'iscritto_open' WHEN 'advance' THEN 'iscritto_advance'
+      WHEN 'intro_corda' THEN 'iscritto_intro' WHEN 'evo_corda' THEN 'iscritto_evo'
+      ELSE NULL END;
+  ELSE
+    v_funnel := CASE p_completato_fino_a
+      WHEN 'open' THEN 'concluso_open' WHEN 'advance' THEN 'concluso_advance'
+      WHEN 'intro_corda' THEN 'concluso_intro' WHEN 'evo_corda' THEN 'concluso_evo'
+      WHEN 'prima_lezione' THEN 'fatta_prima_lezione' ELSE NULL END;
+  END IF;
+  IF v_funnel IS NOT NULL THEN
+    UPDATE lead_data SET funnel_stage = v_funnel
+     WHERE persona_id = (SELECT persona_id FROM profile_data WHERE user_id = p_user_id);
+  END IF;
+
+  RETURN jsonb_build_object(
+    'ok', true, 'user_id', p_user_id,
+    'completato_fino_a', p_completato_fino_a, 'corso_attuale', p_corso_attuale,
+    'iscrizioni_create', v_creati, 'saltate_attive', v_saltate,
+    'warning', CASE WHEN array_length(v_saltate,1) > 0
+      THEN 'Iscrizioni ATTIVE non toccate: ' || array_to_string(v_saltate, ', ') || '. Se vanno riconosciute come pregresse, concluderle prima dalla segreteria.'
+      ELSE NULL END);
+END; $function$;
