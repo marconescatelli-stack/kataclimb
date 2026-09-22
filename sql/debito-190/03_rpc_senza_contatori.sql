@@ -1944,6 +1944,14 @@ END;
 $function$;
 
 -- ─── prenota_corso_admin ────────────────────────────────────────────────────
+-- MANCAVA UNA GUARDIA (caso Yulia, 22 set): questa funzione non ha mai
+--   controllato quante lezioni restassero. La segreteria poteva prenotare oltre
+--   il pacchetto senza nessun avviso, e il contatore andava sotto zero in
+--   silenzio: e' uno dei modi in cui i numeri si sono storti. prenota_corso,
+--   lato allievo, la guardia ce l'aveva da sempre. Ora c'e' anche qui, con i
+--   numeri nel messaggio e la via d'uscita: pagare il mese dopo, o regalare la
+--   lezione dichiarandolo. L'omaggio salta il controllo di proposito.
+--
 -- PRIMA: tre scritture di contatori. (1) l'auto-setup-corso, quando l'allievo
 --        non aveva corso_attivo, scriveva il default di lezioni nella colonna
 --        del corso con EXECUTE format, piu' lezioni_iniziali_residue per Open,
@@ -1978,7 +1986,7 @@ DECLARE
   v_capienza int; v_prenot_id uuid; v_dow_iso int;
   v_setup_corso boolean := false; v_default_lezioni int;
   v_invoker_role text; v_target record; v_eligible boolean; v_corso_label text;
-  v_iscrizione record;
+  v_iscrizione record; v_c record; v_label text;
 BEGIN
   IF NOT is_staff() THEN
     RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
@@ -2071,6 +2079,35 @@ BEGIN
       WHERE converted_profile_id = p_user_id
         AND funnel_stage NOT IN ('iscritto_open','iscritto_advance','iscritto_intro','iscritto_evo',
                                  'concluso_lavorato','maestro_di_cordata','ibernato','perso');
+  END IF;
+
+  -- ═══ IL PACCHETTO BASTA? (DEBITO-190, caso Yulia) ═══
+  -- Questa guardia NON c'era: prenota_corso_admin non ha mai guardato quante
+  -- lezioni restassero. La segreteria poteva prenotare oltre il pacchetto senza
+  -- che niente lo dicesse, e il contatore andava sotto zero in silenzio — e'
+  -- uno dei modi in cui i numeri si sono storti. prenota_corso (lato allievo)
+  -- la guardia ce l'aveva da sempre.
+  -- L'omaggio la salta di proposito: regalare una lezione significa appunto
+  -- prenotare fuori dal pacchetto, ed e' gia' tracciato su chi e perche'.
+  IF p_scala_credito THEN
+    SELECT coalesce(tc.label, initcap(replace(v_slot.tipo_corso,'_',' ')))
+      INTO v_label
+      FROM tipi_corso_config tc WHERE tc.tipo_corso = v_slot.tipo_corso;
+    v_label := coalesce(v_label, initcap(replace(v_slot.tipo_corso,'_',' ')));
+
+    SELECT * INTO v_c FROM contatori_corso
+      WHERE user_id = p_user_id AND tipo_corso = v_slot.tipo_corso;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Nessuna iscrizione attiva a %: registra il pagamento prima di prenotare.', v_label
+        USING ERRCODE = '23514';
+    END IF;
+
+    IF v_c.prenotabili <= 0 THEN
+      RAISE EXCEPTION 'Pacchetto % esaurito: % fatte su %, % già in agenda. Registra il pagamento del mese successivo oppure concedi una lezione omaggio con motivo.',
+        v_label, v_c.fatte, v_c.totali, v_c.in_agenda
+        USING ERRCODE = '23514';
+    END IF;
   END IF;
 
   -- ═══ Validità periodo per A/I/E — INVARIATO ═══

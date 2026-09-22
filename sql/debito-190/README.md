@@ -202,6 +202,29 @@ orfani** si spengono da soli senza aspettare la bonifica della Fase D.
 azzerava ogni 2; ora è il conteggio pieno delle ghostate, che cresce e basta. Dove una pagina lo
 mostra, il numero si comporterà diversamente. Da guardare in Fase C.
 
+### Una guardia che non c'era: il caso Yulia
+
+`prenota_corso_admin` **non ha mai controllato quante lezioni restassero**. La segreteria poteva
+prenotare oltre il pacchetto senza nessun avviso, e il contatore andava sotto zero in silenzio: è uno
+dei modi in cui i numeri si sono storti. `prenota_corso`, lato allievo, la guardia ce l'aveva da
+sempre — solo il percorso della segreteria era scoperto.
+
+Dal 03 la guardia c'è, con i numeri nel messaggio e la via d'uscita:
+
+```
+Nessuna iscrizione attiva a Corso Advance: registra il pagamento prima di prenotare.
+
+Pacchetto Corso Open esaurito: 3 fatte su 4, 1 già in agenda.
+Registra il pagamento del mese successivo oppure concedi una lezione omaggio con motivo.
+```
+
+L'omaggio **salta il controllo di proposito**: regalare una lezione significa appunto prenotare fuori
+dal pacchetto, ed è già tracciato su chi l'ha concessa e perché.
+
+**Da sapere prima di applicare:** è un cambio di comportamento per la segreteria. Da quel momento una
+prenotazione oltre il pacchetto non passa più in silenzio — va registrato il pagamento, oppure
+dichiarato l'omaggio. È il punto del cantiere, ma qualcuno se ne accorgerà il primo giorno.
+
 ## Decisioni prese, per non ridiscuterle
 
 - **Si scala quando la lezione è fatta, non quando è prenotata.** Il contatore vecchio scalava
