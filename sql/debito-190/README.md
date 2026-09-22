@@ -38,7 +38,15 @@ eseguito da Claude Code: li applica Marco da chat dopo revisione.
 | 04 | `04_bonifica.sql` | sì, sistema i dati storti | Fase D |
 | 05 | `05_drop_colonne.sql` | sì, ritira le colonne | Fase D, **non prima di una settimana** di Fase C in produzione senza incidenti |
 
-Stato oggi: **01 e 02 pronti**. Dal 03 in poi non ancora scritti.
+Stato oggi: **01 e 02 applicati e verificati**. Il **03 è a metà**: contiene la parte che non dipende dal nodo aperto sul no-show (vedi sotto), e non va applicato finché non è completo.
+
+### Nodo aperto — la penale del no-show cambia di significato
+
+Il codice live non toglie una lezione al primo no-show: `applica_no_show` incrementa `no_show_count` e solo al raggiungimento della soglia (`noshow_soglia_penalita`, 2 su tutti i corsi) azzera il contatore **e** toglie una lezione. In pratica **due no-show = una lezione persa**.
+
+Il modello nuovo dice che `assente` consuma la lezione, sempre: **un no-show = una lezione persa**. È un raddoppio della penale, ed è una regola di business. Va deciso prima di scrivere la parte 2 del 03.
+
+Impatto sui dati di oggi: **una sola riga `assente`** a DB (Corso Open) e **un solo profilo** con `no_show_count = 1`. Qualunque scelta, oggi non fa danni a nessuno.
 
 ### Dopo il 01 — cosa verificare
 In fondo al file ci sono tre query pronte, `V1`, `V2`, `V3`.
