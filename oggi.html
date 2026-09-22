@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: oggi v2.13 · 2026-09-01 · (1) VALIDA SOLO IL MAESTRO: rimossa la tessera '▶ Da validare' dalla console ISTRUTTORE (era live dal v2.2 puntando a monitor.html; la validazione Kata è esclusiva del creator, valida.html è già solo-creator) — vista istruttore non chiama più loadIstrValida. (2) LISTINI RAGGIUNGIBILI: tessera 💶 Listini (/listini.html) nella console SEGRETERIA (zona La cura, prima di Fascicoli) e nella console ISTRUTTORE (dopo Agenda). Le pagine listino 2026/27 erano orfane: gate ok, porta d’ingresso assente. CUMULA v2.12 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce) — .saluto span (data), .t .cmd + .t .big small, .t-adesso .cosa span/.bell, .t-lez .riga/.h/.n/.vuota (orari e conteggi posti erano 8–12.8px), .tag; anche override desktop di .t .cmd e .t-adesso .cosa span. Solo font-size; etichette decorative invariate; nessuna modifica a JS/query/testi. CUMULA v2.11 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo — la Comunità torna raggiungibile da mobile (era sepolta sotto kc-bar nel portale). CUMULA v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
+<!-- KC-BUILD: oggi v2.14 · 2026-09-22 · DEBITO-190 FASE C: i numeri del pacchetto arrivano da get_contatori e non piu' dalle colonne salvate in profile_data. Spariscono la mappa _COLCRED corso→colonna e l'indovinello su quale delle quattro guardare: la view sa gia' di quale corso si parla. La tessera Lezioni tiene il numero grande ma sotto dice da dove viene, '5 su 8 · PRENOTA', perche' un numero solo non si puo' controllare. NON toccati: agenda, eventi, kata, viste per ruolo, il resto dei testi. CUMULA v2.13  2026-09-01 · (1) VALIDA SOLO IL MAESTRO: rimossa la tessera '▶ Da validare' dalla console ISTRUTTORE (era live dal v2.2 puntando a monitor.html; la validazione Kata è esclusiva del creator, valida.html è già solo-creator) — vista istruttore non chiama più loadIstrValida. (2) LISTINI RAGGIUNGIBILI: tessera 💶 Listini (/listini.html) nella console SEGRETERIA (zona La cura, prima di Fascicoli) e nella console ISTRUTTORE (dopo Agenda). Le pagine listino 2026/27 erano orfane: gate ok, porta d’ingresso assente. CUMULA v2.12 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce) — .saluto span (data), .t .cmd + .t .big small, .t-adesso .cosa span/.bell, .t-lez .riga/.h/.n/.vuota (orari e conteggi posti erano 8–12.8px), .tag; anche override desktop di .t .cmd e .t-adesso .cosa span. Solo font-size; etichette decorative invariate; nessuna modifica a JS/query/testi. CUMULA v2.11 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo — la Comunità torna raggiungibile da mobile (era sepolta sotto kc-bar nel portale). CUMULA v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
      tessere span 2 (tre per riga, grandi), due=span 4, ADESSO full. Collaudo Marco: "non si adatta al desktop".
      CUMULA v2.0 · CONSOLE A RUOLI (collaudo Marco: "tutti abbiamo la console").
      Vista decisa da profiles.role + profile_data.staff_role (i PERMESSI restano dove sono: RLS/RPC invariati,
@@ -258,9 +258,14 @@ const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','ag
 const TIPO_LBL={open:'Open',advance:'Advance',intro_corda:'Intro',evo_corda:'Evo',prima_lezione:'Prima',bambini:'Bambini',lab:'Lab',fly:'Fly'};
 
 let sb,uid,profilo={},pdata={},vista='allievo';
-// §fix 22 giu — credito del corso_attivo reale (non solo Open). Mappa corso → colonna.
-const _COLCRED={open:'lezioni_residue',advance:'advance_lezioni_residue',intro_corda:'intro_lezioni_residue',evo_corda:'evo_lezioni_residue'};
-const creditoCorso=()=>pdata[_COLCRED[pdata.corso_attivo]||'lezioni_residue'];
+/* DEBITO-190 — i numeri del pacchetto non si leggono piu' dalle colonne
+   salvate in profile_data, che 40 funzioni ritoccavano a mano e che potevano
+   mentire, ma da get_contatori, che li deriva contando le righe.
+   Spariscono con loro la mappa corso→colonna e l'indovinello su quale delle
+   quattro guardare. */
+let contatori={};
+const contatore=()=>contatori[pdata.corso_attivo]||null;
+const creditoCorso=()=>contatore()?.prenotabili ?? null;
 
 /* Trappola #134: date locali, MAI toISOString */
 function isoLocal(d){
@@ -281,13 +286,20 @@ async function init(){
   if(!session){document.getElementById('gate').style.display='block';return;}
   uid=session.user.id;
 
-  /* profilo: nome/role/kata_certs da profiles, corso/residue/staff_role da profile_data (come agenda live) */
+  /* profilo: nome/role/kata_certs da profiles, corso/staff_role da profile_data.
+     DEBITO-190: i numeri del pacchetto non stanno piu' qui, arrivano da get_contatori. */
   const[rp,rd]=await Promise.all([
     sb.from('profiles').select('nome, cognome, role, kata_certs').eq('user_id',uid).maybeSingle(),
-    sb.from('profile_data').select('corso_attivo, lezioni_residue, advance_lezioni_residue, intro_lezioni_residue, evo_lezioni_residue, frequenza_open, staff_role').eq('user_id',uid).maybeSingle()
+    sb.from('profile_data').select('corso_attivo, frequenza_open, staff_role').eq('user_id',uid).maybeSingle()
   ]);
   profilo=rp.data||{};
   pdata=rd.data||{};
+
+  /* DEBITO-190: la fotografia dei contatori, prima di disegnare qualsiasi numero. */
+  try{
+    const{data:cc}=await sb.rpc('get_contatori',{p_user_id:uid});
+    contatori={}; (cc||[]).forEach(c=>{contatori[c.tipo_corso]=c});
+  }catch(e){console.warn('[oggi] get_contatori:',e.message);contatori={}}
 
   /* vista: override ?vista= (collaudo/switch creator), poi ruolo */
   const vParam=new URLSearchParams(window.location.search).get('vista');
@@ -322,7 +334,7 @@ function renderAllievo(){
   <a class="t t-avviso" id="t-avviso" href="/agenda.html">
     <span class="et mono">🔔 Lezioni</span>
     <div class="big">${creditoCorso()??'—'}</div>
-    <span class="cmd mono">PRENOTA ›</span>
+    <span class="cmd mono">${(()=>{const c=contatore();return c?`${c.fatte} su ${c.totali} · PRENOTA ›`:'PRENOTA ›';})()}</span>
   </a>
 
   <a class="t t-malaga" id="t-ev1" href="/eventi.html">
