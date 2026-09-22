@@ -2,11 +2,15 @@
 -- DEBITO-190 · Fase B · 03 — Le funzioni smettono di fare aritmetica
 -- Data: 2026-09-22 · Decisioni: Marco
 --
--- ⚠ FILE INCOMPLETO — PARTE 1 DI 2. NON APPLICARE ANCORA.
---   Qui dentro c'e' solo cio' che NON dipende dalla decisione aperta sul
---   no-show (vedi "NODO APERTO" qui sotto). Le funzioni che la toccano
---   — applica_no_show, disdici_corso, rimarca_presenza_corso e gli accrediti —
---   arrivano nella parte 2, dopo la risposta di Marco.
+-- STATO: COMPLETO. Applicato in produzione il 22 settembre 2026 e verificato
+--   con V-firme (33 funzioni, un solo overload ciascuna) e con la sezione 1
+--   della 02 (18 righe, 18 a posto, zero fuori posto).
+--   Contiene tutte e 40 le funzioni del censimento: gli helper di lettura, i due
+--   trigger eliminati, quello che resta, i verbi, i 17 accrediti, le funzioni di
+--   segreteria e i cruscotti. Il file e' cresciuto in quattro passate — prima
+--   cio' che non dipendeva dalla regola del no-show, poi il resto — e le
+--   intestazioni "PARTE n" qui sotto raccontano quell'ordine, non un lavoro
+--   lasciato a meta'.
 --
 -- REGOLA
 --   Ogni funzione scrive SOLO lo stato della riga in prenotazioni_corso (o
@@ -20,7 +24,7 @@
 --   L'ordine conta: gli helper vanno prima di chi li chiama.
 --
 -- ============================================================================
--- NODO APERTO — la penale del no-show cambia di significato
+-- LA PENALE DEL NO-SHOW — deciso il 22 set, qui per memoria
 -- ============================================================================
 --   Codice live: applica_no_show NON toglie una lezione al primo no-show.
 --   Incrementa no_show_count e solo al raggiungimento della soglia
@@ -30,10 +34,12 @@
 --   Modello nuovo (tabella degli stati ratificata da Marco): 'assente' consuma
 --   la lezione, sempre. In pratica: UN no-show = UNA lezione persa.
 --
---   E' un raddoppio della penale, ed e' una regola di business, non un
---   dettaglio tecnico. Non la cambio di mia iniziativa.
---   Impatto sui dati di oggi: 1 sola riga 'assente' a DB (Corso Open) e
---   1 solo profilo con no_show_count = 1. Qualunque scelta, oggi non fa danni.
+--   Sarebbe stato un raddoppio della penale, ed e' una regola di business.
+--   DECISIONE DI MARCO: resta la regola del Modello Open. Servono N ghostate
+--   perche' ne venga scalata una lezione, con N = noshow_soglia_penalita
+--   (oggi 2 su tutti e quattro i corsi). La view fa ghostate / soglia, e qui
+--   applica_no_show non scrive piu' niente: emette solo l'avviso quando il
+--   conteggio tocca un multiplo della soglia. Vedi la parte 2.
 -- ============================================================================
 
 
