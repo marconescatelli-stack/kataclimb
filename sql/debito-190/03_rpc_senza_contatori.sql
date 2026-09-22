@@ -842,3 +842,311 @@ DROP FUNCTION IF EXISTS public.prenota_open(uuid, uuid, date);
 --
 -- ⚠ LE FUNZIONI RISCRITTE ARRIVANO NEL PROSSIMO BLOCCO DI QUESTO FILE.
 --   Fin qui c'e' il rilievo, non ancora il codice.
+
+
+-- ─── accredita_advance_mese1 ────────────────────────────────────────────────
+-- DANNO: scriveva advance_lezioni_residue=4 E lezioni_residue=4 — la seconda
+--        e' la colonna del Corso Open. Quattro lezioni Advance finivano anche
+--        nel credito Open. Azzerava pure advance_no_show_count.
+-- DOPO:  l'iscrizione, gli importi, la validita', il flag advance_paid, il
+--        funnel, il pagamento e la nota restano identici. Via i tre contatori.
+CREATE OR REPLACE FUNCTION public.accredita_advance_mese1(p_user_id uuid, p_data_inizio date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione_id uuid; v_lead_id uuid; v_pagamento_id uuid; v_data_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_inizio IS NULL THEN p_data_inizio := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %. Ammessi: contanti, bonifico, pos.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN
+    RAISE EXCEPTION 'profile_data non trovato per user_id=%. Provisionare prima l''allievo via kc-inserisci-contatto.', p_user_id;
+  END IF;
+  IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id=p_user_id AND tipo_corso='advance' AND status='attiva') THEN
+    RAISE EXCEPTION 'Iscrizione Advance attiva già presente per user_id=%. Usa accredita_advance_mese2 per il pagamento del secondo mese.', p_user_id;
+  END IF;
+  v_data_fine := p_data_inizio + INTERVAL '40 days';
+  INSERT INTO iscrizioni_corso (
+    user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+    lezioni_totali, lezioni_completate, status, stato_pagamento,
+    importo_concordato, importo_pagato, note
+  ) VALUES (
+    p_user_id, 'advance', p_data_inizio, p_data_inizio, v_data_fine,
+    8, 0, 'attiva', 'acconto', 280, 140,
+    '1° mese pagato (140€). Manca 2° mese (140€) per saldare 280€ totali. Lezioni accreditate al mese 1: 4 su 8.'
+  ) RETURNING id INTO v_iscrizione_id;
+
+  -- DEBITO-190: qui c'erano advance_lezioni_residue=4, lezioni_residue=4 e
+  -- advance_no_show_count=0. Le 4 lezioni del mese 1 sono gia' scritte
+  -- nell'iscrizione (lezioni_totali=8 con importo_pagato < concordato: la view
+  -- fa lezioni_totali/2). Il no-show e' un COUNT, non si azzera.
+  UPDATE profile_data
+    SET corso_attivo='advance', advance_paid=true, updated_at=now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_advance', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE SET funnel_stage='iscritto_advance', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'advance_mese1', p_metodo, auth.uid(),
+          COALESCE(p_note, 'Advance mese 1 (1x/sett std) — 140€ (corso 50 + sala 90)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a Advance mese 1 il %s, metodo %s. Lezioni residue 4 su 8. Importo residuo 140€.', p_data_inizio::text, p_metodo),
+    auth.uid());
+  RETURN jsonb_build_object('success',true,'iscrizione_id',v_iscrizione_id,'pagamento_id',v_pagamento_id,
+    'lead_data_id',v_lead_id,'tipo_corso','advance','funnel_stage','iscritto_advance','mese_accreditato',1,
+    'lezioni_residue',4,'lezioni_totali',8,'importo_pagato',140,'importo_residuo',140,
+    'data_inizio_validita',p_data_inizio,'data_fine_validita',v_data_fine,
+    'message','Advance mese 1 accreditato: 4 lezioni residue, importo da saldare 140€.');
+END; $function$;
+
+-- ─── accredita_advance_mese2 ────────────────────────────────────────────────
+-- DANNO: advance_lezioni_residue + 4 E lezioni_residue + 4 — altre quattro
+--        lezioni Advance sul credito Open.
+-- DOPO:  saldare il mese 2 significa solo importo_pagato = importo_concordato
+--        sull'iscrizione: da li' la view smette di dimezzare e le lezioni
+--        passano da 4 a 8 da sole. Il numero nella nota CRM e nel jsonb ora
+--        viene letto dalla view invece che dalla RETURNING sul contatore.
+CREATE OR REPLACE FUNCTION public.accredita_advance_mese2(p_user_id uuid, p_data_pagamento date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione iscrizioni_corso%ROWTYPE; v_lead_id uuid; v_pagamento_id uuid;
+  v_nuove_residue integer; v_nuova_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_pagamento IS NULL THEN p_data_pagamento := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %. Ammessi: contanti, bonifico, pos.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN RAISE EXCEPTION 'profile_data non trovato per user_id=%.', p_user_id; END IF;
+  SELECT * INTO v_iscrizione FROM iscrizioni_corso
+  WHERE user_id=p_user_id AND tipo_corso='advance' AND status='attiva'
+  ORDER BY data_iscrizione DESC LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Nessuna iscrizione Advance attiva per user_id=%. Prima eseguire accredita_advance_mese1.', p_user_id; END IF;
+  IF v_iscrizione.importo_pagato >= v_iscrizione.importo_concordato THEN
+    RAISE EXCEPTION 'Iscrizione Advance già saldata per user_id=% (importo_pagato=%, importo_concordato=%).', p_user_id, v_iscrizione.importo_pagato, v_iscrizione.importo_concordato;
+  END IF;
+  IF v_iscrizione.importo_pagato != 140 THEN
+    RAISE EXCEPTION 'Stato pagamenti anomalo iscrizione Advance user_id=%: atteso importo_pagato=140, trovato %.', p_user_id, v_iscrizione.importo_pagato;
+  END IF;
+  v_nuova_fine := GREATEST((v_iscrizione.data_inizio_validita + INTERVAL '75 days')::date, (p_data_pagamento + INTERVAL '30 days')::date);
+  UPDATE iscrizioni_corso
+    SET importo_pagato = importo_concordato, stato_pagamento = 'saldato',
+        pagamento_completato_at = now(), data_fine_validita = v_nuova_fine,
+        note = COALESCE(note || E'\n','') || format('Saldato il %s con accredita_advance_mese2. 8 lezioni accreditate totali.', p_data_pagamento::text),
+        updated_at = now()
+    WHERE id = v_iscrizione.id;
+
+  -- DEBITO-190: qui c'erano advance_lezioni_residue + 4 e lezioni_residue + 4.
+  -- Il saldo appena scritto sull'iscrizione basta: la view non dimezza piu'.
+  UPDATE profile_data
+    SET advance_mese2_paid = true, updated_at = now()
+    WHERE user_id = p_user_id;
+
+  SELECT prenotabili INTO v_nuove_residue
+    FROM contatori_corso WHERE user_id = p_user_id AND tipo_corso = 'advance';
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_advance', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE SET funnel_stage='iscritto_advance', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'advance_mese2', p_metodo, auth.uid(),
+          COALESCE(p_note, 'Advance mese 2 (saldo) — 140€ (corso 50 + sala 90)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: saldato Advance mese 2 il %s, metodo %s. Iscrizione completata 8/8 lezioni, residue=%s.', p_data_pagamento::text, p_metodo, v_nuove_residue),
+    auth.uid());
+  RETURN jsonb_build_object('success',true,'iscrizione_id',v_iscrizione.id,'pagamento_id',v_pagamento_id,
+    'lead_data_id',v_lead_id,'tipo_corso','advance','funnel_stage','iscritto_advance','mese_accreditato',2,
+    'lezioni_residue',v_nuove_residue,'lezioni_totali',v_iscrizione.lezioni_totali,
+    'importo_pagato',v_iscrizione.importo_concordato,'importo_residuo',0,
+    'data_fine_validita',v_nuova_fine,'saldato',true,
+    'message',format('Advance mese 2 accreditato: +4 lezioni (totale residue=%s), iscrizione saldata.', v_nuove_residue));
+END; $function$;
+
+-- ─── accredita_advance_2xsett ───────────────────────────────────────────────
+-- DANNO: advance_lezioni_residue=8 E lezioni_residue=8 — otto lezioni Advance
+--        anche sul credito Open. Azzerava advance_no_show_count.
+-- DOPO:  l'iscrizione nasce gia' saldata con lezioni_totali=8, quindi la view
+--        dice 8 senza che nessuno le scriva.
+CREATE OR REPLACE FUNCTION public.accredita_advance_2xsett(p_user_id uuid, p_data_inizio date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione_id uuid; v_lead_id uuid; v_pagamento_id uuid; v_data_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_inizio IS NULL THEN p_data_inizio := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %. Ammessi: contanti, bonifico, pos.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN RAISE EXCEPTION 'profile_data non trovato per user_id=%.', p_user_id; END IF;
+  IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id=p_user_id AND tipo_corso='advance' AND status='attiva') THEN
+    RAISE EXCEPTION 'Iscrizione Advance attiva già presente per user_id=%. Concludere o annullare l''esistente prima.', p_user_id;
+  END IF;
+  v_data_fine := p_data_inizio + INTERVAL '45 days';
+  INSERT INTO iscrizioni_corso (
+    user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+    lezioni_totali, lezioni_completate, status, stato_pagamento,
+    importo_concordato, importo_pagato, pagamento_completato_at, note
+  ) VALUES (
+    p_user_id, 'advance', p_data_inizio, p_data_inizio, v_data_fine,
+    8, 0, 'attiva', 'saldato', 190, 190, now(),
+    'Advance modalità ECCEZIONE 2x/sett: 8 lezioni in ~1 mese, pagamento unico 190€ (corso 100 + sala 90).'
+  ) RETURNING id INTO v_iscrizione_id;
+
+  -- DEBITO-190: via advance_lezioni_residue=8, lezioni_residue=8 e
+  -- advance_no_show_count=0.
+  UPDATE profile_data
+    SET corso_attivo='advance', advance_paid=true, updated_at=now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_advance', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE SET funnel_stage='iscritto_advance', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'advance_2xsett', p_metodo, auth.uid(),
+          COALESCE(p_note, 'Advance 2x/sett intensivo — 190€ saldato (corso 100 + sala 90)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a Advance 2x/sett intensivo il %s, metodo %s. 8 lezioni residue, saldato 190€.', p_data_inizio::text, p_metodo),
+    auth.uid());
+  RETURN jsonb_build_object('success',true,'iscrizione_id',v_iscrizione_id,'pagamento_id',v_pagamento_id,
+    'lead_data_id',v_lead_id,'tipo_corso','advance','funnel_stage','iscritto_advance','modalita','2xsett_intensivo',
+    'lezioni_residue',8,'lezioni_totali',8,'importo_pagato',190,'importo_residuo',0,'saldato',true,
+    'data_inizio_validita',p_data_inizio,'data_fine_validita',v_data_fine,
+    'message','Advance 2x/sett intensivo accreditato: 8 lezioni residue, saldato 190€.');
+END; $function$;
+
+-- ─── accredita_evo_mese1 ────────────────────────────────────────────────────
+-- DANNO: evo_lezioni_residue=4 E lezioni_residue=4 — quattro lezioni Evo
+--        anche sul credito Open. Azzerava evo_no_show_count.
+CREATE OR REPLACE FUNCTION public.accredita_evo_mese1(p_user_id uuid, p_data_inizio date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione_id uuid; v_lead_id uuid; v_pagamento_id uuid; v_data_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_inizio IS NULL THEN p_data_inizio := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %. Ammessi: contanti, bonifico, pos.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN RAISE EXCEPTION 'profile_data non trovato per user_id=%.', p_user_id; END IF;
+  IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id=p_user_id AND tipo_corso='evo_corda' AND status='attiva') THEN
+    RAISE EXCEPTION 'Iscrizione Evo Corda attiva già presente per user_id=%. Usa accredita_evo_mese2 per il pagamento del secondo mese.', p_user_id;
+  END IF;
+  v_data_fine := p_data_inizio + INTERVAL '40 days';
+  INSERT INTO iscrizioni_corso (
+    user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+    lezioni_totali, lezioni_completate, status, stato_pagamento,
+    importo_concordato, importo_pagato, note
+  ) VALUES (
+    p_user_id, 'evo_corda', p_data_inizio, p_data_inizio, v_data_fine,
+    8, 0, 'attiva', 'acconto', 320, 160,
+    '1° mese pagato (160€). Manca 2° mese (160€) per saldare 320€ totali. Lezioni accreditate al mese 1: 4 su 8.'
+  ) RETURNING id INTO v_iscrizione_id;
+
+  -- DEBITO-190: via evo_lezioni_residue=4, lezioni_residue=4, evo_no_show_count=0.
+  UPDATE profile_data
+    SET corso_attivo='evo_corda', evo_paid=true, updated_at=now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_evo', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE SET funnel_stage='iscritto_evo', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'evo_mese1', p_metodo, auth.uid(),
+          COALESCE(p_note, 'Evo Corda mese 1 — 160€ (corso 70 + sala 90)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a Evo Corda mese 1 il %s, metodo %s. Lezioni residue 4 su 8. Importo residuo 160€.', p_data_inizio::text, p_metodo),
+    auth.uid());
+  RETURN jsonb_build_object('success',true,'iscrizione_id',v_iscrizione_id,'pagamento_id',v_pagamento_id,
+    'lead_data_id',v_lead_id,'tipo_corso','evo_corda','funnel_stage','iscritto_evo','mese_accreditato',1,
+    'lezioni_residue',4,'lezioni_totali',8,'importo_pagato',160,'importo_residuo',160,
+    'data_inizio_validita',p_data_inizio,'data_fine_validita',v_data_fine,
+    'message','Evo Corda mese 1 accreditato: 4 lezioni residue, importo da saldare 160€.');
+END; $function$;
+
+-- ─── accredita_evo_mese2 ────────────────────────────────────────────────────
+-- DANNO: evo_lezioni_residue + 4 E lezioni_residue + 4.
+CREATE OR REPLACE FUNCTION public.accredita_evo_mese2(p_user_id uuid, p_data_pagamento date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione iscrizioni_corso%ROWTYPE; v_lead_id uuid; v_pagamento_id uuid;
+  v_nuove_residue integer; v_nuova_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_pagamento IS NULL THEN p_data_pagamento := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %. Ammessi: contanti, bonifico, pos.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN RAISE EXCEPTION 'profile_data non trovato per user_id=%.', p_user_id; END IF;
+  SELECT * INTO v_iscrizione FROM iscrizioni_corso
+  WHERE user_id=p_user_id AND tipo_corso='evo_corda' AND status='attiva'
+  ORDER BY data_iscrizione DESC LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Nessuna iscrizione Evo Corda attiva per user_id=%. Prima eseguire accredita_evo_mese1.', p_user_id; END IF;
+  IF v_iscrizione.importo_pagato >= v_iscrizione.importo_concordato THEN
+    RAISE EXCEPTION 'Iscrizione Evo Corda già saldata per user_id=% (importo_pagato=%, importo_concordato=%).', p_user_id, v_iscrizione.importo_pagato, v_iscrizione.importo_concordato;
+  END IF;
+  IF v_iscrizione.importo_pagato != 160 THEN
+    RAISE EXCEPTION 'Stato pagamenti anomalo iscrizione Evo Corda user_id=%: atteso importo_pagato=160, trovato %.', p_user_id, v_iscrizione.importo_pagato;
+  END IF;
+  v_nuova_fine := GREATEST((v_iscrizione.data_inizio_validita + INTERVAL '75 days')::date, (p_data_pagamento + INTERVAL '30 days')::date);
+  UPDATE iscrizioni_corso
+    SET importo_pagato = importo_concordato, stato_pagamento = 'saldato',
+        pagamento_completato_at = now(), data_fine_validita = v_nuova_fine,
+        note = COALESCE(note || E'\n','') || format('Saldato il %s con accredita_evo_mese2. 8 lezioni accreditate totali.', p_data_pagamento::text),
+        updated_at = now()
+    WHERE id = v_iscrizione.id;
+
+  -- DEBITO-190: via evo_lezioni_residue + 4 e lezioni_residue + 4.
+  UPDATE profile_data SET evo_mese2_paid = true, updated_at = now() WHERE user_id = p_user_id;
+
+  SELECT prenotabili INTO v_nuove_residue
+    FROM contatori_corso WHERE user_id = p_user_id AND tipo_corso = 'evo_corda';
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_evo', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE SET funnel_stage='iscritto_evo', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'evo_mese2', p_metodo, auth.uid(),
+          COALESCE(p_note, 'Evo Corda mese 2 (saldo) — 160€ (corso 70 + sala 90)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: saldato Evo Corda mese 2 il %s, metodo %s. Iscrizione completata 8/8 lezioni, residue=%s.', p_data_pagamento::text, p_metodo, v_nuove_residue),
+    auth.uid());
+  RETURN jsonb_build_object('success',true,'iscrizione_id',v_iscrizione.id,'pagamento_id',v_pagamento_id,
+    'lead_data_id',v_lead_id,'tipo_corso','evo_corda','funnel_stage','iscritto_evo','mese_accreditato',2,
+    'lezioni_residue',v_nuove_residue,'lezioni_totali',v_iscrizione.lezioni_totali,
+    'importo_pagato',v_iscrizione.importo_concordato,'importo_residuo',0,
+    'data_fine_validita',v_nuova_fine,'saldato',true,
+    'message',format('Evo Corda mese 2 accreditato: +4 lezioni (totale residue=%s), iscrizione saldata.', v_nuove_residue));
+END; $function$;
+
+-- ─── accredita_advance_intero · accredita_evo_intero · accredita_intro_intero
+-- NESSUN DANNO, NESSUNA RISCRITTURA. Letti per intero: non toccano nessun
+-- contatore. Chiamano mese1 + mese2 e compongono il jsonb. La chiave
+-- 'lezioni_residue' che contengono e' solo un campo del risultato, non una
+-- scrittura. Restano esattamente come sono.
