@@ -37,12 +37,14 @@ Il ragionamento completo, con le tre forme del difetto, è in `02_piano.md`.
 | 00 | `00_censimento.md` | le 153 funzioni con ACL, guardia e priorità | no, è un documento |
 | 01 | `01_mappa_chiamanti.md` | chi chiama cosa, e se prima o dopo il login | no, è un documento |
 | 02 | `02_piano.md` | la classificazione A/B/C/D e il perché | no, è un documento |
-| 03 | `03_revoke.sql` | toglie i privilegi a chi non deve chiamare | no, solo privilegi |
+| 03a | `03a_urgente.sql` | **da applicare per primo**: le 13 funzioni con dati personali o di minori | no, solo privilegi |
+| 03 | `03_revoke.sql` | toglie i privilegi a chi non deve chiamare, tutte le altre | no, solo privilegi |
 | 04a | `04a_guardie_crm.sql` | corregge la guardia di 20 funzioni del CRM | no, solo `CREATE OR REPLACE` |
 | 04b | `04b_guardie_contabili.sql` | aggiunge la guardia a 5 funzioni che non ne avevano | no, solo `CREATE OR REPLACE` |
 | 04c | `04c_guardie_prenotazioni.sql` | corregge 5 funzioni di prenotazione e presenza | no, solo `CREATE OR REPLACE` |
 | 05 | `05_cruscotto_percorsi.sql` | la guardia di `get_cruscotto_percorsi` | no, solo `CREATE OR REPLACE` |
 | 06 | `06_default_privileges.sql` | impedisce che le funzioni future nascano aperte | no, solo privilegi di default |
+| 07 | `07_log_chiamate_anon.md` | le query sui log, e la risposta a "è mai stata usata?" | no, è un documento |
 
 Nessuno di questi file tocca una riga di dati. Il `03` e il `06` si annullano con un `GRANT`.
 I `04` e il `05` sostituiscono funzioni: per tornare indietro serve la versione di prima, che si
@@ -54,7 +56,19 @@ quindi nessun `DROP FUNCTION` è necessario. Il file più grande è `04a`, 48 KB
 
 ## In che ordine, e cosa guardare dopo ciascuno
 
-### 1. `03_revoke.sql` — per primo
+### 0. `03a_urgente.sql` — prima di tutto
+
+Sottoinsieme del `03`: tredici funzioni, quelle che espongono dati personali o di minori e che
+nessuna pagina pubblica chiama. Si applica in un minuto e si annulla con un `GRANT`.
+In testa al file c'è l'elenco delle funzioni che **non** vanno revocate, con scritto cosa si
+romperebbe: `get_eventi_calendario`, `get_evento_pubblico`, le due del questionario, le due di
+completa-contatti e `listino_gate`. Quelle vanno chiuse con un filtro sul contenuto, non con una
+revoca.
+
+Dopo il `03a`, da `anon`, `get_leads_da_contattare()` deve rispondere *permission denied*, e le
+pagine pubbliche devono continuare a funzionare. Le due prove sono in fondo al file.
+
+### 1. `03_revoke.sql` — subito dopo
 
 È quello che ferma il danno. Non cambia logica, toglie privilegi.
 
@@ -243,6 +257,16 @@ Cosa cambia dopo: una RPC che deve servire una pagina pubblica non funziona finc
 distrazione. Dopo, lo diventa per scelta, e la scelta lascia una riga scritta.
 
 ---
+
+## La falla è mai stata usata?
+
+Nelle 24 ore coperte dai log, no. Le uniche RPC chiamate da `anon` sono `get_eventi_calendario`
+(60 volte) e `conteggi_prima_lezione` (14), tutte e due pubbliche a ragione. Nessuna delle 31
+funzioni con la guardia rotta è stata chiamata da un anonimo.
+
+I log però tengono **24 ore**, dal 21 settembre alle 17:00 al 22 alle 16:56. Sul passato non
+dicono niente, e queste funzioni sono aperte da quando sono nate. Query, risultati e limiti in
+`07_log_chiamate_anon.md`.
 
 ## Come è stato fatto il lavoro
 
