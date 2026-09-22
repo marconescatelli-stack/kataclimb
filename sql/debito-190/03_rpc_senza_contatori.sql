@@ -1730,7 +1730,17 @@ DECLARE
   v_default_lezioni int; v_scadenza timestamptz; v_funnel_stage text;
   v_lead_id uuid; v_profile_exists boolean; v_freq text := NULL;
 BEGIN
-  IF NOT p_skip_staff_check AND NOT is_staff() THEN
+  -- SICUREZZA (DEBITO-190, trovato dalla review del 22 set): il bypass NON puo'
+  -- dipendere da un booleano che arriva dal chiamante. Questa funzione e'
+  -- SECURITY DEFINER con EXECUTE a anon e authenticated: con la guardia vecchia
+  -- bastava passare p_skip_staff_check := true dalla chiave anon — quella
+  -- pubblicata in ogni pagina del sito — per attivare un corso a pagamento a
+  -- chiunque, senza nessuna autenticazione.
+  -- Ora il bypass vale solo se il ruolo Postgres del chiamante e' gia' di per se'
+  -- privilegiato: postgres (SQL editor) o service_role (Worker). Un client
+  -- PostgREST arriva come anon o authenticated e non lo ottiene mai.
+  IF NOT is_staff()
+     AND NOT (p_skip_staff_check AND current_user IN ('postgres','service_role')) THEN
     RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
   END IF;
   IF p_corso NOT IN ('open','advance','intro_corda','evo_corda') THEN
@@ -1781,6 +1791,12 @@ BEGIN
     'lezioni', v_default_lezioni, 'lead_id', v_lead_id, 'funnel_stage', v_funnel_stage);
 END;
 $function$;
+
+-- Cintura: attivare un corso non e' mai un'operazione da utente anonimo.
+-- Nessuna pagina del repo chiama staff_attiva_corso (verificato il 22 set),
+-- quindi togliere anon non rompe niente di quello che c'e' oggi.
+REVOKE EXECUTE ON FUNCTION public.staff_attiva_corso(uuid, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.staff_attiva_corso(uuid, text, boolean) FROM anon;
 
 -- ─── get_cruscotto_percorsi ─────────────────────────────────────────────────
 -- PRIMA: leggeva le quattro colonne salvate (lezioni_residue,

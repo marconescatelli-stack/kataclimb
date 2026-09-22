@@ -100,6 +100,29 @@ Il file produce quattro elenchi, tutti in righe leggibili senza conoscere il DB.
 - **Budget spostamenti** = `iscrizioni_corso.disdette_no_show_max` (2 di default), e conta solo
   `cancellato_in_tempo`. `tipi_corso_config.noshow_soglia_penalita` è un'altra cosa e resta dov'è.
 
+## ⚠ Falla di sicurezza trovata durante la Fase B — è LIVE adesso
+
+`staff_attiva_corso(p_user_id, p_corso, p_skip_staff_check)` è `SECURITY DEFINER`, di proprietà di
+`postgres`, e ha `EXECUTE` concesso a **`anon`** e `authenticated`. La guardia era:
+
+```sql
+IF NOT p_skip_staff_check AND NOT is_staff() THEN RAISE EXCEPTION ...
+```
+
+Il bypass dipende da un booleano che arriva dal chiamante. Con la chiave anon — quella scritta in
+chiaro in ogni pagina pubblica del sito — una sola chiamata `rpc/staff_attiva_corso` con
+`p_skip_staff_check: true` attiva un corso a pagamento a qualunque utente, senza nessuna
+autenticazione.
+
+**Non è stata introdotta da questo cantiere: è così sul database di produzione oggi.** Il file 03 la
+chiude (il bypass vale solo se il ruolo Postgres è già `postgres` o `service_role`, che un client
+PostgREST non può avere) e toglie `EXECUTE` ad `anon` su entrambi gli overload. Nessuna pagina del
+repo chiama questa funzione, quindi la revoca non rompe niente.
+
+DEBITO-190 la rende anche più dannosa: prima la chiamata scriveva un contatore di cache, dopo crea
+una riga vera in `iscrizioni_corso`, cioè lezioni realmente prenotabili. Vale la pena applicare
+almeno questa parte **prima** del resto, o a mano subito.
+
 ## Cosa resta fuori da questa cartella
 
 - Il Worker `stripe-worker` è un repo separato: censito, mai toccato.
