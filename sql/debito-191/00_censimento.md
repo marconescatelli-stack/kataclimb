@@ -4,6 +4,11 @@ Eseguito il **22 settembre 2026**, ore 18:40 (Europe/Rome), su Supabase `wbtougy
 in sola lettura, con `SELECT set_config('app.origine','claude',false)` in testa a ogni sessione.
 Fonte: le due SELECT di `sql/audit-security-definer.sql`, senza modifiche.
 
+> **Questa è una fotografia, e il database si è mosso dopo.** Alle 21:16 dello stesso giorno la
+> migration `sposta_prima_lezione_unifica_overload` ha eliminato la firma a tre argomenti di
+> `sposta_prima_lezione`, che qui sotto compare ancora. Da allora quel nome ha una firma sola,
+> quella a quattro. Il resto del censimento non è toccato.
+
 ## I numeri
 
 | grandezza | valore |
@@ -191,7 +196,7 @@ Il Passo 3 verifica se funziona, e per 25 funzioni la risposta è no.
 | `provisiona_figlio(p_persona_id uuid, p_tutore_user_id uuid, p_data_prima_lezione date)` | postgres | solo service_role | NESSUNA GUARDIA VISIBILE | 3 |
 | `riconosci_figlio(p_genitore_lead_id uuid, p_nome text, p_cognome text, p_fascia text, p_nascita date)` | postgres | authenticated | controlla staff_role a mano | 3 |
 | `riconosci_percorso_pregresso(p_user_id uuid, p_completato_fino_a text, p_corso_attuale text, p_attuale_paid boolean, p_data date)` | postgres | authenticated | is_staff / assert_staff | 3 |
-| `sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date)` | postgres | authenticated | controlla staff_role a mano | 3 |
+| `sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date)` ⚠️ *eliminata alle 21:16 dello stesso giorno* | postgres | authenticated | controlla staff_role a mano | 3 |
 | `sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date, p_tutto_il_gruppo boolean)` | postgres | authenticated | controlla staff_role a mano | 3 |
 | `staff_attiva_corso(p_user_id uuid, p_corso text, p_skip_staff_check boolean)` | postgres | solo service_role | is_staff / assert_staff | 3 |
 

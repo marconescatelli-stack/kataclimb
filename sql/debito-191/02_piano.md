@@ -13,11 +13,11 @@ porte vere. Su queste 95, più due di priorità 3 con lo stesso difetto, la clas
 | classe | funzioni | cosa significa |
 |---|---|---|
 | **A · REVOKE da anon** | **44** | La guardia interna regge. Basta togliere il privilegio a chi non deve chiamarla. |
-| **B · guardia da correggere o aggiungere** | **31** | Il controllo interno non c'è, o c'è e non funziona. |
+| **B · guardia da correggere o aggiungere** | **30** | Il controllo interno non c'è, o c'è e non funziona. |
 | **C · legittimamente pubblica** | **20** | Deve restare chiamabile. Dieci servono il flusso anonimo, dieci sono helper booleani delle policy RLS. |
 | **D · morta** | **2** | Nessun chiamante da nessuna parte. Decide Marco. |
 
-A e B non si escludono. Per le 31 della classe B il `REVOKE` da `anon` è il cerotto che ferma
+A e B non si escludono. Per le 30 della classe B il `REVOKE` da `anon` è il cerotto che ferma
 l'emorragia il giorno stesso; la guardia corretta è la sutura, e serve comunque, perché una guardia
 sbagliata resta una trappola per chi la legge domani. Le B compaiono quindi anche nel file `03`.
 
@@ -75,7 +75,10 @@ END IF;
 
 Un allievo ha `staff_role` NULL. `NULL NOT IN (…)` vale NULL, l'IF non scatta, l'allievo passa.
 Succede in `marca_presenza_prima_lezione`, che respinge correttamente gli anonimi ma lascia passare
-**qualunque utente registrato**, e nella firma a tre argomenti di `sposta_prima_lezione`.
+**qualunque utente registrato**. Lo stesso valeva per la firma a tre argomenti di
+`sposta_prima_lezione`, che però il 22 settembre alle 21:16 è stata eliminata dalla migration
+`sposta_prima_lezione_unifica_overload`. La firma a quattro che resta usa `EXISTS` e non ha il
+difetto: la verifica completa è in fondo a `04c_guardie_prenotazioni.sql`.
 Le funzioni sorelle scrivono `IF v_role IS NULL OR v_role NOT IN (…)` e sono a posto: è la stessa
 riga, con quattro parole in più.
 
@@ -146,7 +149,7 @@ o come `service_role` e nessun browser deve poterle chiamare: le cinque di `pg_c
 Più le 19 funzioni di trigger, in una sezione a parte del file `03` perché si possono applicare o
 saltare senza conseguenze.
 
-## B · guardia da correggere o aggiungere — 31 funzioni
+## B · guardia da correggere o aggiungere — 30 funzioni
 
 Nei file `04a`, `04b`, `04c`. Un `CREATE OR REPLACE` per funzione, **corpo riletto da
 `pg_get_functiondef` e lasciato identico**, cambia solo il blocco di guardia.
@@ -160,9 +163,10 @@ Nei file `04a`, `04b`, `04c`. Un `CREATE OR REPLACE` per funzione, **corpo rilet
   `get_leads_da_contattare` e `conta_code_lead` stanno nello stesso gruppo delle altre diciotto.
 - **04b · le cinque senza guardia** — `annulla_freeze`, `dichiara_freeze_forzato`,
   `registra_tesseramento`, `aggiorna_data_iscrizione`, `get_tesseramenti`.
-- **04c · prenotazioni e presenze** — `prenota_corso`, `disdici_corso`, `riconosci_figlio`,
-  `marca_presenza_prima_lezione` e `sposta_prima_lezione` nella sola firma a tre argomenti.
-  La firma a quattro argomenti di `sposta_prima_lezione` è già scritta bene e non si tocca.
+- **04c · prenotazioni e presenze** — `prenota_corso`, `disdici_corso`, `riconosci_figlio` e
+  `marca_presenza_prima_lezione`. Erano cinque: `sposta_prima_lezione` è uscita il 22 settembre,
+  quando la sua firma a tre argomenti è stata eliminata in produzione. Quella a quattro che resta
+  è scritta bene e non si tocca.
 - **05 · `get_cruscotto_percorsi`**, da solo, perché lì la decisione su chi deve vedere è di Marco.
 
 ## C · legittimamente pubblica — 20 funzioni

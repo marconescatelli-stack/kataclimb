@@ -410,12 +410,11 @@ REVOKE EXECUTE ON FUNCTION public.segna_step_messaggio(p_lead_id uuid, p_step te
 GRANT  EXECUTE ON FUNCTION public.segna_step_messaggio(p_lead_id uuid, p_step text) TO authenticated;
 GRANT  EXECUTE ON FUNCTION public.segna_step_messaggio(p_lead_id uuid, p_step text) TO service_role;
 
--- chiamanti: nessuno nel repo · Due firme, solo authenticated. Quella a tre argomenti ha lo stesso difetto NULL NOT IN: un
-REVOKE EXECUTE ON FUNCTION public.sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date) FROM PUBLIC, anon;
-GRANT  EXECUTE ON FUNCTION public.sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date) TO authenticated;
-GRANT  EXECUTE ON FUNCTION public.sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date) TO service_role;
-
--- chiamanti: nessuno nel repo · Due firme, solo authenticated. Quella a tre argomenti ha lo stesso difetto NULL NOT IN: un
+-- chiamanti: nessuno nel repo · una firma sola dal 22 set, ore 21:16 (vedi sotto)
+-- NOTA: la firma a 3 argomenti (uuid, uuid, date) e' stata eliminata in produzione
+-- dalla migration sposta_prima_lezione_unifica_overload. Il suo blocco REVOKE/GRANT
+-- e' stato tolto da qui: questo file gira in una transazione sola, e un REVOKE su
+-- una funzione inesistente lo farebbe fallire tutto.
 REVOKE EXECUTE ON FUNCTION public.sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date, p_tutto_il_gruppo boolean) FROM PUBLIC, anon;
 GRANT  EXECUTE ON FUNCTION public.sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date, p_tutto_il_gruppo boolean) TO authenticated;
 GRANT  EXECUTE ON FUNCTION public.sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date, p_tutto_il_gruppo boolean) TO service_role;

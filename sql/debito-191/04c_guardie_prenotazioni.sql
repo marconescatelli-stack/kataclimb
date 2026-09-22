@@ -1,13 +1,16 @@
 -- ==========================================================================
--- DEBITO-191 · 04c · Prenotazioni, presenze e famiglia — 6 funzioni
--- Preparato il 22 settembre 2026 · NON APPLICATO
+-- DEBITO-191 · 04c · Prenotazioni, presenze e famiglia — 4 funzioni
+-- Preparato il 22 settembre 2026 · aggiornato il 22 set dopo la migration
+-- sposta_prima_lezione_unifica_overload · NON APPLICATO
 --
 -- Tre difetti diversi, tutti della stessa famiglia: un confronto che con un NULL
 -- non e' falso ma NULL, e un IF che quindi non scatta.
 --   · prenota_corso e disdici_corso usano <> contro auth.uid();
---   · marca_presenza_prima_lezione e sposta_prima_lezione usano NOT IN su un
---     ruolo che per un allievo e' NULL, quindi un utente qualsiasi passava;
+--   · marca_presenza_prima_lezione usa NOT IN su un ruolo che per un allievo
+--     e' NULL, quindi un utente qualsiasi passava;
 --   · riconosci_figlio ha la guardia del CRM, con gli stessi ruoli inesistenti.
+--
+-- sposta_prima_lezione era la quinta. Non lo e' piu': vedi il riquadro in fondo.
 -- 
 -- Ogni corpo e' stato riletto da pg_get_functiondef il 22 set e lasciato
 -- identico: cambia solo il blocco di guardia, segnato da un commento DEBITO-191.
@@ -378,123 +381,46 @@ BEGIN
 END;
 $function$;
 
--- ─── sposta_prima_lezione ──────────────────────────────────────
--- chiamanti: nessuno nel repo, verificare i Worker
--- stesso difetto. Si tocca SOLO la firma a tre argomenti:
--- quella a quattro e' gia' scritta bene e non compare in questo file.
--- solo la riga della guardia cambia, corpo invariato.
-CREATE OR REPLACE FUNCTION public.sposta_prima_lezione(p_prenotazione_id uuid, p_nuovo_slot_id uuid, p_nuova_data date)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_caller_id  uuid := auth.uid();
-  v_caller_role text;
-  v_stato      text;
-  v_lead_id    uuid;
-  v_slot_old   uuid;
-  v_data_old   date;
-  v_tipo_old   text;
-  v_tipo_new   text;
-  v_status_new text;
-  v_dow_new    int;
-  v_cap        int;
-  v_occupati   int;
-BEGIN
-  IF v_caller_id IS NULL THEN
-    RAISE EXCEPTION 'Non autenticato' USING ERRCODE = '28000';
-  END IF;
-
-  SELECT staff_role INTO v_caller_role
-  FROM profile_data WHERE user_id = v_caller_id;
-
-  -- DEBITO-191 · aggiunto il caso NULL: un allievo ha staff_role NULL e
-
-  -- 'NULL NOT IN (...)' vale NULL, quindi l'IF non scattava e passava.
-
-  IF v_caller_role IS NULL OR v_caller_role NOT IN ('staff_creator', 'staff_segreteria') THEN
-    RAISE EXCEPTION 'Permesso negato: lo spostamento della Prima Lezione è di segreteria e creator'
-      USING ERRCODE = '42501';
-  END IF;
-
-  SELECT pp.stato, pp.lead_id, pp.slot_id, pp.data_lezione, s.tipo_corso
-    INTO v_stato, v_lead_id, v_slot_old, v_data_old, v_tipo_old
-    FROM prenotazioni_prima_lezione pp
-    JOIN corsi_attivi_settimanali s ON s.id = pp.slot_id
-   WHERE pp.id = p_prenotazione_id
-   FOR UPDATE OF pp;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Prenotazione % non trovata', p_prenotazione_id USING ERRCODE = 'P0002';
-  END IF;
-
-  IF v_stato IS DISTINCT FROM 'prenotato' THEN
-    RAISE EXCEPTION 'Si sposta solo una prenotazione in stato prenotato (attuale: %)', COALESCE(v_stato,'—')
-      USING ERRCODE = '22023';
-  END IF;
-
-  SELECT s.tipo_corso, s.status, s.giorno_settimana, s.capienza_max
-    INTO v_tipo_new, v_status_new, v_dow_new, v_cap
-    FROM corsi_attivi_settimanali s
-   WHERE s.id = p_nuovo_slot_id;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Slot destinazione non trovato' USING ERRCODE = 'P0002';
-  END IF;
-
-  IF v_status_new <> 'attivo' THEN
-    RAISE EXCEPTION 'Slot destinazione non attivo (status=%)', v_status_new USING ERRCODE = '22023';
-  END IF;
-
-  IF v_tipo_new IS DISTINCT FROM v_tipo_old THEN
-    RAISE EXCEPTION 'Tipo diverso: la prenotazione è % ma lo slot destinazione è %. La Prima Lezione si sposta solo su slot dello stesso tipo.', v_tipo_old, v_tipo_new
-      USING ERRCODE = '22023';
-  END IF;
-
-  IF EXTRACT(ISODOW FROM p_nuova_data)::int <> v_dow_new THEN
-    RAISE EXCEPTION 'La data % non cade nel giorno settimanale dello slot destinazione', p_nuova_data
-      USING ERRCODE = '22023';
-  END IF;
-
-  IF p_nuova_data < CURRENT_DATE THEN
-    RAISE EXCEPTION 'Non si sposta una Prima Lezione nel passato' USING ERRCODE = '22023';
-  END IF;
-
-  IF p_nuovo_slot_id = v_slot_old AND p_nuova_data = v_data_old THEN
-    RAISE EXCEPTION 'La destinazione coincide con la prenotazione attuale' USING ERRCODE = '22023';
-  END IF;
-
-  IF v_cap IS NOT NULL THEN
-    SELECT count(*) INTO v_occupati
-      FROM prenotazioni_prima_lezione
-     WHERE slot_id = p_nuovo_slot_id
-       AND data_lezione = p_nuova_data
-       AND stato IN ('prenotato','fatto','no_show')
-       AND id <> p_prenotazione_id;
-    IF v_occupati >= v_cap THEN
-      RAISE EXCEPTION 'Slot destinazione pieno (%/%)', v_occupati, v_cap USING ERRCODE = '22023';
-    END IF;
-  END IF;
-
-  UPDATE prenotazioni_prima_lezione
-     SET slot_id = p_nuovo_slot_id,
-         data_lezione = p_nuova_data
-   WHERE id = p_prenotazione_id;
-
-  RETURN jsonb_build_object(
-    'ok', true,
-    'prenotazione_id', p_prenotazione_id,
-    'lead_id', v_lead_id,
-    'tipo_corso', v_tipo_old,
-    'da_slot', v_slot_old,
-    'da_data', v_data_old,
-    'a_slot', p_nuovo_slot_id,
-    'a_data', p_nuova_data
-  );
-END;
-$function$;
+-- ─── sposta_prima_lezione · TOLTA DA QUESTO FILE ──────────────
+-- Qui c'era un CREATE OR REPLACE sulla firma a 3 argomenti
+-- (uuid, uuid, date). Quella firma NON ESISTE PIU': il 22 settembre alle
+-- 21:16 la migration sposta_prima_lezione_unifica_overload le ha fatto
+-- DROP, lasciando la sola firma a 4 (p_tutto_il_gruppo boolean DEFAULT false).
+-- Applicare quel blocco avrebbe RICREATO la firma a 3 e rimesso in piedi
+-- l'overload appena smontato: due omonime con default rendono la chiamata
+-- ambigua per PostgREST. Per questo e' stato rimosso invece che aggiornato.
+--
+-- LA FIRMA A 4 NON HA BISOGNO DI CORREZIONI. Verificato a DB il 22 set:
+--
+--   IF auth.role() <> 'service_role'
+--      AND NOT EXISTS (SELECT 1 FROM profile_data
+--                      WHERE user_id = auth.uid()
+--                        AND staff_role IN ('staff_creator','staff_segreteria')) THEN
+--     RAISE EXCEPTION 'non autorizzato: solo segreteria' USING ERRCODE = '42501';
+--   END IF;
+--
+-- Non ha il difetto NULL NOT IN: usa EXISTS, che restituisce sempre true o
+-- false e non vale mai NULL. Provata riga per riga con i quattro JWT possibili:
+--
+--   anon via PostgREST      auth.role()='anon'           -> RESPINTO
+--   allievo loggato         auth.role()='authenticated'  -> RESPINTO
+--   Worker service_role     auth.role()='service_role'   -> passa, come deve
+--   sessione SQL senza JWT  auth.role()=NULL             -> passa
+--
+-- L'ultimo caso e' l'unico punto molle: senza JWT auth.role() e' NULL, il
+-- primo membro vale NULL e l'IF non scatta. Non e' raggiungibile dal web,
+-- perche' ogni richiesta che passa da PostgREST porta almeno la chiave anon
+-- come JWT; ci arriva solo chi e' gia' dentro il database con un'utenza
+-- propria. Per chiuderlo anche li' basterebbe
+-- 'auth.role() IS DISTINCT FROM ...', ma e' una riscrittura di una funzione
+-- appena rifatta da Marco e non la faccio di mia iniziativa.
+--
+-- Nota, non un difetto: questa guardia ammette staff_creator e
+-- staff_segreteria, non staff_istruttore_sr ne' staff_istruttore_tutor.
+-- E' piu' stretta della lista proposta per il CRM, ed e' coerente con la
+-- funzione di prima. Se il cruscotto cambiera' lista, decidere se allinearla.
+--
+-- La funzione compare comunque nel 03_revoke.sql, sulla firma a 4.
 
 -- ─── riconosci_figlio ──────────────────────────────────────────
 -- chiamanti: nessuno nel repo, verificare i Worker
@@ -598,9 +524,10 @@ END $function$;
 COMMIT;
 
 -- ==========================================================================
--- V-firme · qui conta davvero: sposta_prima_lezione ha DUE firme legittime.
--- Atteso: una sola riga, sposta_prima_lezione con firme = 2 e le due firme note.
--- Se compare un terzo argomento diverso, il CREATE OR REPLACE ha sbagliato bersaglio.
+-- V-firme · atteso: ogni nome con firme = 1, sposta_prima_lezione compresa.
+-- Dal 22 set alle 21:16 sposta_prima_lezione ha UNA firma sola, quella a 4
+-- argomenti. Se ne compaiono due, qualcuno ha ricreato l'overload: e' proprio
+-- cio' che la migration sposta_prima_lezione_unifica_overload ha smontato.
 -- ==========================================================================
 SELECT p.proname, count(*) AS firme,
        string_agg(pg_get_function_identity_arguments(p.oid), E'\n   § ') AS quali

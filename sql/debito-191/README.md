@@ -114,9 +114,10 @@ La sezione 4 del file, le 19 funzioni di trigger, è facoltativa e si può salta
 
 ### 2. `04a`, poi `04b`, poi `04c` — uno alla volta
 
-**Dopo ciascuno** la query `V-firme` in fondo al file: deve dire che nessun nome ha più di una firma.
-L'unica eccezione attesa è `sposta_prima_lezione`, che ha due firme legittime e nel `04c` ne viene
-toccata una sola, quella a tre argomenti.
+**Dopo ciascuno** la query `V-firme` in fondo al file: deve dire che nessun nome ha più di una firma,
+`sposta_prima_lezione` compresa. Dal 22 settembre alle 21:16 ne ha una sola, quella a quattro
+argomenti: la migration `sposta_prima_lezione_unifica_overload` ha fatto `DROP` della firma a tre.
+Se dopo un `04` ne compaiono due, qualcuno ha ricreato l'overload appena smontato.
 
 - **dopo `04a`**: da `commerciale.html` la coda chiamate si carica, il fascicolo lead si apre, una
   nota si salva. **Soprattutto**: farlo provare a chi è `staff_segreteria`, perché fino a oggi quelle
@@ -125,6 +126,8 @@ toccata una sola, quella a tre argomenti.
   stessa chiamata deve rispondere *Permesso negato: serve staff*.
 - **dopo `04c`**: da agenda, prenotare, disdire, spostare e marcare una presenza. Da un allievo,
   marcare una presenza deve essere rifiutato, cosa che oggi non succede.
+  Il `04c` tocca quattro funzioni, non cinque: `sposta_prima_lezione` ne è uscita, e in fondo al
+  file c'è scritto perché, con l'esito della verifica sulla guardia che le resta.
 
 ### 3. `05_cruscotto_percorsi.sql` — solo dopo la decisione sui ruoli
 
@@ -202,6 +205,24 @@ l'UUID di un altro, quindi un anonimo con un UUID valido sa se quella persona è
 booleano, la lascio.
 
 ---
+
+## La firma sparita di sposta_prima_lezione
+
+**Aggiornamento del 22 settembre, ore 21:16.** `sposta_prima_lezione` ha una firma sola, quella a quattro argomenti. La firma a tre è stata eliminata in produzione dalla migration `sposta_prima_lezione_unifica_overload`, dopo che il censimento di questo cantiere era già stato fatto. I file SQL sono stati aggiornati di conseguenza.
+
+Il seguito, ricostruito dalle migration, perché l'ordine dei fatti conta:
+
+| quando | migration | cosa ha fatto |
+|---|---|---|
+| 16 luglio | `crea_rpc_sposta_prima_lezione` | crea la firma a tre argomenti |
+| 22 set, 13:14 | `sposta_prima_lezione` | crea **per errore** l'overload a quattro, accanto a quella a tre |
+| 22 set, ~18:30 | *(censimento di questo cantiere)* | fotografa due firme, ed era vero in quel momento |
+| 22 set, 21:16 | `sposta_prima_lezione_unifica_overload` | `DROP` della firma a tre, ne resta una |
+
+Il blocco che la riguardava è stato tolto da `03_revoke.sql`, dove avrebbe fatto fallire l'intera
+transazione, e da `04c_guardie_prenotazioni.sql`, dove avrebbe **ricreato** la firma appena
+eliminata rimettendo in piedi l'overload. La firma a quattro resta nel `03`, e non ha bisogno di
+correzioni: la verifica è scritta in fondo al `04c`.
 
 ## Trovato per strada
 

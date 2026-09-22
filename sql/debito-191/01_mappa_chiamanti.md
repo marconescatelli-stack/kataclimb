@@ -73,7 +73,7 @@ Colonna `da dove`: `anon` = la chiamata parte prima di qualunque login. `login` 
 | `segna_recensione_inviata` | `commerciale.html:314` | login | sì | — | **B** |
 | `segna_recensione_inviata_persona` | `commerciale.html:725` | login | sì | — | **B** |
 | `segna_step_messaggio` | `commerciale.html:273` | login | sì | — | **B** |
-| `sposta_prima_lezione` | nessuno nel repo | Worker? | sì | — | **B** |
+| `sposta_prima_lezione` | nessuno nel repo | Worker? | sì | — | **A** |
 | `_puo_leggere_questionari` | — | interna | no | get_questionari_persona | **C** |
 | `assert_staff` | — | interna | no | accredita_acconto_open, accredita_pagamento_manuale, accredita_saldo_open_intero, attiva_essence, essence_inserisci | **C** |
 | `can_assign_badges` | — | interna | no | 1 policy RLS su profile_data | **C** |
@@ -193,7 +193,7 @@ Da leggere come domande per Marco, non come condanne.
 | `riconosci_figlio` | sì | Solo authenticated, quindi non esposta ad anon, ma la guardia ha la stessa forma fragile. Da sanare insieme alle altre. |
 | `smista_commerciale_scaduti` | sì | Nessun chiamante nel repo e nessun job. Scrive: la revoca è prudente, la rimozione va decisa. |
 | `sposta_kata` | sì | Solo creator, respinge NULL. |
-| `sposta_prima_lezione` | sì | Due firme, solo authenticated. Quella a tre argomenti ha lo stesso difetto NULL NOT IN: un allievo loggato passa. Quella a quattro argomenti e gia corretta e non si tocca. |
+| `sposta_prima_lezione` | sì | Una firma sola dal 22 set ore 21:16, quella a quattro argomenti: la migration sposta_prima_lezione_unifica_overload ha eliminato quella a tre. La guardia che resta usa EXISTS e non ha il difetto NULL NOT IN. |
 | `staff_chiudi_giorno` | sì | Guardia is_staff(). |
 | `staff_riapri_giorno` | sì | Guardia is_staff(). |
 
