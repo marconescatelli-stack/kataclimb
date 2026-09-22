@@ -34,7 +34,7 @@ eseguito da Claude Code: li applica Marco da chat dopo revisione.
 |---|---|---|---|
 | 01 | `01_view_contatori_corso.sql` | no — crea view + funzione | subito |
 | 02 | `02_audit_scarti.sql` | no — sole SELECT | subito dopo il 01 |
-| 03b | `03b_omaggio.sql` | sì, aggiunge 3 colonne a `prenotazioni_corso` | **prima** del 03, e prima di ri-applicare il 01 |
+| 03b | `03b_omaggio.sql` | sì, aggiunge 4 colonne a `prenotazioni_corso` | **prima** del 03, e prima di ri-applicare il 01 |
 | 01 bis | `01_view_contatori_corso.sql` (di nuovo) | no | subito dopo il 03b: la view legge le colonne nuove |
 | 03 | `03_rpc_senza_contatori.sql` | sì, riscrive 40 funzioni | Fase B, dopo che il 02 torna pulito |
 | 04 | `04_bonifica.sql` | sì, sistema i dati storti | Fase D |
@@ -136,6 +136,39 @@ Vale la pena notare perché è emerso solo adesso: finché il numero viveva in u
 confrontava con nient'altro, due funzioni potevano dire cose diverse per mesi senza che si vedesse.
 Da adesso è `lezioni_totali` sull'iscrizione, cioè la base di `restano`: una differenza del genere
 salterebbe fuori al primo allievo.
+
+### Chi ha mosso una riga, e a che titolo
+
+`created_by` dice *chi*: un uuid, che fra sei mesi non racconta più niente. Da DEBITO-190 ogni
+fotografia in `effetto_contabile` porta anche **`funzione`**, **`attore`** e **`ruolo_attore`**, e
+`prenotazioni_corso` ha una colonna **`created_ruolo`** valorizzata dalle RPC di prenotazione.
+
+`_ruolo_attore()` decide in quest'ordine, perché più condizioni possono essere vere insieme — il
+Worker gira come `service_role` *e* senza `auth.uid()`:
+
+1. il marcatore `app.origine = 'claude'` → **`claude`**
+2. la funzione chiamante comincia per `cron_` → **`cron`**
+3. `current_user = 'service_role'` → **`worker`**
+4. nessun utente autenticato e `current_user = 'postgres'` → **`sql_manuale`**
+5. l'utente autenticato è l'intestatario della riga → **`allievo`**
+6. altrimenti lo `staff_role` dell'attore
+7. nient'altro → **`sconosciuto`**, che è meglio di una bugia
+
+Gli `staff_role` sono i **sette veri** del CHECK di `profile_data`, letti dal database:
+`staff_creator`, `staff_segreteria`, `staff_istruttore_tutor`, `staff_istruttore_sr`,
+`staff_istruttore_jr`, `staff_assistente`, `staff_monitor`.
+
+#### La regola del marcatore
+
+**Chi scrive sul database da SQL a nome di Claude esegue prima:**
+
+```sql
+SELECT set_config('app.origine', 'claude', false);
+```
+
+Va eseguito **nella stessa sessione**, prima delle scritture. Senza, quelle righe risultano
+`sql_manuale` e diventano indistinguibili da un intervento fatto a mano in segreteria. Il `false`
+finale significa "per tutta la sessione, non solo per la transazione corrente".
 
 ## Decisioni prese, per non ridiscuterle
 

@@ -98,6 +98,61 @@ COMMENT ON FUNCTION public._get_spostamenti_residui(uuid, text) IS
   'NULL = nessuna iscrizione attiva a quel corso.';
 
 -- ---------------------------------------------------------------------------
+-- _ruolo_attore  ·  NUOVA
+--   A che titolo sta scrivendo chi sta scrivendo. Fino a ieri l'unica traccia
+--   era created_by: un uuid, che fra sei mesi non dice piu' niente a nessuno.
+--
+--   I sette staff_role sono quelli VERI del CHECK di profile_data, letti dal
+--   database e non inventati:
+--     staff_creator · staff_segreteria · staff_istruttore_tutor
+--     staff_istruttore_sr · staff_istruttore_jr · staff_assistente · staff_monitor
+--
+--   L'ordine con cui si decide conta, perche' piu' condizioni possono essere
+--   vere insieme (il Worker gira come service_role E senza auth.uid()):
+--     1. il marcatore esplicito app.origine = 'claude'
+--     2. il nome della funzione chiamante comincia per cron_
+--     3. il ruolo Postgres e' service_role  → Worker
+--     4. nessun utente autenticato e ruolo postgres → intervento da SQL
+--     5. l'utente autenticato E' l'intestatario della riga → allievo
+--     6. altrimenti lo staff_role dell'attore
+--     7. se nulla di tutto questo → sconosciuto, che e' meglio di una bugia
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public._ruolo_attore(p_user_id uuid DEFAULT NULL, p_funzione text DEFAULT NULL)
+RETURNS text
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_attore uuid := auth.uid();
+  v_ruolo  text;
+BEGIN
+  IF coalesce(current_setting('app.origine', true), '') = 'claude' THEN
+    RETURN 'claude';
+  END IF;
+  IF p_funzione IS NOT NULL AND p_funzione LIKE 'cron\_%' THEN
+    RETURN 'cron';
+  END IF;
+  IF current_user = 'service_role' THEN
+    RETURN 'worker';
+  END IF;
+  IF v_attore IS NULL THEN
+    RETURN CASE WHEN current_user = 'postgres' THEN 'sql_manuale' ELSE 'sconosciuto' END;
+  END IF;
+  IF p_user_id IS NOT NULL AND v_attore = p_user_id THEN
+    RETURN 'allievo';
+  END IF;
+  SELECT staff_role INTO v_ruolo FROM profile_data WHERE user_id = v_attore;
+  RETURN coalesce(v_ruolo, 'sconosciuto');
+END;
+$function$;
+
+COMMENT ON FUNCTION public._ruolo_attore(uuid, text) IS
+  'DEBITO-190: a che titolo scrive chi scrive. Torna uno dei sette staff_role '
+  'reali, oppure allievo/worker/cron/claude/sql_manuale/sconosciuto.';
+
+-- ---------------------------------------------------------------------------
 -- _snapshot_contabile (DEBITO-178)
 --   PRIMA: fotografava i contatori SALVATI (no_show_count, colonne *_residue,
 --          *_spostamenti_residui) piu' corso_attivo e funnel_stage.
@@ -108,7 +163,10 @@ COMMENT ON FUNCTION public._get_spostamenti_residui(uuid, text) IS
 --   NOTA: 'no_show_count' ora e' il COUNT delle righe 'assente' di QUEL corso,
 --          non piu' il contatore a soglia globale del profilo.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public._snapshot_contabile(p_user_id uuid, p_tipo_corso text)
+-- CAMBIA FIRMA: aggiunge p_funzione. Serve il DROP della vecchia.
+DROP FUNCTION IF EXISTS public._snapshot_contabile(uuid, text);
+
+CREATE OR REPLACE FUNCTION public._snapshot_contabile(p_user_id uuid, p_tipo_corso text, p_funzione text DEFAULT NULL)
 RETURNS jsonb
 LANGUAGE plpgsql
 STABLE
@@ -151,7 +209,12 @@ BEGIN
     'restano',         v_c.restano,
     'in_agenda',       v_c.in_agenda,
     'prenotabili',     v_c.prenotabili,
-    'fonte',           'contatori_corso'
+    'fonte',           'contatori_corso',
+    -- chi ha mosso questa riga, e a che titolo
+    'funzione',        p_funzione,
+    'attore',          auth.uid(),
+    'ruolo_attore',    _ruolo_attore(p_user_id, p_funzione),
+    'quando',          now()
   );
 END;
 $function$;
@@ -578,8 +641,11 @@ BEGIN
     RAISE EXCEPTION 'Hai gia'' una prenotazione attiva per questo slot';
   END IF;
 
-  INSERT INTO prenotazioni_corso (user_id, slot_id, tipo_corso, data_lezione, stato, created_by)
-    VALUES (p_user_id, p_slot_id, v_slot.tipo_corso, p_data_lezione, 'prenotato', auth.uid())
+  INSERT INTO prenotazioni_corso (
+    user_id, slot_id, tipo_corso, data_lezione, stato, created_by, created_ruolo)
+    VALUES (
+      p_user_id, p_slot_id, v_slot.tipo_corso, p_data_lezione, 'prenotato', auth.uid(),
+      _ruolo_attore(p_user_id, 'prenota_corso'))
     RETURNING id INTO v_prenot_id;
 
   -- DEBITO-190: qui prima c'era l'UPDATE che scalava la colonna del corso.
@@ -639,7 +705,7 @@ BEGIN
   v_dt_inizio := (v_prenot.data_lezione + v_slot.ora_inizio)::timestamptz;
   v_in_tempo  := (v_dt_inizio - v_now) >= make_interval(hours => v_config.finestra_disdetta_ore);
 
-  v_prima := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso);
+  v_prima := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso, 'disdici_corso');
 
   IF v_in_tempo THEN
     IF v_is_allievo THEN
@@ -671,7 +737,7 @@ BEGIN
 
   PERFORM _chiudi_corso_se_finito(v_prenot.user_id);
 
-  v_dopo := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso);
+  v_dopo := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso, 'disdici_corso');
   UPDATE prenotazioni_corso
     SET effetto_contabile = jsonb_build_object(
           'azione', v_stato_finale, 'origine', 'disdici_corso',
@@ -743,7 +809,7 @@ BEGIN
       'message', 'La prenotazione è già in questo stato.');
   END IF;
 
-  v_prima := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso);
+  v_prima := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso, 'rimarca_presenza_corso');
 
   -- DEBITO-190: solo lo stato. Niente delta, niente mirror, niente undo penale.
   UPDATE prenotazioni_corso
@@ -761,7 +827,7 @@ BEGIN
 
   PERFORM _chiudi_corso_se_finito(v_prenot.user_id);
 
-  v_dopo  := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso);
+  v_dopo  := _snapshot_contabile(v_prenot.user_id, v_prenot.tipo_corso, 'rimarca_presenza_corso');
   -- delta osservato, non deciso: differenza fra le due fotografie
   v_delta := coalesce((v_dopo->>'prenotabili')::int, 0) - coalesce((v_prima->>'prenotabili')::int, 0);
 
@@ -1750,6 +1816,21 @@ $function$;
 -- quindi togliere anon non rompe niente di quello che c'e' oggi.
 REVOKE EXECUTE ON FUNCTION public.staff_attiva_corso(uuid, text, boolean) FROM anon;
 
+-- ⚠ TROVATO STRADA FACENDO, NON CORRETTO QUI — la guardia di questa funzione
+--   usa ruoli che NON ESISTONO. Il CHECK di profile_data.staff_role ammette
+--   sette valori, tutti col prefisso staff_:
+--     staff_creator · staff_segreteria · staff_istruttore_tutor
+--     staff_istruttore_sr · staff_istruttore_jr · staff_assistente · staff_monitor
+--   La guardia qui sotto controlla invece
+--     ('creator','admin','segreteria','staff_istruttore_sr','istruttore_senior')
+--   di cui UNO SOLO e' reale: staff_istruttore_sr. Gli altri quattro non possono
+--   corrispondere a nessuno. In pratica il cruscotto oggi si apre solo agli
+--   istruttori senior e all'uuid scritto a mano nella riga sopra: la segreteria
+--   e il creator, cioe' chi ne ha davvero bisogno, vengono respinti.
+--   NON lo tocco qui: cambiare chi puo' vedere un cruscotto e' una decisione di
+--   Marco, e non c'entra con i contatori. La guardia resta identica a com'e'
+--   oggi; va sistemata insieme al giro sulle SECURITY DEFINER.
+
 -- ─── get_cruscotto_percorsi ─────────────────────────────────────────────────
 -- PRIMA: leggeva le quattro colonne salvate (lezioni_residue,
 --        advance_/intro_/evo_lezioni_residue) per decidere i bucket
@@ -2029,10 +2110,11 @@ BEGIN
   -- DEBITO-190: qui si scalava il contatore. Ora la riga E' il consumo —
   -- a meno che non sia un omaggio, e in quel caso lo dice la riga stessa.
   INSERT INTO prenotazioni_corso (
-    user_id, slot_id, tipo_corso, data_lezione, stato, created_by,
+    user_id, slot_id, tipo_corso, data_lezione, stato, created_by, created_ruolo,
     omaggio, omaggio_concesso_da, omaggio_motivo)
     VALUES (
       p_user_id, p_slot_id, v_slot.tipo_corso, p_data_lezione, 'prenotato', auth.uid(),
+      _ruolo_attore(p_user_id, 'prenota_corso_admin'),
       NOT p_scala_credito,
       CASE WHEN NOT p_scala_credito THEN auth.uid() END,
       CASE WHEN NOT p_scala_credito THEN btrim(p_omaggio_motivo) END)
@@ -2320,7 +2402,7 @@ REVOKE EXECUTE ON FUNCTION public.riconosci_percorso_pregresso(uuid, text, text,
 --     '_chiudi_corso_se_finito','_get_lezioni_residue','_get_spostamenti_residui','_snapshot_contabile',
 --     '_trg_open_presenza_garantisce_corso','applica_no_show','disdici_corso','disdici_corso_admin',
 --     'get_cruscotto_percorsi','prenota_corso','prenota_corso_admin','registra_pagamento_manuale_admin',
---     'riconosci_percorso_pregresso','rimarca_presenza_corso','staff_attiva_corso',
+--     'riconosci_percorso_pregresso','rimarca_presenza_corso','staff_attiva_corso','_ruolo_attore',
 --     'accredita_acconto_open','accredita_advance_2xsett','accredita_advance_intero','accredita_advance_mese1',
 --     'accredita_advance_mese2','accredita_evo_intero','accredita_evo_mese1','accredita_evo_mese2',
 --     'accredita_intro_intero','accredita_intro_mese1','accredita_intro_mese2','accredita_iscrizione_meta_open',
@@ -2329,7 +2411,9 @@ REVOKE EXECUTE ON FUNCTION public.riconosci_percorso_pregresso(uuid, text, text,
 --   GROUP BY p.proname
 --   ORDER BY (count(*) > 1) DESC, p.proname;
 --
--- ATTESO, 32 righe:
+-- ATTESO, 33 righe:
+--   _ruolo_attore          → 1 · (p_user_id uuid, p_funzione text)   [nuova]
+--   _snapshot_contabile    → 1 · (p_user_id uuid, p_tipo_corso text, p_funzione text)
 --   applica_no_show        → 1 · (p_user_id uuid, p_tipo_corso text)
 --   prenota_corso_admin    → 1 · (…, p_scala_credito boolean, p_omaggio_motivo text)
 --   staff_attiva_corso     → 1 · (p_user_id uuid, p_corso text, p_skip_staff_check boolean)

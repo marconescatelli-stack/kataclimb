@@ -37,6 +37,19 @@ COMMENT ON COLUMN public.prenotazioni_corso.omaggio_motivo IS
 
 -- Cintura: un omaggio senza motivo non deve poter esistere, nemmeno se un
 -- domani qualcuno scrivesse sulla tabella senza passare dalle RPC.
+-- DEBITO-190: chi ha creato la riga, non solo con quale user_id. created_by
+-- dice "chi", created_ruolo dice "a che titolo": l'allievo per se', la
+-- segreteria per lui, il Worker Stripe, il cron, un intervento da SQL.
+-- Senza, per capire una prenotazione strana bisogna risalire a mano chi fosse
+-- quell'uuid sei mesi prima.
+ALTER TABLE public.prenotazioni_corso
+  ADD COLUMN IF NOT EXISTS created_ruolo text;
+
+COMMENT ON COLUMN public.prenotazioni_corso.created_ruolo IS
+  'DEBITO-190: a che titolo e'' stata creata la riga — allievo, uno dei sette '
+  'staff_role, worker, cron, claude, sql_manuale. La valorizzano le RPC di '
+  'prenotazione con _ruolo_attore(). NULL = riga anteriore al DEBITO-190.';
+
 ALTER TABLE public.prenotazioni_corso
   DROP CONSTRAINT IF EXISTS prenotazioni_corso_omaggio_motivo_chk;
 ALTER TABLE public.prenotazioni_corso
@@ -57,6 +70,7 @@ CREATE INDEX IF NOT EXISTS prenotazioni_corso_omaggio_idx
 --          count(*) FILTER (WHERE omaggio_motivo IS NOT NULL) AS con_motivo
 --   FROM public.prenotazioni_corso;
 --   Atteso: righe_totali invariato (236 il 22 set), omaggio 0, con_motivo 0.
+--   E created_ruolo tutto NULL: le righe vecchie non sanno a che titolo sono nate.
 --
 -- V2 · Il vincolo morde:
 --   BEGIN;
