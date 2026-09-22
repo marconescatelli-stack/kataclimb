@@ -34,6 +34,8 @@ eseguito da Claude Code: li applica Marco da chat dopo revisione.
 |---|---|---|---|
 | 01 | `01_view_contatori_corso.sql` | no — crea view + funzione | subito |
 | 02 | `02_audit_scarti.sql` | no — sole SELECT | subito dopo il 01 |
+| 03b | `03b_omaggio.sql` | sì, aggiunge 3 colonne a `prenotazioni_corso` | **prima** del 03, e prima di ri-applicare il 01 |
+| 01 bis | `01_view_contatori_corso.sql` (di nuovo) | no | subito dopo il 03b: la view legge le colonne nuove |
 | 03 | `03_rpc_senza_contatori.sql` | sì, riscrive 40 funzioni | Fase B, dopo che il 02 torna pulito |
 | 04 | `04_bonifica.sql` | sì, sistema i dati storti | Fase D |
 | 05 | `05_drop_colonne.sql` | sì, ritira le colonne | Fase D, **non prima di una settimana** di Fase C in produzione senza incidenti |
@@ -83,6 +85,25 @@ Il file produce quattro elenchi, tutti in righe leggibili senza conoscere il DB.
   Advance, Intro Corda o Evo Corda, la riga lo dice a voce alta: va guardata per prima.
 - **Sezione 4 · promemoria.** `lezioni_iniziali_residue` è valorizzata su 19 profili e non
   appartiene a nessuno dei 4 corsi: va censita prima del drop nel file 05.
+
+### La lezione omaggio
+
+Fino al 22 settembre la lezione regalata viveva in una spunta dell'interfaccia: `agenda.html` mandava
+`p_scala_credito: false` e la prenotazione, pur valida, non scalava il contatore. **Non restava traccia
+di niente** — né di chi l'aveva concessa, né del perché.
+
+Con i contatori derivati quella spunta non può più funzionare, perché la riga *è* il consumo. Quindi
+l'omaggio smette di essere un comportamento e diventa un fatto scritto sulla riga: `omaggio`,
+`omaggio_concesso_da`, `omaggio_motivo`, con un CHECK che impedisce un omaggio senza motivo.
+
+Una riga omaggio **occupa il posto** nello slot e compare in agenda come le altre, ma non erode il
+pacchetto in nessuno stato. Resta dentro `fatte` — il fascicolo dice «8 fatte, di cui 1 omaggio» — e
+fuori da `consumate`. Nemmeno `prenotabili` la conta: un omaggio già in agenda non riduce quante
+lezioni pagate restano da prenotare.
+
+**Attenzione alla sequenza:** finché la Fase C non aggiunge il campo motivo in `agenda.html`,
+togliere la spunta darà un errore leggibile invece di regalare la lezione. È voluto: meglio un no
+chiaro che un omaggio senza storia. In Fase C la spunta si rinomina «Lezione omaggio» e apre il campo.
 
 ## Decisioni prese, per non ridiscuterle
 

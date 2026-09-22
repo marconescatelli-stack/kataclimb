@@ -12,6 +12,12 @@
 --
 -- MAPPATURA DEGLI STATI (decisa da Marco — i 5 stati reali NON si normalizzano,
 -- la mappatura vive solo qui dentro):
+-- LA LEZIONE OMAGGIO (03b, decisione Marco del 22 set)
+--   Una riga con omaggio = true occupa il posto nello slot e compare in agenda
+--   come tutte le altre, ma NON erode il pacchetto, in nessuno stato. Resta
+--   dentro "fatte" — il fascicolo dice "8 fatte, di cui 1 omaggio" — e fuori
+--   da "consumate". PREREQUISITO: 03b_omaggio.sql applicato.
+--
 --   stato reale           significato            consuma?            budget spostamenti?
 --   presente              fatta                  sì, 1 a 1           no
 --   assente               ghostata (no-show)     ogni N, vedi sotto  no
@@ -30,7 +36,8 @@
 --   Nessun contatore da azzerare: il numero e' sempre ricavato dal COUNT.
 --
 -- PREREQUISITI
---   - Nessuno. Si applica su DB live senza fermare nulla.
+--   - 03b_omaggio.sql applicato (le colonne omaggio*).
+--   - Per il resto si applica su DB live senza fermare nulla.
 --
 -- SCELTE DA SAPERE, verificate sui dati del 21 set 2026
 --   1) Le presenze si contano per (user_id, tipo_corso) SENZA filtro di data:
@@ -70,12 +77,23 @@ WITH conteggi AS (
   SELECT
     p.user_id,
     p.tipo_corso,
+    -- fatte: TUTTE le presenze, omaggio comprese. Il fascicolo dice
+    -- "8 fatte, di cui 1 omaggio", non "7 fatte".
     count(*) FILTER (WHERE p.stato = 'presente')            AS fatte,
-    count(*) FILTER (WHERE p.stato = 'assente')             AS ghostate,
-    count(*) FILTER (WHERE p.stato = 'cancellato_tardi')    AS disdette_tardi,
+    -- le righe che NON erodono il pacchetto perche' regalate
+    count(*) FILTER (WHERE p.omaggio)                       AS omaggio,
+    -- i tre stati che consumano, al netto degli omaggi
+    count(*) FILTER (WHERE p.stato = 'presente'         AND NOT p.omaggio) AS fatte_che_contano,
+    count(*) FILTER (WHERE p.stato = 'assente'          AND NOT p.omaggio) AS ghostate,
+    count(*) FILTER (WHERE p.stato = 'cancellato_tardi' AND NOT p.omaggio) AS disdette_tardi,
     count(*) FILTER (WHERE p.stato = 'cancellato_in_tempo') AS spostamenti_usati,
+    -- in_agenda: quello che l'agenda mostra davvero, omaggi compresi, perche'
+    -- occupano il posto nello slot. Per il conto di "quante ne puoi ancora
+    -- prenotare" si usa solo la parte che erodera' il pacchetto.
     count(*) FILTER (WHERE p.stato = 'prenotato'
-                       AND p.data_lezione >= CURRENT_DATE)  AS in_agenda
+                       AND p.data_lezione >= CURRENT_DATE)  AS in_agenda,
+    count(*) FILTER (WHERE p.stato = 'prenotato' AND p.omaggio
+                       AND p.data_lezione >= CURRENT_DATE)  AS in_agenda_omaggio
   FROM public.prenotazioni_corso p
   GROUP BY p.user_id, p.tipo_corso
 ),
@@ -103,10 +121,13 @@ base AS (
     -- e' solo una cintura contro una divisione per zero se il config fosse 0.
     GREATEST(coalesce(tc.noshow_soglia_penalita, 2), 1) AS soglia_ghost,
     coalesce(c.fatte,             0)    AS fatte,
+    coalesce(c.omaggio,           0)    AS omaggio,
+    coalesce(c.fatte_che_contano, 0)    AS fatte_che_contano,
     coalesce(c.ghostate,          0)    AS ghostate,
     coalesce(c.disdette_tardi,    0)    AS disdette_tardi,
     coalesce(c.spostamenti_usati, 0)    AS spostamenti_usati,
-    coalesce(c.in_agenda,         0)    AS in_agenda
+    coalesce(c.in_agenda,         0)    AS in_agenda,
+    coalesce(c.in_agenda_omaggio, 0)    AS in_agenda_omaggio
   FROM public.iscrizioni_corso i
   LEFT JOIN public.profile_data pd ON pd.user_id = i.user_id
   LEFT JOIN public.tipi_corso_config tc ON tc.tipo_corso = i.tipo_corso
@@ -123,17 +144,23 @@ SELECT
   b.tipo_corso,
   b.totali,
   b.fatte,
+  b.omaggio,
   b.ghostate,
   b.soglia_ghost,
   -- quante lezioni hanno davvero eroso le ghostate: divisione intera sulla soglia
   (b.ghostate / b.soglia_ghost)                                           AS ghostate_scalate,
   b.disdette_tardi,
-  -- quello che ha davvero eroso il pacchetto
-  (b.fatte + b.disdette_tardi + b.ghostate / b.soglia_ghost)              AS consumate,
-  (b.totali - (b.fatte + b.disdette_tardi + b.ghostate / b.soglia_ghost)) AS restano,
+  -- quello che ha davvero eroso il pacchetto: le presenze NON omaggio, le
+  -- disdette fuori tempo, e le ghostate ogni "soglia".
+  (b.fatte_che_contano + b.disdette_tardi + b.ghostate / b.soglia_ghost)  AS consumate,
+  (b.totali - (b.fatte_che_contano + b.disdette_tardi + b.ghostate / b.soglia_ghost)) AS restano,
   b.in_agenda,
-  (b.totali - (b.fatte + b.disdette_tardi + b.ghostate / b.soglia_ghost)
-            - b.in_agenda)                                                AS prenotabili,
+  b.in_agenda_omaggio,
+  -- prenotabili: dalle rimanenti si tolgono solo le prenotazioni che
+  -- eroderanno davvero il pacchetto. Un omaggio gia' in agenda non riduce
+  -- quante lezioni pagate restano da prenotare.
+  (b.totali - (b.fatte_che_contano + b.disdette_tardi + b.ghostate / b.soglia_ghost)
+            - (b.in_agenda - b.in_agenda_omaggio))                        AS prenotabili,
   b.spostamenti_usati,
   b.spostamenti_max,
   (b.spostamenti_max - b.spostamenti_usati)                               AS spostamenti_residui,

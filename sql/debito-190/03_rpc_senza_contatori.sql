@@ -1920,21 +1920,19 @@ $function$;
 -- DOPO:  l'auto-setup crea l'iscrizione; la prenotazione non scala niente,
 --        perche' la riga inserita e' il consumo.
 --
--- ⚠ DOMANDA PER MARCO — p_scala_credito non ha piu' un significato possibile.
---   agenda.html (riga 2514) ha una casella "scala credito" che la segreteria
---   puo' togliere: con la casella spenta la vecchia funzione creava comunque
---   una prenotazione valida ma non scalava il contatore. Nel modello nuovo la
---   riga E' il consumo: non esiste una riga prenotata che non conti.
---   Qui il parametro resta nella firma (la pagina lo manda) ma e' INERTE, e
---   quando arriva false la funzione lo scrive nei log del database.
---   Le strade possibili, da decidere prima della Fase C:
---     a) togliere la casella da agenda.html — la prenotazione conta sempre;
---     b) fare della "lezione in omaggio" uno stato suo in prenotazioni_corso,
---        che la view non conta fra le consumate;
---     c) tenerla come oggi e accettare che la spunta non faccia piu' niente.
---   Io non la decido: (c) e' quello che fa questo file oggi, ed e' la scelta
---   che non cambia comportamento a nessuno senza che tu lo sappia.
-CREATE OR REPLACE FUNCTION public.prenota_corso_admin(p_user_id uuid, p_slot_id uuid, p_data_lezione date, p_scala_credito boolean DEFAULT true)
+-- LA SPUNTA "SCALA CREDITO" DIVENTA UN OMAGGIO (decisione Marco, 22 set)
+--   agenda.html (riga 2514) manda p_scala_credito. Prima, con la casella
+--   spenta, nasceva una prenotazione valida che non scalava il contatore e non
+--   lasciava nessuna traccia: ne' di chi l'aveva concessa, ne' del perche'.
+--   Ora p_scala_credito = false significa omaggio = true sulla riga, con chi e
+--   perche'. Il parametro resta in firma per non rompere la pagina; il motivo
+--   arriva dal nuovo p_omaggio_motivo, che ha un default e quindi non rompe
+--   nessuna chiamata esistente.
+--   ⚠ SEQUENZA: finche' la Fase C non aggiunge il campo motivo in agenda.html,
+--     togliere la spunta dara' un errore leggibile invece di regalare la
+--     lezione. E' voluto: meglio un no chiaro che un omaggio senza storia.
+--     Richiede 03b_omaggio.sql applicato.
+CREATE OR REPLACE FUNCTION public.prenota_corso_admin(p_user_id uuid, p_slot_id uuid, p_data_lezione date, p_scala_credito boolean DEFAULT true, p_omaggio_motivo text DEFAULT NULL)
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 DECLARE
@@ -1946,6 +1944,13 @@ DECLARE
 BEGIN
   IF NOT is_staff() THEN
     RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
+  END IF;
+
+  -- Un omaggio senza motivo non si concede: fra sei mesi nessuno saprebbe piu'
+  -- perche' quella lezione non e' stata scalata.
+  IF NOT p_scala_credito AND (p_omaggio_motivo IS NULL OR btrim(p_omaggio_motivo) = '') THEN
+    RAISE EXCEPTION 'Per regalare la lezione serve un motivo: scrivi perché la stai concedendo.'
+      USING ERRCODE = '23514';
   END IF;
 
   SELECT id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, status
@@ -2064,14 +2069,17 @@ BEGIN
     RAISE EXCEPTION 'Allievo già prenotato su questo slot';
   END IF;
 
-  INSERT INTO prenotazioni_corso (user_id, slot_id, tipo_corso, data_lezione, stato, created_by)
-    VALUES (p_user_id, p_slot_id, v_slot.tipo_corso, p_data_lezione, 'prenotato', auth.uid())
+  -- DEBITO-190: qui si scalava il contatore. Ora la riga E' il consumo —
+  -- a meno che non sia un omaggio, e in quel caso lo dice la riga stessa.
+  INSERT INTO prenotazioni_corso (
+    user_id, slot_id, tipo_corso, data_lezione, stato, created_by,
+    omaggio, omaggio_concesso_da, omaggio_motivo)
+    VALUES (
+      p_user_id, p_slot_id, v_slot.tipo_corso, p_data_lezione, 'prenotato', auth.uid(),
+      NOT p_scala_credito,
+      CASE WHEN NOT p_scala_credito THEN auth.uid() END,
+      CASE WHEN NOT p_scala_credito THEN btrim(p_omaggio_motivo) END)
     RETURNING id INTO v_prenot_id;
-
-  -- DEBITO-190: qui si scalava il contatore. La riga inserita e' il consumo.
-  IF NOT p_scala_credito THEN
-    RAISE NOTICE '[prenota_corso_admin] p_scala_credito=false per user_id=%: parametro inerte dal DEBITO-190, la prenotazione conta comunque.', p_user_id;
-  END IF;
 
   RETURN v_prenot_id;
 END;
