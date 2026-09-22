@@ -1909,3 +1909,254 @@ BEGIN
   ORDER BY c.cognome NULLS LAST, c.nome;
 END;
 $function$;
+
+-- ─── prenota_corso_admin ────────────────────────────────────────────────────
+-- PRIMA: tre scritture di contatori. (1) l'auto-setup-corso, quando l'allievo
+--        non aveva corso_attivo, scriveva il default di lezioni nella colonna
+--        del corso con EXECUTE format, piu' lezioni_iniziali_residue per Open,
+--        e NON creava nessuna riga in iscrizioni_corso — terzo caso dello
+--        stesso buco, dopo accredita_mezza1_open e staff_attiva_corso.
+--        (2) in fondo, se p_scala_credito, leggeva il contatore e lo decrementava.
+-- DOPO:  l'auto-setup crea l'iscrizione; la prenotazione non scala niente,
+--        perche' la riga inserita e' il consumo.
+--
+-- ⚠ DOMANDA PER MARCO — p_scala_credito non ha piu' un significato possibile.
+--   agenda.html (riga 2514) ha una casella "scala credito" che la segreteria
+--   puo' togliere: con la casella spenta la vecchia funzione creava comunque
+--   una prenotazione valida ma non scalava il contatore. Nel modello nuovo la
+--   riga E' il consumo: non esiste una riga prenotata che non conti.
+--   Qui il parametro resta nella firma (la pagina lo manda) ma e' INERTE, e
+--   quando arriva false la funzione lo scrive nei log del database.
+--   Le strade possibili, da decidere prima della Fase C:
+--     a) togliere la casella da agenda.html — la prenotazione conta sempre;
+--     b) fare della "lezione in omaggio" uno stato suo in prenotazioni_corso,
+--        che la view non conta fra le consumate;
+--     c) tenerla come oggi e accettare che la spunta non faccia piu' niente.
+--   Io non la decido: (c) e' quello che fa questo file oggi, ed e' la scelta
+--   che non cambia comportamento a nessuno senza che tu lo sappia.
+CREATE OR REPLACE FUNCTION public.prenota_corso_admin(p_user_id uuid, p_slot_id uuid, p_data_lezione date, p_scala_credito boolean DEFAULT true)
+RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_slot record; v_config record; v_profile record;
+  v_capienza int; v_prenot_id uuid; v_dow_iso int;
+  v_setup_corso boolean := false; v_default_lezioni int;
+  v_invoker_role text; v_target record; v_eligible boolean; v_corso_label text;
+  v_iscrizione record;
+BEGIN
+  IF NOT is_staff() THEN
+    RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, status
+    INTO v_slot FROM corsi_attivi_settimanali WHERE id = p_slot_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Slot non trovato'; END IF;
+  IF v_slot.status <> 'attivo' THEN RAISE EXCEPTION 'Slot non attivo'; END IF;
+
+  -- ═══ Hardening eleggibilità per non-segreteria (DEBITO-166) — INVARIATO ═══
+  SELECT staff_role INTO v_invoker_role FROM profile_data WHERE user_id = auth.uid();
+  IF v_invoker_role NOT IN ('staff_creator', 'staff_segreteria') THEN
+    SELECT prima_done, corso_attivo, advance_paid, intro_paid, evo_paid
+      INTO v_target FROM profile_data WHERE user_id = p_user_id;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Profilo allievo non trovato per user_id %', p_user_id; END IF;
+    IF v_slot.tipo_corso = 'open' THEN
+      v_eligible := (COALESCE(v_target.prima_done, false) = true) AND (v_target.corso_attivo = 'open');
+      v_corso_label := 'Open (richiede Prima Lezione completata e Open pagato)';
+    ELSIF v_slot.tipo_corso = 'advance' THEN
+      v_eligible := COALESCE(v_target.advance_paid, false) = true;
+      v_corso_label := 'Advance (richiede Advance pagato)';
+    ELSIF v_slot.tipo_corso = 'intro_corda' THEN
+      v_eligible := COALESCE(v_target.intro_paid, false) = true;
+      v_corso_label := 'Intro corda (richiede Intro pagato)';
+    ELSIF v_slot.tipo_corso = 'evo_corda' THEN
+      v_eligible := COALESCE(v_target.evo_paid, false) = true;
+      v_corso_label := 'Evo corda (richiede Evo pagato)';
+    ELSE
+      v_eligible := false; v_corso_label := v_slot.tipo_corso;
+    END IF;
+    IF NOT v_eligible THEN
+      RAISE EXCEPTION 'Allievo non eleggibile per % — solo segreteria può forzare.', v_corso_label
+        USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
+  v_dow_iso := ((EXTRACT(DOW FROM p_data_lezione)::int + 6) % 7) + 1;
+  IF v_dow_iso <> v_slot.giorno_settimana THEN
+    RAISE EXCEPTION 'Data % (giorno %) non corrisponde al giorno dello slot (%)',
+      p_data_lezione, v_dow_iso, v_slot.giorno_settimana;
+  END IF;
+
+  SELECT corso_attivo INTO v_profile FROM profile_data WHERE user_id = p_user_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Profilo non trovato per user_id %', p_user_id; END IF;
+
+  -- ═══ Auto-setup-corso ═══
+  IF v_profile.corso_attivo IS NULL THEN
+    v_setup_corso := true;
+    v_default_lezioni := CASE v_slot.tipo_corso
+      WHEN 'open' THEN 7 WHEN 'advance' THEN 8 WHEN 'intro_corda' THEN 6 WHEN 'evo_corda' THEN 8 ELSE 8 END;
+
+    -- DEBITO-190: qui si creava il contatore e basta. Ora si crea la fonte.
+    -- (Stesso disallineamento segnalato su staff_attiva_corso: Intro 6 qui,
+    --  8 in accredita_intro_mese1. Da decidere.)
+    IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
+                   WHERE user_id = p_user_id AND tipo_corso = v_slot.tipo_corso AND status = 'attiva') THEN
+      INSERT INTO iscrizioni_corso (
+        user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+        lezioni_totali, lezioni_completate, status, stato_pagamento, note
+      ) VALUES (
+        p_user_id, v_slot.tipo_corso, CURRENT_DATE, CURRENT_DATE, NULL,
+        v_default_lezioni, 0, 'attiva', 'saldato',
+        format('Attivato da prenota_corso_admin (auto-setup): %s lezioni.', v_default_lezioni)
+      );
+    END IF;
+
+    UPDATE profile_data SET corso_attivo = v_slot.tipo_corso, updated_at = now()
+      WHERE user_id = p_user_id;
+    v_profile.corso_attivo := v_slot.tipo_corso;
+
+  ELSIF v_profile.corso_attivo <> v_slot.tipo_corso THEN
+    RAISE EXCEPTION 'Allievo è in corso % ma stai prenotando slot %. Cambia corso prima.',
+      v_profile.corso_attivo, v_slot.tipo_corso;
+  END IF;
+
+  IF v_setup_corso THEN
+    UPDATE crm_leads
+      SET funnel_stage = CASE v_slot.tipo_corso
+            WHEN 'open' THEN 'iscritto_open' WHEN 'advance' THEN 'iscritto_advance'
+            WHEN 'intro_corda' THEN 'iscritto_intro' WHEN 'evo_corda' THEN 'iscritto_evo'
+            ELSE funnel_stage END
+      WHERE converted_profile_id = p_user_id
+        AND funnel_stage NOT IN ('iscritto_open','iscritto_advance','iscritto_intro','iscritto_evo',
+                                 'concluso_lavorato','maestro_di_cordata','ibernato','perso');
+  END IF;
+
+  -- ═══ Validità periodo per A/I/E — INVARIATO ═══
+  IF v_slot.tipo_corso <> 'open' AND NOT v_setup_corso THEN
+    SELECT data_inizio_validita, data_fine_validita, status INTO v_iscrizione
+      FROM iscrizioni_corso
+      WHERE user_id = p_user_id AND tipo_corso = v_slot.tipo_corso AND status = 'attiva'
+      ORDER BY data_iscrizione DESC LIMIT 1;
+    IF FOUND AND v_iscrizione.data_fine_validita IS NOT NULL
+       AND p_data_lezione > v_iscrizione.data_fine_validita THEN
+      RAISE EXCEPTION 'La data lezione % è oltre la fine validità del pacchetto (%)',
+        p_data_lezione, v_iscrizione.data_fine_validita;
+    END IF;
+    IF FOUND AND v_iscrizione.data_inizio_validita IS NOT NULL
+       AND p_data_lezione < v_iscrizione.data_inizio_validita THEN
+      RAISE EXCEPTION 'La data lezione % è prima dell''inizio validità del pacchetto (%)',
+        p_data_lezione, v_iscrizione.data_inizio_validita;
+    END IF;
+  END IF;
+
+  SELECT capienza_max INTO v_config
+    FROM tipi_corso_config WHERE tipo_corso = v_slot.tipo_corso AND attivo = true;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Config tipo_corso % non trovata', v_slot.tipo_corso; END IF;
+
+  SELECT COUNT(*) INTO v_capienza FROM prenotazioni_corso
+    WHERE slot_id = p_slot_id AND data_lezione = p_data_lezione AND stato IN ('prenotato','presente');
+  IF v_capienza >= v_config.capienza_max THEN
+    RAISE EXCEPTION 'Slot pieno (%/%)', v_capienza, v_config.capienza_max;
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM prenotazioni_corso
+             WHERE user_id = p_user_id AND slot_id = p_slot_id
+               AND data_lezione = p_data_lezione AND stato IN ('prenotato','presente')) THEN
+    RAISE EXCEPTION 'Allievo già prenotato su questo slot';
+  END IF;
+
+  INSERT INTO prenotazioni_corso (user_id, slot_id, tipo_corso, data_lezione, stato, created_by)
+    VALUES (p_user_id, p_slot_id, v_slot.tipo_corso, p_data_lezione, 'prenotato', auth.uid())
+    RETURNING id INTO v_prenot_id;
+
+  -- DEBITO-190: qui si scalava il contatore. La riga inserita e' il consumo.
+  IF NOT p_scala_credito THEN
+    RAISE NOTICE '[prenota_corso_admin] p_scala_credito=false per user_id=%: parametro inerte dal DEBITO-190, la prenotazione conta comunque.', p_user_id;
+  END IF;
+
+  RETURN v_prenot_id;
+END;
+$function$;
+
+-- ─── registra_pagamento_manuale_admin ───────────────────────────────────────
+-- PRIMA: fotografava lezioni_residue prima e dopo, e soprattutto aveva il
+--        blocco §2.7 "presenze in nero": dopo aver chiamato l'accredito Open,
+--        contava le presenze gia' marcate e le sottraeva dal contatore, perche'
+--        l'accredito lo riscriveva da zero (il "caso Gianmaria" del commento).
+-- DOPO:  quel blocco SPARISCE del tutto. Le presenze sono gia' contate dalla
+--        view: nessun accredito le puo' piu' cancellare, quindi non c'e' piu'
+--        niente da recuperare a mano. E' la toppa che il modello nuovo rende
+--        inutile, non una funzione che perde un pezzo.
+--        Le due fotografie pre/post ora vengono dalla view e restano nella
+--        ricevuta jsonb con lo stesso nome, per non rompere chi la legge.
+CREATE OR REPLACE FUNCTION public.registra_pagamento_manuale_admin(p_user_id uuid, p_prodotto text, p_data_pagamento date, p_metodo text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_lead_id uuid; v_log_id uuid; v_nuovo_stage text := NULL; v_importo int;
+  v_lezioni_residue_pre int; v_lezioni_residue_post int;
+  v_corso_attivo_post text; v_scadenza_post timestamptz;
+BEGIN
+  IF NOT is_staff() THEN
+    RAISE EXCEPTION 'Permesso negato: solo staff può registrare pagamenti manuali';
+  END IF;
+  IF p_metodo NOT IN ('cash','bonifico','pos','altro') THEN
+    RAISE EXCEPTION 'Metodo non valido: %. Usa: cash, bonifico, pos, altro', p_metodo;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM profile_data WHERE user_id = p_user_id) THEN
+    RAISE EXCEPTION 'Utente non trovato in profile_data: %', p_user_id;
+  END IF;
+
+  SELECT id INTO v_lead_id FROM crm_leads WHERE converted_profile_id = p_user_id LIMIT 1;
+
+  -- DEBITO-190: la fotografia PRE viene dalla view.
+  SELECT prenotabili INTO v_lezioni_residue_pre
+    FROM contatori_corso WHERE user_id = p_user_id AND tipo_corso = 'open';
+
+  CASE p_prodotto
+    WHEN 'prima_lezione' THEN
+      PERFORM accredita_prima_lezione(p_user_id);
+      v_importo := 25;
+    WHEN 'pacchetto_open_intero' THEN
+      PERFORM accredita_pacchetto_open_intero(p_user_id); v_importo := 240; v_nuovo_stage := 'in_open';
+    WHEN 'saldo_open_intero' THEN
+      PERFORM accredita_saldo_open_intero(p_user_id); v_importo := 215; v_nuovo_stage := 'in_open';
+    WHEN 'pacchetto_meta_open' THEN
+      PERFORM accredita_pacchetto_meta_open(p_user_id); v_importo := 140; v_nuovo_stage := 'in_open';
+    WHEN 'acconto_open' THEN
+      PERFORM accredita_acconto_open(p_user_id); v_importo := 40; v_nuovo_stage := 'prenotato_open';
+    WHEN 'iscrizione_meta_open' THEN
+      PERFORM accredita_iscrizione_meta_open(p_user_id); v_importo := 115; v_nuovo_stage := 'in_open';
+    ELSE
+      RAISE EXCEPTION 'Prodotto non valido: %. Validi: prima_lezione, pacchetto_open_intero, saldo_open_intero, pacchetto_meta_open, acconto_open, iscrizione_meta_open', p_prodotto;
+  END CASE;
+
+  -- DEBITO-190: qui c'era il blocco "presenze in nero" (§2.7), che sottraeva
+  -- dal contatore le presenze gia' marcate perche' l'accredito lo riscriveva
+  -- da zero. Non serve piu': le presenze sono righe, e la view le conta sempre.
+
+  SELECT c.prenotabili, pd.corso_attivo, pd.scadenza_consumo_open
+    INTO v_lezioni_residue_post, v_corso_attivo_post, v_scadenza_post
+  FROM profile_data pd
+  LEFT JOIN contatori_corso c ON c.user_id = pd.user_id AND c.tipo_corso = 'open'
+  WHERE pd.user_id = p_user_id;
+
+  IF v_lead_id IS NOT NULL AND v_nuovo_stage IS NOT NULL THEN
+    UPDATE crm_leads SET funnel_stage = v_nuovo_stage WHERE id = v_lead_id;
+  END IF;
+
+  INSERT INTO pagamenti_manuali_log (
+    user_id, lead_id, prodotto, importo_eur, data_pagamento, metodo, note, registrato_da
+  ) VALUES (
+    p_user_id, v_lead_id, p_prodotto, v_importo, p_data_pagamento, p_metodo, p_note, auth.uid()
+  ) RETURNING id INTO v_log_id;
+
+  RETURN jsonb_build_object(
+    'ok', true, 'log_id', v_log_id, 'user_id', p_user_id, 'lead_id', v_lead_id,
+    'prodotto', p_prodotto, 'importo_eur', v_importo, 'metodo', p_metodo,
+    'data_pagamento', p_data_pagamento, 'funnel_stage_aggiornato', v_nuovo_stage,
+    'corso_attivo', v_corso_attivo_post, 'scadenza_consumo_open', v_scadenza_post,
+    'lezioni_residue_pre', v_lezioni_residue_pre, 'lezioni_residue_post', v_lezioni_residue_post,
+    'presenze_open_sottratte', 0   -- DEBITO-190: non si sottrae piu' niente a mano
+  );
+END;
+$function$;
