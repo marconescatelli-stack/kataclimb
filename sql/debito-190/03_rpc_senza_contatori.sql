@@ -1150,3 +1150,491 @@ END; $function$;
 -- contatore. Chiamano mese1 + mese2 e compongono il jsonb. La chiave
 -- 'lezioni_residue' che contengono e' solo un campo del risultato, non una
 -- scrittura. Restano esattamente come sono.
+
+
+-- ─── accredita_intro_mese1 ──────────────────────────────────────────────────
+-- DANNO: intro_lezioni_residue=4 E lezioni_residue=4 (colonna Open), piu'
+--        intro_no_show_count=0.
+CREATE OR REPLACE FUNCTION public.accredita_intro_mese1(p_user_id uuid, p_data_inizio date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione_id uuid; v_lead_id uuid; v_pagamento_id uuid; v_data_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_inizio IS NULL THEN p_data_inizio := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %. Ammessi: contanti, bonifico, pos.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN RAISE EXCEPTION 'profile_data non trovato per user_id=%.', p_user_id; END IF;
+  IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id=p_user_id AND tipo_corso='intro_corda' AND status='attiva') THEN
+    RAISE EXCEPTION 'Iscrizione Intro Corda attiva già presente per user_id=%. Usa accredita_intro_mese2 per il pagamento del secondo mese.', p_user_id;
+  END IF;
+  v_data_fine := p_data_inizio + INTERVAL '40 days';
+  INSERT INTO iscrizioni_corso (
+    user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+    lezioni_totali, lezioni_completate, status, stato_pagamento,
+    importo_concordato, importo_pagato, note
+  ) VALUES (
+    p_user_id, 'intro_corda', p_data_inizio, p_data_inizio, v_data_fine,
+    8, 0, 'attiva', 'acconto', 300, 150,
+    '1° mese pagato (150€). Manca 2° mese (150€) per saldare 300€ totali. Lezioni accreditate al mese 1: 4 su 8.'
+  ) RETURNING id INTO v_iscrizione_id;
+
+  -- DEBITO-190: via intro_lezioni_residue=4, lezioni_residue=4, intro_no_show_count=0.
+  UPDATE profile_data
+    SET corso_attivo='intro_corda', intro_paid=true, updated_at=now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_intro', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE SET funnel_stage='iscritto_intro', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'intro_mese1', p_metodo, auth.uid(),
+          COALESCE(p_note, 'Intro Corda mese 1 — 150€ (corso 60 + sala 90)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a Intro Corda mese 1 il %s, metodo %s. Lezioni residue 4 su 8. Importo residuo 150€.', p_data_inizio::text, p_metodo),
+    auth.uid());
+  RETURN jsonb_build_object('success',true,'iscrizione_id',v_iscrizione_id,'pagamento_id',v_pagamento_id,
+    'lead_data_id',v_lead_id,'tipo_corso','intro_corda','funnel_stage','iscritto_intro','mese_accreditato',1,
+    'lezioni_residue',4,'lezioni_totali',8,'importo_pagato',150,'importo_residuo',150,
+    'data_inizio_validita',p_data_inizio,'data_fine_validita',v_data_fine,
+    'message','Intro Corda mese 1 accreditato: 4 lezioni residue, importo da saldare 150€.');
+END; $function$;
+
+-- ─── accredita_intro_mese2 ──────────────────────────────────────────────────
+-- DANNO: intro_lezioni_residue + 4 E lezioni_residue + 4. E' il caso citato
+--        nella consegna, ma come si e' visto non era isolato.
+CREATE OR REPLACE FUNCTION public.accredita_intro_mese2(p_user_id uuid, p_data_pagamento date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione iscrizioni_corso%ROWTYPE; v_lead_id uuid; v_pagamento_id uuid;
+  v_nuove_residue integer; v_nuova_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_pagamento IS NULL THEN p_data_pagamento := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %. Ammessi: contanti, bonifico, pos.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN RAISE EXCEPTION 'profile_data non trovato per user_id=%.', p_user_id; END IF;
+  SELECT * INTO v_iscrizione FROM iscrizioni_corso
+  WHERE user_id=p_user_id AND tipo_corso='intro_corda' AND status='attiva'
+  ORDER BY data_iscrizione DESC LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Nessuna iscrizione Intro Corda attiva per user_id=%. Prima eseguire accredita_intro_mese1.', p_user_id; END IF;
+  IF v_iscrizione.importo_pagato >= v_iscrizione.importo_concordato THEN
+    RAISE EXCEPTION 'Iscrizione Intro Corda già saldata per user_id=% (importo_pagato=%, importo_concordato=%).', p_user_id, v_iscrizione.importo_pagato, v_iscrizione.importo_concordato;
+  END IF;
+  IF v_iscrizione.importo_pagato != 150 THEN
+    RAISE EXCEPTION 'Stato pagamenti anomalo iscrizione Intro Corda user_id=%: atteso importo_pagato=150, trovato %.', p_user_id, v_iscrizione.importo_pagato;
+  END IF;
+  v_nuova_fine := GREATEST((v_iscrizione.data_inizio_validita + INTERVAL '75 days')::date, (p_data_pagamento + INTERVAL '30 days')::date);
+  UPDATE iscrizioni_corso
+    SET importo_pagato = importo_concordato, stato_pagamento = 'saldato',
+        pagamento_completato_at = now(), data_fine_validita = v_nuova_fine,
+        note = COALESCE(note || E'\n','') || format('Saldato il %s con accredita_intro_mese2. 8 lezioni accreditate totali.', p_data_pagamento::text),
+        updated_at = now()
+    WHERE id = v_iscrizione.id;
+
+  -- DEBITO-190: via intro_lezioni_residue + 4 e lezioni_residue + 4.
+  UPDATE profile_data SET intro_mese2_paid = true, updated_at = now() WHERE user_id = p_user_id;
+
+  SELECT prenotabili INTO v_nuove_residue
+    FROM contatori_corso WHERE user_id = p_user_id AND tipo_corso = 'intro_corda';
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_intro', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE SET funnel_stage='iscritto_intro', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'intro_mese2', p_metodo, auth.uid(),
+          COALESCE(p_note, 'Intro Corda mese 2 (saldo) — 150€ (corso 60 + sala 90)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: saldato Intro Corda mese 2 il %s, metodo %s. Iscrizione completata 8/8 lezioni, residue=%s.', p_data_pagamento::text, p_metodo, v_nuove_residue),
+    auth.uid());
+  RETURN jsonb_build_object('success',true,'iscrizione_id',v_iscrizione.id,'pagamento_id',v_pagamento_id,
+    'lead_data_id',v_lead_id,'tipo_corso','intro_corda','funnel_stage','iscritto_intro','mese_accreditato',2,
+    'lezioni_residue',v_nuove_residue,'lezioni_totali',v_iscrizione.lezioni_totali,
+    'importo_pagato',v_iscrizione.importo_concordato,'importo_residuo',0,
+    'data_fine_validita',v_nuova_fine,'saldato',true,
+    'message',format('Intro Corda mese 2 accreditato: +4 lezioni (totale residue=%s), iscrizione saldata.', v_nuove_residue));
+END; $function$;
+
+
+-- ============================================================================
+-- I SETTE ACCREDITI DEL CORSO OPEN
+-- Nessun danno di colonna sbagliata: lezioni_residue E' la loro colonna.
+-- Il problema qui e' un altro: duplicavano il valore su lezioni_iniziali_residue
+-- e resettavano a mano no_show_count e spostamenti_open_residui — tre colonne
+-- che spariscono in Fase D. Restano scadenza_consumo_open e frequenza_open,
+-- che non sono contatori ma regole del pacchetto.
+-- ============================================================================
+
+-- ─── accredita_mezza1_open ──────────────────────────────────────────────────
+-- ⚠ ATTENZIONE, QUI NON E' SOLO UNA RIMOZIONE.
+--   Questa funzione NON creava nessuna riga in iscrizioni_corso: scriveva solo
+--   i contatori in profile_data. Era l'unica dei sette a fare cosi'. Tolti i
+--   contatori resterebbe senza nessuna fonte: corso_attivo='open' ma nessuna
+--   iscrizione attiva, quindi contatori_corso vuota e prenota_corso che
+--   rifiuta con "Nessuna iscrizione attiva".
+--   Percio' QUI SI AGGIUNGE l'INSERT in iscrizioni_corso, copiato da
+--   accredita_iscrizione_meta_open, che vende lo stesso prodotto (½ Open,
+--   4 lezioni, scadenza 'mezza1'). E' idempotente come le sorelle.
+CREATE OR REPLACE FUNCTION public.accredita_mezza1_open(p_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_data_inizio date := CURRENT_DATE;
+BEGIN
+  -- Modello Open — Modalità C prima rata: 4 lezioni, scadenza 40gg dal pagamento.
+  -- DEBITO-190: la fonte e' l'iscrizione, non piu' il contatore.
+  IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
+                 WHERE user_id = p_user_id AND tipo_corso='open' AND status='attiva') THEN
+    INSERT INTO iscrizioni_corso (
+      user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+      lezioni_totali, lezioni_completate, status, stato_pagamento, note
+    ) VALUES (
+      p_user_id, 'open', v_data_inizio, v_data_inizio,
+      (_calcola_scadenza_open('mezza1'))::date,
+      4, 0, 'attiva', 'saldato',
+      '½ Open prima rata (Modalità C). 4 lezioni.'
+    );
+  END IF;
+
+  -- Restano scadenza e frequenza: sono regole del pacchetto, non contatori.
+  -- Via lezioni_iniziali_residue=4, lezioni_residue=4, no_show_count=0,
+  -- spostamenti_open_residui=2.
+  UPDATE profile_data
+    SET iscrizione_paid        = true,
+        meta_open_paid         = true,
+        corso_attivo           = 'open',
+        frequenza_open         = 'monosett',
+        scadenza_consumo_open  = now() + interval '40 days',
+        mezza2_paid            = false,
+        updated_at             = now()
+    WHERE user_id = p_user_id;
+END;
+$function$;
+
+-- ─── accredita_mezza2_open ──────────────────────────────────────────────────
+-- Questa era gia' quasi a posto: scriveva lezioni_totali + 3 sull'iscrizione,
+-- cioe' sulla fonte. Via solo il doppione lezioni_residue + 3 sulla cache.
+CREATE OR REPLACE FUNCTION public.accredita_mezza2_open(p_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  -- Modello Open — Modalità C seconda rata: +3 lezioni, scadenza +35 giorni.
+  UPDATE iscrizioni_corso
+    SET data_fine_validita = data_fine_validita + 35,
+        lezioni_totali     = COALESCE(lezioni_totali, 0) + 3,
+        updated_at         = now()
+    WHERE user_id = p_user_id AND tipo_corso = 'open' AND status = 'attiva';
+
+  -- DEBITO-190: via lezioni_residue + 3. Le 3 lezioni stanno gia' sull'iscrizione.
+  UPDATE profile_data
+    SET mezza2_paid           = true,
+        scadenza_consumo_open = scadenza_consumo_open + interval '35 days',
+        updated_at            = now()
+    WHERE user_id = p_user_id;
+END;
+$function$;
+
+-- ─── accredita_iscrizione_meta_open ─────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.accredita_iscrizione_meta_open(p_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_lead_id uuid; v_metodo text;
+  v_data_inizio date := CURRENT_DATE; v_data_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN
+    RAISE EXCEPTION 'profile_data non trovato per user_id=%. Provisiona prima il profilo.', p_user_id;
+  END IF;
+  v_metodo := CASE WHEN auth.uid() IS NULL THEN 'stripe' ELSE 'pos' END;
+  v_data_fine := (_calcola_scadenza_open('mezza1'))::date;
+
+  IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
+                 WHERE user_id = p_user_id AND tipo_corso='open' AND status='attiva') THEN
+    INSERT INTO iscrizioni_corso (
+      user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+      lezioni_totali, lezioni_completate, status,
+      importo_concordato, importo_pagato, stato_pagamento,
+      metodo_pagamento, pagamento_completato_at, note
+    ) VALUES (
+      p_user_id, 'open', v_data_inizio, v_data_inizio, v_data_fine,
+      4, 0, 'attiva', NULL, NULL, 'saldato', v_metodo, now(),
+      '½ Open + iscrizione ASD (Stripe). 4 lezioni.'
+    );
+  END IF;
+
+  -- DEBITO-190: via lezioni_iniziali_residue, lezioni_residue, no_show_count,
+  -- spostamenti_open_residui. Restano scadenza e frequenza.
+  UPDATE profile_data
+    SET iscrizione_paid       = true,
+        meta_open_paid        = true,
+        corso_attivo          = 'open',
+        frequenza_open        = 'monosett',
+        scadenza_consumo_open = _calcola_scadenza_open('mezza1'),
+        updated_at            = now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, fonte, ultima_interazione)
+  VALUES (v_persona_id, 'iscritto_open', 'stripe_iscrizione_meta_open', now())
+  ON CONFLICT (persona_id) DO UPDATE
+    SET funnel_stage='iscritto_open', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'mezza1_open', v_metodo, auth.uid(),
+          '½ Open + iscrizione ASD saldato via Stripe');
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a ½ Open + iscrizione ASD il %s, metodo %s. 4 lezioni.', v_data_inizio::text, v_metodo),
+    auth.uid());
+END;
+$function$;
+
+-- ─── accredita_pacchetto_meta_open ──────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.accredita_pacchetto_meta_open(p_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_lead_id uuid; v_metodo text;
+  v_data_inizio date := CURRENT_DATE; v_data_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN
+    RAISE EXCEPTION 'profile_data non trovato per user_id=%. Provisiona prima il profilo.', p_user_id;
+  END IF;
+  v_metodo := CASE WHEN auth.uid() IS NULL THEN 'stripe' ELSE 'pos' END;
+  v_data_fine := (_calcola_scadenza_open('mezza1'))::date;
+
+  IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
+                 WHERE user_id = p_user_id AND tipo_corso='open' AND status='attiva') THEN
+    INSERT INTO iscrizioni_corso (
+      user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+      lezioni_totali, lezioni_completate, status,
+      importo_concordato, importo_pagato, stato_pagamento,
+      metodo_pagamento, pagamento_completato_at, note
+    ) VALUES (
+      p_user_id, 'open', v_data_inizio, v_data_inizio, v_data_fine,
+      4, 0, 'attiva', NULL, NULL, 'saldato', v_metodo, now(),
+      '½ Open + Prima (Stripe). 4 lezioni.'
+    );
+  END IF;
+
+  -- DEBITO-190: via i quattro contatori. Restano scadenza e frequenza.
+  UPDATE profile_data
+    SET prima_paid            = true,
+        iscrizione_paid       = true,
+        meta_open_paid        = true,
+        corso_attivo          = 'open',
+        frequenza_open        = 'monosett',
+        scadenza_consumo_open = _calcola_scadenza_open('mezza1'),
+        updated_at            = now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_open', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE
+    SET funnel_stage='iscritto_open', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'mezza1_open', v_metodo, auth.uid(),
+          '½ Open + Prima saldato via Stripe');
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a ½ Open + Prima il %s, metodo %s. 4 lezioni.', v_data_inizio::text, v_metodo),
+    auth.uid());
+END;
+$function$;
+
+-- ─── accredita_pacchetto_open_intero ────────────────────────────────────────
+-- Chiamata anche dal trigger _trg_open_presenza_garantisce_corso.
+CREATE OR REPLACE FUNCTION public.accredita_pacchetto_open_intero(p_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_lead_id uuid;
+  v_data_inizio date := CURRENT_DATE; v_data_fine date;
+BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN
+    RAISE EXCEPTION 'profile_data non trovato per user_id=%. Provisiona prima il profilo.', p_user_id;
+  END IF;
+  v_data_fine := (_calcola_scadenza_open('bisett'))::date;
+
+  IF NOT EXISTS (SELECT 1 FROM iscrizioni_corso
+                 WHERE user_id = p_user_id AND tipo_corso='open' AND status='attiva') THEN
+    INSERT INTO iscrizioni_corso (
+      user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+      lezioni_totali, lezioni_completate, status,
+      importo_concordato, importo_pagato, stato_pagamento, note
+    ) VALUES (
+      p_user_id, 'open', v_data_inizio, v_data_inizio, v_data_fine,
+      7, 0, 'attiva', NULL, NULL, 'saldato',
+      'Open intero (Stripe). 7 lezioni.'
+    );
+  END IF;
+
+  -- DEBITO-190: via i quattro contatori. Restano scadenza e frequenza.
+  UPDATE profile_data
+    SET prima_paid            = true,
+        iscrizione_paid       = true,
+        corso_attivo          = 'open',
+        frequenza_open        = 'bisett',
+        scadenza_consumo_open = _calcola_scadenza_open('bisett'),
+        updated_at            = now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_open', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE
+    SET funnel_stage='iscritto_open', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'open', 'pos', auth.uid(),
+          'Open intero saldato via Stripe');
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota', 'Sistema: iscritto a Open intero (Stripe). 7 lezioni.', auth.uid());
+END;
+$function$;
+
+-- ─── accredita_acconto_open ─────────────────────────────────────────────────
+-- Nota: l'iscrizione nasce con importo_pagato 115 < concordato 215, ma il
+-- dimezzamento del mese 1 NON si applica al Corso Open (regola di Marco):
+-- le lezioni sono quelle scritte in lezioni_totali, cioe' p_lezioni.
+CREATE OR REPLACE FUNCTION public.accredita_acconto_open(p_user_id uuid, p_data_inizio date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_lezioni integer DEFAULT 4, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione_id uuid; v_lead_id uuid; v_pagamento_id uuid; v_data_fine date;
+BEGIN
+  PERFORM public.assert_staff();
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_inizio IS NULL THEN p_data_inizio := CURRENT_DATE; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %.', p_metodo;
+  END IF;
+  IF p_lezioni IS NULL OR p_lezioni < 1 OR p_lezioni > 7 THEN
+    RAISE EXCEPTION 'p_lezioni deve essere 1-7 (ricevuto %).', p_lezioni;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN
+    RAISE EXCEPTION 'profile_data non trovato per user_id=%. Provisiona prima il profilo.', p_user_id;
+  END IF;
+  IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id = p_user_id AND tipo_corso='open' AND status='attiva') THEN
+    RAISE EXCEPTION 'Iscrizione Open attiva già presente per user_id=%.', p_user_id;
+  END IF;
+  v_data_fine := (_calcola_scadenza_open('bisett'))::date;
+  INSERT INTO iscrizioni_corso (
+    user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+    lezioni_totali, lezioni_completate, status, importo_concordato, importo_pagato, note
+  ) VALUES (
+    p_user_id, 'open', p_data_inizio, p_data_inizio, v_data_fine,
+    p_lezioni, 0, 'attiva', 215, 115,
+    COALESCE(p_note, format('Open in ACCONTO: pagato 115€ di 215€ (voce mezza1_open). Credito %s lezioni. Residuo 100€.', p_lezioni))
+  ) RETURNING id INTO v_iscrizione_id;
+
+  -- DEBITO-190: via lezioni_iniziali_residue, lezioni_residue, no_show_count,
+  -- spostamenti_open_residui. Restano scadenza e frequenza.
+  UPDATE profile_data
+    SET acconto_open_paid=true, acconto_open_data=now(), corso_attivo='open',
+        frequenza_open='bisett', scadenza_consumo_open=_calcola_scadenza_open('bisett'),
+        updated_at=now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_open', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE
+    SET funnel_stage='iscritto_open', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'mezza1_open', p_metodo, auth.uid(),
+    COALESCE(p_note, format('Open acconto 115€ (mezza1_open) — credito %s lezioni', p_lezioni)))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a Open in ACCONTO (115€ di 215€) il %s, metodo %s. Credito %s lezioni. Residuo 100€.',
+           p_data_inizio::text, p_metodo, p_lezioni), auth.uid());
+  RETURN jsonb_build_object(
+    'success', true, 'iscrizione_id', v_iscrizione_id, 'pagamento_id', v_pagamento_id,
+    'lead_data_id', v_lead_id, 'tipo_corso', 'open', 'funnel_stage', 'iscritto_open',
+    'stato_pagamento', 'acconto', 'lezioni_residue', p_lezioni, 'lezioni_totali', p_lezioni,
+    'importo_concordato', 215, 'importo_pagato', 115, 'importo_residuo', 100,
+    'data_inizio_validita', p_data_inizio, 'data_fine_validita', v_data_fine,
+    'message', format('Open acconto accreditato: %s lezioni, pagato 115€ di 215€.', p_lezioni));
+END;
+$function$;
+
+-- ─── accredita_saldo_open_intero ────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.accredita_saldo_open_intero(p_user_id uuid, p_data_inizio date DEFAULT CURRENT_DATE, p_metodo text DEFAULT 'contanti'::text, p_note text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_persona_id uuid; v_iscrizione_id uuid; v_lead_id uuid; v_pagamento_id uuid; v_data_fine date;
+BEGIN
+  PERFORM public.assert_staff();
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'p_user_id non puo essere NULL'; END IF;
+  IF p_data_inizio IS NULL THEN p_data_inizio := CURRENT_DATE; END IF;
+  IF auth.uid() IS NULL AND p_metodo = 'contanti' THEN p_metodo := 'stripe'; END IF;
+  IF p_metodo NOT IN ('contanti','bonifico','pos','stripe') THEN
+    RAISE EXCEPTION 'p_metodo non valido: %.', p_metodo;
+  END IF;
+  SELECT persona_id INTO v_persona_id FROM profile_data WHERE user_id = p_user_id;
+  IF v_persona_id IS NULL THEN
+    RAISE EXCEPTION 'profile_data non trovato per user_id=%. Provisiona prima il profilo.', p_user_id;
+  END IF;
+  IF EXISTS (SELECT 1 FROM iscrizioni_corso WHERE user_id = p_user_id AND tipo_corso='open' AND status='attiva') THEN
+    RAISE EXCEPTION 'Iscrizione Open attiva già presente per user_id=%.', p_user_id;
+  END IF;
+  v_data_fine := (_calcola_scadenza_open('bisett'))::date;
+  INSERT INTO iscrizioni_corso (
+    user_id, tipo_corso, data_iscrizione, data_inizio_validita, data_fine_validita,
+    lezioni_totali, lezioni_completate, status, stato_pagamento,
+    metodo_pagamento, pagamento_completato_at, importo_concordato, importo_pagato, note
+  ) VALUES (
+    p_user_id, 'open', p_data_inizio, p_data_inizio, v_data_fine,
+    7, 0, 'attiva', 'saldato', p_metodo, now(), 215, 215,
+    COALESCE(p_note, 'Open saldato (215€ — corso + iscrizione ASD). 7 lezioni.')
+  ) RETURNING id INTO v_iscrizione_id;
+
+  -- DEBITO-190: via i quattro contatori. Restano scadenza e frequenza.
+  UPDATE profile_data
+    SET iscrizione_paid=true, corso_attivo='open',
+        frequenza_open='bisett', scadenza_consumo_open=_calcola_scadenza_open('bisett'),
+        updated_at=now()
+    WHERE user_id = p_user_id;
+
+  INSERT INTO lead_data (persona_id, funnel_stage, ultima_interazione, updated_at)
+  VALUES (v_persona_id, 'iscritto_open', now(), now())
+  ON CONFLICT (persona_id) DO UPDATE
+    SET funnel_stage='iscritto_open', ultima_interazione=now(), updated_at=now()
+  RETURNING id INTO v_lead_id;
+  INSERT INTO pagamenti_manuali (persona_id, user_id, lead_data_id, voce, metodo, registrato_da, note)
+  VALUES (v_persona_id, p_user_id, v_lead_id, 'open', p_metodo, auth.uid(),
+    COALESCE(p_note, 'Open saldato 215€ (corso + iscrizione ASD)'))
+  RETURNING id INTO v_pagamento_id;
+  INSERT INTO crm_follow_ups (lead_id, tipo, testo, created_by)
+  VALUES (v_lead_id, 'nota',
+    format('Sistema: iscritto a Open (saldato 215€) il %s, metodo %s. 7 lezioni.', p_data_inizio::text, p_metodo),
+    auth.uid());
+  RETURN jsonb_build_object(
+    'success', true, 'iscrizione_id', v_iscrizione_id, 'pagamento_id', v_pagamento_id,
+    'lead_data_id', v_lead_id, 'tipo_corso', 'open', 'funnel_stage', 'iscritto_open',
+    'stato_pagamento', 'saldato', 'lezioni_residue', 7, 'lezioni_totali', 7,
+    'importo_concordato', 215, 'importo_pagato', 215,
+    'data_inizio_validita', p_data_inizio, 'data_fine_validita', v_data_fine,
+    'message', 'Open saldato accreditato: 7 lezioni, 215€.');
+END;
+$function$;
