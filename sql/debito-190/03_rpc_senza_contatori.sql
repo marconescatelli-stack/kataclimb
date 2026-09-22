@@ -782,6 +782,63 @@ $function$;
 --   Legge e scrive "prenotazioni_open", tabella che NON ESISTE, e legge
 --   corsi_attivi_settimanali.capacita, colonna che non esiste (si chiama
 --   capienza_max). Doppiamente rotta: qualunque chiamata fallirebbe.
---   Stessa situazione di marca_presenza_open, ma Marco ha verificato il Worker
---   solo per quella. Non la elimino da solo.
--- DROP FUNCTION IF EXISTS public.prenota_open(uuid, uuid, date);
+--   Marco ha verificato il 22 set: 0 chiamate nel Worker (v3.78), 0 in
+--   portale/agenda/oggi/profilo/commerciale. Si elimina.
+DROP FUNCTION IF EXISTS public.prenota_open(uuid, uuid, date);
+
+
+-- ============================================================================
+-- PARTE 3 · GLI ACCREDITI — la lista dei danni
+-- Aggiunta il 2026-09-22.
+-- ============================================================================
+--
+-- COSA FANNO OGGI, TUTTI, NELLO STESSO ORDINE
+--   1. validano i parametri e trovano persona_id
+--   2. creano o aggiornano la riga in iscrizioni_corso (importi, validità,
+--      lezioni_totali, status, stato_pagamento, note)
+--   3. UPDATE profile_data: corso_attivo, i flag *_paid, la frequenza, la
+--      scadenza di consumo... E I CONTATORI
+--   4. lead_data.funnel_stage, pagamenti_manuali, nota in crm_follow_ups
+--
+-- COSA CAMBIA: sparisce SOLO la parte di contatori del punto 3. Tutto il
+-- resto — iscrizione, importi, flag, funnel, pagamento, nota — resta identico.
+--
+-- ============================================================================
+-- LA LISTA DEI DANNI — accrediti che scrivevano sulla colonna di un altro corso
+-- ============================================================================
+-- Verificata leggendo i corpi, non solo cercando i nomi delle colonne.
+--
+--   SETTE accrediti di corsi NON-Open scrivono anche lezioni_residue, che e'
+--   la colonna del Corso Open:
+--     accredita_advance_mese1     advance_lezioni_residue=4, lezioni_residue=4
+--     accredita_advance_mese2     advance_lezioni_residue+4, lezioni_residue+4
+--     accredita_advance_2xsett    advance_lezioni_residue,   lezioni_residue
+--     accredita_intro_mese1       intro_lezioni_residue,     lezioni_residue
+--     accredita_intro_mese2       intro_lezioni_residue+4,   lezioni_residue+4
+--     accredita_evo_mese1         evo_lezioni_residue,       lezioni_residue
+--     accredita_evo_mese2         evo_lezioni_residue+4,     lezioni_residue+4
+--
+--   Non e' il solo accredita_intro_mese2 che la consegna citava: e' sistematico
+--   su tutta la famiglia mese1/mese2/2xsett. Chi ha comprato Intro o Advance si
+--   e' visto accreditare le stesse lezioni DUE volte, una sulla colonna giusta
+--   e una su quella del Corso Open.
+--
+--   IPOTESI, da confermare in Fase D: e' la spiegazione piu' probabile dei
+--   "crediti orfani" Open trovati dalla sezione 2 della 02 — Borini 6, D'Uva 4,
+--   Guidi 4, Meli 4, Rasoira 4, Puppini 2. Da verificare caso per caso contro
+--   pagamenti_manuali prima di azzerarli: non la do per buona qui.
+--
+--   I TRE "intero" sono INNOCENTI: accredita_advance_intero,
+--   accredita_intro_intero e accredita_evo_intero non scrivono nessun
+--   contatore, chiamano mese1 + mese2 e compongono il risultato. La stringa
+--   'lezioni_residue' compare solo come chiave del jsonb di ritorno.
+--   (Una ricerca per nome di colonna li segnalava come colpevoli: falso
+--   positivo, corretto dopo aver letto i corpi.)
+--
+--   I SETTE accrediti Open scrivono lezioni_residue legittimamente, ma
+--   duplicano il valore su lezioni_iniziali_residue e resettano a mano
+--   no_show_count e spostamenti_open_residui — tre colonne che spariscono
+--   tutte in Fase D.
+--
+-- ⚠ LE FUNZIONI RISCRITTE ARRIVANO NEL PROSSIMO BLOCCO DI QUESTO FILE.
+--   Fin qui c'e' il rilievo, non ancora il codice.
