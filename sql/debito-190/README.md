@@ -37,6 +37,7 @@ eseguito da Claude Code: li applica Marco da chat dopo revisione.
 | 03b | `03b_omaggio.sql` | sì, aggiunge 4 colonne a `prenotazioni_corso` | **prima** del 03, e prima di ri-applicare il 01 |
 | 01 bis | `01_view_contatori_corso.sql` (di nuovo) | no | subito dopo il 03b: la view legge le colonne nuove |
 | 03 | `03_rpc_senza_contatori.sql` | sì, riscrive 40 funzioni | Fase B, dopo che il 02 torna pulito |
+| 03c | `03c_cache_transitoria.sql` | sì, trigger che riscrive le vecchie colonne | subito dopo il 03, poi `SELECT ricalcola_cache_tutti();` |
 | 04 | `04_bonifica.sql` | sì, sistema i dati storti | Fase D |
 | 05 | `05_drop_colonne.sql` | sì, ritira le colonne | Fase D, **non prima di una settimana** di Fase C in produzione senza incidenti |
 
@@ -90,6 +91,15 @@ Tre funzioni del 03 cambiano firma, e ognuna ha il suo `DROP FUNCTION IF EXISTS`
 
 In fondo al 03 c'è la query `V-firme`: dopo l'applicazione ogni nome deve avere **un solo** overload,
 e le quattro funzioni eliminate non devono comparire affatto. Nessun overload doppio è voluto.
+
+### Dopo il 03c — la 02 deve tornare tutta pulita
+
+Lanciare una volta `SELECT public.ricalcola_cache_tutti();` e poi **rilanciare la sezione 1 della 02**.
+
+Atteso: **18 righe, 18 «a posto», zero «FUORI POSTO»** — Baldina e Baldassarini compresi. Non perché
+i loro dati siano stati corretti, ma perché il contatore ha smesso di essere un dato separato che può
+divergere: è una copia riscritta dalla view a ogni movimento. Se qualcuno resta fuori posto, il
+trigger non sta girando.
 
 ### Dopo il 02 — cosa verificare
 Il file produce quattro elenchi, tutti in righe leggibili senza conoscere il DB.
@@ -169,6 +179,28 @@ SELECT set_config('app.origine', 'claude', false);
 Va eseguito **nella stessa sessione**, prima delle scritture. Senza, quelle righe risultano
 `sql_manuale` e diventano indistinguibili da un intervento fatto a mano in segreteria. Il `false`
 finale significa "per tutta la sessione, non solo per la transazione corrente".
+
+### La cache transitoria (03c) — perché le vecchie colonne restano vive
+
+Dopo il 03 nessuna funzione scrive più `*_residue`, `*_no_show_count`, `*_spostamenti_residui`. Ma le
+pagine le leggono ancora — `portale`, `agenda`, `oggi`, `profilo` — e la Fase C non è live. Senza il
+03c, dal momento in cui si applica il 03 fino alla Fase C quelle colonne resterebbero **congelate**
+all'ultimo valore scritto: l'allievo prenota e il portale continua a mostrargli il numero di ieri.
+
+Il 03c mette un trigger su `prenotazioni_corso` e `iscrizioni_corso` che, per l'allievo toccato,
+ricalcola da `contatori_corso` e riscrive le vecchie colonne. **Da quel momento quelle colonne non
+sono più un dato: sono una copia.** Una sola cosa le scrive, e le scrive derivandole.
+
+Non è un ritorno indietro: nessuna guardia, nessuna RPC e nessun conteggio le legge più. Le leggono
+solo le pagine, che in Fase C passeranno a `get_contatori`. Poi il file 05 le ritira, e il trigger se
+ne va con loro.
+
+Un effetto collaterale utile: i corsi senza iscrizione attiva vanno a **0**, quindi i **crediti
+orfani** si spengono da soli senza aspettare la bonifica della Fase D.
+
+**Una cosa che cambia di significato:** `*_no_show_count` prima era un contatore a soglia che si
+azzerava ogni 2; ora è il conteggio pieno delle ghostate, che cresce e basta. Dove una pagina lo
+mostra, il numero si comporterà diversamente. Da guardare in Fase C.
 
 ## Decisioni prese, per non ridiscuterle
 
