@@ -144,6 +144,21 @@ DEBITO-190 la rende anche più dannosa: prima la chiamata scriveva un contatore 
 una riga vera in `iscrizioni_corso`, cioè lezioni realmente prenotabili. Vale la pena applicare
 almeno questa parte **prima** del resto, o a mano subito.
 
+## ⚠ Seconda falla, stessa famiglia: `riconosci_percorso_pregresso`
+
+Trovata mentre si scriveva la Fase B. È `SECURITY DEFINER` con `EXECUTE` ad `anon` e `authenticated`,
+ed era **l'unica delle quattro funzioni admin senza guardia staff** — le altre tre
+(`prenota_corso_admin`, `disdici_corso_admin`, `registra_pagamento_manuale_admin`) ce l'hanno tutte.
+
+Il controllo esisteva **solo nell'interfaccia**: `portale.html` riga 5749 mostra il bottone
+«🎓 Riconosci pregresso» con `isStaff() ? … : ''`. Un controllo lato pagina non è un controllo: con la
+chiave anon si chiama la RPC direttamente e si riscrive il percorso di qualunque allievo — iscrizioni
+pregresse, flag pagato, funnel, e un'iscrizione **attiva da 8 lezioni**, che col modello derivato
+sono lezioni davvero prenotabili.
+
+Il file 03 rimette la guardia e revoca `EXECUTE` ad `anon`. Il solo chiamante è il portale, dove
+l'utente è staff autenticato: non cambia niente per chi la usa davvero.
+
 ## Cosa resta fuori da questa cartella
 
 - Il Worker `stripe-worker` è un repo separato: censito, mai toccato.

@@ -2179,6 +2179,17 @@ $function$;
 --        gia' bene, ed e' il motivo per cui e' la meno toccata di tutte — e i
 --        flag *_paid. Nessun contatore.
 --
+-- ⚠ SICUREZZA (trovata dalla review del 22 set, verificata sul DB): questa era
+--   l'UNICA delle quattro funzioni admin SENZA guardia staff, ed e'
+--   SECURITY DEFINER con EXECUTE ad anon e authenticated. Con la chiave anon
+--   chiunque poteva riscrivere il percorso di qualunque allievo: iscrizioni
+--   pregresse, flag pagato, funnel, e soprattutto un'iscrizione ATTIVA da 8
+--   lezioni. Col modello derivato quelle 8 diventano lezioni davvero
+--   prenotabili. Le sorelle (prenota_corso_admin, disdici_corso_admin,
+--   registra_pagamento_manuale_admin) la guardia ce l'hanno tutte: qui si
+--   rimette la stessa, non si inventa una regola nuova.
+--   Nessuna pagina del repo chiama questa funzione (verificato).
+--
 -- NOTA UTILE PER LA DOMANDA APERTA SU INTRO: qui v_lez_map dice intro_corda 8,
 -- come accredita_intro_mese1. I 6 di staff_attiva_corso e di prenota_corso_admin
 -- sono gli unici due posti che dicono un numero diverso: due contro uno a
@@ -2195,6 +2206,12 @@ DECLARE
   v_saltate text[] := '{}';
   v_funnel  text; i int;
 BEGIN
+  -- DEBITO-190: guardia che mancava. Riscrivere il percorso di un allievo non
+  -- e' un'operazione che possa fare chiunque abbia la chiave pubblica del sito.
+  IF NOT is_staff() THEN
+    RAISE EXCEPTION 'Permesso negato: serve staff' USING ERRCODE = '42501';
+  END IF;
+
   v_idx_max := array_position(v_ordine, p_completato_fino_a);
   IF v_idx_max IS NULL THEN
     RAISE EXCEPTION 'p_completato_fino_a non valido: %', p_completato_fino_a;
@@ -2305,3 +2322,20 @@ BEGIN
       THEN 'Iscrizioni ATTIVE non toccate: ' || array_to_string(v_saltate, ', ') || '. Se vanno riconosciute come pregresse, concluderle prima dalla segreteria.'
       ELSE NULL END);
 END; $function$;
+
+-- ─── cron_genera_eventi_mattutini · NESSUNA MODIFICA ────────────────────────
+-- Letta tutta (266 righe). Tocca i contatori in UN SOLO punto, e in LETTURA:
+--
+--     v_e_ultima := ( _get_lezioni_residue(rec.user_id, rec.corso) <= 0
+--                     AND NOT EXISTS (… prenotazioni future …) )
+--
+-- cioe' per decidere se la lezione di stamattina e' l'ultima del pacchetto e
+-- mandare l'evento giusto. Non scrive nessuna colonna contatore — verificato
+-- anche cercando UPDATE profile_data in tutto il corpo: non ce n'e'.
+-- Siccome _get_lezioni_residue in questo stesso file passa a leggere
+-- contatori_corso, questa funzione comincia a dire la verita' senza che una
+-- sola delle sue righe cambi. Resta esattamente com'e'.
+
+-- Cintura, come su staff_attiva_corso: riscrivere un percorso non e' mai
+-- un'operazione da utente anonimo.
+REVOKE EXECUTE ON FUNCTION public.riconosci_percorso_pregresso(uuid, text, text, boolean, date) FROM anon;
