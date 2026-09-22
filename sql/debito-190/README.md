@@ -59,7 +59,7 @@ Il file produce quattro elenchi, tutti in righe leggibili senza conoscere il DB.
   **Se compaiono righe diverse da queste due, fermarsi**: vuol dire che la view non descrive il
   modello che abbiamo in testa, e la Fase B partirebbe da una base sbagliata.
 - **Sezione 2 · crediti orfani.** Lezioni che il DB dice ancora disponibili su percorsi chiusi o
-  mai aperti. Atteso: **11 righe, 10 allievi**. Non è il caso isolato di Baldina: sono crediti che
+  mai aperti. Atteso: **12 righe su 10 allievi**. Non è il caso isolato di Baldina: sono crediti che
   nessuna iscrizione attiva giustifica e che nessun controllo vede oggi. Si azzerano in Fase D.
 - **Sezione 3 · iscrizioni attive con 0 lezioni pagate.** Atteso: **3 righe**, tutte di tipi che
   non hanno prenotazioni a calendario (Fly, Lezioni Speciali). Se ne comparisse una di Open,

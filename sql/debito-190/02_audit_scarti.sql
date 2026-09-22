@@ -23,8 +23,8 @@
 -- ATTESO il 21 set 2026 (verificato sui dati live prima della consegna)
 --   Sezione 1: 18 righe esaminate, 16 a posto, 2 fuori posto —
 --              Baldina Yulia Intro Corda +4 · Baldassarini Chiara Intro Corda −2.
---   Sezione 2: 11 righe di crediti orfani (Baldina Corso Advance 4 e Corso Open 3,
---              piu' altri 9 allievi: non era solo un caso isolato).
+--   Sezione 2: 12 righe su 10 allievi (Baldina Corso Advance 4 e Corso Open 3,
+--              piu' altri 9 allievi: non era un caso isolato).
 --   Sezione 3: 3 iscrizioni attive con 0 lezioni pagate (Fly e Lezioni Speciali).
 --   Se la Sezione 1 mostra righe diverse da quelle due, FERMARSI e capire prima
 --   di passare alla Fase B.
@@ -44,7 +44,7 @@ WITH salvati AS (
            WHEN 'evo_corda'   THEN pd.evo_lezioni_residue
          END AS salvato,
          coalesce(pr.cognome || ' ' || pr.nome, '(anagrafica mancante)') AS allievo,
-         coalesce(tc.label, c.tipo_corso) AS corso
+         coalesce(tc.label, initcap(replace(c.tipo_corso, '_', ' '))) AS corso
   FROM public.contatori_corso c
   JOIN public.profile_data pd      ON pd.user_id = c.user_id
   LEFT JOIN public.profiles pr     ON pr.user_id = c.user_id
@@ -53,21 +53,27 @@ WITH salvati AS (
 SELECT
   CASE WHEN salvato = prenotabili THEN 'a posto' ELSE 'FUORI POSTO' END AS esito,
   allievo || ' · ' || corso
-    || ' · ' || totali      || ' lezioni pagate'
-    || ' · ' || fatte       || ' fatte'
-    || ' · ' || ghostate    || ' ghostate'
+    || ' · ' || totali || CASE WHEN totali = 1 THEN ' lezione pagata' ELSE ' lezioni pagate' END
+    || ' · ' || fatte          || ' fatte'
+    || ' · ' || ghostate       || ' ghostate'
     || ' · ' || disdette_tardi || ' disdette fuori tempo'
-    || ' · ' || restano     || ' restano'
-    || ' · ' || in_agenda   || ' gia in agenda'
-    || ' · ' || prenotabili || ' prenotabili ora'
+    || ' · ' || restano        || ' restano'
+    || ' · ' || in_agenda      || ' già in agenda'
+    || ' · ' || prenotabili || CASE WHEN prenotabili = 1 THEN ' prenotabile ora' ELSE ' prenotabili ora' END
     || ' · contatore salvato dice ' || coalesce(salvato::text, 'niente')
+    -- Frasi senza pronome: l'anagrafica non dice il genere e "gli" su un'allieva
+    -- e' sbagliato. Il soggetto e' il DB, la persona resta fuori dalla frase.
     || CASE
-         WHEN salvato IS NULL          THEN ' → nessun contatore salvato per questo corso'
-         WHEN salvato = prenotabili    THEN ' → combacia'
-         WHEN salvato > prenotabili    THEN ' → scarto +' || (salvato - prenotabili)
-              || ' (il DB gli farebbe prenotare ' || (salvato - prenotabili) || ' lezioni in piu di quelle che ha pagato)'
+         WHEN salvato IS NULL       THEN ' → nessun contatore salvato per questo corso'
+         WHEN salvato = prenotabili THEN ' → combacia'
+         WHEN salvato > prenotabili THEN ' → scarto +' || (salvato - prenotabili)
+              || ' (il DB lascia prenotare ' || (salvato - prenotabili)
+              || CASE WHEN salvato - prenotabili = 1 THEN ' lezione in più' ELSE ' lezioni in più' END
+              || ' di quelle pagate)'
          ELSE ' → scarto ' || (salvato - prenotabili)
-              || ' (il DB gli fa prenotare ' || (prenotabili - salvato) || ' lezioni in meno di quelle che ha pagato)'
+              || ' (il DB lascia prenotare ' || (prenotabili - salvato)
+              || CASE WHEN prenotabili - salvato = 1 THEN ' lezione in meno' ELSE ' lezioni in meno' END
+              || ' di quelle pagate)'
        END AS riga
 FROM salvati
 ORDER BY (salvato = prenotabili), abs(coalesce(salvato, 0) - prenotabili) DESC, allievo;
@@ -81,10 +87,11 @@ ORDER BY (salvato = prenotabili), abs(coalesce(salvato, 0) - prenotabili) DESC, 
 -- ---------------------------------------------------------------------------
 SELECT
   coalesce(pr.cognome || ' ' || pr.nome, '(anagrafica mancante)')
-    || ' · ' || coalesce(tc.label, x.tipo_corso)
-    || ' · ' || x.crediti || ' crediti salvati ma nessuna iscrizione attiva'
+    || ' · ' || coalesce(tc.label, initcap(replace(x.tipo_corso, '_', ' ')))
+    || ' · ' || x.crediti || CASE WHEN x.crediti = 1 THEN ' credito salvato' ELSE ' crediti salvati' END
+    || ' ma nessuna iscrizione attiva'
     || ' · ' || coalesce(
-         (SELECT 'ultima iscrizione ' || i.status || ', ' || i.lezioni_completate || ' lezioni fatte su ' || i.lezioni_totali
+         (SELECT 'ultima iscrizione ' || i.status || ', ' || i.lezioni_completate || ' fatte su ' || i.lezioni_totali || ' pagate'
           FROM public.iscrizioni_corso i
           WHERE i.user_id = pd.user_id AND i.tipo_corso = x.tipo_corso
           ORDER BY i.data_iscrizione DESC LIMIT 1),
@@ -116,7 +123,7 @@ ORDER BY x.crediti DESC, 1;
 -- ---------------------------------------------------------------------------
 SELECT
   coalesce(pr.cognome || ' ' || pr.nome, '(anagrafica mancante)')
-    || ' · ' || coalesce(tc.label, i.tipo_corso)
+    || ' · ' || coalesce(tc.label, initcap(replace(i.tipo_corso, '_', ' ')))
     || ' · iscrizione attiva con 0 lezioni pagate'
     || ' · ' || i.lezioni_completate || ' risultano fatte'
     || ' · iscritta il ' || i.data_iscrizione
