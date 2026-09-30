@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Impostazioni profilo — KataClimb</title>
-<!-- KC-BUILD: impostazioni-profilo v2 · 2026-06-17 · Riordino: titolo Impostazioni + intro (resta) -> Cambia password SUBITO -> sezione CONDIVISIONE (ex 'video', stessi switch visibile/nascosto, RLS own). I video NON sono più una sezione: qui si configura solo la condivisione. Testo più piccolo/uniforme, +.sub-h. Logica invariata (updateUser, toggle is_public). CUMULA v1 -->
+<!-- KC-BUILD: impostazioni-profilo v3 · 2026-09-29 · Cambia password scrive anche user_metadata.password_scelta=true (solo Auth, nessuna tabella): il portale v3.122 non chiede piu' di scegliere la password a chi l'ha gia' scelta. Nient'altro cambia. CUMULA v2 · 2026-06-17 · Riordino: titolo Impostazioni + intro (resta) -> Cambia password SUBITO -> sezione CONDIVISIONE (ex 'video', stessi switch visibile/nascosto, RLS own). I video NON sono più una sezione: qui si configura solo la condivisione. Testo più piccolo/uniforme, +.sub-h. Logica invariata (updateUser, toggle is_public). CUMULA v1 -->
 <style>
   :root{ --beige:#F5F0E8; --navy:#0B2E42; --coral:#C45D3E; --gold:#D4A03C; --sage:#5A7A5E; --warm-gray:#A89B8C; }
   *{ box-sizing:border-box; }
@@ -230,7 +230,7 @@ window.salvaPassword = async function(){
   if(!session) return m('Sessione scaduta. Torna al portale ed entra di nuovo.', false);
   btn.disabled = true; const old = btn.textContent; btn.textContent = 'Salvataggio…';
   try{
-    const { error } = await sb.auth.updateUser({ password: p1 });
+    const { error } = await sb.auth.updateUser({ password: p1, data: { password_scelta: true } });
     if(error) throw new Error(error.message);
     $('pwd1').value = ''; $('pwd2').value = '';
     m('Password aggiornata. Da ora entri con email e password ✓', true);
