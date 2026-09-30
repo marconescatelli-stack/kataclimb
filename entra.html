@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Entra — KataClimb</title>
+<!-- KC-BUILD: entra v1 · 2026-09-30 · IL LINK DELLA MAIL SI USA SOLO AL TOCCO. Le mail di accesso (Magic link, Reset password) passano da Brevo, che riscrive i link col suo tracciamento; il vecchio link a /auth/v1/verify consumava il token appena caricato, quindi un servizio di posta che lo apriva in anticipo (Hotmail/Outlook) lo bruciava e la persona trovava "link scaduto". Ora il template punta qui: entra.html?token_hash={{ .TokenHash }}&type=<tipo>. Al caricamento la pagina NON chiama Supabase: legge la query e mostra un bottone. Il client supabase-js si crea solo al tocco (createClient gia' da solo puo' rinnovare una sessione vecchia in rete) e poi verifyOtp({token_hash,type}). Tipi ammessi: email, recovery, magiclink (deprecato in auth-js per verifyOtp -> trattato come email). Sessione nella chiave di default sb-wbtougychlhnlcnonqge-auth-token (nessuno storageKey), la stessa di portale.html e imposta-password.html; detectSessionInUrl false. Esito: recovery -> imposta-password.html; email -> imposta-password.html?primo=1 se manca user_metadata.password_scelta, altrimenti portale.html (indirizzi relativi, location.replace). Qualunque errore -> "Link scaduto o gia' usato", errore vero solo in console. -->
+<style>
+  :root {
+    --beige:   #F5F0E8;
+    --navy:    #0B2E42;
+    --coral:   #C45D3E;
+    --gold:    #D4A03C;
+    --sage:    #5A7A5E;
+    --warm-gray: #A89B8C;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--beige);
+    color: var(--navy);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+  .card {
+    width: 100%;
+    max-width: 480px;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(11, 46, 66, 0.08);
+  }
+  .hero {
+    height: 180px;
+    background: url('https://kataclimb.com/hero-photo.jpg') center / cover no-repeat;
+  }
+  .content { padding: 28px 32px; }
+  .brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--coral);
+    border-bottom: 2px solid var(--coral);
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+  h1 {
+    margin: 0 0 12px 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .subtitle {
+    margin: 0 0 24px 0;
+    font-size: 15px;
+    color: var(--navy);
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    background: var(--navy);
+    color: var(--beige);
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .footer {
+    padding: 16px 32px;
+    background: var(--navy);
+    text-align: center;
+    font-size: 13px;
+    color: var(--warm-gray);
+  }
+  .footer a {
+    color: var(--gold);
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="hero"></div>
+  <div class="content">
+    <div class="brand">KataClimb · Accademia RCC</div>
+
+    <!-- Pronto: un bottone, nessuna chiamata finche' non si tocca -->
+    <div id="state-ready" style="display:none">
+      <h1 id="ready-title">Entra nel Portale</h1>
+      <p class="subtitle" id="ready-sub">Tocca il bottone per entrare.</p>
+      <button type="button" class="btn" id="btn-entra">Entra nel Portale</button>
+    </div>
+
+    <!-- Errore o link mancante -->
+    <div id="state-invalid" style="display:none">
+      <h1>Link scaduto o già usato</h1>
+      <p class="subtitle">
+        Questo link non vale più. Chiedine uno nuovo dalla pagina di accesso:
+        «Mandami un link via email» oppure «Password dimenticata?».
+      </p>
+      <a class="btn" href="portale.html">Vai alla pagina di accesso</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    KataClimb® è un brand di Syncrolink Ltd · London, UK · Company N. 16800382<br>
+    <a href="https://kataclimb.com">kataclimb.com</a>
+  </div>
+</div>
+
+<!-- Stesso supabase-js UMD del portale: stessa chiave di sessione in localStorage -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  // Stessa config del portale
+  var SB_URL = 'https://wbtougychlhnlcnonqge.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+
+  var elReady   = document.getElementById('state-ready');
+  var elInvalid = document.getElementById('state-invalid');
+  var elBtn     = document.getElementById('btn-entra');
+
+  function mostraErrore() {
+    elReady.style.display = 'none';
+    elInvalid.style.display = 'block';
+  }
+
+  // Solo lettura della query: nessuna chiamata a Supabase al caricamento.
+  var q = new URLSearchParams(window.location.search);
+  var tokenHash = q.get('token_hash') || '';
+  var tipo = q.get('type') || '';
+  // 'magiclink' e' deprecato per verifyOtp (auth-js): vale come 'email'.
+  if (tipo === 'magiclink') tipo = 'email';
+
+  if (!tokenHash || (tipo !== 'email' && tipo !== 'recovery')) {
+    mostraErrore();
+    return;
+  }
+
+  if (tipo === 'recovery') {
+    document.title = 'Scegli la tua password — KataClimb';
+    document.getElementById('ready-title').textContent = 'Scegli la tua password';
+    document.getElementById('ready-sub').textContent = 'Tocca il bottone per continuare.';
+    elBtn.textContent = 'Continua';
+  }
+  elReady.style.display = 'block';
+
+  elBtn.addEventListener('click', async function () {
+    elBtn.disabled = true;
+    elBtn.textContent = 'Un momento…';
+    try {
+      // Il client nasce qui e non al caricamento: createClient da solo puo' gia' andare in rete
+      // (rinnovo di una sessione vecchia rimasta nel browser).
+      var sb = window.supabase.createClient(SB_URL, SB_KEY, {
+        auth: { detectSessionInUrl: false, persistSession: true }
+      });
+      var res = await sb.auth.verifyOtp({ token_hash: tokenHash, type: tipo });
+      if (res.error) throw res.error;
+      var u = (res.data && (res.data.user || (res.data.session && res.data.session.user))) || null;
+      if (!res.data || !res.data.session || !u) throw new Error('verifyOtp senza sessione');
+
+      if (tipo === 'recovery') {
+        window.location.replace('imposta-password.html');
+      } else if ((u.user_metadata || {}).password_scelta !== true) {
+        window.location.replace('imposta-password.html?primo=1');
+      } else {
+        window.location.replace('portale.html');
+      }
+    } catch (e) {
+      console.error('[entra verifyOtp]', e);
+      mostraErrore();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
