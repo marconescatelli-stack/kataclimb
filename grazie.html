@@ -119,8 +119,92 @@ h1 .accent{color:var(--sky)}
 .foot .mid{color:rgba(255,255,255,.55)}
 .foot .mid a{color:rgba(255,255,255,.7);text-decoration:underline}
 .foot .legal{color:rgba(255,255,255,.4);font-size:11px;margin-top:14px}
+
+/* ═══ v4 · Foto di riconoscimento ═══ */
+[hidden]{display:none!important}
+.foto-blk{
+  background:var(--bg2); border:2px solid var(--ink);
+  border-radius:var(--r); padding:22px 18px;
+  margin:0 0 28px; text-align:left;
+}
+.foto-blk h2{font-size:21px;font-weight:900;line-height:1.2;letter-spacing:-.01em;margin:0 0 8px}
+.foto-lead{font-size:15px;color:var(--ink2);line-height:1.5;margin:0 0 16px}
+.foto-card{
+  background:#fff; border:1px solid var(--border2); border-radius:var(--r);
+  padding:16px; margin:0 0 12px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.foto-nome{font-weight:800;font-size:16px;color:var(--ink)}
+.foto-ok{font-weight:800;font-size:15px;color:#15803D}
+.btn-prim,.btn-sec{
+  display:block; width:100%; min-height:48px;
+  border-radius:var(--r); padding:13px 18px;
+  font-family:inherit; font-size:16px; font-weight:800; line-height:1.25;
+  cursor:pointer; text-align:center;
+}
+.btn-prim{background:var(--ink);color:#fff;border:2px solid var(--ink)}
+.btn-sec{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+.btn-prim:disabled,.btn-sec:disabled{opacity:.55;cursor:default}
+.btn-link{
+  align-self:flex-start; background:none; border:none; padding:4px 0;
+  font-family:inherit; font-size:15px; font-weight:700; color:var(--ink);
+  text-decoration:underline; cursor:pointer;
+}
+.foto-privacy{font-size:13px;color:var(--ink2);line-height:1.5;margin:2px 0 14px}
+.foto-err{
+  background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B;
+  border-radius:var(--r); padding:10px 12px;
+  font-size:14px; line-height:1.45; white-space:pre-line;
+}
+.foto-err a{color:#991B1B;font-weight:800}
+.foto-prev{display:flex;flex-direction:column;align-items:center;gap:12px}
+.foto-prev img{
+  width:180px; height:180px; max-width:100%; border-radius:50%;
+  object-fit:cover; border:3px solid var(--ink); display:block; background:var(--bg2);
+}
+.foto-nota{font-size:14px;color:var(--ink2);text-align:center;line-height:1.45}
+.foto-azioni{display:flex;gap:10px;width:100%}
+.foto-azioni button{flex:1;min-width:0}
+
+/* Overlay fotocamera: tutto schermo su telefono */
+.cam{
+  position:fixed; inset:0; z-index:100000;
+  background:#000; color:#fff;
+  display:flex; flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.cam-top{display:flex;align-items:center;gap:12px;padding:10px 14px}
+.cam-x{
+  background:transparent; color:#fff; border:1px solid rgba(255,255,255,.6);
+  border-radius:var(--r); padding:8px 14px; min-height:40px;
+  font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; flex-shrink:0;
+}
+.cam-tit{font-size:16px;font-weight:800;line-height:1.25}
+.cam-msg{
+  margin:4px 14px 8px; padding:10px 14px; border-radius:var(--r);
+  background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.25);
+  font-size:16px; font-weight:800; line-height:1.3; text-align:center;
+  white-space:pre-line; min-height:48px;
+}
+.cam-msg.warn{border-color:var(--yellow)}
+.cam-msg.ok{border-color:var(--green);background:rgba(34,197,94,.22)}
+.cam-area{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 10px}
+.cam-box{position:relative;overflow:hidden;border-radius:12px;background:#111}
+.cam-box video{
+  display:block; width:100%; height:100%; object-fit:cover;
+  transform:scaleX(-1); /* anteprima a specchio, come uno specchio vero */
+}
+.cam-box svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cam-hint{font-size:14px;line-height:1.4;text-align:center;padding:10px 18px 4px;color:#fff}
+.cam-bot{padding:8px 18px 16px;display:flex;justify-content:center}
+.cam-shot{
+  background:var(--ink); color:#fff; border:2px solid #fff;
+  border-radius:999px; padding:13px 30px; min-height:52px;
+  font-family:inherit; font-size:17px; font-weight:800; cursor:pointer;
+}
+.cam-shot:disabled{opacity:.4;cursor:default}
 </style>
-<!-- ═══ Meta Pixel + consenso GDPR · KataClimb (KC-PIXEL v2 · KC-BUILD: grazie v3 · 2026-08-24 · + etichetta prima_famiglia -> 'Prima Lezione in Famiglia' in KC_TIPO_LABEL (success_url famiglia: tipo=prima_famiglia&importo=<totale>); il Purchase resta dinamico dai parametri, il tipo sconosciuto non rompeva già la pagina (fallback). CUMULA v2 · 2026-07-16 · PURCHASE DINAMICO Onda 1 audit: value+content_name dai parametri &tipo=&importo= della success_url, stripe-worker v3.68; fallback legacy 25€/Prima Lezione per sessioni pre-deploy) ═══ -->
+<!-- ═══ Meta Pixel + consenso GDPR · KataClimb (KC-PIXEL v2 · KC-BUILD: grazie v4 · 2026-10-05 · + blocco FOTO DI RICONOSCIMENTO sotto la conferma, solo per tipo=prima_lezione|prima_lezione_giovani con session_id: GET/POST stripe-worker /foto-riconoscimento, una scheda per partecipante, scatto dal vivo con ovale e controllo viso MediaPipe Face Detector (tutto nel telefono), ritaglio 800x800 JPEG, ripiego input file; Pixel, Purchase e consenso invariati. CUMULA v3 · 2026-08-24 · + etichetta prima_famiglia -> 'Prima Lezione in Famiglia' in KC_TIPO_LABEL (success_url famiglia: tipo=prima_famiglia&importo=<totale>); il Purchase resta dinamico dai parametri, il tipo sconosciuto non rompeva già la pagina (fallback). CUMULA v2 · 2026-07-16 · PURCHASE DINAMICO Onda 1 audit: value+content_name dai parametri &tipo=&importo= della success_url, stripe-worker v3.68; fallback legacy 25€/Prima Lezione per sessioni pre-deploy) ═══ -->
 <script>
 (function(){
   var PIXEL_ID = '4033907056821757';
@@ -191,7 +275,42 @@ h1 .accent{color:var(--sky)}
     </ol>
   </div>
 
+  <!-- ═══ v4 · Foto di riconoscimento (solo Prima Lezione Adulti, vedi script in fondo) ═══ -->
+  <section class="foto-blk" id="foto-blk" hidden aria-labelledby="foto-tit">
+    <h2 id="foto-tit">Un ultimo passo: fatti riconoscere</h2>
+    <p class="foto-lead">Scatta una foto del tuo viso: l'istruttore che ti accoglierà in Accademia saprà subito chi sei e si ricorderà di te.</p>
+    <div id="foto-schede"></div>
+    <p class="foto-privacy">La foto la vedono solo gli istruttori e la segreteria dell'Accademia RCC, per riconoscerti. Dal tuo profilo nel portale KataClimb puoi scegliere di mostrarla anche agli altri allievi nella Comunità. Per cancellarla scrivi alla segreteria su WhatsApp.</p>
+    <button type="button" class="btn-sec" id="foto-dopo">Più tardi</button>
+  </section>
+
 </main>
+
+<!-- ═══ v4 · Overlay fotocamera ═══ -->
+<div class="cam" id="cam" hidden role="dialog" aria-modal="true" aria-label="Scatta la tua foto">
+  <div class="cam-top">
+    <button type="button" class="cam-x" id="cam-x">✕ Annulla</button>
+    <div class="cam-tit">Metti il viso dentro l'ovale</div>
+  </div>
+  <div class="cam-msg" id="cam-msg" aria-live="polite">Preparazione della fotocamera…</div>
+  <div class="cam-area" id="cam-area">
+    <div class="cam-box" id="cam-box">
+      <video id="cam-video" playsinline muted autoplay></video>
+      <svg id="cam-svg" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <mask id="cam-mask">
+            <rect id="cam-mask-rect" x="0" y="0" width="100" height="100" fill="#fff"/>
+            <ellipse id="cam-mask-ov" cx="50" cy="50" rx="30" ry="36" fill="#000"/>
+          </mask>
+        </defs>
+        <rect id="cam-velo" x="0" y="0" width="100" height="100" fill="rgba(0,0,0,.5)" mask="url(#cam-mask)"/>
+        <ellipse id="cam-ov" cx="50" cy="50" rx="30" ry="36" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="4 3"/>
+      </svg>
+    </div>
+  </div>
+  <div class="cam-hint">Viso da vicino, ben illuminato, senza occhiali da sole né cappello.</div>
+  <div class="cam-bot"><button type="button" class="cam-shot" id="cam-shot" disabled>📷 Scatta</button></div>
+</div>
 
 <footer class="foot">
   <div class="top">Accademia ArrampiKata RCC · KataClimb</div>
@@ -276,6 +395,625 @@ h1 .accent{color:var(--sky)}
     try { localStorage.setItem('kc_consent','denied'); } catch(e){}
     box.style.display='none';
   };
+})();
+</script>
+
+<!-- ═══ v4 · Foto di riconoscimento · script ═══ -->
+<script>
+/*
+ * Foto di riconoscimento dopo la Prima Lezione Adulti.
+ * - Compare solo con tipo=prima_lezione | prima_lezione_giovani + session_id,
+ *   e solo se il Worker restituisce almeno un partecipante.
+ * - Il controllo del viso (MediaPipe Face Detector) gira TUTTO nel telefono:
+ *   dal CDN si scaricano solo libreria, wasm e modello; nessuna immagine o
+ *   fotogramma viene inviato a servizi esterni. L'unico invio è la foto finale
+ *   800x800 al nostro stripe-worker, quando la persona tocca «Invia».
+ * - La libreria e il modello si caricano SOLO quando la persona tocca il bottone.
+ */
+(function(){
+  'use strict';
+
+  // ── Configurazione ───────────────────────────────────────────────
+  var WORKER    = 'https://stripe-worker.marconescatelli.workers.dev';
+  var MP_BASE   = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+  var MP_BUNDLE = MP_BASE + '/vision_bundle.mjs';
+  var MP_WASM   = MP_BASE + '/wasm';
+  var MP_MODEL  = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+  var MP_TIMEOUT_MS = 20000;              // oltre: si passa al ripiego
+  var TIPI_ADULTI = ['prima_lezione', 'prima_lezione_giovani'];
+  var WA_TESTO = '+39 331 874 3953';
+  var WA_URL   = 'https://wa.me/393318743953';
+
+  // ── Soglie del controllo viso ────────────────────────────────────
+  var VISO_MIN      = 0.35;  // altezza riquadro viso / altezza frame (fotocamera)
+  var VISO_MAX      = 0.75;
+  var VISO_MIN_FILE = 0.25;  // foto caricata: si ritaglia comunque attorno al viso, basta che non sia minuscolo
+  var SCARTO_CENTRO = 0.15;  // scarto massimo del centro viso dal centro ovale (frazione di larghezza/altezza)
+  var SOGLIA_LUCE   = 70;    // luma media 0-255 della zona viso · da tarare in collaudo
+  var SOGLIA_NITIDEZZA = 30; // varianza del Laplaciano (viso in grigi, ~128px) · da tarare in collaudo
+  var INTERVALLO_MS = 110;   // ~9 controlli al secondo
+  var TEMPO_OK_MS   = 1000;  // 1 s continuo di condizioni ok → scatto automatico
+
+  // ── Ritaglio ─────────────────────────────────────────────────────
+  // Quadrato di lato 2,2 × altezza riquadro viso. Il riquadro di BlazeFace va
+  // circa da sopracciglia a mento ed è centrato sul naso: spostando il centro
+  // in basso di 0,15 × altezza viso restano ~0,95 h sopra il naso (fronte e
+  // capelli) e ~1,25 h sotto (mento, collo, attacco delle spalle).
+  var LATO_RITAGLIO = 2.2;
+  var SPOSTA_GIU    = 0.15;
+  var OUT = 800, QUALITA = 0.85;
+  // Specchiatura: l'anteprima dal vivo è a specchio (come uno specchio vero,
+  // è più facile centrarsi). La foto salvata dalla fotocamera è anch'essa a
+  // specchio, cioè esattamente come la persona si è vista nell'inquadratura
+  // e nell'anteprima: niente sorprese tra ciò che vede e ciò che invia.
+  // Per il riconoscimento la differenza è irrilevante. Le foto caricate da
+  // file restano come sono. Mettere false per salvare la versione "reale".
+  var SPECCHIA_FOTO = true;
+
+  var qs   = new URLSearchParams(window.location.search);
+  var sid  = qs.get('session_id') || '';
+  var tipo = qs.get('tipo') || '';
+  var DEBUG = qs.get('foto_debug') === '1'; // mostra luce/nitidezza/dimensione nell'overlay, per tarare le soglie
+  if (!sid || TIPI_ADULTI.indexOf(tipo) === -1) return;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var blk = $('foto-blk'), schedeEl = $('foto-schede');
+  var cam = {
+    el: $('cam'), area: $('cam-area'), box: $('cam-box'), video: $('cam-video'),
+    svg: $('cam-svg'), msg: $('cam-msg'), shot: $('cam-shot'),
+    attivo: false, gen: 0, stream: null, raf: 0, ultimo: 0, okDa: 0,
+    det: null, box_ultimo: null, card: null
+  };
+  var ripiegoAttivo = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  var modelloKO = false;
+  var schede = [];
+
+  // ── Utilità ──────────────────────────────────────────────────────
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+  // Scrive un testo; se contiene il numero WhatsApp lo rende un link.
+  function scriviTesto(el, testo){
+    el.textContent = '';
+    var parti = String(testo).split(WA_TESTO);
+    parti.forEach(function(p, i){
+      if (i > 0){
+        var a = document.createElement('a');
+        a.href = WA_URL; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = WA_TESTO;
+        el.appendChild(a);
+      }
+      el.appendChild(document.createTextNode(p));
+    });
+  }
+
+  function conTimeout(p, ms){
+    return new Promise(function(res, rej){
+      var t = setTimeout(function(){ rej(new Error('timeout')); }, ms);
+      p.then(function(v){ clearTimeout(t); res(v); }, function(e){ clearTimeout(t); rej(e); });
+    });
+  }
+
+  // ── MediaPipe: caricamento pigro, due istanze (VIDEO e IMAGE) ────
+  var pVision = null, pDetVideo = null, pDetImg = null;
+  function caricaVision(){
+    if (!pVision){
+      pVision = conTimeout((async function(){
+        var vision = await import(MP_BUNDLE);
+        var fileset = await vision.FilesetResolver.forVisionTasks(MP_WASM);
+        return { vision: vision, fileset: fileset };
+      })(), MP_TIMEOUT_MS);
+      pVision.catch(function(){ pVision = null; }); // al prossimo tocco si riprova
+    }
+    return pVision;
+  }
+  function creaDetector(modo){
+    return caricaVision().then(function(v){
+      return conTimeout(v.vision.FaceDetector.createFromOptions(v.fileset, {
+        baseOptions: { modelAssetPath: MP_MODEL, delegate: 'CPU' },
+        runningMode: modo,
+        minDetectionConfidence: 0.5
+      }), MP_TIMEOUT_MS);
+    });
+  }
+  function detVideo(){
+    if (!pDetVideo){ pDetVideo = creaDetector('VIDEO'); pDetVideo.catch(function(){ pDetVideo = null; }); }
+    return pDetVideo;
+  }
+  function detImmagine(){
+    if (!pDetImg){ pDetImg = creaDetector('IMAGE'); pDetImg.catch(function(){ pDetImg = null; }); }
+    return pDetImg;
+  }
+
+  // ── Misure sulla zona viso: luminosità e nitidezza ───────────────
+  var mCanvas = document.createElement('canvas');
+  var mCtx = mCanvas.getContext('2d', { willReadFrequently: true });
+  function riquadro(bb, W, H){
+    var x = clamp(bb.originX, 0, W), y = clamp(bb.originY, 0, H);
+    var x2 = clamp(bb.originX + bb.width, 0, W), y2 = clamp(bb.originY + bb.height, 0, H);
+    return { x: x, y: y, w: x2 - x, h: y2 - y };
+  }
+  function misura(src, r){
+    if (r.w < 8 || r.h < 8) return { luma: 0, nit: 0 };
+    var s = Math.min(1, 128 / Math.max(r.w, r.h));
+    var w = Math.max(8, Math.round(r.w * s)), h = Math.max(8, Math.round(r.h * s));
+    mCanvas.width = w; mCanvas.height = h;
+    mCtx.drawImage(src, r.x, r.y, r.w, r.h, 0, 0, w, h);
+    var d = mCtx.getImageData(0, 0, w, h).data;
+    var g = new Float32Array(w * h), somma = 0, i;
+    for (i = 0; i < w * h; i++){
+      var l = 0.299 * d[i*4] + 0.587 * d[i*4+1] + 0.114 * d[i*4+2];
+      g[i] = l; somma += l;
+    }
+    // Varianza del Laplaciano (kernel 4-vicini): bassa = immagine mossa/sfocata
+    var n = 0, m = 0, m2 = 0;
+    for (var y = 1; y < h - 1; y++){
+      for (var x = 1; x < w - 1; x++){
+        var k = y * w + x;
+        var L = g[k-1] + g[k+1] + g[k-w] + g[k+w] - 4 * g[k];
+        m += L; m2 += L * L; n++;
+      }
+    }
+    var media = n ? m / n : 0;
+    return { luma: somma / (w * h), nit: n ? (m2 / n - media * media) : 0 };
+  }
+
+  // Valuta le condizioni in ordine, UNA alla volta. Coordinate: quelle del
+  // fotogramma originale (NON specchiato) → la specchiatura è solo CSS e non
+  // tocca il calcolo. Il controllo "centrato" usa lo scarto in valore
+  // assoluto dal centro, quindi non dipende dal lato.
+  function valuta(dets, src, W, H, daFile){
+    if (!dets || !dets.length) return { ok: false, msg: daFile
+      ? 'In questa foto non troviamo un viso: scegline un\'altra in cui il tuo viso si veda bene.'
+      : 'Non vediamo il tuo viso: mettilo dentro l\'ovale' };
+    if (dets.length > 1) return { ok: false, msg: daFile
+      ? 'Nella foto deve esserci solo il tuo viso: scegline un\'altra.'
+      : 'Nella foto deve esserci solo il tuo viso' };
+    var bb = dets[0].boundingBox;
+    var rel = bb.height / H;
+    var info = { rel: rel };
+    if (rel < (daFile ? VISO_MIN_FILE : VISO_MIN)) return { ok: false, info: info, msg: daFile
+      ? 'Il viso è troppo lontano: scegli o scatta una foto più da vicino.'
+      : 'Avvicinati un po\'' };
+    if (rel > VISO_MAX) return { ok: false, info: info, msg: daFile
+      ? 'Il viso è troppo vicino: scegli o scatta una foto un po\' più da lontano.'
+      : 'Allontanati un po\'' };
+    if (!daFile){ // sulla foto caricata il centraggio non serve: si ritaglia attorno al viso
+      var cx = (bb.originX + bb.width / 2) / W, cy = (bb.originY + bb.height / 2) / H;
+      if (Math.abs(cx - 0.5) > SCARTO_CENTRO || Math.abs(cy - 0.5) > SCARTO_CENTRO)
+        return { ok: false, info: info, msg: 'Sposta il viso al centro' };
+    }
+    var m = misura(src, riquadro(bb, W, H));
+    info.luma = m.luma; info.nit = m.nit;
+    if (m.luma < SOGLIA_LUCE) return { ok: false, info: info, msg: daFile
+      ? 'In questa foto c\'è poca luce: scattane un\'altra verso una finestra o una lampada.'
+      : 'C\'è poca luce: girati verso una finestra o una lampada' };
+    if (m.nit < SOGLIA_NITIDEZZA) return { ok: false, info: info, msg: daFile
+      ? 'Questa foto è mossa: scegline un\'altra più nitida.'
+      : 'La foto è mossa: resta fermo un attimo' };
+    return { ok: true, info: info, bb: bb };
+  }
+
+  // ── Ritaglio 800×800 ─────────────────────────────────────────────
+  function disegna(src, x, y, lato, specchia){
+    var c = document.createElement('canvas');
+    c.width = OUT; c.height = OUT;
+    var ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    if (specchia){ ctx.translate(OUT, 0); ctx.scale(-1, 1); }
+    ctx.drawImage(src, x, y, lato, lato, 0, 0, OUT, OUT);
+    return c.toDataURL('image/jpeg', QUALITA);
+  }
+  // Ritaglio sul fotogramma originale (non specchiato); la specchiatura,
+  // se richiesta, si applica solo in fase di disegno.
+  function ritaglia(src, W, H, bb, specchia){
+    var lato = Math.min(LATO_RITAGLIO * bb.height, W, H); // se non entra, lato massimo possibile
+    var cx = bb.originX + bb.width / 2;
+    var cy = bb.originY + bb.height / 2 + SPOSTA_GIU * bb.height;
+    var x = clamp(cx - lato / 2, 0, W - lato);             // trasla dentro il frame
+    var y = clamp(cy - lato / 2, 0, H - lato);
+    return disegna(src, x, y, lato, specchia);
+  }
+  function ritaglioCentrale(src, W, H){
+    var lato = Math.min(W, H);
+    return disegna(src, (W - lato) / 2, (H - lato) / 2, lato, false);
+  }
+
+  // ── Overlay fotocamera ───────────────────────────────────────────
+  function setCamMsg(testo, stato, info){
+    if (DEBUG && info){
+      testo += '\nviso ' + Math.round((info.rel || 0) * 100) + '%' +
+        (info.luma != null ? ' · luce ' + Math.round(info.luma) : '') +
+        (info.nit != null ? ' · nitidezza ' + Math.round(info.nit) : '');
+    }
+    cam.msg.textContent = testo;
+    cam.msg.className = 'cam-msg' + (stato ? ' ' + stato : '');
+  }
+  function setOvaleOk(ok){
+    $('cam-ov').setAttribute('stroke', ok ? '#22C55E' : '#fff');
+    $('cam-ov').setAttribute('stroke-dasharray', ok ? 'none' : cam._dash || '4 3');
+  }
+  // Il box ha esattamente le proporzioni del video: tutto il fotogramma è
+  // visibile, e l'ovale (in coordinate del video) coincide con ciò che vede
+  // il rilevatore.
+  function adatta(){
+    var v = cam.video, W = v.videoWidth, H = v.videoHeight;
+    if (!W || !H) return;
+    var aw = cam.area.clientWidth - 20, ah = cam.area.clientHeight;
+    var s = Math.min(aw / W, ah / H);
+    cam.box.style.width = Math.floor(W * s) + 'px';
+    cam.box.style.height = Math.floor(H * s) + 'px';
+    cam.svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    var ry = 0.36 * H, rx = Math.min(ry * 0.78, 0.44 * W);
+    ['cam-mask-rect', 'cam-velo'].forEach(function(id){
+      $(id).setAttribute('width', W); $(id).setAttribute('height', H);
+    });
+    ['cam-mask-ov', 'cam-ov'].forEach(function(id){
+      var e = $(id);
+      e.setAttribute('cx', W / 2); e.setAttribute('cy', H / 2);
+      e.setAttribute('rx', rx); e.setAttribute('ry', ry);
+    });
+    var sw = Math.max(2, 3 / s); // ~3px a schermo
+    cam._dash = (sw * 4) + ' ' + (sw * 3);
+    $('cam-ov').setAttribute('stroke-width', sw);
+    setOvaleOk(false);
+  }
+  function fermaTracce(stream){
+    if (stream) stream.getTracks().forEach(function(t){ try { t.stop(); } catch(e){} });
+  }
+  function chiudiCamera(){
+    cam.attivo = false; cam.gen++;
+    if (cam.raf) cancelAnimationFrame(cam.raf);
+    cam.raf = 0; cam.okDa = 0; cam.box_ultimo = null;
+    fermaTracce(cam.stream); cam.stream = null;
+    try { cam.video.pause(); } catch(e){}
+    cam.video.srcObject = null;
+    cam.el.hidden = true;
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }
+
+  async function apriCamera(card){
+    var gen = ++cam.gen;
+    cam.card = card; cam.attivo = true; cam.okDa = 0; cam.box_ultimo = null;
+    cam.shot.disabled = true;
+    setCamMsg('Preparazione della fotocamera…', '');
+    cam.el.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    var pDet = detVideo(); // in parallelo alla richiesta della fotocamera
+    pDet.catch(function(){});
+
+    var stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
+        audio: false
+      });
+    } catch (e){
+      console.warn('[foto] getUserMedia', e);
+      if (gen !== cam.gen) return;
+      chiudiCamera();
+      ripiegoAttivo = true;
+      var negata = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError' || e.name === 'PermissionDeniedError');
+      errore(card, negata
+        ? 'Per scattare la foto consenti l\'uso della fotocamera, oppure carica una foto del tuo viso'
+        : 'Non riusciamo ad aprire la fotocamera: carica una foto del tuo viso con il bottone qui sotto.');
+      renderTutte();
+      return;
+    }
+    if (gen !== cam.gen){ fermaTracce(stream); return; } // chiuso nel frattempo
+    cam.stream = stream;
+    cam.video.srcObject = stream;
+    try { await cam.video.play(); } catch(e){}
+    if (!cam.video.videoWidth){
+      await new Promise(function(r){ cam.video.addEventListener('loadedmetadata', r, { once: true }); setTimeout(r, 3000); });
+    }
+    if (gen !== cam.gen) return;
+    adatta();
+
+    setCamMsg('Preparazione del controllo del viso…', '');
+    try {
+      cam.det = await pDet;
+    } catch (e){
+      console.warn('[foto] modello non caricato', e);
+      if (gen !== cam.gen) return;
+      chiudiCamera();
+      modelloKO = true; ripiegoAttivo = true;
+      errore(card, 'Il controllo automatico del viso non si è caricato: scatta o scegli una foto con il bottone qui sotto.');
+      renderTutte();
+      return;
+    }
+    if (gen !== cam.gen) return;
+    cam.ultimo = 0;
+    setCamMsg('Non vediamo il tuo viso: mettilo dentro l\'ovale', 'warn');
+    cam.raf = requestAnimationFrame(ciclo);
+  }
+
+  function ciclo(){
+    if (!cam.attivo) return;
+    cam.raf = requestAnimationFrame(ciclo);
+    var now = performance.now();
+    if (now - cam.ultimo < INTERVALLO_MS) return;
+    cam.ultimo = now;
+    var v = cam.video;
+    if (!cam.det || v.readyState < 2 || !v.videoWidth) return;
+    var res;
+    try { res = cam.det.detectForVideo(v, now); }
+    catch (e){ console.warn('[foto] detectForVideo', e); return; }
+    var esito = valuta(res && res.detections, v, v.videoWidth, v.videoHeight, false);
+    if (esito.ok){
+      cam.box_ultimo = esito.bb;
+      if (!cam.okDa) cam.okDa = now;
+      cam.shot.disabled = false;
+      setOvaleOk(true);
+      setCamMsg('Perfetto, resta così…', 'ok', esito.info);
+      if (now - cam.okDa >= TEMPO_OK_MS) scatta();
+    } else {
+      cam.okDa = 0; cam.box_ultimo = null;
+      cam.shot.disabled = true;
+      setOvaleOk(false);
+      setCamMsg(esito.msg, 'warn', esito.info);
+    }
+  }
+
+  function scatta(){
+    var v = cam.video, bb = cam.box_ultimo, card = cam.card;
+    if (!cam.attivo || !bb || !card) return;
+    var dati;
+    try { dati = ritaglia(v, v.videoWidth, v.videoHeight, bb, SPECCHIA_FOTO); }
+    catch (e){ console.warn('[foto] ritaglio', e); return; }
+    chiudiCamera(); // spegne subito la fotocamera
+    anteprima(card, dati, false);
+  }
+
+  cam.shot.addEventListener('click', scatta);
+  $('cam-x').addEventListener('click', function(){
+    var card = cam.card; chiudiCamera();
+    if (card) try { (card.stato === 'fatto' ? card.ui.bRifai : card.ui.bScatta).focus(); } catch(e){}
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && cam.attivo) chiudiCamera(); });
+  window.addEventListener('pagehide', function(){ if (cam.attivo) chiudiCamera(); });
+  window.addEventListener('resize', function(){ if (cam.attivo) adatta(); });
+  cam.video.addEventListener('resize', function(){ if (cam.attivo) adatta(); }); // rotazione del telefono
+
+  // ── Ripiego: foto da file ────────────────────────────────────────
+  async function caricaImmagine(file){
+    var img = null;
+    if (window.createImageBitmap){
+      try { img = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+      catch (e){ try { img = await createImageBitmap(file); } catch (e2){ img = null; } }
+    }
+    if (!img){ // i browser moderni applicano l'orientamento EXIF anche a <img>
+      img = await new Promise(function(res, rej){
+        var url = URL.createObjectURL(file), el = new Image();
+        el.onload = function(){ URL.revokeObjectURL(url); res(el); };
+        el.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('immagine')); };
+        el.src = url;
+      });
+    }
+    var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+    if (!w || !h) throw new Error('immagine vuota');
+    var s = Math.min(1, 1600 / Math.max(w, h)); // basta e avanza per 800×800, e il controllo è più veloce
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * s); c.height = Math.round(h * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    if (img.close) try { img.close(); } catch(e){}
+    return c;
+  }
+
+  async function daFile(card, file){
+    nascondiErrore(card);
+    card.occupata = true; render(card);
+    try {
+      var src;
+      try { src = await caricaImmagine(file); }
+      catch (e){
+        console.warn('[foto] file', e);
+        errore(card, 'Non riusciamo ad aprire questa foto: scegline un\'altra (JPG o PNG).');
+        return;
+      }
+      var det = null;
+      if (!modelloKO){
+        try { det = await detImmagine(); }
+        catch (e){ console.warn('[foto] modello (immagine) non caricato', e); modelloKO = true; }
+      }
+      var res = null;
+      if (det){
+        try { res = det.detect(src); } catch (e){ console.warn('[foto] detect', e); }
+      }
+      if (!res){ // niente modello: ritaglio quadrato centrale, la persona controlla a occhio
+        anteprima(card, ritaglioCentrale(src, src.width, src.height), true);
+        return;
+      }
+      var esito = valuta(res.detections, src, src.width, src.height, true);
+      if (!esito.ok){ errore(card, esito.msg); return; }
+      anteprima(card, ritaglia(src, src.width, src.height, esito.bb, false), false);
+    } finally {
+      card.occupata = false; render(card);
+    }
+  }
+
+  // ── Schede partecipante ──────────────────────────────────────────
+  function el(tag, cls, testo){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (testo != null) e.textContent = testo;
+    return e;
+  }
+
+  function creaScheda(p){
+    var card = { p: p, stato: p.ha_foto ? 'fatto' : 'vuoto', dati: null, nota: false, bloccata: false, occupata: false };
+    var c = el('div', 'foto-card');
+    var nome = el('div', 'foto-nome', String(p.nome || '').trim() || 'Partecipante');
+    var ok = el('div', 'foto-ok', '✓ Foto ricevuta, grazie');
+    var prev = el('div', 'foto-prev');
+    var img = el('img'); img.alt = 'Anteprima della tua foto';
+    var nota = el('p', 'foto-nota', 'Controlla che si veda bene il tuo viso, da vicino e con luce');
+    var azioni = el('div', 'foto-azioni');
+    var bRifai2 = el('button', 'btn-sec', 'Rifai la foto'); bRifai2.type = 'button';
+    var bInvia = el('button', 'btn-prim', 'Invia'); bInvia.type = 'button';
+    azioni.appendChild(bRifai2); azioni.appendChild(bInvia);
+    prev.appendChild(img); prev.appendChild(nota); prev.appendChild(azioni);
+    var bScatta = el('button', 'btn-prim', '📷 Scatta la tua foto'); bScatta.type = 'button';
+    var bCarica = el('button', 'btn-prim', '📷 Scatta o carica una foto del tuo viso'); bCarica.type = 'button';
+    var bRifai = el('button', 'btn-link', 'Rifai la foto'); bRifai.type = 'button';
+    var err = el('div', 'foto-err'); err.setAttribute('role', 'alert');
+    var input = el('input'); input.type = 'file'; input.accept = 'image/*';
+    input.setAttribute('capture', 'user'); input.hidden = true;
+
+    [nome, ok, prev, bScatta, bCarica, bRifai, err, input].forEach(function(x){ c.appendChild(x); });
+    card.el = c;
+    card.ui = { ok: ok, prev: prev, img: img, nota: nota, bRifai2: bRifai2, bInvia: bInvia,
+                bScatta: bScatta, bCarica: bCarica, bRifai: bRifai, err: err, input: input };
+
+    bScatta.addEventListener('click', function(){ avvia(card); });
+    bCarica.addEventListener('click', function(){ avvia(card); });
+    bRifai.addEventListener('click', function(){ avvia(card); });
+    bRifai2.addEventListener('click', function(){ card.dati = null; card.stato = 'vuoto'; render(card); avvia(card); });
+    bInvia.addEventListener('click', function(){ invia(card); });
+    input.addEventListener('change', function(){
+      var f = input.files && input.files[0];
+      if (f) daFile(card, f);
+    });
+    render(card);
+    return card;
+  }
+
+  // Deve restare sincrona fino al click() sull'input: iOS apre il selettore
+  // solo dentro il gesto della persona.
+  function avvia(card){
+    nascondiErrore(card);
+    if (ripiegoAttivo){
+      card.ui.input.value = '';
+      card.ui.input.click();
+      return;
+    }
+    apriCamera(card);
+  }
+
+  function anteprima(card, dati, conNota){
+    nascondiErrore(card);
+    card.dati = dati; card.nota = !!conNota; card.stato = 'anteprima';
+    card.ui.img.src = dati;
+    render(card);
+    try { card.el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e){}
+  }
+
+  function errore(card, testo){
+    scriviTesto(card.ui.err, testo);
+    card.ui.err.hidden = false;
+  }
+  function nascondiErrore(card){ card.ui.err.hidden = true; card.ui.err.textContent = ''; }
+
+  function render(card){
+    var u = card.ui, s = card.stato, b = card.bloccata;
+    u.ok.hidden = s !== 'fatto';
+    u.prev.hidden = !(s === 'anteprima' || s === 'invio');
+    u.nota.hidden = !card.nota;
+    u.bScatta.hidden = s !== 'vuoto' || ripiegoAttivo || b;
+    u.bCarica.hidden = s !== 'vuoto' || !ripiegoAttivo || b;
+    u.bRifai.hidden = s !== 'fatto' || b;
+    u.bScatta.disabled = u.bCarica.disabled = u.bRifai.disabled = card.occupata;
+    u.bCarica.textContent = card.occupata ? 'Controllo della foto…' : '📷 Scatta o carica una foto del tuo viso';
+    u.bInvia.disabled = s === 'invio';
+    u.bInvia.textContent = s === 'invio' ? 'Invio in corso…' : 'Invia';
+    u.bRifai2.disabled = s === 'invio';
+    u.bInvia.hidden = u.bRifai2.hidden = b;
+  }
+  function renderTutte(){ schede.forEach(render); }
+
+  // ── Invio al Worker ──────────────────────────────────────────────
+  function messaggioErrore(j, status){
+    var codice = (j && j.error) || ('http_' + status);
+    switch (codice){
+      case 'link_scaduto':
+        return 'Il collegamento è scaduto: la foto puoi lasciarla direttamente in Accademia il giorno della lezione.';
+      case 'troppi_tentativi':
+        return 'Hai già inviato la foto troppe volte da questo collegamento: se vuoi cambiarla scrivi alla segreteria su WhatsApp (' + WA_TESTO + ').';
+      case 'prenotazione_non_trovata':
+        return 'Non troviamo questa prenotazione: scrivi alla segreteria su WhatsApp (' + WA_TESTO + ') e la sistemiamo insieme. Intanto la foto puoi lasciarla in Accademia il giorno della lezione.';
+      case 'immagine_non_valida':
+        return 'La foto non è arrivata in modo corretto: tocca «Rifai la foto» e inviala di nuovo.';
+      default:
+        return ((j && j.messaggio) || 'Qualcosa non ha funzionato nell\'invio della foto.') +
+          ' Riprova tra poco; se succede ancora scrivi alla segreteria su WhatsApp (' + WA_TESTO + ') indicando il codice.' +
+          '\nCodice: ' + codice;
+    }
+  }
+
+  async function invia(card){
+    if (!card.dati || card.stato === 'invio') return;
+    nascondiErrore(card);
+    card.stato = 'invio'; render(card);
+    var r, j = null;
+    try {
+      r = await fetch(WORKER + '/foto-riconoscimento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sid,
+          prenotazione_id: card.p.prenotazione_id,
+          immagine: card.dati.split(',')[1] // base64 JPEG senza prefisso data:
+        })
+      });
+    } catch (e){
+      console.warn('[foto] POST rete', e);
+      card.stato = 'anteprima'; render(card);
+      errore(card, 'Connessione assente o instabile: riprova tra poco.');
+      return;
+    }
+    try { j = await r.json(); } catch (e){ j = null; }
+    if (r.ok && j && j.ok){
+      card.stato = 'fatto'; card.dati = null; card.nota = false;
+      card.ui.img.removeAttribute('src');
+      render(card);
+      return;
+    }
+    console.warn('[foto] POST', r.status, j);
+    var codice = j && j.error;
+    if (codice === 'link_scaduto' || codice === 'troppi_tentativi' || codice === 'prenotazione_non_trovata'){
+      card.bloccata = true; // riprovare da qui non serve
+    }
+    card.stato = 'anteprima'; render(card);
+    errore(card, messaggioErrore(j, r.status));
+  }
+
+  // ── Avvio: GET partecipanti ──────────────────────────────────────
+  $('foto-dopo').addEventListener('click', function(){
+    if (cam.attivo) chiudiCamera();
+    blk.hidden = true;
+  });
+
+  // riprova:true = pagamento valido ma la prenotazione non è ancora registrata
+  // (il webhook Stripe del singolo può arrivare dopo questa pagina): si richiede
+  // ancora qualche volta, poi si rinuncia in silenzio.
+  var GET_TENTATIVI = 6, GET_ATTESA_MS = 3000;
+  function caricaPartecipanti(tentativo){
+    fetch(WORKER + '/foto-riconoscimento?session_id=' + encodeURIComponent(sid))
+      .then(function(r){
+        return r.json().catch(function(){ return null; }).then(function(j){
+          if (!r.ok){ console.warn('[foto] GET', r.status, j); return; }
+          var lista = (j && Array.isArray(j.partecipanti)) ? j.partecipanti.filter(function(p){
+            return p && p.prenotazione_id != null;
+          }) : [];
+          if (!lista.length){
+            if (j && j.riprova && tentativo < GET_TENTATIVI){
+              setTimeout(function(){ caricaPartecipanti(tentativo + 1); }, GET_ATTESA_MS);
+            }
+            return;
+          }
+          lista.forEach(function(p){
+            var card = creaScheda(p);
+            schede.push(card);
+            schedeEl.appendChild(card.el);
+          });
+          blk.hidden = false;
+        });
+      })
+      .catch(function(e){ console.warn('[foto] GET rete', e); });
+  }
+  caricaPartecipanti(1);
 })();
 </script>
 
