@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: oggi v2.15 · 2026-10-06 · SCHEDA ALLIEVO ISTRUTTORE: nella console ISTRUTTORE, sotto ADESSO, tre tessere da UNA chiamata a get_miei_allievi() tenuta in memoria e ricaricata dopo ogni azione: 👥 I miei allievi (totale, una riga per persona), 🔚 Ultime lezioni (ultima_lezione; rossa se una cade oggi), 📞 Da richiamare (da_richiamare; prima 🔴 mai sentiti dopo la Prima — ultima_interazione nel giorno della Prima o prima — poi 🟠 richiamo scaduto). Tap = elenco a tutta larghezza con chip Tutti/Prima Lezione/Corsi/Minori/Ultime lezioni/Da richiamare; riga con foto di riconoscimento (bucket privato, URL firmati 1h, come agenda v3.95) o iniziali, nome completo del corso, contatori, badge. Tap riga = SCHEDA ALLIEVO a schermo intero (get_scheda_allievo): testa con Chiama/WhatsApp, banner ultima lezione con prossimo passo, Percorso Prima→Open→Advance→Intro Corda→Evo Corda (minori: Bambini→Ragazzi→Giovani, passo in corso dedotto dall'eta'), Osservazioni (ultima in evidenza, storico compresso, form 5 scale + note → salva_osservazione), Quadro commerciale con diario e azioni → istruttore_azione_lead. Solo RPC, nessuna scrittura diretta a tabelle. NON toccate: viste segreteria e allievo. CUMULA v2.14 · 2026-09-22 · DEBITO-190 FASE C: i numeri del pacchetto arrivano da get_contatori e non piu' dalle colonne salvate in profile_data. Spariscono la mappa _COLCRED corso→colonna e l'indovinello su quale delle quattro guardare: la view sa gia' di quale corso si parla. La tessera Lezioni tiene il numero grande ma sotto dice da dove viene, '5 su 8 · PRENOTA', perche' un numero solo non si puo' controllare. NON toccati: agenda, eventi, kata, viste per ruolo, il resto dei testi. CUMULA v2.13  2026-09-01 · (1) VALIDA SOLO IL MAESTRO: rimossa la tessera '▶ Da validare' dalla console ISTRUTTORE (era live dal v2.2 puntando a monitor.html; la validazione Kata è esclusiva del creator, valida.html è già solo-creator) — vista istruttore non chiama più loadIstrValida. (2) LISTINI RAGGIUNGIBILI: tessera 💶 Listini (/listini.html) nella console SEGRETERIA (zona La cura, prima di Fascicoli) e nella console ISTRUTTORE (dopo Agenda). Le pagine listino 2026/27 erano orfane: gate ok, porta d’ingresso assente. CUMULA v2.12 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce) — .saluto span (data), .t .cmd + .t .big small, .t-adesso .cosa span/.bell, .t-lez .riga/.h/.n/.vuota (orari e conteggi posti erano 8–12.8px), .tag; anche override desktop di .t .cmd e .t-adesso .cosa span. Solo font-size; etichette decorative invariate; nessuna modifica a JS/query/testi. CUMULA v2.11 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo — la Comunità torna raggiungibile da mobile (era sepolta sotto kc-bar nel portale). CUMULA v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
+<!-- KC-BUILD: oggi v2.16 · 2026-10-06 · RENDICONTO CREATOR: nella console SEGRETERIA (creator, admin, segreteria) nuova sezione RENDICONTO dopo LA CURA. (1) Striscia di 5 contatori da get_rendiconto(): Da far prenotare → commerciale.html?coda=commerciale · Prenotati → agenda · Prima fatta · non iscritti → elenco allievi filtro Da richiamare · In corso → elenco filtro Corsi · Ultime lezioni → elenco filtro Ultime (rossa se > 0). Sotto: lezioni registrate e osservazioni scritte negli ultimi 7 giorni + Prime senza presenza registrata (la RPC le conta sui 30 giorni e il testo lo dice; rossa e cliccabile verso l'agenda se > 0). (2) DIARIO ISTRUTTORI da get_diario_istruttori(): chip per istruttore raggruppati per istruttore_user_id (soprannome tra parentesi o nome: le lezioni portano il nome della riga istruttori, le osservazioni quello del profilo, lo slot condiviso Claudia e Mattia arriva una volta per membro e in Tutti si mostra una volta sola), giorni 7/14/30 (default 14 come la RPC), righe per giorno, tap → Scheda Allievo. (3) Elenco e Scheda della v2.15 riusati tali e quali (pann-all anche in questa vista); in segreteria Nuova osservazione solo per il creator. Vista ISTRUTTORE e ALLIEVO non toccate (le tre tessere istruttore passano in htmlTessereAllievi(), stesso markup). Nessuna modifica a RPC o tabelle. CUMULA v2.15 · 2026-10-06 · SCHEDA ALLIEVO ISTRUTTORE: nella console ISTRUTTORE, sotto ADESSO, tre tessere da UNA chiamata a get_miei_allievi() tenuta in memoria e ricaricata dopo ogni azione: 👥 I miei allievi (totale, una riga per persona), 🔚 Ultime lezioni (ultima_lezione; rossa se una cade oggi), 📞 Da richiamare (da_richiamare; prima 🔴 mai sentiti dopo la Prima — ultima_interazione nel giorno della Prima o prima — poi 🟠 richiamo scaduto). Tap = elenco a tutta larghezza con chip Tutti/Prima Lezione/Corsi/Minori/Ultime lezioni/Da richiamare; riga con foto di riconoscimento (bucket privato, URL firmati 1h, come agenda v3.95) o iniziali, nome completo del corso, contatori, badge. Tap riga = SCHEDA ALLIEVO a schermo intero (get_scheda_allievo): testa con Chiama/WhatsApp, banner ultima lezione con prossimo passo, Percorso Prima→Open→Advance→Intro Corda→Evo Corda (minori: Bambini→Ragazzi→Giovani, passo in corso dedotto dall'eta'), Osservazioni (ultima in evidenza, storico compresso, form 5 scale + note → salva_osservazione), Quadro commerciale con diario e azioni → istruttore_azione_lead. Solo RPC, nessuna scrittura diretta a tabelle. NON toccate: viste segreteria e allievo. CUMULA v2.14 · 2026-09-22 · DEBITO-190 FASE C: i numeri del pacchetto arrivano da get_contatori e non piu' dalle colonne salvate in profile_data. Spariscono la mappa _COLCRED corso→colonna e l'indovinello su quale delle quattro guardare: la view sa gia' di quale corso si parla. La tessera Lezioni tiene il numero grande ma sotto dice da dove viene, '5 su 8 · PRENOTA', perche' un numero solo non si puo' controllare. NON toccati: agenda, eventi, kata, viste per ruolo, il resto dei testi. CUMULA v2.13  2026-09-01 · (1) VALIDA SOLO IL MAESTRO: rimossa la tessera '▶ Da validare' dalla console ISTRUTTORE (era live dal v2.2 puntando a monitor.html; la validazione Kata è esclusiva del creator, valida.html è già solo-creator) — vista istruttore non chiama più loadIstrValida. (2) LISTINI RAGGIUNGIBILI: tessera 💶 Listini (/listini.html) nella console SEGRETERIA (zona La cura, prima di Fascicoli) e nella console ISTRUTTORE (dopo Agenda). Le pagine listino 2026/27 erano orfane: gate ok, porta d’ingresso assente. CUMULA v2.12 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce) — .saluto span (data), .t .cmd + .t .big small, .t-adesso .cosa span/.bell, .t-lez .riga/.h/.n/.vuota (orari e conteggi posti erano 8–12.8px), .tag; anche override desktop di .t .cmd e .t-adesso .cosa span. Solo font-size; etichette decorative invariate; nessuna modifica a JS/query/testi. CUMULA v2.11 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo — la Comunità torna raggiungibile da mobile (era sepolta sotto kc-bar nel portale). CUMULA v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
      tessere span 2 (tre per riga, grandi), due=span 4, ADESSO full. Collaudo Marco: "non si adatta al desktop".
      CUMULA v2.0 · CONSOLE A RUOLI (collaudo Marco: "tutti abbiamo la console").
      Vista decisa da profiles.role + profile_data.staff_role (i PERMESSI restano dove sono: RLS/RPC invariati,
@@ -294,6 +294,30 @@ a{color:inherit; text-decoration:none}
 .sch-az{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px}
 .sch-az .btn{padding:12px 6px}
 @media (min-width:900px){ .sch-corpo{padding-top:64px} .all-riga .txt b{font-size:16px} }
+
+/* ── v2.16 RENDICONTO (console segreteria) ── */
+.rend{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
+.rc{background:var(--tile); border:1px solid var(--velo); border-radius:12px; padding:10px 4px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:4px; transition:transform .1s}
+.rc:active{transform:scale(.95)}
+.rc b{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.4rem; line-height:1}
+.rc span{font-size:13px; line-height:1.2; color:#C9C9CE}
+.rc.rosso{background:linear-gradient(135deg,var(--rosso),var(--rosso2)); border:none}
+.rc.rosso span{color:#FFF}
+.rend-7{font-size:13px; color:#C9C9CE; padding:0 2px}
+.rend-7 a{color:#FF8A84; font-weight:800; text-decoration:underline}
+.di-tit{font-weight:800; font-size:13px; letter-spacing:.12em; color:var(--grigio); margin-bottom:8px}
+.di-g{font-size:13px; font-weight:800; color:var(--fiducia); padding:12px 0 2px}
+.di-r{display:block; width:100%; text-align:left; background:none; border:0; border-bottom:1px solid var(--velo); color:inherit;
+  font-family:inherit; font-size:14px; padding:9px 0; cursor:pointer}
+.di-r:active{background:rgba(255,255,255,.04)}
+.di-r .arancio{color:#FFB340; font-weight:700}
+.di-r .rosso{color:#FF8A84; font-weight:800}
+.di-r .scl{display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:4px; font-size:13px; color:#C9C9CE; align-items:center}
+.di-r .scl span{display:inline-flex; gap:5px; align-items:center}
+.di-r .pall i{width:10px; height:10px}
+.di-r .dt{font-size:13px; color:#C9C9CE; margin-top:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+@media (min-width:900px){ .rc b{font-size:1.8rem} .rc{padding:14px 6px} }
 </style>
 </head>
 <body>
@@ -408,7 +432,7 @@ async function init(){
 
   document.getElementById('app').style.display='block';
 
-  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); loadIstrValida(); loadEventi(); }
+  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); loadEventi(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadEventi(); }
   else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); }
 }
@@ -597,25 +621,7 @@ function renderIstruttore(){
     <div class="cosa"><b>UN ATTIMO…</b><span>Sto guardando le tue lezioni</span></div>
   </a>
 
-  <a class="t t-all" id="t-all" href="#allievi" role="button" onclick="apriElenco('tutti');return false">
-    <span class="et mono">👥 I miei allievi</span>
-    <div class="big">…</div>
-    <span class="cmd mono">ELENCO ›</span>
-  </a>
-
-  <a class="t t-ult" id="t-ult" href="#allievi" role="button" onclick="apriElenco('ultime');return false">
-    <span class="et mono">🔚 Ultime lezioni</span>
-    <div class="big">…</div>
-    <span class="cmd mono">GUARDA ›</span>
-  </a>
-
-  <a class="t t-rich" id="t-rich" href="#allievi" role="button" onclick="apriElenco('richiamare');return false">
-    <span class="et mono">📞 Da richiamare</span>
-    <div class="big">…</div>
-    <span class="cmd mono">CHIAMA ›</span>
-  </a>
-
-  <div class="full pann-all" id="pann-all" hidden></div>
+  ${htmlTessereAllievi()}
 
   <div class="t t-lez due" id="t-lez" style="min-height:0">
     <span class="et mono">Le tue lezioni · oggi</span>
@@ -838,7 +844,27 @@ function renderSegreteria(){
     <div class="big">👤</div>
     <span class="cmd mono">CERCA ›</span>
   </a>
-  ${mia}`;
+  ${mia}
+
+  <div class="zona mono">Rendiconto</div>
+
+  <div class="full rend" id="rend">
+    <a class="rc" href="/commerciale.html?coda=commerciale"><b id="rc-dapren">…</b><span>Da far prenotare</span></a>
+    <a class="rc" href="/agenda.html"><b id="rc-pren">…</b><span>Prenotati</span></a>
+    <a class="rc" href="#allievi" role="button" onclick="apriElenco('richiamare');return false"><b id="rc-prima">…</b><span>Prima fatta · non iscritti</span></a>
+    <a class="rc" href="#allievi" role="button" onclick="apriElenco('corso');return false"><b id="rc-corso">…</b><span>In corso</span></a>
+    <a class="rc" id="rc-ult-t" href="#allievi" role="button" onclick="apriElenco('ultime');return false"><b id="rc-ult">…</b><span>Ultime lezioni</span></a>
+  </div>
+  <p class="full rend-7" id="rend-7">Ultimi 7 giorni: …</p>
+
+  <div class="full pann-all" id="pann-all" hidden></div>
+
+  <div class="full pann-all diario-ist">
+    <h3 class="di-tit mono">Diario istruttori · lezione per lezione</h3>
+    <div class="chips" id="di-chips"></div>
+    <div class="chips" id="di-giorni"></div>
+    <div id="di-righe"><div class="vuota-all">…</div></div>
+  </div>`;
 }
 
 async function loadSegAdesso(){
@@ -951,6 +977,33 @@ const DIARIO_ESITO={ha_risposto:'ha risposto',non_risposto:'non ha risposto',mes
 const SCALE=[['socializzazione','Socializzazione'],['fiducia','Fiducia'],['autostima','Autostima'],['concentrazione','Concentrazione'],['gestione_paura','Gestione della paura']];
 const TESTI_OSS=[['obiettivo','Obiettivo'],['interesse','Interesse'],['aree_miglioramento','Aree di miglioramento'],['note','Note']];
 const FILTRI_ALL=[['tutti','Tutti'],['prima','Prima Lezione'],['corso','Corsi'],['minori','Minori'],['ultime','Ultime lezioni'],['richiamare','Da richiamare']];
+/* v2.16 l'elenco e la scheda servono anche al RENDICONTO della segreteria:
+   get_miei_allievi() da' a creator/admin/segreteria tutti gli allievi, all'istruttore i suoi. */
+const segVista=()=>vista==='segreteria';
+const lblRichiamare=()=>segVista()?'Prima fatta · non iscritti':'Da richiamare';
+/* osservazioni: le scrive l'istruttore; in segreteria solo il creator ne aggiunge di sue */
+const puoOsservare=()=>!segVista()||profilo.role==='creator';
+function htmlTessereAllievi(){
+  return `<a class="t t-all" id="t-all" href="#allievi" role="button" onclick="apriElenco('tutti');return false">
+    <span class="et mono">👥 I miei allievi</span>
+    <div class="big">…</div>
+    <span class="cmd mono">ELENCO ›</span>
+  </a>
+
+  <a class="t t-ult" id="t-ult" href="#allievi" role="button" onclick="apriElenco('ultime');return false">
+    <span class="et mono">🔚 Ultime lezioni</span>
+    <div class="big">…</div>
+    <span class="cmd mono">GUARDA ›</span>
+  </a>
+
+  <a class="t t-rich" id="t-rich" href="#allievi" role="button" onclick="apriElenco('richiamare');return false">
+    <span class="et mono">📞 Da richiamare</span>
+    <div class="big">…</div>
+    <span class="cmd mono">CHIAMA ›</span>
+  </a>
+
+  <div class="full pann-all" id="pann-all" hidden></div>`;
+}
 
 let allievi=[], filtroAll=null, schedaPid=null, schedaDati=null, ossAperta=false, schedaInHistory=false;
 const _fotoUrl=new Map(); // path -> {url,exp}  (URL firmati 1h, come agenda v3.95)
@@ -1065,7 +1118,7 @@ async function applicaFoto(root){
 function disegnaElenco(){
   const p=document.getElementById('pann-all'); if(!p||!filtroAll)return;
   const chips=`<div class="chips">${FILTRI_ALL.map(([k,l])=>
-    `<button class="chip${k===filtroAll?' on':''}" onclick="filtroAll='${k}';disegnaElenco()">${esc(l)}</button>`).join('')}</div>`;
+    `<button class="chip${k===filtroAll?' on':''}" onclick="filtroAll='${k}';disegnaElenco()">${esc(k==='richiamare'?lblRichiamare():l)}</button>`).join('')}</div>`;
   if(!allievi){ p.innerHTML=chips+`<div class="vuota-all">Non riesco a leggere i tuoi allievi ora. Riprova tra poco.</div>`; return; }
   const L=filtraAllievi(filtroAll);
   if(!L.length){
@@ -1282,10 +1335,10 @@ function disegnaScheda(){
   const banner=R.ultima_lezione&&R.corso_attivo?`<div class="sch-banner">Ultima lezione del ${esc(nomeCorso(R.corso_attivo))}${d.prossimo_corso?` → prossimo passo: ${esc(nomeCorso(d.prossimo_corso))}`:''}
       <p>Alla fine della lezione racconta all'allievo cosa lo aspetta nel corso successivo e perché il passaggio conta.</p></div>`:'';
   const oss=d.osservazioni||[];
-  const ossHtml=ossAperta?htmlFormOss(d):(oss.length?htmlOss(oss[0],true)+(oss.length>1?`<div style="margin-top:10px">${oss.slice(1).map(o=>
+  const ossHtml=(ossAperta&&puoOsservare())?htmlFormOss(d):(oss.length?htmlOss(oss[0],true)+(oss.length>1?`<div style="margin-top:10px">${oss.slice(1).map(o=>
         `<details class="oss-old"><summary>${ggmm(o.data)} · ${esc(o.autore||'—')}</summary>${htmlOss(o,false)}</details>`).join('')}</div>`:'')
-      :`<p class="sch-vuoto">Ancora nessuna osservazione: scrivi la prima dopo la lezione.</p>`)
-     +`<div class="sch-btns"><button class="btn prim" onclick="ossAperta=true;disegnaScheda()">NUOVA OSSERVAZIONE</button></div>`;
+      :`<p class="sch-vuoto">${puoOsservare()?'Ancora nessuna osservazione: scrivi la prima dopo la lezione.':'Ancora nessuna osservazione degli istruttori.'}</p>`)
+     +(puoOsservare()?`<div class="sch-btns"><button class="btn prim" onclick="ossAperta=true;disegnaScheda()">NUOVA OSSERVAZIONE</button></div>`:'');
   const corpo=document.getElementById('sch-corpo');
   corpo.innerHTML=`
     <section class="sch-sez">
@@ -1299,6 +1352,113 @@ function disegnaScheda(){
     <section class="sch-sez"><h3>Osservazioni</h3>${ossHtml}</section>
     ${htmlCommerciale(d)}`;
   applicaFoto(corpo);
+}
+
+/* ════════════════════════ v2.16 RENDICONTO (console SEGRETERIA: creator, admin, segreteria) ════════════════════════
+   Solo letture: get_rendiconto() e get_diario_istruttori(). Le liste riusano elenco e Scheda Allievo della v2.15. */
+async function loadRendiconto(){
+  const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=v;};
+  try{
+    const{data:r,error}=await sb.rpc('get_rendiconto');
+    if(error)throw error;
+    set('rc-dapren',r.da_prenotare??0); set('rc-pren',r.prenotati??0); set('rc-prima',r.prima_fatta??0);
+    set('rc-corso',r.in_corso??0); set('rc-ult',r.ultime_lezioni??0);
+    document.getElementById('rc-ult-t')?.classList.toggle('rosso',(r.ultime_lezioni||0)>0);
+    const nr=r.prime_non_registrate||0;
+    const el=document.getElementById('rend-7');
+    /* get_rendiconto conta le Prime senza presenza sugli ultimi 30 giorni: il testo lo dice */
+    if(el)el.innerHTML=`Ultimi 7 giorni: ${r.lezioni_7gg??0} lezioni registrate · ${r.osservazioni_7gg??0} osservazioni scritte · `+
+      (nr>0?`<a href="/agenda.html">${nr} Prime senza presenza registrata (ultimi 30 giorni)</a>`:`0 Prime senza presenza registrata (ultimi 30 giorni)`);
+  }catch(e){
+    console.error('[rendiconto]',e);
+    ['rc-dapren','rc-pren','rc-prima','rc-corso','rc-ult'].forEach(id=>set(id,'—'));
+    set('rend-7','Non riesco a leggere il rendiconto ora.');
+  }
+}
+
+let diario=[], diarioGiorni=14, diarioChip='tutti', _diarioTok=0, _diChiavi=['tutti'];
+/* Un istruttore e' la sua utenza: le lezioni portano il nome della riga istruttori ("Marco Mellozzini (Mello)",
+   "Claudia e Mattia" per lo slot condiviso, ripetuto una volta per membro), le osservazioni il nome del profilo.
+   I chip si raggruppano per istruttore_user_id e usano il soprannome tra parentesi o il nome. */
+const chiaveIstr=r=>r.istruttore_user_id||('n:'+(r.istruttore||'—'));
+const condiviso=r=>r.evento!=='osservazione' && / e /.test(r.istruttore||'');
+function soprannome(n){ const m=/\(([^)]+)\)/.exec(n||''); return m?m[1].trim():String(n||'—').trim().split(/\s+/)[0]; }
+function etichetteIstr(rows){
+  const lab=new Map(), pri=new Map();
+  rows.forEach(r=>{
+    const k=chiaveIstr(r), n=r.istruttore||'—';
+    let p,l;
+    if(!r.istruttore_user_id){p=0;l=n;}
+    else if(!condiviso(r) && r.evento!=='osservazione'){p=0;l=soprannome(n);}
+    else if(r.evento==='osservazione'){p=1;l=soprannome(n);}
+    else {p=2;l=n;}
+    if(!lab.has(k)||p<pri.get(k)){lab.set(k,l);pri.set(k,p);}
+  });
+  /* chi compare solo nello slot condiviso: "Claudia e Mattia" -> la parte che nessun altro chip usa */
+  lab.forEach((l,k)=>{
+    if(pri.get(k)!==2)return;
+    const altri=new Set([...lab].filter(([kk])=>kk!==k).map(([,v])=>v));
+    const libera=l.split(/ e /).map(x=>x.trim()).filter(x=>x&&!altri.has(x));
+    if(libera.length===1)lab.set(k,libera[0]);
+  });
+  return lab;
+}
+
+async function loadDiario(){
+  const box=document.getElementById('di-righe'); if(!box)return;
+  const tok=++_diarioTok;
+  box.innerHTML='<div class="vuota-all">…</div>';
+  disegnaGiorniDiario();
+  try{
+    const{data,error}=await sb.rpc('get_diario_istruttori',{p_giorni:diarioGiorni,p_istruttore_user_id:null});
+    if(error)throw error;
+    if(tok!==_diarioTok)return;
+    diario=data||[];
+  }catch(e){ if(tok!==_diarioTok)return; console.error('[diario]',e); diario=null; }
+  disegnaDiario();
+}
+function disegnaGiorniDiario(){
+  const g=document.getElementById('di-giorni'); if(!g)return;
+  g.innerHTML=[7,14,30].map(n=>`<button class="chip${n===diarioGiorni?' on':''}" onclick="diarioGiorni=${n};loadDiario()">${n} giorni</button>`).join('');
+}
+function disegnaDiario(){
+  const box=document.getElementById('di-righe'), ch=document.getElementById('di-chips'); if(!box||!ch)return;
+  if(!diario){ ch.innerHTML=''; box.innerHTML='<div class="vuota-all">Non riesco a leggere il diario ora.</div>'; return; }
+  const lab=etichetteIstr(diario);
+  if(diarioChip!=='tutti' && !lab.has(diarioChip))diarioChip='tutti';
+  const chiavi=[...lab.keys()].sort((a,b)=>lab.get(a).localeCompare(lab.get(b),'it'));
+  _diChiavi=['tutti',...chiavi]; // l'onclick passa l'indice: niente nomi dentro gli attributi
+  ch.innerHTML=_diChiavi.map((k,i)=>
+    `<button class="chip${k===diarioChip?' on':''}" onclick="diarioChip=_diChiavi[${i}];disegnaDiario()">${esc(k==='tutti'?'Tutti':lab.get(k))}</button>`).join('');
+  let righe;
+  if(diarioChip==='tutti'){
+    const visti=new Set();
+    righe=diario.filter(r=>{const k=[r.evento,r.quando,r.persona_id,r.istruttore].join('|'); if(visti.has(k))return false; visti.add(k); return true;});
+  }else righe=diario.filter(r=>chiaveIstr(r)===diarioChip);
+  if(!righe.length){ box.innerHTML='<div class="vuota-all">Nessuna attività registrata in questi giorni.</div>'; return; }
+  let html='', giorno=null;
+  righe.forEach(r=>{
+    const g=String(r.giorno||'').slice(0,10);
+    if(g!==giorno){ giorno=g; const d=dLoc(g); html+=`<div class="di-g">${GIORNI_FULL[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}</div>`; }
+    const chi=esc(condiviso(r)?r.istruttore:(lab.get(chiaveIstr(r))||r.istruttore||'—'));
+    const chiAllievo=`<b>${esc(r.allievo||'—')}</b>`;
+    let corpo;
+    if(r.evento==='lezione'){
+      const st=r.dettaglio||'';
+      corpo=`🧗 ${chi} · ${esc(nomeCorso(r.corso))} · ${chiAllievo} · <span class="${st==='assente'?'arancio':''}">${esc(st)}</span>`;
+    }else if(r.evento==='prima'){
+      const[st,es]=String(r.dettaglio||'').split(' · ');
+      corpo=`⭐ ${chi} · ${esc(nomeCorso(r.corso||'prima_lezione'))} · ${chiAllievo} · <span class="${st==='non registrata'?'rosso':''}">${esc(st)}</span>`+
+        (es?` · ${esc(ESITO_PRIMA[es]||es)}`:'');
+    }else{
+      const sc=r.scala||{};
+      const scl=SCALE.filter(([k])=>sc[k]!=null).map(([k,l])=>`<span>${l} ${pallini(sc[k])}</span>`).join('');
+      corpo=`📝 ${chi} · ${chiAllievo}${r.corso?' · '+esc(nomeCorso(r.corso)):''}`+
+        (scl?`<div class="scl">${scl}</div>`:'')+(r.dettaglio?`<div class="dt">${esc(r.dettaglio)}</div>`:'');
+    }
+    html+=r.persona_id?`<button class="di-r" onclick="apriScheda('${esc(r.persona_id)}')">${corpo}</button>`:`<div class="di-r">${corpo}</div>`;
+  });
+  box.innerHTML=html;
 }
 
 /* ════════════════════════ EVENTI: condivisa da tutte le viste ════════════════════════ */
