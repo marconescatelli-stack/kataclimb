@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: oggi v2.14 · 2026-09-22 · DEBITO-190 FASE C: i numeri del pacchetto arrivano da get_contatori e non piu' dalle colonne salvate in profile_data. Spariscono la mappa _COLCRED corso→colonna e l'indovinello su quale delle quattro guardare: la view sa gia' di quale corso si parla. La tessera Lezioni tiene il numero grande ma sotto dice da dove viene, '5 su 8 · PRENOTA', perche' un numero solo non si puo' controllare. NON toccati: agenda, eventi, kata, viste per ruolo, il resto dei testi. CUMULA v2.13  2026-09-01 · (1) VALIDA SOLO IL MAESTRO: rimossa la tessera '▶ Da validare' dalla console ISTRUTTORE (era live dal v2.2 puntando a monitor.html; la validazione Kata è esclusiva del creator, valida.html è già solo-creator) — vista istruttore non chiama più loadIstrValida. (2) LISTINI RAGGIUNGIBILI: tessera 💶 Listini (/listini.html) nella console SEGRETERIA (zona La cura, prima di Fascicoli) e nella console ISTRUTTORE (dopo Agenda). Le pagine listino 2026/27 erano orfane: gate ok, porta d’ingresso assente. CUMULA v2.12 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce) — .saluto span (data), .t .cmd + .t .big small, .t-adesso .cosa span/.bell, .t-lez .riga/.h/.n/.vuota (orari e conteggi posti erano 8–12.8px), .tag; anche override desktop di .t .cmd e .t-adesso .cosa span. Solo font-size; etichette decorative invariate; nessuna modifica a JS/query/testi. CUMULA v2.11 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo — la Comunità torna raggiungibile da mobile (era sepolta sotto kc-bar nel portale). CUMULA v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
+<!-- KC-BUILD: oggi v2.15 · 2026-10-06 · SCHEDA ALLIEVO ISTRUTTORE: nella console ISTRUTTORE, sotto ADESSO, tre tessere da UNA chiamata a get_miei_allievi() tenuta in memoria e ricaricata dopo ogni azione: 👥 I miei allievi (totale, una riga per persona), 🔚 Ultime lezioni (ultima_lezione; rossa se una cade oggi), 📞 Da richiamare (da_richiamare; prima 🔴 mai sentiti dopo la Prima — ultima_interazione nel giorno della Prima o prima — poi 🟠 richiamo scaduto). Tap = elenco a tutta larghezza con chip Tutti/Prima Lezione/Corsi/Minori/Ultime lezioni/Da richiamare; riga con foto di riconoscimento (bucket privato, URL firmati 1h, come agenda v3.95) o iniziali, nome completo del corso, contatori, badge. Tap riga = SCHEDA ALLIEVO a schermo intero (get_scheda_allievo): testa con Chiama/WhatsApp, banner ultima lezione con prossimo passo, Percorso Prima→Open→Advance→Intro Corda→Evo Corda (minori: Bambini→Ragazzi→Giovani, passo in corso dedotto dall'eta'), Osservazioni (ultima in evidenza, storico compresso, form 5 scale + note → salva_osservazione), Quadro commerciale con diario e azioni → istruttore_azione_lead. Solo RPC, nessuna scrittura diretta a tabelle. NON toccate: viste segreteria e allievo. CUMULA v2.14 · 2026-09-22 · DEBITO-190 FASE C: i numeri del pacchetto arrivano da get_contatori e non piu' dalle colonne salvate in profile_data. Spariscono la mappa _COLCRED corso→colonna e l'indovinello su quale delle quattro guardare: la view sa gia' di quale corso si parla. La tessera Lezioni tiene il numero grande ma sotto dice da dove viene, '5 su 8 · PRENOTA', perche' un numero solo non si puo' controllare. NON toccati: agenda, eventi, kata, viste per ruolo, il resto dei testi. CUMULA v2.13  2026-09-01 · (1) VALIDA SOLO IL MAESTRO: rimossa la tessera '▶ Da validare' dalla console ISTRUTTORE (era live dal v2.2 puntando a monitor.html; la validazione Kata è esclusiva del creator, valida.html è già solo-creator) — vista istruttore non chiama più loadIstrValida. (2) LISTINI RAGGIUNGIBILI: tessera 💶 Listini (/listini.html) nella console SEGRETERIA (zona La cura, prima di Fascicoli) e nella console ISTRUTTORE (dopo Agenda). Le pagine listino 2026/27 erano orfane: gate ok, porta d’ingresso assente. CUMULA v2.12 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce) — .saluto span (data), .t .cmd + .t .big small, .t-adesso .cosa span/.bell, .t-lez .riga/.h/.n/.vuota (orari e conteggi posti erano 8–12.8px), .tag; anche override desktop di .t .cmd e .t-adesso .cosa span. Solo font-size; etichette decorative invariate; nessuna modifica a JS/query/testi. CUMULA v2.11 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo — la Comunità torna raggiungibile da mobile (era sepolta sotto kc-bar nel portale). CUMULA v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
      tessere span 2 (tre per riga, grandi), due=span 4, ADESSO full. Collaudo Marco: "non si adatta al desktop".
      CUMULA v2.0 · CONSOLE A RUOLI (collaudo Marco: "tutti abbiamo la console").
      Vista decisa da profiles.role + profile_data.staff_role (i PERMESSI restano dove sono: RLS/RPC invariati,
@@ -202,6 +202,98 @@ a{color:inherit; text-decoration:none}
   .bar a{font-size:.82rem}
   .bar a span{font-size:1.55rem; margin-bottom:3px}
 }
+
+/* ── v2.15 ISTRUTTORE: I miei allievi · Ultime lezioni · Da richiamare · Scheda Allievo ── */
+.t-all .et,.t-ult .et,.t-rich .et{color:var(--grigio)}
+.t-all .cmd{color:var(--cordata)}
+.t-ult .cmd{color:#FF9F0A}
+.t-rich .cmd{color:var(--gravita)}
+.t-ult.urgente{background:linear-gradient(135deg,var(--rosso),var(--rosso2)); border:none}
+.t-ult.urgente .et,.t-ult.urgente .cmd{color:#FFF}
+.pann-all{background:var(--tile); border:1px solid rgba(255,255,255,.14); border-radius:var(--r); padding:10px 12px}
+.pann-all .chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; scrollbar-width:none}
+.pann-all .chips::-webkit-scrollbar{display:none}
+.chip{flex:none; font-size:13px; font-weight:700; padding:7px 12px; border-radius:999px; border:1px solid var(--velo); background:#222226; color:var(--bianco); cursor:pointer; font-family:inherit}
+.chip.on{background:var(--fiducia); color:#000; border-color:var(--fiducia)}
+.chip.dato{cursor:default; background:rgba(255,255,255,.06)}
+.all-riga{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--velo); cursor:pointer; width:100%; background:none; border-left:0; border-right:0; border-top:0; color:inherit; text-align:left; font-family:inherit}
+.all-riga:last-child{border-bottom:none}
+.all-riga:active{background:rgba(255,255,255,.04)}
+.all-riga .txt{flex:1; min-width:0}
+.all-riga .txt b{display:block; font-size:15px}
+.all-riga .txt span{display:block; font-size:13px; color:#C9C9CE}
+.all-riga .bdg{display:flex; gap:4px; flex:none; flex-wrap:wrap; justify-content:flex-end; max-width:40%}
+.bdg i{font-style:normal; font-size:13px; font-weight:800; padding:3px 7px; border-radius:999px; background:rgba(255,255,255,.1); white-space:nowrap}
+.bdg i.ult{background:rgba(255,159,10,.2); color:#FFB340}
+.bdg i.r0{background:rgba(255,59,48,.22); color:#FF8A84}
+.bdg i.r1{background:rgba(255,159,10,.2); color:#FFB340}
+.vuota-all{color:var(--grigio); font-size:13px; padding:10px 0}
+.av{width:40px; height:40px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center;
+  background:#2A2A30 center/cover no-repeat; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:13px; color:var(--bianco)}
+.av.xl{width:72px; height:72px; font-size:1.3rem}
+
+/* scheda a schermo intero */
+.scheda{position:fixed; inset:0; z-index:10000; background:var(--nero); overflow-y:auto; -webkit-overflow-scrolling:touch}
+.scheda[hidden]{display:none}
+.sch-back{position:fixed; top:10px; left:10px; z-index:10001; width:38px; height:38px; border-radius:50%; border:1px solid rgba(127,127,127,.3);
+  background:rgba(127,127,127,.18); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); color:inherit; font:20px/1 sans-serif; cursor:pointer}
+.sch-corpo{max-width:640px; margin:0 auto; padding:58px 16px 40px}
+.sch-sez{background:var(--tile); border:1px solid var(--velo); border-radius:var(--r); padding:14px; margin-bottom:12px}
+.sch-sez h3{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--grigio); margin-bottom:10px}
+.sch-testa{display:flex; gap:14px; align-items:center}
+.sch-testa h2{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:1.7rem; line-height:1.1}
+.sch-testa .tel{font-family:'JetBrains Mono',monospace; font-size:14px; color:#C9C9CE; margin-top:2px}
+.sch-btns{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+.btn{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:13px; letter-spacing:.04em; padding:11px 14px; border-radius:12px; border:1px solid var(--velo);
+  background:#2A2A30; color:var(--bianco); cursor:pointer; text-align:center}
+.btn:disabled{opacity:.5}
+.btn.prim{background:var(--fiducia); color:#000; border-color:var(--fiducia)}
+.btn.wa{background:#1F8F4E; border-color:#1F8F4E}
+.btn.ok{background:#1E6B34; border-color:#1E6B34}
+.sch-stato{font-size:14px; margin-top:12px; color:#E5E5EA}
+.sch-banner{background:linear-gradient(135deg,#FF9F0A,#FF7A00); color:#1A1200; border-radius:12px; padding:12px 14px; margin-top:12px; font-weight:800; font-size:15px}
+.sch-banner p{font-weight:500; font-size:14px; margin-top:6px; font-style:italic}
+.perc{display:grid; gap:0; align-items:start}
+.perc .pn{display:flex; flex-direction:column; align-items:center; text-align:center; position:relative; font-size:13px; color:var(--grigio); padding:0 2px}
+.perc .pn i{width:16px; height:16px; border-radius:50%; border:2px solid #44444C; background:var(--nero); margin-bottom:6px; position:relative; z-index:1}
+.perc .pn::before{content:''; position:absolute; top:7px; left:-50%; width:100%; height:3px; background:#2E2E34}
+.perc .pn:first-child::before{display:none}
+.perc .pn.fatto i{background:var(--cordata); border-color:var(--cordata)}
+.perc .pn.fatto::before,.perc .pn.corso::before{background:var(--cordata)}
+.perc .pn.corso i{background:var(--fiducia); border-color:var(--fiducia); box-shadow:0 0 0 4px rgba(255,214,10,.22)}
+.perc .pn.fatto,.perc .pn.corso{color:var(--bianco)}
+.perc .pn.corso{font-weight:800}
+.perc-leg{font-size:13px; color:var(--grigio); margin-top:10px}
+.oss{border:1px solid var(--velo); border-radius:12px; padding:12px}
+.oss.evid{border-color:rgba(255,214,10,.45); background:rgba(255,214,10,.04)}
+.oss .oh{font-size:13px; color:#C9C9CE; margin-bottom:8px}
+.sc-riga{display:flex; align-items:center; gap:8px; padding:4px 0; font-size:14px; flex-wrap:wrap}
+.sc-riga .k{width:150px; flex:none}
+.pall{display:flex; gap:5px}
+.pall i{width:14px; height:14px; border-radius:50%; border:1.5px solid #5A5A62}
+.pall i.on{background:var(--fiducia); border-color:var(--fiducia)}
+.sc-riga .nt{flex-basis:100%; font-size:13px; color:#C9C9CE; padding-left:2px}
+.oss .tx{font-size:14px; margin-top:8px}
+.oss .tx b{display:block; font-size:13px; color:var(--grigio); font-weight:700}
+.oss-old{border-bottom:1px solid var(--velo); padding:8px 0}
+.oss-old summary{font-size:14px; cursor:pointer; color:#E5E5EA}
+.oss-old .oss{margin-top:8px}
+.sch-vuoto{font-size:14px; color:#C9C9CE; padding:4px 0 10px}
+.frm label{display:block; font-size:13px; color:var(--grigio); font-weight:700; margin:12px 0 4px}
+.frm input,.frm textarea,.frm select{width:100%; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:10px}
+.frm textarea{min-height:64px; resize:vertical}
+.scala{display:flex; gap:6px; margin-bottom:6px}
+.scala button{width:40px; height:40px; border-radius:50%; border:1.5px solid #5A5A62; background:none; color:var(--bianco); font-family:'JetBrains Mono',monospace; font-weight:800; font-size:14px; cursor:pointer}
+.scala button.on{background:var(--fiducia); border-color:var(--fiducia); color:#000}
+.kv{font-size:14px; padding:4px 0}
+.kv b{color:var(--grigio); font-weight:700; font-size:13px; display:block}
+.diario{margin-top:10px}
+.dr{padding:9px 0; border-bottom:1px solid var(--velo); font-size:14px}
+.dr .dh{font-size:13px; color:#C9C9CE}
+.dr.mia{border-left:3px solid var(--fiducia); padding-left:9px; background:rgba(255,214,10,.05)}
+.sch-az{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px}
+.sch-az .btn{padding:12px 6px}
+@media (min-width:900px){ .sch-corpo{padding-top:64px} .all-riga .txt b{font-size:16px} }
 </style>
 </head>
 <body>
@@ -219,6 +311,12 @@ a{color:inherit; text-decoration:none}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- v2.15 Scheda Allievo (solo vista istruttore) -->
+<div class="scheda" id="scheda" hidden role="dialog" aria-modal="true" aria-label="Scheda Allievo">
+  <button class="sch-back" aria-label="Chiudi la scheda" onclick="chiudiScheda()">←</button>
+  <div class="sch-corpo" id="sch-corpo"></div>
+</div>
 
 <nav class="bar">
   <a href="/oggi.html" class="attivo"><span>◉</span>Oggi</a>
@@ -311,7 +409,7 @@ async function init(){
   document.getElementById('app').style.display='block';
 
   if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); loadIstrValida(); loadEventi(); }
-  else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadEventi(); }
+  else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadEventi(); }
   else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); }
 }
 
@@ -498,6 +596,26 @@ function renderIstruttore(){
   <a class="t t-adesso full" id="t-adesso" href="/agenda.html">
     <div class="cosa"><b>UN ATTIMO…</b><span>Sto guardando le tue lezioni</span></div>
   </a>
+
+  <a class="t t-all" id="t-all" href="#allievi" role="button" onclick="apriElenco('tutti');return false">
+    <span class="et mono">👥 I miei allievi</span>
+    <div class="big">…</div>
+    <span class="cmd mono">ELENCO ›</span>
+  </a>
+
+  <a class="t t-ult" id="t-ult" href="#allievi" role="button" onclick="apriElenco('ultime');return false">
+    <span class="et mono">🔚 Ultime lezioni</span>
+    <div class="big">…</div>
+    <span class="cmd mono">GUARDA ›</span>
+  </a>
+
+  <a class="t t-rich" id="t-rich" href="#allievi" role="button" onclick="apriElenco('richiamare');return false">
+    <span class="et mono">📞 Da richiamare</span>
+    <div class="big">…</div>
+    <span class="cmd mono">CHIAMA ›</span>
+  </a>
+
+  <div class="full pann-all" id="pann-all" hidden></div>
 
   <div class="t t-lez due" id="t-lez" style="min-height:0">
     <span class="et mono">Le tue lezioni · oggi</span>
@@ -786,6 +904,401 @@ async function loadSegCode(){
     console.error('[seg-code]',e);
     ['coda-comm','coda-riac','coda-vecc','coda-segr'].forEach(id=>setN(id,'—'));
   }
+}
+
+/* ════════════════════════ v2.15 ISTRUTTORE: I MIEI ALLIEVI + SCHEDA ALLIEVO ════════════════════════
+   Solo RPC, nessuna scrittura diretta a tabelle:
+   get_miei_allievi (UNA chiamata, in memoria, ricaricata dopo ogni azione) · get_scheda_allievo ·
+   salva_osservazione · istruttore_azione_lead. get_miei_allievi restituisce una riga per persona,
+   quindi il numero della tessera e' la lunghezza dell'elenco. */
+/* REGOLA FERREA NOMENCLATURA: nomi per esteso, mai sigle */
+const NOME_CORSO={
+  prima_lezione:'Prima Lezione Adulti', prima_lezione_genitori:'Prima Lezione Genitori',
+  prima_lezione_bambini:'Prima Lezione Bambini (6–11)', prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)',
+  open:'Corso Open KataClimb', advance:'Corso Advance KataClimb',
+  intro_corda:'Corso Intro Corda KataClimb', evo_corda:'Corso Evo Corda KataClimb', fly:'Corso Fly KataClimb',
+  bambini:'Corso Bambini (6–11)', ragazzi:'Corso Ragazzi (12–17)', giovani:'Corso Giovani KataClimb (18–24)',
+  senior:'Corso Senior KataClimb (over 60)', evo_ragazzi:'Corso Evo Ragazzi', expert:'Corso Expert',
+  lab:'Lab', monitor:'Sala con Monitor'
+};
+const nomeCorso=t=>NOME_CORSO[t]||(t?String(t).replace(/_/g,' '):'');
+/* minori: il corso si deduce dalla fascia della Prima Lezione fatta; senza fascia nota, il nome del tab agenda */
+function nomeMinori(tipo){
+  if(tipo==='prima_lezione_bambini'||tipo==='bambini')return NOME_CORSO.bambini;
+  if(tipo==='prima_lezione_ragazzi'||tipo==='ragazzi'||tipo==='evo_ragazzi')return NOME_CORSO.ragazzi;
+  return 'Corso Bambini e Ragazzi';
+}
+const FUNNEL_PAROLE={
+  nuovo:'Contatto nuovo, ancora da sentire', contattato:'Contattato, Prima Lezione non ancora prenotata',
+  prenotato_prima_lezione:'Prima Lezione prenotata', fatta_prima_lezione:'Prima Lezione fatta, nessun corso',
+  da_riprogrammare:'Prima Lezione da riprogrammare', perso:'Non prosegue', perso_prima_lezione:'Non prosegue dopo la Prima Lezione'
+};
+const FUNNEL_CORSO={open:'open',advance:'advance',intro:'intro_corda',evo:'evo_corda',fly:'fly'};
+function funnelParole(st){
+  if(!st)return 'Percorso non ancora registrato';
+  if(FUNNEL_PAROLE[st])return FUNNEL_PAROLE[st];
+  const m=/^(prenotato|iscritto|concluso)_(.+)$/.exec(st);
+  if(m){
+    const nc=FUNNEL_CORSO[m[2]]?nomeCorso(FUNNEL_CORSO[m[2]]):'Percorso '+m[2].replace(/_/g,' ');
+    return nc+(m[1]==='prenotato'?': prenotazione fatta':m[1]==='iscritto'?': iscrizione attiva':': concluso');
+  }
+  return st.replace(/_/g,' ');
+}
+const ESITO_PRIMA={ha_deciso:'Ha deciso di proseguire',da_ricontattare:'Da ricontattare',non_continua:'Non prosegue'};
+const DIARIO_TIPO={nota:'📝 Nota',chiamata:'📞 Chiamata',whatsapp:'💬 WhatsApp',email:'✉ Email',incontro:'🤝 Incontro'};
+const DIARIO_ESITO={ha_risposto:'ha risposto',non_risposto:'non ha risposto',messaggio_lasciato:'messaggio lasciato',
+  appuntamento_preso:'appuntamento preso',da_ricontattare:'da richiamare',rifiutato:'non prosegue'};
+const SCALE=[['socializzazione','Socializzazione'],['fiducia','Fiducia'],['autostima','Autostima'],['concentrazione','Concentrazione'],['gestione_paura','Gestione della paura']];
+const TESTI_OSS=[['obiettivo','Obiettivo'],['interesse','Interesse'],['aree_miglioramento','Aree di miglioramento'],['note','Note']];
+const FILTRI_ALL=[['tutti','Tutti'],['prima','Prima Lezione'],['corso','Corsi'],['minori','Minori'],['ultime','Ultime lezioni'],['richiamare','Da richiamare']];
+
+let allievi=[], filtroAll=null, schedaPid=null, schedaDati=null, ossAperta=false, schedaInHistory=false;
+const _fotoUrl=new Map(); // path -> {url,exp}  (URL firmati 1h, come agenda v3.95)
+
+const pad2=n=>String(n).padStart(2,'0');
+function ggmm(s){ if(!s)return ''; const d=dLoc(s); return pad2(d.getDate())+'/'+pad2(d.getMonth()+1); }
+function ggmmTs(ts){ if(!ts)return ''; const d=new Date(ts); return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2); }
+function iniziali(n,c){ return (((n||'').trim()[0]||'')+((c||'').trim()[0]||'')).toUpperCase()||'·'; }
+/* come apriWhatsAppLead nel portale: via spazi e +, prefisso 39 se manca */
+function waNum(tel){
+  let t=(tel||'').replace(/[^0-9+]/g,''); if(!t)return '';
+  t=t.replace(/^\+/,''); if(t.indexOf('39')!==0 && t.length<=10) t='39'+t;
+  return t;
+}
+const telNum=tel=>(tel||'').replace(/[^0-9+]/g,'');
+/* 🔴 mai sentito dopo la Prima: nessuna interazione dopo il giorno della Prima (T#134: giorno locale) */
+function maiSentito(a){
+  if(!a.ultima_interazione)return true;
+  if(!a.data_prima)return false;
+  return isoLocal(new Date(a.ultima_interazione))<=String(a.data_prima).slice(0,10);
+}
+
+async function loadAllievi(){
+  try{
+    const{data,error}=await sb.rpc('get_miei_allievi');
+    if(error)throw error;
+    allievi=data||[];
+  }catch(e){ console.error('[allievi]',e); allievi=null; }
+  disegnaTessereAllievi();
+  if(filtroAll)disegnaElenco();
+}
+
+function disegnaTessereAllievi(){
+  const set=(id,v)=>{const el=document.querySelector('#'+id+' .big'); if(el)el.textContent=v;};
+  if(!allievi){ ['t-all','t-ult','t-rich'].forEach(id=>set(id,'—')); return; }
+  const ult=allievi.filter(a=>a.ultima_lezione);
+  set('t-all',allievi.length);
+  set('t-ult',ult.length);
+  set('t-rich',allievi.filter(a=>a.da_richiamare).length);
+  const oggi=isoLocal(new Date());
+  const tu=document.getElementById('t-ult');
+  if(tu)tu.classList.toggle('urgente',ult.some(a=>String(a.prossima_lezione||'').slice(0,10)===oggi));
+}
+
+function apriElenco(f){
+  const p=document.getElementById('pann-all'); if(!p)return;
+  if(filtroAll===f && !p.hidden){ p.hidden=true; filtroAll=null; return; }
+  filtroAll=f; p.hidden=false;
+  disegnaElenco();
+  p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function filtraAllievi(f){
+  const L=allievi||[];
+  if(f==='prima'||f==='corso'||f==='minori')return L.filter(a=>a.origine===f);
+  if(f==='ultime')return L.filter(a=>a.ultima_lezione)
+    .sort((a,b)=>String(a.prossima_lezione||'9999').localeCompare(String(b.prossima_lezione||'9999')));
+  if(f==='richiamare')return L.filter(a=>a.da_richiamare)
+    .map(a=>({a,r:maiSentito(a)?0:1}))
+    .sort((x,y)=>x.r-y.r || (x.r===0
+      ? String(x.a.data_prima||'').localeCompare(String(y.a.data_prima||''))
+      : String(x.a.prossima_azione_il||'').localeCompare(String(y.a.prossima_azione_il||''))))
+    .map(x=>x.a);
+  return L;
+}
+
+function sottoRiga(a){
+  if(a.origine==='corso' && a.corso_attivo){
+    const p=[nomeCorso(a.corso_attivo)];
+    if(a.totali!=null)p.push(`fatte ${a.fatte??0} su ${a.totali}`);
+    if(a.restano!=null)p.push(`restano ${a.restano}`);
+    if(a.data_fine_validita)p.push('scade '+ggmm(a.data_fine_validita));
+    return p.join(' · ');
+  }
+  if(a.origine==='minori')return nomeMinori(a.tipo);
+  let s=nomeCorso(a.tipo||'prima_lezione');
+  if(a.data_prima){
+    s+=' · '+ggmm(a.data_prima);
+    const futura=String(a.data_prima).slice(0,10)>isoLocal(new Date());
+    if(a.prima_presente==null)s+=futura?' · prenotata':' · non registrata';
+    else if(a.prima_presente===false)s+=' · assente';
+  }
+  return s;
+}
+
+function avatarHtml(nome,cognome,path,xl){
+  return `<span class="av${xl?' xl':''}"${path?` data-foto="${esc(path)}"`:''}>${esc(iniziali(nome,cognome))}</span>`;
+}
+async function applicaFoto(root){
+  const els=[...root.querySelectorAll('.av[data-foto]')]; if(!els.length)return;
+  const ora=Date.now();
+  const daFirmare=[...new Set(els.map(e=>e.dataset.foto))].filter(p=>{const c=_fotoUrl.get(p);return !(c&&c.exp>ora);});
+  if(daFirmare.length){
+    try{
+      const{data,error}=await sb.storage.from('riconoscimento').createSignedUrls(daFirmare,3600);
+      if(error)throw error;
+      (data||[]).forEach((r,i)=>{
+        const p=(r&&r.path)||daFirmare[i];
+        if(r&&r.signedUrl&&!r.error)_fotoUrl.set(p,{url:r.signedUrl,exp:ora+55*60000});
+      });
+    }catch(e){ console.warn('[foto riconoscimento]',e?.message||e); }
+  }
+  /* la foto sostituisce le iniziali solo se si carica davvero */
+  els.forEach(el=>{
+    const c=_fotoUrl.get(el.dataset.foto); if(!c)return;
+    const im=new Image();
+    im.onload=()=>{el.style.backgroundImage=`url("${c.url}")`; el.textContent='';};
+    im.src=c.url;
+  });
+}
+
+function disegnaElenco(){
+  const p=document.getElementById('pann-all'); if(!p||!filtroAll)return;
+  const chips=`<div class="chips">${FILTRI_ALL.map(([k,l])=>
+    `<button class="chip${k===filtroAll?' on':''}" onclick="filtroAll='${k}';disegnaElenco()">${esc(l)}</button>`).join('')}</div>`;
+  if(!allievi){ p.innerHTML=chips+`<div class="vuota-all">Non riesco a leggere i tuoi allievi ora. Riprova tra poco.</div>`; return; }
+  const L=filtraAllievi(filtroAll);
+  if(!L.length){
+    const msg=filtroAll==='richiamare'?'Nessun allievo da richiamare oggi.'
+      :filtroAll==='ultime'?'Nessuna ultima lezione in arrivo.':'Nessun allievo in questo elenco.';
+    p.innerHTML=chips+`<div class="vuota-all">${msg}</div>`; return;
+  }
+  p.innerHTML=chips+L.map(a=>{
+    const b=[];
+    if(a.ultima_lezione)b.push(`<i class="ult">🔚 ULTIMA</i>`);
+    if(a.da_richiamare)b.push(`<i class="${maiSentito(a)?'r0':'r1'}" title="${maiSentito(a)?'Mai sentito dopo la Prima Lezione':'Richiamo scaduto'}">${maiSentito(a)?'🔴':'🟠'} 📞</i>`);
+    if(a.n_osservazioni>0)b.push(`<i>📝 ${a.n_osservazioni}</i>`);
+    return `<button class="all-riga" onclick="apriScheda('${esc(a.persona_id)}')">
+      ${avatarHtml(a.nome,a.cognome,a.foto_path)}
+      <span class="txt"><b>${esc((a.nome||'')+' '+(a.cognome||''))}</b><span>${esc(sottoRiga(a))}</span></span>
+      <span class="bdg">${b.join('')}</span></button>`;
+  }).join('');
+  applicaFoto(p);
+}
+
+/* ── Scheda Allievo ── */
+function apriScheda(pid){
+  schedaPid=pid; schedaDati=null; ossAperta=false;
+  const s=document.getElementById('scheda');
+  document.getElementById('sch-corpo').innerHTML=`<p class="sch-vuoto">Un attimo, apro la scheda…</p>`;
+  s.hidden=false; s.scrollTop=0;
+  document.body.style.overflow='hidden';
+  /* il tasto indietro del telefono chiude la scheda, non la pagina */
+  if(!schedaInHistory){ history.pushState({kcScheda:1},''); schedaInHistory=true; }
+  caricaScheda();
+}
+function nascondiScheda(){
+  document.getElementById('scheda').hidden=true;
+  document.body.style.overflow='';
+  schedaPid=null; schedaDati=null; ossAperta=false;
+}
+function chiudiScheda(){
+  if(schedaInHistory){ history.back(); return; } // popstate nasconde
+  nascondiScheda();
+}
+window.addEventListener('popstate',()=>{ if(schedaInHistory){ schedaInHistory=false; nascondiScheda(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !document.getElementById('scheda').hidden)chiudiScheda(); });
+
+async function caricaScheda(){
+  const s=document.getElementById('scheda'), corpo=document.getElementById('sch-corpo');
+  const pid=schedaPid, top=s.scrollTop;
+  try{
+    const{data,error}=await sb.rpc('get_scheda_allievo',{p_persona_id:pid});
+    if(error)throw error;
+    if(pid!==schedaPid)return; // scheda chiusa o cambiata nel frattempo
+    schedaDati=data||{};
+    disegnaScheda();
+    s.scrollTop=top;
+  }catch(e){
+    console.error('[scheda]',e);
+    corpo.innerHTML=`<p class="sch-vuoto">${esc(e?.message||'Non riesco ad aprire la scheda ora.')}</p>`;
+  }
+}
+
+function statoPercorsoTesto(R,P){
+  if(R.corso_attivo){
+    const p=[nomeCorso(R.corso_attivo)];
+    if(R.totali!=null)p.push(`fatte ${R.fatte??0} su ${R.totali}`);
+    if(R.restano!=null)p.push(`restano ${R.restano}`);
+    if(R.data_fine_validita)p.push('scade '+ggmm(R.data_fine_validita));
+    return p.join(' · ');
+  }
+  if(R.origine==='minori')return nomeMinori(R.tipo);
+  if(R.data_prima){
+    const n=nomeCorso(R.tipo||'prima_lezione'), g=ggmm(R.data_prima);
+    if(String(R.data_prima).slice(0,10)>isoLocal(new Date()))return `${n} prenotata per il ${g}`;
+    if(R.prima_presente===true)return `${n} fatta il ${g}`;
+    if(R.prima_presente===false)return `${n} del ${g}: assente`;
+    return `${n} del ${g}: presenza non registrata`;
+  }
+  return '';
+}
+
+function htmlPercorso(d){
+  const R=d.riga||{}, P=d.persona||{};
+  let passi, st={};
+  if(R.origine==='minori'){
+    passi=[['bambini','Corso Bambini (6–11)'],['ragazzi','Corso Ragazzi (12–17)'],['giovani','Corso Giovani KataClimb (18–24)']];
+    /* nessuna iscrizione minori nella scheda: il passo in corso si deduce dall'eta' */
+    if(P.data_nascita){
+      const n=dLoc(P.data_nascita), o=new Date();
+      let eta=o.getFullYear()-n.getFullYear(); if(o.getMonth()<n.getMonth()||(o.getMonth()===n.getMonth()&&o.getDate()<n.getDate()))eta--;
+      const k=eta<12?'bambini':eta<18?'ragazzi':'giovani';
+      st[k]='corso';
+    }
+  }else{
+    passi=[['prima','Prima Lezione Adulti'],['open',NOME_CORSO.open],['advance',NOME_CORSO.advance],['intro_corda',NOME_CORSO.intro_corda],['evo_corda',NOME_CORSO.evo_corda]];
+    (d.iscrizioni||[]).forEach(i=>{
+      const v=(i.status==='attiva'||i.status==='sospesa')?'corso'
+        :(i.status==='terminata'||i.status==='completata_pregressa')?'fatto':null;
+      if(v && st[i.tipo_corso]!=='corso')st[i.tipo_corso]=v;
+    });
+    const primaFatta=(d.prime||[]).some(p=>p.presente===true||p.stato==='fatto') || (d.iscrizioni||[]).length>0;
+    if(primaFatta)st.prima='fatto';
+  }
+  return `<div class="perc" style="grid-template-columns:repeat(${passi.length},1fr)">${passi.map(([k,l])=>
+    `<div class="pn ${st[k]||''}"><i></i><span>${esc(l)}</span></div>`).join('')}</div>
+    <p class="perc-leg">● verde = fatto · ● giallo = in corso</p>`;
+}
+
+function pallini(v){ return `<span class="pall">${[1,2,3,4,5].map(i=>`<i class="${v&&i<=v?'on':''}"></i>`).join('')}</span>`; }
+function htmlOss(o,evid){
+  const sc=SCALE.filter(([k])=>o[k]!=null||o[k+'_nota']).map(([k,l])=>
+    `<div class="sc-riga"><span class="k">${l}</span>${pallini(o[k])}${o[k+'_nota']?`<span class="nt">${esc(o[k+'_nota'])}</span>`:''}</div>`).join('');
+  const tx=TESTI_OSS.filter(([k])=>o[k]).map(([k,l])=>`<div class="tx"><b>${l}</b>${esc(o[k])}</div>`).join('');
+  return `<div class="oss${evid?' evid':''}">
+    <div class="oh">${ggmm(o.data)} · ${esc(o.autore||'—')}${o.contesto?' · '+esc(nomeCorso(o.contesto)):''}</div>
+    ${sc}${tx}</div>`;
+}
+
+function htmlFormOss(d){
+  const R=d.riga||{}, oggi=isoLocal(new Date());
+  /* stesso giorno = la RPC aggiorna la riga: il form riparte da quella */
+  const o=(d.osservazioni||[]).find(x=>x.mia && String(x.data).slice(0,10)===oggi)||{};
+  const ctx=o.contesto||R.corso_attivo||R.tipo||'prima_lezione';
+  const opz=Object.keys(NOME_CORSO).map(k=>`<option value="${k}"${k===ctx?' selected':''}>${esc(NOME_CORSO[k])}</option>`).join('')
+    +(NOME_CORSO[ctx]?'':`<option value="${esc(ctx)}" selected>${esc(nomeCorso(ctx))}</option>`);
+  return `<div class="frm" id="oss-form">
+    ${o.id?`<p class="sch-vuoto">Oggi hai già scritto un'osservazione: la stai aggiornando.</p>`:''}
+    <label>Contesto</label><select name="contesto">${opz}</select>
+    ${SCALE.map(([k,l])=>`<label>${l}</label>
+      <div class="scala" data-k="${k}" data-v="${o[k]??''}">${[1,2,3,4,5].map(i=>
+        `<button type="button" class="${o[k]&&i<=o[k]?'on':''}" onclick="ossScala(this,${i})">${i}</button>`).join('')}</div>
+      <input name="${k}_nota" placeholder="Nota breve" value="${esc(o[k+'_nota']||'')}">`).join('')}
+    ${TESTI_OSS.map(([k,l])=>`<label>${l}</label><textarea name="${k}">${esc(o[k]||'')}</textarea>`).join('')}
+    <div class="sch-btns">
+      <button class="btn prim" onclick="salvaOss(this)">SALVA OSSERVAZIONE</button>
+      <button class="btn" onclick="ossAperta=false;disegnaScheda()">ANNULLA</button>
+    </div></div>`;
+}
+function ossScala(btn,v){
+  const s=btn.parentElement;
+  const nuovo=String(v)===s.dataset.v?'':String(v); // ritocco sullo stesso pallino = azzera
+  s.dataset.v=nuovo;
+  s.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',!!nuovo && i<Number(nuovo)));
+}
+async function salvaOss(btn){
+  const f=document.getElementById('oss-form'); if(!f||!schedaPid)return;
+  const p={};
+  f.querySelectorAll('[name]').forEach(el=>{ const v=el.value.trim(); p[el.name]=v||null; });
+  f.querySelectorAll('.scala').forEach(s=>{ p[s.dataset.k]=s.dataset.v?Number(s.dataset.v):null; });
+  if(!Object.keys(p).some(k=>k!=='contesto' && p[k]!=null)){ toast('Scrivi almeno una cosa prima di salvare.'); return; }
+  btn.disabled=true;
+  const{error}=await sb.rpc('salva_osservazione',{p_persona_id:schedaPid,p});
+  if(error){ btn.disabled=false; toast('Osservazione non salvata: '+error.message); return; }
+  ossAperta=false;
+  toast('Osservazione salvata.');
+  await caricaScheda();
+  loadAllievi();
+}
+
+function htmlCommerciale(d){
+  const L=d.lead; if(!L)return '';
+  const kv=(l,v)=>v?`<div class="kv"><b>${l}</b>${esc(v)}</div>`:'';
+  const chips=(d.modulo||[]).flatMap(m=>String(m.note||'').split('|').map(x=>x.trim()).filter(Boolean));
+  const diario=(d.diario||[]).map(r=>{
+    const tipo=DIARIO_TIPO[r.tipo]||esc(r.tipo||'');
+    const es=r.esito?' · '+esc(DIARIO_ESITO[r.esito]||r.esito):'';
+    return `<div class="dr${r.mia?' mia':''}"><div class="dh">${ggmmTs(r.data)} · ${esc(r.autore||'—')} · ${tipo}${es}</div>${r.testo?esc(r.testo):''}</div>`;
+  }).join('');
+  const pross=L.prossima_azione_il?`Prossimo richiamo: ${ggmmTs(L.prossima_azione_il)}`:'';
+  const tent=L.tentativi_contatto?`Tentativi di contatto: ${L.tentativi_contatto}`:'';
+  return `<section class="sch-sez"><h3>Quadro commerciale</h3>
+    <div class="kv"><b>Dove si trova</b>${esc(funnelParole(L.funnel_stage))}</div>
+    ${kv('Esito della Prima Lezione',ESITO_PRIMA[L.esito_prima_lezione]||L.esito_prima_lezione)}
+    ${kv('Nota dell’istruttore',L.nota_istruttore)}
+    ${chips.length?`<div class="kv"><b>Dal modulo di richiesta</b></div><div class="chips" style="display:flex;flex-wrap:wrap;gap:6px">${chips.map(c=>`<span class="chip dato">${esc(c)}</span>`).join('')}</div>`:''}
+    ${kv('Lavoro',L.lavoro)}${kv('Esperienza sportiva',L.esperienza_sport)}${kv('Perché ora',L.motivo_ora)}${kv('Cosa lo frena',L.freno)}
+    ${pross||tent?`<div class="kv"><b>Richiami</b>${esc([pross,tent].filter(Boolean).join(' · '))}</div>`:''}
+    <div class="diario">${diario||`<p class="sch-vuoto">Il diario è ancora vuoto.</p>`}</div>
+    <div class="frm"><label>Aggiungi nota</label><textarea id="sch-nota" placeholder="Cosa vi siete detti, cosa serve sapere"></textarea></div>
+    <div class="sch-az" id="sch-az">
+      <button class="btn" onclick="azioneLead('nota')">SALVA NOTA</button>
+      <button class="btn ok" onclick="azioneLead('chiamata_ok')">CHIAMATO ✓</button>
+      <button class="btn" onclick="azioneLead('non_risponde')">NON RISPONDE</button>
+      <button class="btn" onclick="azioneLead('richiama',1)">RICHIAMA +1</button>
+      <button class="btn" onclick="azioneLead('richiama',3)">RICHIAMA +3</button>
+      <button class="btn" onclick="azioneLead('richiama',7)">RICHIAMA +7</button>
+      <button class="btn wa" style="grid-column:1/-1" onclick="azioneLead('whatsapp')">WHATSAPP</button>
+    </div></section>`;
+}
+
+function telefonoScheda(){ const d=schedaDati||{}; return (d.persona&&d.persona.telefono)||(d.riga&&d.riga.telefono)||''; }
+function apriWaScheda(){
+  const n=waNum(telefonoScheda());
+  if(!n){ toast('Nessun numero di telefono.'); return false; }
+  window.open('https://wa.me/'+n,'_blank');
+  return true;
+}
+async function azioneLead(az,giorni){
+  const L=schedaDati&&schedaDati.lead; if(!L)return;
+  const ta=document.getElementById('sch-nota');
+  const testo=(ta&&ta.value.trim())||null;
+  if(az==='nota'&&!testo){ toast('Scrivi la nota prima di salvarla.'); return; }
+  if(az==='whatsapp' && !apriWaScheda())return; // apre wa.me nel gesto, poi registra
+  const bb=[...document.querySelectorAll('#sch-az button')]; bb.forEach(b=>b.disabled=true);
+  const{error}=await sb.rpc('istruttore_azione_lead',{p_lead_id:L.id,p_azione:az,p_testo:testo,p_giorni:giorni??null});
+  if(error){ bb.forEach(b=>b.disabled=false); toast('Non registrato: '+error.message); return; }
+  toast({nota:'Nota salvata.',chiamata_ok:'Chiamata registrata.',non_risponde:'Non risponde: richiamo domani.',
+    whatsapp:'Messaggio WhatsApp registrato.',richiama:giorni===1?'Richiamo domani.':`Richiamo fra ${giorni} giorni.`}[az]);
+  await caricaScheda();
+  loadAllievi();
+}
+
+function disegnaScheda(){
+  const d=schedaDati||{}, P=d.persona||{}, R=d.riga||{};
+  const tel=P.telefono||R.telefono||'';
+  const stato=statoPercorsoTesto(R,P);
+  const banner=R.ultima_lezione&&R.corso_attivo?`<div class="sch-banner">Ultima lezione del ${esc(nomeCorso(R.corso_attivo))}${d.prossimo_corso?` → prossimo passo: ${esc(nomeCorso(d.prossimo_corso))}`:''}
+      <p>Alla fine della lezione racconta all'allievo cosa lo aspetta nel corso successivo e perché il passaggio conta.</p></div>`:'';
+  const oss=d.osservazioni||[];
+  const ossHtml=ossAperta?htmlFormOss(d):(oss.length?htmlOss(oss[0],true)+(oss.length>1?`<div style="margin-top:10px">${oss.slice(1).map(o=>
+        `<details class="oss-old"><summary>${ggmm(o.data)} · ${esc(o.autore||'—')}</summary>${htmlOss(o,false)}</details>`).join('')}</div>`:'')
+      :`<p class="sch-vuoto">Ancora nessuna osservazione: scrivi la prima dopo la lezione.</p>`)
+     +`<div class="sch-btns"><button class="btn prim" onclick="ossAperta=true;disegnaScheda()">NUOVA OSSERVAZIONE</button></div>`;
+  const corpo=document.getElementById('sch-corpo');
+  corpo.innerHTML=`
+    <section class="sch-sez">
+      <div class="sch-testa">${avatarHtml(P.nome||R.nome,P.cognome||R.cognome,P.foto_path||R.foto_path,true)}
+        <div><h2>${esc((P.nome||R.nome||'')+' '+(P.cognome||R.cognome||''))}</h2>${tel?`<div class="tel">${esc(tel)}</div>`:''}</div></div>
+      ${tel?`<div class="sch-btns"><a class="btn" href="tel:${esc(telNum(tel))}">📞 CHIAMA</a><button class="btn wa" onclick="apriWaScheda()">💬 WHATSAPP</button></div>`:''}
+      ${stato?`<p class="sch-stato">${esc(stato)}</p>`:''}
+      ${banner}
+    </section>
+    <section class="sch-sez"><h3>Percorso</h3>${htmlPercorso(d)}</section>
+    <section class="sch-sez"><h3>Osservazioni</h3>${ossHtml}</section>
+    ${htmlCommerciale(d)}`;
+  applicaFoto(corpo);
 }
 
 /* ════════════════════════ EVENTI: condivisa da tutte le viste ════════════════════════ */
