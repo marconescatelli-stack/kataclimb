@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SALA CON MONITOR · 02 — Persone seguite contate per TURNO, non per giorno
--- Data: 2026-10-07 · Preparata per Marco · NON APPLICATA
+-- Data: 2026-10-07 · Preparata per Marco · APPLICATA 2026-10-07 (12:25, prove DOPO passate)
 -- Richiede 01_riga_separata_sala.sql gia' applicato (il primo blocco lo controlla).
 --
 -- IL PROBLEMA

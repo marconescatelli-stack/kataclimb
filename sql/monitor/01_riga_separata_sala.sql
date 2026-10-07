@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SALA CON MONITOR · 01 — Osservazione e nota di sala su righe separate
--- Data: 2026-10-07 · Preparata per Marco · NON APPLICATA
+-- Data: 2026-10-07 · Preparata per Marco · APPLICATA 2026-10-07 (12:25, prove DOPO passate)
 -- Da eseguire PRIMA di 02_compensi_per_turno.sql (02 lo controlla).
 --
 -- IL PROBLEMA

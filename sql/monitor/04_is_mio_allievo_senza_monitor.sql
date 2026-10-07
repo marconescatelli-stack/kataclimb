@@ -1,7 +1,7 @@
 -- ============================================================================
 -- SALA CON MONITOR · 04 — Il monitor legge la scheda ridotta, ma non scrive
 --                         osservazioni ne' azioni sui lead
--- Data: 2026-10-07 · Preparata per Marco · NON APPLICATA
+-- Data: 2026-10-07 · Preparata per Marco · APPLICATA 2026-10-07 (12:25, prove DOPO passate)
 -- Richiede 03_scheda_istruttore_in_turno.sql gia' applicato (il primo blocco lo
 -- controlla): questo file ridefinisce di nuovo get_scheda_allievo partendo da li'.
 --

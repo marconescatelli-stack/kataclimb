@@ -1,7 +1,7 @@
 -- ============================================================================
 -- SALA CON MONITOR · 03 — L'istruttore in turno apre la scheda (ridotta)
 --                         anche di chi non e' suo allievo
--- Data: 2026-10-07 · Preparata per Marco · NON APPLICATA
+-- Data: 2026-10-07 · Preparata per Marco · APPLICATA 2026-10-07 (12:25, prove DOPO passate)
 -- Indipendente da 01 e 02.
 --
 -- IL PROBLEMA
