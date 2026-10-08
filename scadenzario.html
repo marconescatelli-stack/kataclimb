@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<!-- KC-BUILD: scadenzario v1.0 · 2026-10-08 · SCADENZARIO ABBONAMENTI (migration abbonamenti v1, 8 ott). Pagina staff autonoma, guscio/stile/auth come listini.html: senza sessione o non staff = messaggio e link al portale. Fonte unica get_scadenzario_abbonamenti() (null = tutti gli abbonati attivi); in piu' sola lettura di abbonamenti_tipi (nomi e ordine del menu tipi) e lead_data (persona -> lead, per aprire il fascicolo nel portale con ?lead_id=, lo stesso ingresso gia' usato dall'agenda). Filtri Tutti · Scaduti · Entro 7 giorni · In pausa · Da pagare con contatori, menu per tipo. Una riga per abbonato: nome e cognome, abbonamento, giorni, scadenza GG/MM/AAAA + tra N giorni / scaduto da N giorni, stato colorato, pagato, ultimo pagamento, telefono (tel:) + WhatsApp (wa.me/39...), "(genitore: Nome)" se il contatto e' del genitore, "manca il contatto" in evidenza se non c'e' telefono. Ordine: scaduti in testa, poi scadenza crescente. Nessuna scrittura. -->
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scadenze abbonamenti · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#B4B4BA; --velo:rgba(255,255,255,.12);
+  --fiducia:#FFD60A; --corpo:#FF5A1F; --gravita:#0A84FF; --cordata:#30D158;
+  --rosso:#FF453A; --giallo:#FFD60A; --azzurro:#64D2FF; --verde:#30D158;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--nero);color:var(--bianco);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;max-width:880px;margin:0 auto;padding:14px 16px 60px}
+.mono{font-family:'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+a{color:inherit}
+#gate{display:none;padding:80px 24px;text-align:center}
+#gate h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:1.8rem;margin-bottom:10px}
+#gate p{color:var(--grigio);font-size:15px;margin-bottom:24px}
+#gate a{display:inline-block;padding:14px 28px;border-radius:12px;background:var(--fiducia);color:#000;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.05em;font-size:14px;text-decoration:none}
+#app{display:none}
+header.testata{padding:34px 2px 8px;text-align:center}
+header.testata h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:1.9rem;line-height:1.15}
+header.testata .sotto{color:var(--grigio);font-size:13px;margin-top:6px}
+.filtri{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 10px}
+.filtri button{font:inherit;font-size:14px;font-weight:700;padding:9px 14px;border-radius:999px;border:1px solid var(--velo);background:var(--tile);color:var(--bianco);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.filtri button .n{font-size:13px;font-weight:800;background:rgba(255,255,255,.14);border-radius:999px;padding:1px 8px}
+.filtri button.on{background:var(--bianco);color:#000;border-color:var(--bianco)}
+.filtri button.on .n{background:rgba(0,0,0,.12)}
+.tipo-wrap{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tipo-wrap label{font-size:13px;color:var(--grigio);font-weight:700}
+.tipo-wrap select{font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;background:var(--tile);color:var(--bianco);border:1px solid var(--velo);max-width:100%}
+.riga{background:var(--tile);border:1px solid var(--velo);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:6px 14px}
+.riga.scaduto{border-color:rgba(255,69,58,.55)}
+.nome{font-size:17px;font-weight:700}
+.nome a{text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px}
+.abb{font-size:14px;color:var(--bianco)}
+.giorni{font-size:14px;color:var(--grigio)}
+.scad{text-align:right;white-space:nowrap}
+.scad .data{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.scad .rel{font-size:13px;color:var(--grigio)}
+.scad .rel.rosso{color:var(--rosso);font-weight:700}
+.meta{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:14px}
+.pill{display:inline-block;font-size:13px;font-weight:800;padding:2px 10px;border-radius:999px;color:#000}
+.pill.scaduto{background:var(--rosso);color:#fff}.pill.in_scadenza{background:var(--giallo)}.pill.in_pausa{background:var(--azzurro)}.pill.attivo{background:var(--verde)}.pill.senza_scadenza{background:#8E8E93;color:#fff}
+.pagato{font-weight:700;font-size:13px}
+.pagato.si{color:var(--verde)}.pagato.no{color:var(--rosso)}
+.ultimo{color:var(--grigio);font-size:13px}
+.contatto{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;border-top:1px solid var(--velo);padding-top:8px;margin-top:2px}
+.contatto a.tel{font-weight:700;text-decoration:none;font-variant-numeric:tabular-nums}
+.contatto a.wa{display:inline-block;background:#25D366;color:#000;font-weight:800;font-size:13px;padding:5px 12px;border-radius:999px;text-decoration:none}
+.contatto .gen{color:var(--grigio);font-size:13px}
+.manca{display:inline-block;background:rgba(255,69,58,.18);border:1px solid var(--rosso);color:#FF8A80;font-weight:800;font-size:13px;padding:3px 10px;border-radius:8px}
+.vuoto,.errore{text-align:center;padding:30px 12px;font-size:15px;color:var(--grigio)}
+.errore{color:#FF8A80;font-weight:700}
+@media(max-width:560px){
+  .riga{grid-template-columns:1fr}
+  .scad{text-align:left}
+}
+</style>
+</head>
+<body>
+<button aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/portale.html?nav=segreteria'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
+
+<div id="gate">
+  <h1>Scadenze abbonamenti</h1>
+  <p id="gate-msg">Questa pagina è riservata alla segreteria dell'Accademia. Accedi dal portale.</p>
+  <a href="/portale.html">VAI AL PORTALE</a>
+</div>
+
+<div id="app">
+<header class="testata">
+  <h1>Scadenze abbonamenti</h1>
+  <div class="sotto mono">Accademia ArrampiKata RCC</div>
+  <div class="sotto" id="aggiornato"></div>
+</header>
+
+<div class="filtri" id="filtri" role="tablist"></div>
+<div class="tipo-wrap">
+  <label for="tipo">Abbonamento</label>
+  <select id="tipo"><option value="">Tutti gli abbonamenti</option></select>
+</div>
+<div id="lista"><div class="vuoto">Caricamento…</div></div>
+</div>
+
+<script>
+/* ─── CFG identica alle pagine live (listini.html) ─── */
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+};
+// Stessi ruoli di isStaff() in portale.html
+const ROLES_STAFF=['creator','admin','segreteria','istruttore','monitor','assistente','istruttore_jr','istruttore_senior','istruttore_tutor','maestro'];
+const STAFF_ISTRUTTORI=['staff_istruttore_jr','staff_istruttore_sr','staff_istruttore_tutor'];
+
+const FILTRI=[
+  ['tutti','Tutti',r=>true],
+  ['scaduti','Scaduti',r=>r.stato==='scaduto'],
+  ['entro7','Entro 7 giorni',r=>r.giorni_alla_scadenza!=null&&r.giorni_alla_scadenza>=0&&r.giorni_alla_scadenza<=7],
+  ['pausa','In pausa',r=>r.stato==='in_pausa'],
+  ['dapagare','Da pagare',r=>!r.pagato]
+];
+const STATO_LBL={scaduto:'scaduto',in_scadenza:'in scadenza',in_pausa:'in pausa',attivo:'attivo',senza_scadenza:'senza scadenza'};
+const METODO_LBL={contanti:'contanti',bonifico:'bonifico',pos:'POS',stripe:'Stripe'};
+
+let righe=[], tipi=[], leadDi={}, filtro='tutti', tipoSel='';
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function gma(iso){if(!iso)return'—';const p=String(iso).slice(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+function euro(n){const v=Number(n);return isFinite(v)?v.toLocaleString('it-IT',{maximumFractionDigits:2}):'—'}
+function relativo(g){
+  if(g==null)return'';
+  if(g===0)return'scade oggi';
+  if(g===1)return'tra 1 giorno';
+  if(g>1)return'tra '+g+' giorni';
+  return g===-1?'scaduto da 1 giorno':'scaduto da '+(-g)+' giorni';
+}
+// Numero per wa.me: solo cifre, prefisso 39 se manca (stessa regola di apriWhatsAppLead nel portale)
+function waNum(tel){
+  let t=String(tel||'').replace(/[^0-9+]/g,'');
+  if(!t)return'';
+  t=t.replace(/^\+/,'').replace(/^00/,'');
+  if(t.indexOf('39')!==0&&t.length<=10)t='39'+t;
+  return t;
+}
+
+function ordina(a,b){
+  const sa=a.stato==='scaduto'?0:1, sb_=b.stato==='scaduto'?0:1;
+  if(sa!==sb_)return sa-sb_;
+  const da=a.data_fine||'9999-12-31', db=b.data_fine||'9999-12-31';
+  if(da!==db)return da.localeCompare(db);
+  return((a.cognome||'')+(a.nome||'')).localeCompare((b.cognome||'')+(b.nome||''),'it');
+}
+
+function render(){
+  const perTipo=righe.filter(r=>!tipoSel||r.tipo_abbonamento===tipoSel);
+  document.getElementById('filtri').innerHTML=FILTRI.map(([k,lbl,fn])=>
+    `<button type="button" role="tab" aria-selected="${k===filtro}" class="${k===filtro?'on':''}" data-f="${k}">${lbl}<span class="n">${perTipo.filter(fn).length}</span></button>`
+  ).join('');
+  document.querySelectorAll('#filtri button').forEach(b=>b.onclick=()=>{filtro=b.dataset.f;render()});
+  const fn=(FILTRI.find(f=>f[0]===filtro)||FILTRI[0])[2];
+  const vis=perTipo.filter(fn).sort(ordina);
+  const lista=document.getElementById('lista');
+  if(!vis.length){lista.innerHTML='<div class="vuoto">Nessun abbonato in questa vista.</div>';return}
+  lista.innerHTML=vis.map(r=>{
+    const nomeC=((r.nome||'')+' '+(r.cognome||'')).trim()||'(senza nome)';
+    const lid=leadDi[r.persona_id];
+    const nome=lid?`<a href="/portale.html?lead_id=${encodeURIComponent(lid)}" target="_blank">${esc(nomeC)}</a>`:esc(nomeC);
+    const g=r.giorni_alla_scadenza;
+    const ult=r.ultimo_pagamento_il
+      ?'Ultimo pagamento: '+(r.ultimo_importo!=null?euro(r.ultimo_importo)+' € · ':'')+(r.ultimo_metodo?(METODO_LBL[r.ultimo_metodo]||r.ultimo_metodo):'da pagare')+' · il '+gma(String(r.ultimo_pagamento_il).slice(0,10))
+      :'Nessun pagamento registrato';
+    const wa=waNum(r.telefono);
+    const contatto=r.telefono
+      ?`<a class="tel" href="tel:${esc(String(r.telefono).replace(/\s+/g,''))}">📞 ${esc(r.telefono)}</a>${wa?`<a class="wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp</a>`:''}${r.contatto_di?`<span class="gen">(genitore: ${esc(r.contatto_di)})</span>`:''}`
+      :`<span class="manca">manca il contatto</span>${r.email?` <a href="mailto:${esc(r.email)}">${esc(r.email)}</a>${r.contatto_di?`<span class="gen">(genitore: ${esc(r.contatto_di)})</span>`:''}`:''}`;
+    return`<div class="riga ${r.stato==='scaduto'?'scaduto':''}">
+      <div>
+        <div class="nome">${nome}</div>
+        <div class="abb">${esc(r.label)}</div>
+        <div class="giorni">${esc(r.giorni||'nessun giorno')}${r.in_pausa_fino?' · in pausa fino al '+gma(r.in_pausa_fino):''}</div>
+      </div>
+      <div class="scad">
+        <div class="data">${r.data_fine?gma(r.data_fine):'senza scadenza'}</div>
+        <div class="rel ${g!=null&&g<0?'rosso':''}">${relativo(g)}</div>
+      </div>
+      <div class="meta">
+        <span class="pill ${esc(r.stato)}">${STATO_LBL[r.stato]||esc(r.stato)}</span>
+        <span class="pagato ${r.pagato?'si':'no'}">${r.pagato?'pagato':'da pagare'}</span>
+        <span class="ultimo">${esc(ult)}</span>
+      </div>
+      <div class="contatto">${contatto}</div>
+    </div>`;
+  }).join('');
+}
+
+async function init(){
+  const sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){document.getElementById('gate').style.display='block';return;}
+  const uid=session.user.id;
+  const[rp,rd]=await Promise.all([
+    sb.from('profiles').select('role').eq('user_id',uid).maybeSingle(),
+    sb.from('profile_data').select('staff_role').eq('user_id',uid).maybeSingle()
+  ]);
+  const role=(rp.data||{}).role, staff=(rd.data||{}).staff_role;
+  if(!(ROLES_STAFF.includes(role)||STAFF_ISTRUTTORI.includes(staff))){
+    document.getElementById('gate').style.display='block';return;
+  }
+  document.getElementById('app').style.display='block';
+  const lista=document.getElementById('lista');
+  const[sc,tp]=await Promise.all([
+    sb.rpc('get_scadenzario_abbonamenti',{p_entro_giorni:null}),
+    sb.from('abbonamenti_tipi').select('tipo,label,ordine').order('ordine')
+  ]);
+  if(sc.error){lista.innerHTML='<div class="errore">'+esc(sc.error.message)+'</div>';return}
+  righe=sc.data||[];
+  tipi=tp.data||[];
+  // menu tipi: nomi e ordine da abbonamenti_tipi, solo quelli che hanno abbonati
+  const presenti=new Set(righe.map(r=>r.tipo_abbonamento));
+  const sel=document.getElementById('tipo');
+  sel.innerHTML='<option value="">Tutti gli abbonamenti</option>'+tipi.filter(t=>presenti.has(t.tipo)).map(t=>{
+    const n=righe.filter(r=>r.tipo_abbonamento===t.tipo).length;
+    return`<option value="${esc(t.tipo)}">${esc(t.label)} (${n})</option>`;
+  }).join('');
+  sel.onchange=()=>{tipoSel=sel.value;render()};
+  document.getElementById('aggiornato').textContent=righe.length+' abbonati attivi · aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  render();
+  // persona -> lead per aprire il fascicolo nel portale (?lead_id=, ingresso gia' usato dall'agenda)
+  const ids=[...new Set(righe.map(r=>r.persona_id).filter(Boolean))];
+  if(ids.length){
+    const{data:ld,error}=await sb.from('lead_data').select('id,persona_id,created_at').in('persona_id',ids).order('created_at',{ascending:false});
+    if(error){console.warn('[scadenzario] lead_data:',error.message);return}
+    (ld||[]).forEach(x=>{if(!leadDi[x.persona_id])leadDi[x.persona_id]=x.id});
+    render();
+  }
+}
+init().catch(e=>{console.error('[scadenzario]',e);const l=document.getElementById('lista');if(l)l.innerHTML='<div class="errore">Errore nel caricare lo scadenzario: '+esc(e.message||e)+'</div>'});
+</script>
+</body>
+</html>
