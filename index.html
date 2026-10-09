@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: index · 2026-09-20 · (1) riquadro portale: da 'sta arrivando' a 'è attivo' + bottone 'Entra nel portale' + '2 video per Kata' (era 5, superato dall'11 giu). (2) DECISIONE MARCO 20 set: la voce diventa 'Prodotti Esclusivi — imprenditori, professionisti, atleti' (lista modi, menu Inizia, menu mobile, card) + NUOVA voce 'Scuole, associazioni, enti' che porta a palestra-arrampicata-roma.it/progetti-scolastici/. CSS: .what-visual da altezza fissa (380/320px, overflow hidden) a min-height, altrimenti la quinta voce veniva tagliata. Storico: intensivi NON piu' legati al solo 'Imprenditore' (menu Inizia, menu mobile, voce 'modi di praticare', card): ora 'Intensivi — un weekend con il Maestro, in persona'. Card 'Con il Maestro, in persona' (posizionamento Marco 20 set: intensivi = porta stretta, su selezione, senza calendario fisso, non spinti a tutti), link a syncrolink.co/#essence. Nessun prezzo in pagina: kataclimb.com non vende corsi. -->
+<!-- KC-BUILD: index · 2026-10-09 · AUDIT v2.0 GIRO 1: (1) JSON-LD Organization.logo puntava a Logo_Bianco_KataClimb.png, che non esiste (404): ora favicon-512x512.png (logo KataClimb completo, PNG 512x512, raster come chiede Google). (2) "33 Kata in 6 fasi" -> "33 Kata in 6 soglie" in meta description, og:description, twitter:description e JSON-LD; nel corpo "33 Kata. 5 fasi progressive" -> "33 Kata. 6 soglie". Nient'altro. CUMULA index · 2026-09-20 · (1) riquadro portale: da 'sta arrivando' a 'è attivo' + bottone 'Entra nel portale' + '2 video per Kata' (era 5, superato dall'11 giu). (2) DECISIONE MARCO 20 set: la voce diventa 'Prodotti Esclusivi — imprenditori, professionisti, atleti' (lista modi, menu Inizia, menu mobile, card) + NUOVA voce 'Scuole, associazioni, enti' che porta a palestra-arrampicata-roma.it/progetti-scolastici/. CSS: .what-visual da altezza fissa (380/320px, overflow hidden) a min-height, altrimenti la quinta voce veniva tagliata. Storico: intensivi NON piu' legati al solo 'Imprenditore' (menu Inizia, menu mobile, voce 'modi di praticare', card): ora 'Intensivi — un weekend con il Maestro, in persona'. Card 'Con il Maestro, in persona' (posizionamento Marco 20 set: intensivi = porta stretta, su selezione, senza calendario fisso, non spinti a tutti), link a syncrolink.co/#essence. Nessun prezzo in pagina: kataclimb.com non vende corsi. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <script>if(location.hash&&location.hash.includes('access_token'))location.replace('/portale.html'+location.hash);</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KataClimb — 33 Kata. Un Metodo. La Tua Trasformazione.</title>
-<meta name="description" content="KataClimb: 33 Kata in 6 fasi, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.">
+<meta name="description" content="KataClimb: 33 Kata in 6 soglie, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.">
 <meta name="keywords" content="KataClimb, arrampicata, palestra di arrampicata Roma, palestra arrampicata La Storta, Marco Nescatelli, 33 Kata, metodo arrampicata, Accademia RCC, Syncrolink">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
@@ -18,13 +18,13 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kataclimb.com/">
 <meta property="og:title" content="KataClimb — 33 Kata. Un Metodo. La Tua Trasformazione.">
-<meta property="og:description" content="KataClimb: 33 Kata in 6 fasi, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.">
+<meta property="og:description" content="KataClimb: 33 Kata in 6 soglie, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.">
 <meta property="og:image" content="https://kataclimb.com/hero-photo.jpg">
 <meta property="og:locale" content="it_IT">
 <meta property="og:site_name" content="KataClimb">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="KataClimb — 33 Kata. Un Metodo. La Tua Trasformazione.">
-<meta name="twitter:description" content="KataClimb: 33 Kata in 6 fasi, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.">
+<meta name="twitter:description" content="KataClimb: 33 Kata in 6 soglie, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.">
 <meta name="twitter:image" content="https://kataclimb.com/hero-photo.jpg">
 <script type="application/ld+json">
 {
@@ -34,7 +34,7 @@
       "@type": "WebSite",
       "name": "KataClimb",
       "url": "https://kataclimb.com/",
-      "description": "KataClimb: 33 Kata in 6 fasi, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.",
+      "description": "KataClimb: 33 Kata in 6 soglie, il metodo di arrampicata di Marco Nescatelli. Accademia RCC Roma La Storta — palestra di arrampicata — più intensivi e aziende via Syncrolink.",
       "inLanguage": "it"
     },
     {
@@ -42,7 +42,7 @@
       "name": "KataClimb",
       "keywords": "palestra di arrampicata Roma, palestra arrampicata La Storta, arrampicata sportiva, metodo KataClimb, 33 Kata, Marco Nescatelli, Accademia RCC",
       "url": "https://kataclimb.com/",
-      "logo": "https://kataclimb.com/Logo_Bianco_KataClimb.png",
+      "logo": "https://kataclimb.com/favicon-512x512.png",
       "sameAs": [
         "https://www.instagram.com/marco_nescatelli/"
       ],
@@ -1997,7 +1997,7 @@
       <div class="section-label">Il Percorso</div>
       <h2 class="section-title">L'arco della<br>trasformazione</h2>
       <p class="section-desc">
-        33 Kata. 5 fasi progressive — e poi si va ben Oltre.
+        33 Kata. 6 soglie — e poi si va ben Oltre.
         Si parte dal corpo, si arriva oltre sé stessi.
         Ogni allievo è il nostro centro e la riprova della nostra coerenza e responsabilità.
       </p>
