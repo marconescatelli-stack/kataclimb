@@ -25,8 +25,13 @@ Questo repository contiene **solo le pagine web**. Worker e database stanno altr
 | `monitor.html` · `pro.html` · `guida.html` · `libro.html` | Aree di supporto |
 
 ## Cartelle
-- `_archivio/` — vecchie bozze e prototipi **non pubblici** (es. `*_proto`, `*_test`, `*_v08`).
-  Conservati per storia, non linkati da nessuna pagina viva.
+- `docs/` — documentazione: `INFRASTRUTTURA-SVILUPPO.md`, `AUDIT.md`.
+- `sql/` — migration e verifiche del database, una cartella per cantiere (es. `debito-190/`, `monitor/`).
+- `foto/` — libreria delle foto pubbliche, vedi `foto/INDICE.md`.
+- `_archivio/` — file non più usati, conservati (vecchie bozze, prototipi, immagini senza riferimenti).
+  Non linkati da nessuna pagina viva.
+
+Le pagine pubbliche restano nella radice: spostarle cambia l'indirizzo su kataclimb.com.
 
 ## Infrastruttura esterna (NON in questo repo)
 - **Cloudflare Workers**: `stripe-worker`, `kataclimb-notifiche`, `kc-lead`, ecc.
