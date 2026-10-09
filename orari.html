@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: orari v0.37 · 2026-10-07 · GIMMY ANCHE IL VENERDI' (decisione Marco 7 ott, DB già allineato: Prima Lezione Adulti ven 19-20 riattivata 72578616, nuovo Open ven 21-22 e1b5ad5e): griglia Ven 19-20 Evo+Prima (Gimmy), Ven 21-22 Open (Gimmy); schede Open e Prima aggiornate. Il venerdì ha ora DUE orari di Prima (19 Gimmy, 20 Mello): supera la regola del 28 set. Nient'altro toccato. -->
+<!-- KC-BUILD: orari v0.38 · 2026-10-09 · LA SETTIMANA INTERA SUL TELEFONO (Marco 8 ott: per vedere ven/sab/dom bisognava scorrere di lato la griglia da 1010px). Sotto i 760px la griglia tabellare (.ov-scroll) sparisce e al suo posto c'e' #sett-mob: Lunedi' -> Domenica in verticale, una scheda per giorno con nome del giorno + orario di apertura (dal .ap della griglia), i blocchi in ordine di fascia oraria uno sotto l'altro (anche quelli in contemporanea), stesso nome completo, orario, istruttore e colore, cliccabili sulla stessa scheda-modale (apriCorso via data-c, anche da tastiera); la nota della domenica in coda. FONTE UNICA: #sett-mob e' generato in JS leggendo .ov-day/.ov-cell/.ov-b e le loro posizioni grid-column/grid-row (colonna = giorno, riga = fascia), i blocchi sono clonati: si cambia un orario nella griglia e cambia anche il telefono. Testi >=13px. Il giorno di oggi ha il bordo scuro e l'etichetta "oggi" (ordine Lun->Dom invariato). Su telefono sparisce .ov-hint. Sopra i 760px nessun cambiamento. Schede corso, Eventi, Metodo, CTA e meta NON toccati. CUMULA v0.37 · 2026-10-07 · GIMMY ANCHE IL VENERDI' (decisione Marco 7 ott, DB già allineato: Prima Lezione Adulti ven 19-20 riattivata 72578616, nuovo Open ven 21-22 e1b5ad5e): griglia Ven 19-20 Evo+Prima (Gimmy), Ven 21-22 Open (Gimmy); schede Open e Prima aggiornate. Il venerdì ha ora DUE orari di Prima (19 Gimmy, 20 Mello): supera la regola del 28 set. Nient'altro toccato. -->
 <!-- KC-BUILD: orari v0.36 · 2026-10-07 · ISTRUTTORI IN GRIGLIA (richiesta Marco 7 ott): sotto ogni corso e ogni Monitor il nome di chi tiene la lezione, separato da una linea sottile (classe .i). Nomi presi da corsi_attivi_settimanali.istruttore_id (letto il 7 ott): Claudia e Mattia sui minori, Mello su Expert/Advance/Fly/Open/Evo/Giovani/Senior/Prima Genitori/Prima gio-ven, Gimmy il martedì (Prima 18-19 e 21-22, Open 20-21), Claudia su Intro lun. Monitor: il nome del turno passa dalla riga orario a sotto, come i corsi. Sabato: Monitor "a turno" e Lab "a rotazione" (a DB istruttore NULL). Griglia sempre STATICA: ogni cambio istruttore a DB va riportato a mano anche qui. Nient'altro toccato. -->
 <!-- KC-BUILD: orari v0.35 · 2026-10-06 · PUPI ANCHE IL MERCOLEDI' (decisione Marco 6 ott, DB già allineato: slot corso + Prima Lezione bambini mer 17-18, Claudia e Mattia): nella griglia la cella Mer 17-18 mostra Pupi sopra Evo Ragazzi; scheda Pupi ora 'Lun, Mer e Gio 17:00–18:00'. Nient'altro toccato. -->
 <!-- KC-BUILD: orari v0.34 · 2026-10-02 · RIENTRO GIMMY (decisione Marco 2 ott, DB già allineato). ORARI DI APERTURA CORRETTI (Marco 2 ott): l'Accademia è aperta sempre lun–ven 17–22 e sab 14–18 — tutte le intestazioni Lun–Ven ora 'apre 17–22' (Mar e Ven erano sbagliate: 19–22 e 18–22); in griglia Mar 18–19 Prima Lezione Adulti (tutta la colonna), Mar 20–21 Open KataClimb e Mar 21–22 Prima Lezione Adulti (mezza colonna sinistra, il Monitor Claudia resta a destra). VENERDÌ 21–22 Prima Lezione tolta dalla griglia (decisione Marco 28 set: un solo orario il venerdì; a DB archiviata dopo la lezione del 2 ott). Schede: Prima Lezione ora 'Mar 18–19 · Mar 21–22 · Gio 20–21 · Ven 20–21', chi 'Gimmy (mar) · Mello (gio · ven)'; Open ora include Mar 20–21, chi 'Mello · Gimmy (mar)'. Giovedì Prima a 4 posti solo a DB (la griglia non mostra capienze). Nient'altro toccato. CUMULA v0.33 (riga sotto). -->
@@ -97,6 +97,26 @@ section{padding:52px 0}
 .ov-dom-note{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--testo2);font-style:italic;line-height:1.45;padding:6px;background:var(--fondo);border-radius:6px}
 .ov-hint{font-size:12px;color:var(--testo2);margin-top:8px;display:none}
 @media(max-width:1030px){.ov-hint{display:block}}
+
+/* ── v0.38 SETTIMANA SU TELEFONO (<760px): giorno per giorno in verticale, GENERATA in JS dalla griglia qui sopra (fonte unica) ── */
+.sett-mob{display:none;flex-direction:column;gap:12px}
+.sm-giorno{background:var(--carta);border:1px solid var(--linea);border-radius:14px;padding:12px}
+.sm-giorno.oggi{border:2px solid var(--ink)}
+.sm-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;padding:0 2px 10px;border-bottom:2px solid var(--linea2);margin-bottom:10px}
+.sm-h .g{font-family:'Anton',sans-serif;font-size:19px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.sm-h .ap{font-size:14px;font-weight:700;color:var(--testo2)}
+.sm-h .oggi-tag{font-size:13px;font-weight:800;background:var(--ink);color:#fff;border-radius:99px;padding:2px 10px;margin-left:auto}
+.sm-lista{display:flex;flex-direction:column;gap:8px}
+.sett-mob .ov-b{flex:none;text-align:left;padding:10px 12px;border-radius:8px}
+.sett-mob .ov-b .n{font-size:16px;letter-spacing:.03em;line-height:1.15}
+.sett-mob .ov-b .o{font-size:14px;margin-top:4px}
+.sett-mob .ov-b .i{font-size:14px;margin-top:6px;padding-top:5px}
+.sm-nota{font-size:14px;color:var(--testo2);font-style:italic;line-height:1.45;padding:10px 12px;background:var(--fondo);border-radius:8px}
+@media(max-width:759px){
+  .ov-scroll{display:none}
+  .ov-hint{display:none!important}
+  .sett-mob{display:flex}
+}
 
 /* legenda */
 .legenda{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
@@ -262,6 +282,7 @@ footer a{color:var(--testo2)}
 <div class="ov-dom-note" style="grid-column:14/16;grid-row:3/9">Il pomeriggio è tuo:<br>casa, famiglia, vita.</div>
 </div></div></div>
     <p class="ov-hint">Scorri la griglia verso destra per vedere tutta la settimana →</p>
+    <div class="sett-mob" id="sett-mob" aria-label="La settimana dell'Accademia, giorno per giorno"></div>
 
     <div class="legenda">
       <span><i style="background:var(--pupi)"></i>Pupi</span>
@@ -459,6 +480,35 @@ document.addEventListener('click',e=>{
   if(e.target===mov||e.target.id==='m-chiudi')chiudiCorso();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')chiudiCorso()});
+/* v0.38 — settimana su telefono GENERATA dalla griglia (fonte unica): giorni da .ov-day, blocchi da .ov-cell/.ov-b
+   con le loro posizioni (colonna = giorno, riga = fascia oraria). I blocchi sono CLONATI: stesso nome, orario,
+   istruttore, colore e data-c (la scheda-modale si apre col click delegato qui sopra). Gira prima del forEach
+   che rende i [data-c] attivabili da tastiera, cosi' vale anche per i cloni. */
+(function settimanaMobile(){
+  const grid=document.querySelector('#settimana .ov-grid'),box=document.getElementById('sett-mob');
+  if(!grid||!box)return;
+  const NOMI=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+  const col=el=>parseInt(el.style.gridColumnStart,10), row=el=>parseInt(el.style.gridRowStart,10)||0;
+  const giornoDi=c=>Math.floor((c-2)/2); // colonna 1 = ore, poi due colonne per giorno (corso + mezza colonna Monitor)
+  const giorni=NOMI.map(()=>({ap:'',items:[],note:[]}));
+  grid.querySelectorAll('.ov-day').forEach(d=>{const g=giornoDi(col(d));if(giorni[g])giorni[g].ap=(d.querySelector('.ap')||{}).textContent||''});
+  let ord=0;
+  grid.querySelectorAll(':scope > .ov-cell').forEach(cell=>{
+    const g=giornoDi(col(cell)),r=row(cell);
+    cell.querySelectorAll('.ov-b').forEach(b=>{if(giorni[g])giorni[g].items.push({r,o:ord++,el:b})});
+  });
+  grid.querySelectorAll(':scope > .ov-b').forEach(b=>{const g=giornoDi(col(b));if(giorni[g])giorni[g].items.push({r:row(b),o:ord++,el:b})});
+  grid.querySelectorAll(':scope > .ov-dom-note').forEach(n=>{const g=giornoDi(col(n));if(giorni[g])giorni[g].note.push(n.innerHTML)});
+  const oggi=(new Date().getDay()+6)%7; // 0 = lunedi'
+  box.innerHTML=giorni.map((d,i)=>'<div class="sm-giorno'+(i===oggi?' oggi':'')+'" data-g="'+i+'"><div class="sm-h"><span class="g">'+NOMI[i]+'</span>'+(d.ap?'<span class="ap">'+d.ap+'</span>':'')+(i===oggi?'<span class="oggi-tag">oggi</span>':'')+'</div><div class="sm-lista"></div></div>').join('');
+  giorni.forEach((d,i)=>{
+    const lista=box.querySelector('[data-g="'+i+'"] .sm-lista');
+    d.items.sort((a,b)=>a.r-b.r||a.o-b.o).forEach(it=>{
+      const c=it.el.cloneNode(true);c.removeAttribute('style');lista.appendChild(c);
+    });
+    d.note.forEach(html=>{const n=document.createElement('div');n.className='sm-nota';n.innerHTML=html;lista.appendChild(n)});
+  });
+})();
 document.querySelectorAll('[data-c]').forEach(el=>{if(el.tagName!=='A'){el.setAttribute('role','button');el.setAttribute('tabindex','0');
   el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();apriCorso(el.dataset.c)}})}});
 </script>
