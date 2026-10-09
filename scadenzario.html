@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: scadenzario v1.0 · 2026-10-08 · SCADENZARIO ABBONAMENTI (migration abbonamenti v1, 8 ott). Pagina staff autonoma, guscio/stile/auth come listini.html: senza sessione o non staff = messaggio e link al portale. Fonte unica get_scadenzario_abbonamenti() (null = tutti gli abbonati attivi); in piu' sola lettura di abbonamenti_tipi (nomi e ordine del menu tipi) e lead_data (persona -> lead, per aprire il fascicolo nel portale con ?lead_id=, lo stesso ingresso gia' usato dall'agenda). Filtri Tutti · Scaduti · Entro 7 giorni · In pausa · Da pagare con contatori, menu per tipo. Una riga per abbonato: nome e cognome, abbonamento, giorni, scadenza GG/MM/AAAA + tra N giorni / scaduto da N giorni, stato colorato, pagato, ultimo pagamento, telefono (tel:) + WhatsApp (wa.me/39...), "(genitore: Nome)" se il contatto e' del genitore, "manca il contatto" in evidenza se non c'e' telefono. Ordine: scaduti in testa, poi scadenza crescente. Nessuna scrittura. -->
+<!-- KC-BUILD: scadenzario v1.1 · 2026-10-09 · ABBONAMENTI SALA (tipi senza giorni, DB 9 ott): le righe senza giorni hanno la riga giorni vuota (prima "nessun giorno"), mai "null"; il menu per tipo elenca TUTTI i tipi di abbonamenti_tipi per ordine, anche a zero abbonati (prima solo quelli presenti), cosi' i tre tipi Sala ci sono sempre. Nient'altro. CUMULA v1.0 · 2026-10-08 · SCADENZARIO ABBONAMENTI (migration abbonamenti v1, 8 ott). Pagina staff autonoma, guscio/stile/auth come listini.html: senza sessione o non staff = messaggio e link al portale. Fonte unica get_scadenzario_abbonamenti() (null = tutti gli abbonati attivi); in piu' sola lettura di abbonamenti_tipi (nomi e ordine del menu tipi) e lead_data (persona -> lead, per aprire il fascicolo nel portale con ?lead_id=, lo stesso ingresso gia' usato dall'agenda). Filtri Tutti · Scaduti · Entro 7 giorni · In pausa · Da pagare con contatori, menu per tipo. Una riga per abbonato: nome e cognome, abbonamento, giorni, scadenza GG/MM/AAAA + tra N giorni / scaduto da N giorni, stato colorato, pagato, ultimo pagamento, telefono (tel:) + WhatsApp (wa.me/39...), "(genitore: Nome)" se il contatto e' del genitore, "manca il contatto" in evidenza se non c'e' telefono. Ordine: scaduti in testa, poi scadenza crescente. Nessuna scrittura. -->
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -164,7 +164,7 @@ function render(){
       <div>
         <div class="nome">${nome}</div>
         <div class="abb">${esc(r.label)}</div>
-        <div class="giorni">${esc(r.giorni||'nessun giorno')}${r.in_pausa_fino?' · in pausa fino al '+gma(r.in_pausa_fino):''}</div>
+        <div class="giorni">${[r.giorni?esc(r.giorni):'',r.in_pausa_fino?'in pausa fino al '+gma(r.in_pausa_fino):''].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="scad">
         <div class="data">${r.data_fine?gma(r.data_fine):'senza scadenza'}</div>
@@ -202,10 +202,9 @@ async function init(){
   if(sc.error){lista.innerHTML='<div class="errore">'+esc(sc.error.message)+'</div>';return}
   righe=sc.data||[];
   tipi=tp.data||[];
-  // menu tipi: nomi e ordine da abbonamenti_tipi, solo quelli che hanno abbonati
-  const presenti=new Set(righe.map(r=>r.tipo_abbonamento));
+  // menu tipi: nomi e ordine da abbonamenti_tipi, TUTTI (v1.1: anche i tipi Sala, anche a zero abbonati)
   const sel=document.getElementById('tipo');
-  sel.innerHTML='<option value="">Tutti gli abbonamenti</option>'+tipi.filter(t=>presenti.has(t.tipo)).map(t=>{
+  sel.innerHTML='<option value="">Tutti gli abbonamenti</option>'+tipi.map(t=>{
     const n=righe.filter(r=>r.tipo_abbonamento===t.tipo).length;
     return`<option value="${esc(t.tipo)}">${esc(t.label)} (${n})</option>`;
   }).join('');
