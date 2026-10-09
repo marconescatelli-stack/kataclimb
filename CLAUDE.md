@@ -59,3 +59,9 @@ Cloudflare Pages/Workers/R2 + Supabase + Brevo (email transazionali) + Stripe + 
 - Nella descrizione della PR: cosa è stato modificato, quali file, cosa verificare sull'anteprima.
 - Non toccare file fuori dal perimetro del task.
 - Documentazione di dettaglio (quando presente) in `/docs`: consultarla prima di lavorare su portale, DB o infrastruttura.
+
+## Pagine che non si toccano
+
+- inizia_lead.html è la landing ATTIVA della campagna Meta (form → Worker kc-lead → find_or_create_persona_e_richiesta). Nessuna pagina del sito la linka, ma riceve contatti ogni settimana. Mai spostarla, rinominarla o archiviarla.
+- Prima di dichiarare un file "non usato": oltre al grep nel repo, chiedere a Marco di controllare da chat la tabella lead_richieste (colonna pagina) e le fonti esterne (Meta, Stripe, mail Brevo, QR, link su WhatsApp).
+- Le pagine pubbliche restano nella radice; _archivio/ non è pubblicato da GitHub Pages.
