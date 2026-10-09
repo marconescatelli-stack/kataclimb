@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: evento v1.2 · 2026-06-12 02:55 · + blocco Livello (tema uscita, corso richiesto, gradi min–max). CUMULA v1.1 · 2026-06-12 02:30 · + blocco Ritrovo: punto incontro cliccabile (punto_incontro_url o link Maps costruito dal testo → navigatore), orari partenza/rientro. CUMULA v1.0: Pagina evento generica a due vite: futuro=invito (descrizione, CTA WhatsApp+worker, liste cordata/interessati), passato=memoria (galleria foto, minivideo Stream, scudetto). Fonte: RPC get_evento_pubblico(slug). Iscrizione: kc-eventi (richiede v3 con evento_slug+stato) -->
+<!-- KC-BUILD: evento v1.3 · 2026-10-09 · RITROVO UNA VOLTA SOLA (audit v2.0 giro 1): nella vista invito il blocco Ritrovo usciva due volte (variabile inline ritrovo + ritrovoHTML(e)). Tolta la copia inline e il suo uso; ritrovoHTML resta l'unico punto e prende dalla copia inline cio' che le mancava: ricerca sul navigatore con anche il luogo, link "📍 punto → apri il navigatore", partenza e rientro in grassetto, orari escapati. Nient'altro. CUMULA v1.2 · 2026-06-12 02:55 · + blocco Livello (tema uscita, corso richiesto, gradi min–max). CUMULA v1.1 · 2026-06-12 02:30 · + blocco Ritrovo: punto incontro cliccabile (punto_incontro_url o link Maps costruito dal testo → navigatore), orari partenza/rientro. CUMULA v1.0: Pagina evento generica a due vite: futuro=invito (descrizione, CTA WhatsApp+worker, liste cordata/interessati), passato=memoria (galleria foto, minivideo Stream, scudetto). Fonte: RPC get_evento_pubblico(slug). Iscrizione: kc-eventi (richiede v3 con evento_slug+stato) -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Evento — Accademia ArrampiKata RCC | KataClimb</title>
@@ -149,16 +149,9 @@ function render(){
   if(!past){
     /* ── VITA 1: INVITO ── */
     const landing=LANDINGS[e.slug];
-    const mapsUrl=e.punto_incontro_url||(e.punto_incontro?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.punto_incontro+(e.luogo?' '+e.luogo:'')):'');
-    const ritrovo=(e.punto_incontro||e.ora_partenza)?
-      '<div class="req" style="margin-top:10px"><b>Ritrovo</b>'+
-      (e.punto_incontro?(mapsUrl?'<a href="'+esc(mapsUrl)+'" target="_blank" rel="noopener" style="font-weight:700">📍 '+esc(e.punto_incontro)+' → apri il navigatore</a>':esc(e.punto_incontro)):'')+
-      (e.ora_partenza?'<div style="margin-top:3px">🕗 Partenza <b>'+esc(e.ora_partenza.slice(0,5))+'</b>'+(e.ora_rientro?' · rientro previsto <b>'+esc(e.ora_rientro.slice(0,5))+'</b>':'')+'</div>':'')+
-      '</div>':'';
     main='<div class="grid">'+
       '<div class="panel"><h2>L\'evento</h2>'+
         '<div class="desc">'+(e.descrizione?esc(e.descrizione):'I dettagli arrivano presto. Intanto segna la data.')+'</div>'+
-        ritrovo+
         (e.requisito?'<div class="req"><b>Per chi è</b>'+esc(e.requisito)+'</div>':'')+
         livelloHTML(e)+
         ritrovoHTML(e)+
@@ -207,13 +200,15 @@ function livelloHTML(e){
   if(e.grado_min||e.grado_max)parts.push('gradi '+(e.grado_min||'?')+(e.grado_max&&e.grado_max!==e.grado_min?'–'+e.grado_max:''));
   return '<div class="req" style="margin-top:10px"><b>Livello</b>'+parts.join(' · ')+'</div>';
 }
+/* v1.3 — unico punto che disegna il Ritrovo (prima c'era anche una copia inline in VITA 1: il blocco usciva due volte).
+   Dalla copia inline: ricerca sul navigatore con anche il luogo, orari in grassetto ed escapati. */
 function ritrovoHTML(e){
   if(!e.punto_incontro&&!e.ora_partenza)return '';
-  const url=e.punto_incontro_url||(e.punto_incontro?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.punto_incontro):null);
+  const url=e.punto_incontro_url||(e.punto_incontro?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.punto_incontro+(e.luogo?' '+e.luogo:'')):null);
   let h='<div class="req" style="margin-top:10px"><b>Ritrovo</b>';
-  if(e.punto_incontro)h+=esc(e.punto_incontro);
-  if(url)h+=' · <a href="'+esc(url)+'" target="_blank" rel="noopener" style="font-weight:700">📍 Apri il navigatore</a>';
-  if(e.ora_partenza)h+='<br>🕗 Partenza '+e.ora_partenza.slice(0,5)+(e.ora_rientro?' · rientro previsto '+e.ora_rientro.slice(0,5):'');
+  if(e.punto_incontro)h+=url?'<a href="'+esc(url)+'" target="_blank" rel="noopener" style="font-weight:700">📍 '+esc(e.punto_incontro)+' → apri il navigatore</a>':esc(e.punto_incontro);
+  else if(url)h+='<a href="'+esc(url)+'" target="_blank" rel="noopener" style="font-weight:700">📍 Apri il navigatore</a>';
+  if(e.ora_partenza)h+='<div style="margin-top:3px">🕗 Partenza <b>'+esc(e.ora_partenza.slice(0,5))+'</b>'+(e.ora_rientro?' · rientro previsto <b>'+esc(e.ora_rientro.slice(0,5))+'</b>':'')+'</div>';
   h+='</div>';return h;
 }
 function waLink(e){
