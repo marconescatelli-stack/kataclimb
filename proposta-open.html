@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: proposta-open · 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Open di KataClimb" -> "Il percorso Open KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO OPEN" -> "IL TUO PERCORSO OPEN KATACLIMB IN ACCADEMIA RCC"; (2) og:image da arrampicata_kalymnos_rcc.jpg a hero-photo.jpg (l'hero della pagina, come proposta-advance); (3) aperta senza parametri (niente u/saldo/mezza) il blocco pagamento restava nascosto senza via d'uscita: ora riquadro #cta-wa "Vuoi iniziare il percorso? Scrivici su WhatsApp" (wa.me/393318743953, stile .cta-block .wa di proposta-advance, testi >=13px); (4) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -6,13 +7,13 @@
 <meta name="theme-color" content="#0EA5E9">
 <meta name="robots" content="noindex,nofollow">
 <title>Il tuo Open · Accademia RCC</title>
-<meta name="description" content="Il percorso Open di KataClimb. 7 lezioni per andare oltre, con leggerezza e metodo.">
+<meta name="description" content="Il percorso Open KataClimb in Accademia RCC. 7 lezioni per andare oltre, con leggerezza e metodo.">
 
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kataclimb.com/proposta-open.html">
 <meta property="og:title" content="Il tuo percorso Open · Accademia RCC">
 <meta property="og:description" content="7 lezioni per andare oltre. Guarda i giorni disponibili e scegli come iniziare.">
-<meta property="og:image" content="https://kataclimb.com/arrampicata_kalymnos_rcc.jpg">
+<meta property="og:image" content="https://kataclimb.com/hero-photo.jpg">
 <meta property="og:locale" content="it_IT">
 <meta property="og:site_name" content="Accademia RCC · KataClimb">
 
@@ -130,6 +131,16 @@ body{
 .btn-pay:active{transform:scale(.98)}
 .btn-pay:hover{box-shadow:0 4px 16px rgba(14,165,233,.3)}
 .btn-pay.alt{background:var(--bg); color:var(--sky-dark); border:1.5px solid var(--sky)}
+.cta-block{margin-top:40px; padding-top:36px; border-top:1px solid var(--border); text-align:center}
+.cta-block .cta-card{
+  border:1px solid var(--border2); border-radius:16px; padding:26px 22px; background:var(--bg2);
+}
+.cta-block h3{font-size:19px; font-weight:800; margin-bottom:10px}
+.cta-block p{font-size:15px; color:var(--ink2); line-height:1.6; margin-bottom:6px}
+.cta-block .wa{
+  display:inline-block; margin-top:16px; background:#25D366; color:#fff; text-decoration:none;
+  font-weight:800; font-size:15px; padding:13px 28px; border-radius:12px;
+}
 .foot-note{font-size:12px; color:var(--ink3); text-align:center; margin-top:24px; line-height:1.7}
 .err-box{
   background:#FEF2F2; border:1px solid #FECACA; color:#991B1B;
@@ -148,7 +159,7 @@ body{
 </div>
 
 <div class="hero">
-  <div class="top-pill fu fu1">IL TUO PERCORSO OPEN</div>
+  <div class="top-pill fu fu1">IL TUO PERCORSO OPEN KATACLIMB IN ACCADEMIA RCC</div>
   <h1 class="fu fu2">7 lezioni per <span class="accent">andare oltre</span></h1>
   <p class="fu fu3" id="hero-sub">Ora puoi vedere il calendario con le disponibilità, così capisci quando frequentare.</p>
 </div>
@@ -200,6 +211,15 @@ body{
     </div>
   </div>
 
+  <!-- audit giro 2 — fallback senza parametri: stesso stile del link .wa di proposta-advance -->
+  <div class="cta-block" id="cta-wa" style="display:none">
+    <div class="cta-card">
+      <h3>Vuoi iniziare il percorso?</h3>
+      <p>Scrivici su WhatsApp: ti rispondiamo e ti mandiamo il link per iniziare.</p>
+      <a class="wa" href="https://wa.me/393318743953">Scrivici su WhatsApp</a>
+    </div>
+  </div>
+
   <div id="err-slot"></div>
 
 </div>
@@ -224,8 +244,12 @@ const errore   = qs.get('errore') || (qs.get('annullato') ? 'annullato' : null);
 const WORKER_URL = 'https://stripe-worker.marconescatelli.workers.dev';
 
 if (nome) {
-  document.getElementById('hero-sub').innerHTML =
-    `Ciao <strong style="color:#fff">${nome}</strong> — ora puoi vedere il calendario con le disponibilità, così capisci quando frequentare.`;
+  // audit giro 2 — il nome arriva dall'URL: mai in innerHTML, solo textContent (niente HTML iniettato da un link)
+  const sub = document.getElementById('hero-sub');
+  const strong = document.createElement('strong');
+  strong.style.color = '#fff';
+  strong.textContent = nome;
+  sub.replaceChildren('Ciao ', strong, ' — ora puoi vedere il calendario con le disponibilità, così capisci quando frequentare.');
 }
 
 const payBlock = document.getElementById('pay-block');
@@ -244,6 +268,10 @@ if (u) {
   else document.getElementById('card-saldo').style.display = 'none';
   if (urlMezza) document.getElementById('btn-mezza').href = urlMezza;
   else document.getElementById('card-mezza').style.display = 'none';
+} else {
+  // audit giro 2 — pagina aperta senza parametri (niente u, saldo, mezza): il blocco pagamento resta nascosto,
+  // quindi diamo una via d'uscita: scrivere su WhatsApp.
+  document.getElementById('cta-wa').style.display = 'block';
 }
 
 // avviso se si torna dall'endpoint con errore o pagamento annullato

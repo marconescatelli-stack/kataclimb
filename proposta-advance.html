@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: proposta-advance · 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Advance di KataClimb" -> "Il percorso Advance KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO ADVANCE" -> "IL TUO PERCORSO ADVANCE KATACLIMB IN ACCADEMIA RCC"; (2) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +7,7 @@
 <meta name="theme-color" content="#0EA5E9">
 <meta name="robots" content="noindex,nofollow">
 <title>Il tuo Advance · Accademia RCC</title>
-<meta name="description" content="Il percorso Advance di KataClimb. 8 lezioni per consolidare e andare oltre.">
+<meta name="description" content="Il percorso Advance KataClimb in Accademia RCC. 8 lezioni per consolidare e andare oltre.">
 
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kataclimb.com/proposta-advance.html">
@@ -151,7 +152,7 @@ body{
 </div>
 
 <div class="hero">
-  <div class="top-pill fu fu1">IL TUO PERCORSO ADVANCE</div>
+  <div class="top-pill fu fu1">IL TUO PERCORSO ADVANCE KATACLIMB IN ACCADEMIA RCC</div>
   <h1 class="fu fu2">8 lezioni per <span class="accent">consolidare</span></h1>
   <p class="fu fu3" id="hero-sub">Guarda il calendario con le disponibilità, così capisci quando frequentare.</p>
 </div>
@@ -219,8 +220,12 @@ const MESI = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov',
 const qs = new URLSearchParams(location.search);
 const nome = qs.get('nome');
 if (nome) {
-  document.getElementById('hero-sub').innerHTML =
-    `Ciao <strong style="color:#fff">${nome}</strong> — guarda il calendario con le disponibilità, così capisci quando frequentare.`;
+  // audit giro 2 — il nome arriva dall'URL: mai in innerHTML, solo textContent (niente HTML iniettato da un link)
+  const sub = document.getElementById('hero-sub');
+  const strong = document.createElement('strong');
+  strong.style.color = '#fff';
+  strong.textContent = nome;
+  sub.replaceChildren('Ciao ', strong, ' — guarda il calendario con le disponibilità, così capisci quando frequentare.');
 }
 
 function fmtData(isoStr){
