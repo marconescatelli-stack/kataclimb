@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: kata v1.3 · 2026-10-09 · VIDEO KATA MASSIMO 12 SECONDI (decisione Marco 9 ott, audit giro 2): KATA_MAX_DURATION 20 -> 12; il testo della dropzone diceva 'max 20s' scritto a mano, ora lo legge dalla costante come il messaggio d'errore. Nient'altro. CUMULA v1.2 · 2026-09-20 · KATA 1-15 APERTI A CHI HA ESSENCE-K (allineamento del blocco condiviso, stesso giro di portale v3.119). Dal 20 set 2026 chi compra l'intensivo ESSENCE-K si ritrova il profilo creato dal sistema (stripe-worker → attiva_essence) con una riga iscrizioni_corso tipo_corso='essence', status 'terminata'. Nel blocco condiviso "KATA VISIBILI PER CORSO" nuova chiave essence:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]: regola di Marco, in ESSENCE-K si lavorano quasi tutti i Kata dell'Advance oltre a quelli dell'Open e i video vanno caricati negli slot. kataVisibile fa gia' l'unione e KATA_STATUS_SVOLTO contiene gia' 'terminata': nient'altro cambia. KATA_SENZA_CORSO=['open'] e' CONFERMATO da Marco il 20 set 2026 (tolta la dicitura "da confermare, default provvisorio"). Il blocco resta IDENTICO byte per byte a quello di portale.html. Nient'altro toccato in questa pagina. CUMULA v1.1 · 2026-09-18 · KATA VISIBILI PER CORSO + AVVISI (due lavori in un solo deploy). (1) VISIBILITA' — regola di Marco, 18 set 2026: una persona vede i Kata dei corsi che sta svolgendo e di quelli gia' svolti; gli altri restano in lista, spenti, col lucchetto. Via la soglia unica k>=12 legata allo step del profilo: era sbagliata nella SOGLIA (i Kata 8, 9 e 10 sono del Corso Advance KataClimb, non dell'Open) e nella FONTE (lo step non c'entra e per giunta era disallineato: kata.html sbloccava a step>=2, portale.html a step>=3). Ora un blocco condiviso IDENTICO a quello di portale.html: mappa KATA_PER_CORSO da KataClimb_Lista_Kata_v2 (open 1-7 e 11-15, advance 8-10, intro_corda 16-26, evo_corda 27-33; le chiavi sono i tipo_corso veri), kataVisibile(k, corsiSvolti), kataVedeTutto(role, staffRole) e kataCorsiSvolti(), che legge iscrizioni_corso — fonte autorevole, RLS iscrizioni_owner_read verificata, stessa query gia' usata da profilo.html loadPercorso, nessuna colonna nuova. Valgono tutti gli status presenti (attiva, terminata, completata_pregressa, sospesa): completata_pregressa e' il percorso riconosciuto a chi era in Accademia prima del sistema ed e' la gran parte dello storico, sospesa vale perche' chi ha un corso sospeso lo ha comunque iniziato. Chi non ha nessun corso CON KATA vede i Kata dell'Open (KATA_SENZA_CORSO, default PROVVISORIO da confermare con Marco): kataVisibile tiene solo le chiavi presenti in KATA_PER_CORSO, perche' a DB esistono tipo_corso senza Kata propri (prima_lezione, lezioni_speciali, fly) e chi ha solo quelli si sarebbe ritrovato tutti e 33 i Kata bloccati. Staff, creator e istruttori vedono tutto, come prima. Se la lettura delle iscrizioni fallisce si ricade sul default: nessuna pagina si rompe. (2) AVVISI — Censimento Avvisi v0.2, blocco D, pagina agganciata a /kc-avvisi.js?v=2: (E1) la scheda di un Kata col lucchetto non rispondeva al tocco, ora dice che si apre piu' avanti nel percorso; va nel modale e non nel toast, che dura 2,4s e questa e' una frase da leggere. (E2) caricamento video fallito: alla persona la frase del registro, il messaggio tecnico resta in console. (E3) 'Target mancante' e l'errore grezzo di apriSlotProblema diventano errore_tecnico. NON toccati upload, validazione, slot video. CUMULA v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
+<!-- KC-BUILD: kata v1.4 · 2026-10-14 · VIDEO RIDOTTI A 720p DAL PORTALE (decisione Marco 14 ott, vale per tutti; Cantieri aperti E8): niente piu' rifiuto per risoluzione. Se il lato corto supera VIDEO_TARGET_SHORT_SIDE (720) il video viene ricodificato nel browser a 720p (H.264/MP4, ~2,2 Mbps, audio copiato se possibile, verticale resta verticale) con WebCodecs tramite Mediabunny 1.60.0 da jsdelivr, caricato solo quando serve; gia' <=720 parte l'originale. Durata controllata PRIMA (kata 12s, dalla costante). Ripiego se il browser non ce la fa: originale solo se lato corto <=1080 e <=500 MB, altrimenti messaggio chiaro. Paracadute 500 MB sul file che parte, 2 GB sul file scelto. Fase 'Preparo il video... X%' nel riquadro, Carica spento finche' non finisce, chiudere il riquadro annulla. Riepilogo con risoluzione e peso prima/dopo. Testi delle regole senza '1080p / no 4K'. Blocco 'VIDEO RIDOTTO A 720p' identico a portale v3.131. Worker stream-bridge e DB non toccati. CUMULA v1.3 · 2026-10-09 · VIDEO KATA MASSIMO 12 SECONDI (decisione Marco 9 ott, audit giro 2): KATA_MAX_DURATION 20 -> 12; il testo della dropzone diceva 'max 20s' scritto a mano, ora lo legge dalla costante come il messaggio d'errore. Nient'altro. CUMULA v1.2 · 2026-09-20 · KATA 1-15 APERTI A CHI HA ESSENCE-K (allineamento del blocco condiviso, stesso giro di portale v3.119). Dal 20 set 2026 chi compra l'intensivo ESSENCE-K si ritrova il profilo creato dal sistema (stripe-worker → attiva_essence) con una riga iscrizioni_corso tipo_corso='essence', status 'terminata'. Nel blocco condiviso "KATA VISIBILI PER CORSO" nuova chiave essence:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]: regola di Marco, in ESSENCE-K si lavorano quasi tutti i Kata dell'Advance oltre a quelli dell'Open e i video vanno caricati negli slot. kataVisibile fa gia' l'unione e KATA_STATUS_SVOLTO contiene gia' 'terminata': nient'altro cambia. KATA_SENZA_CORSO=['open'] e' CONFERMATO da Marco il 20 set 2026 (tolta la dicitura "da confermare, default provvisorio"). Il blocco resta IDENTICO byte per byte a quello di portale.html. Nient'altro toccato in questa pagina. CUMULA v1.1 · 2026-09-18 · KATA VISIBILI PER CORSO + AVVISI (due lavori in un solo deploy). (1) VISIBILITA' — regola di Marco, 18 set 2026: una persona vede i Kata dei corsi che sta svolgendo e di quelli gia' svolti; gli altri restano in lista, spenti, col lucchetto. Via la soglia unica k>=12 legata allo step del profilo: era sbagliata nella SOGLIA (i Kata 8, 9 e 10 sono del Corso Advance KataClimb, non dell'Open) e nella FONTE (lo step non c'entra e per giunta era disallineato: kata.html sbloccava a step>=2, portale.html a step>=3). Ora un blocco condiviso IDENTICO a quello di portale.html: mappa KATA_PER_CORSO da KataClimb_Lista_Kata_v2 (open 1-7 e 11-15, advance 8-10, intro_corda 16-26, evo_corda 27-33; le chiavi sono i tipo_corso veri), kataVisibile(k, corsiSvolti), kataVedeTutto(role, staffRole) e kataCorsiSvolti(), che legge iscrizioni_corso — fonte autorevole, RLS iscrizioni_owner_read verificata, stessa query gia' usata da profilo.html loadPercorso, nessuna colonna nuova. Valgono tutti gli status presenti (attiva, terminata, completata_pregressa, sospesa): completata_pregressa e' il percorso riconosciuto a chi era in Accademia prima del sistema ed e' la gran parte dello storico, sospesa vale perche' chi ha un corso sospeso lo ha comunque iniziato. Chi non ha nessun corso CON KATA vede i Kata dell'Open (KATA_SENZA_CORSO, default PROVVISORIO da confermare con Marco): kataVisibile tiene solo le chiavi presenti in KATA_PER_CORSO, perche' a DB esistono tipo_corso senza Kata propri (prima_lezione, lezioni_speciali, fly) e chi ha solo quelli si sarebbe ritrovato tutti e 33 i Kata bloccati. Staff, creator e istruttori vedono tutto, come prima. Se la lettura delle iscrizioni fallisce si ricade sul default: nessuna pagina si rompe. (2) AVVISI — Censimento Avvisi v0.2, blocco D, pagina agganciata a /kc-avvisi.js?v=2: (E1) la scheda di un Kata col lucchetto non rispondeva al tocco, ora dice che si apre piu' avanti nel percorso; va nel modale e non nel toast, che dura 2,4s e questa e' una frase da leggere. (E2) caricamento video fallito: alla persona la frase del registro, il messaggio tecnico resta in console. (E3) 'Target mancante' e l'errore grezzo di apriSlotProblema diventano errore_tecnico. NON toccati upload, validazione, slot video. CUMULA v1.0 · 2026-06-13 · VISTA ALLIEVO DEI PROPRI KATA (pagina a fuoco, estratta dal portale per alleggerirlo).
      Tab corsi (CT) + griglia 2-slot (Memoria/Validazione) con TUTTI gli stati incl. 'rejected'.
      NOVITA': slot 2 'rejected' reso visibile (Da rifare ↻) e RICARICABILE (openUpload → il worker stream-bridge
      v2.12 fa il replace dello slot non-certificato), + blocco CORREZIONI del maestro (feedback_validazione)
@@ -154,15 +154,15 @@ a{color:inherit;text-decoration:none}
     <div class="dz" id="upload-dz" onclick="document.getElementById('vid-input').click()">
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style="margin:0 auto 8px;display:block"><rect x="3" y="7" width="26" height="18" rx="3" stroke="rgba(0,0,0,.12)" stroke-width="1.5"/><path d="M12 14L16 10L20 14" stroke="rgba(0,0,0,.18)" stroke-width="1.5" stroke-linecap="round"/><path d="M16 10V21" stroke="rgba(0,0,0,.18)" stroke-width="1.5" stroke-linecap="round"/></svg>
       <p>Trascina il video o clicca</p>
-      <p class="sub" id="upload-dz-sub" style="font-size:13px;color:var(--text3)">MP4/MOV · 1080p (no 4K)</p>
+      <p class="sub" id="upload-dz-sub" style="font-size:13px;color:var(--text3)"></p>
       <p id="upload-fname" style="margin-top:8px;font-size:13px;color:var(--open);display:none"></p>
     </div>
     <input id="vid-input" type="file" accept="video/mp4,video/quicktime,video/webm" style="display:none" onchange="handleVideoSelect(event)">
     <div class="ib info">ℹ Il video viene caricato su Cloudflare Stream. L'elaborazione richiede ~30 secondi.</div>
     <div id="upload-warn" class="ib warn hidden">⚠ Slot permanente — non eliminabile</div>
-    <div id="upload-prog" class="hidden" style="margin:14px 0;align-items:center;gap:8px"><div style="flex:1;height:8px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div id="upload-prog-fill"></div></div><span style="font-size:12px;color:var(--text2)">…</span></div>
+    <div id="upload-prog" class="hidden" style="margin:14px 0;align-items:center;gap:8px"><div style="flex:1;height:8px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div id="upload-prog-fill"></div></div><span id="upload-prog-txt" style="font-size:13px;color:var(--text2)">Caricamento...</span></div>
     <div style="display:flex;gap:7px;margin-top:14px">
-      <button class="btn btn-p" style="flex:1" onclick="submitUpload()">Carica</button>
+      <button id="upload-submit" class="btn btn-p" style="flex:1" onclick="submitUpload()">Carica</button>
       <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-upload')">Annulla</button>
     </div>
   </div>
@@ -217,8 +217,11 @@ const CT=[
   {id:'evo',label:'Evo Corda',sub:'Fly',color:'#7B2D8E',katas:[27,28,29,30,31,32,33],phase:'Vuoto + Fiducia'},
 ];
 const KATA_MAX_DURATION=12;
-const VIDEO_SIZE_PARACADUTE=500*1024*1024;
-const MAX_VIDEO_SHORT_SIDE=1080;
+const VIDEO_SIZE_PARACADUTE=500*1024*1024;    // tetto sul file che PARTE (quello ridotto)
+const VIDEO_SIZE_SCELTO_MAX=2*1024*1024*1024; // tetto sul file SCELTO, prima della riduzione
+const VIDEO_TARGET_SHORT_SIDE=720;    // sopra questo lato corto il video viene ridotto a 720p (decisione Marco 14 ott, E8)
+const VIDEO_TARGET_BITRATE=2200000;   // bit/s del video ridotto (H.264)
+const VIDEO_FALLBACK_SHORT_SIDE=1080; // solo ripiego se il browser non riesce a ridurre
 /* user_id del creator (Marco): i suoi kata_videos fanno da Kata-esempio per gli allievi */
 const CREATOR_ID='27b04151-93a7-4ecc-824c-fe337cc631a6';
 
@@ -308,7 +311,7 @@ let uploadKind='kata',uploadTgt=null,selFile=null;
 function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function fmtDate(d){if(!d)return'';const dt=new Date(d);return dt.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}
 function openModal(id){document.getElementById(id).classList.remove('hidden')}
-function closeModal(id){document.getElementById(id).classList.add('hidden');if(id==='mo-player')document.getElementById('player-box').innerHTML=''}
+function closeModal(id){document.getElementById(id).classList.add('hidden');if(id==='mo-player')document.getElementById('player-box').innerHTML='';if(id==='mo-upload')annullaPreparazioneVideo();}
 // kc-avvisi v2 — E1: la scheda col lucchetto non rispondeva al tocco. Ora dice perche'.
 // Va nel modale e non nel toast: il toast dura 2,4s e questa e' una frase da leggere.
 function avvisoKataBloccato(ev){
@@ -451,7 +454,7 @@ function openUpload(k,s){
   document.getElementById('upload-fname').style.display='none';
   document.getElementById('upload-prog').classList.add('hidden');
   document.getElementById('upload-title').textContent='Carica Video';
-  document.getElementById('upload-dz-sub').textContent='MP4/MOV · max '+KATA_MAX_DURATION+'s · 1080p (no 4K)';
+  document.getElementById('upload-dz-sub').textContent='MP4/MOV · max '+KATA_MAX_DURATION+'s · qualsiasi qualità: il portale prepara il video a '+VIDEO_TARGET_SHORT_SIDE+'p';
   document.getElementById('upload-info').innerHTML=`Kata ${String(k).padStart(2,'0')} — ${KN[k]}<br>${s===0?'Memoria (permanente 🔒)':'Validazione (sostituibile)'}`;
   document.getElementById('upload-warn').classList.toggle('hidden',s>=1);
   openModal('mo-upload');
@@ -459,17 +462,16 @@ function openUpload(k,s){
 
 async function handleVideoSelect(e){
   const f=e.target.files[0];
+  e.target.value=''; // riscegliere lo stesso file (es. dopo un annullo) deve ripartire
   if(!f)return;
-  if(f.size>VIDEO_SIZE_PARACADUTE){feedbackErr('File enorme (oltre 500MB). Registra in 1080p — il 4K è inutile.');return;}
-  let meta=null;
-  try{meta=await readVideoMeta(f);}catch(_){meta=null;}
-  if(meta){
-    if(meta.duration>KATA_MAX_DURATION+0.5){feedbackErr('Il video dura '+Math.round(meta.duration)+'s — il massimo è '+KATA_MAX_DURATION+'s. Accorcialo e riprova.');return;}
-    if(Math.min(meta.w,meta.h)>MAX_VIDEO_SHORT_SIDE){feedbackErr('Risoluzione '+meta.w+'×'+meta.h+' troppo alta. Registra in 1080p.');return;}
-  }
-  selFile=f;
   const el=document.getElementById('upload-fname');
-  el.textContent='📹 '+f.name+(meta?'  ·  '+Math.round(meta.duration)+'s · '+meta.w+'×'+meta.h:'');
+  selFile=null;el.style.display='none';
+  // durata, risoluzione, eventuale riduzione a 720p: blocco condiviso "VIDEO RIDOTTO A 720p"
+  const r=await preparaVideo(f,KATA_MAX_DURATION);
+  if(r.annullato)return;
+  if(r.err){feedbackErr(r.err);return;}
+  selFile=r.file;
+  el.textContent=r.riep;
   el.style.display='block';
 }
 function readVideoMeta(file){
@@ -481,6 +483,142 @@ function readVideoMeta(file){
   });
 }
 
+/* ═══ VIDEO RIDOTTO A 720p — BLOCCO CONDIVISO (identico in portale.html e kata.html) ═══
+   Decisione Marco, 14 ott 2026, vale per tutti (allievi, istruttori, Marco): si sceglie il file
+   cosi' come esce dal telefono, anche 4K; e' il portale a ridurlo a 720p (lato corto
+   VIDEO_TARGET_SHORT_SIDE, proporzioni mantenute) prima di mandarlo a Cloudflare Stream.
+   Scelta da verificare nel tempo (Cantieri aperti E8): se 720p e' poco, si alza la costante.
+   - La durata si controlla PRIMA: un video troppo lungo si rifiuta subito, senza elaborarlo.
+   - Lato corto gia' <= 720: parte l'originale, nessuna elaborazione.
+   - Tecnica: WebCodecs tramite Mediabunny (legge MP4/MOV, decodifica, ridimensiona, H.264, MP4),
+     caricato da jsdelivr SOLO quando serve. Audio copiato se possibile, altrimenti ricodificato.
+     La rotazione del telefono viene "cotta" nei fotogrammi: il verticale resta verticale.
+     Niente ffmpeg.wasm (troppo pesante sui telefoni).
+   - Se il browser non ce la fa: parte l'originale solo se lato corto <= VIDEO_FALLBACK_SHORT_SIDE
+     e peso <= VIDEO_SIZE_PARACADUTE; altrimenti messaggio chiaro.
+   - Peso: il file scelto puo' arrivare a VIDEO_SIZE_SCELTO_MAX; il paracadute da 500 MB vale
+     sul file che PARTE.
+   - Chiudere il riquadro annulla l'elaborazione (closeModal('mo-upload')). */
+const MEDIABUNNY_URL='https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
+let mediabunnyLib=null;
+function caricaMediabunny(){
+  if(!mediabunnyLib)mediabunnyLib=import(MEDIABUNNY_URL).catch(e=>{mediabunnyLib=null;throw e;});
+  return mediabunnyLib;
+}
+let videoPrep=null;   // elaborazione in corso: {annullato,conv,srcW,srcH,duration}
+let videoSelSeq=0;    // ogni nuova scelta (o chiusura del riquadro) invalida quelle precedenti
+function videoDim720(w,h){
+  // lato corto a VIDEO_TARGET_SHORT_SIDE, l'altro in proporzione, arrotondato a numero pari (H.264)
+  const k=VIDEO_TARGET_SHORT_SIDE/Math.min(w,h);
+  const pari=n=>Math.max(2,Math.round(n/2)*2);
+  return w<=h?{w:VIDEO_TARGET_SHORT_SIDE,h:pari(h*k)}:{w:pari(w*k),h:VIDEO_TARGET_SHORT_SIDE};
+}
+function fmtMB(b){
+  const m=b/1048576;
+  if(m>=1024)return (m/1024).toFixed(1).replace('.',',')+' GB';
+  return (m<10?m.toFixed(1).replace('.',','):String(Math.round(m)))+' MB';
+}
+function msgDurataVideo(dur,maxDur){
+  return 'Il video dura '+Math.round(dur)+'s — il massimo è '+maxDur+'s. Accorcialo e riprova.';
+}
+const MSG_VIDEO_BROWSER='Il tuo browser non riesce a preparare questo video. Aggiorna il browser oppure registra in 1080p e riprova.';
+function uploadPrepUI(pct){
+  // pct numero = fase "Preparo il video… X%", pulsante Carica spento; null = fine fase
+  const prog=document.getElementById('upload-prog'),txt=document.getElementById('upload-prog-txt');
+  const fill=document.getElementById('upload-prog-fill'),btn=document.getElementById('upload-submit');
+  if(pct===null){
+    if(prog)prog.classList.add('hidden');
+    if(fill)fill.style.width='0%';
+    if(btn){btn.disabled=false;btn.style.opacity='';}
+    return;
+  }
+  if(prog){prog.classList.remove('hidden');prog.style.display='flex';}
+  if(txt)txt.textContent='Preparo il video… '+pct+'%';
+  if(fill)fill.style.width=pct+'%';
+  if(btn){btn.disabled=true;btn.style.opacity='.45';}
+}
+function annullaPreparazioneVideo(){
+  videoSelSeq++;
+  if(!videoPrep)return;
+  videoPrep.annullato=true;
+  if(videoPrep.conv)videoPrep.conv.cancel().catch(()=>{});
+  videoPrep=null;
+  uploadPrepUI(null);
+}
+async function riduciVideo720(f,maxDur,prep,onPct){
+  if(typeof VideoEncoder==='undefined'||typeof VideoDecoder==='undefined')throw new Error('WebCodecs non disponibile');
+  const MB=await caricaMediabunny();
+  if(prep.annullato)return null;
+  const input=new MB.Input({source:new MB.BlobSource(f),formats:MB.ALL_FORMATS});
+  const vt=await input.getPrimaryVideoTrack();
+  if(!vt)throw new Error('nessuna traccia video');
+  const srcW=vt.displayWidth,srcH=vt.displayHeight;
+  prep.srcW=srcW;prep.srcH=srcH;
+  const duration=await input.computeDuration();
+  prep.duration=duration;
+  // servono quando il browser non sapeva leggere il video da solo (readVideoMeta fallito)
+  if(duration>maxDur+0.5)return {lungo:duration};
+  if(Math.min(srcW,srcH)<=VIDEO_TARGET_SHORT_SIDE)return {piccolo:true,w:srcW,h:srcH,duration};
+  const dim=videoDim720(srcW,srcH);
+  const output=new MB.Output({format:new MB.Mp4OutputFormat({fastStart:'in-memory'}),target:new MB.BufferTarget()});
+  const conv=await MB.Conversion.init({
+    input,output,tracks:'primary',showWarnings:false,
+    video:{width:dim.w,height:dim.h,fit:'fill',codec:'avc',quality:new MB.Quality(VIDEO_TARGET_BITRATE),
+           allowTransformationMetadata:false,forceTranscode:true},
+    audio:{}
+  });
+  if(!conv.isValid||!conv.utilizedTracks.some(t=>t.isVideoTrack()))
+    throw new Error('conversione non possibile: '+conv.discardedTracks.map(d=>d.reason).join(','));
+  prep.conv=conv;
+  if(prep.annullato){await conv.cancel().catch(()=>{});return null;}
+  conv.onProgress=p=>onPct(Math.min(99,Math.floor(p*100)));
+  await conv.execute();
+  const nome=f.name.replace(/\.[^.]+$/,'')+'_720p.mp4';
+  return {file:new File([output.target.buffer],nome,{type:'video/mp4',lastModified:f.lastModified}),
+          w:dim.w,h:dim.h,srcW,srcH,duration};
+}
+/* Prepara il file scelto. Ritorna {file,riep} (file da caricare + riepilogo da mostrare),
+   {err} (messaggio per la persona) oppure {annullato:true} (riquadro chiuso / altra scelta). */
+async function preparaVideo(f,maxDur){
+  annullaPreparazioneVideo();
+  const seq=videoSelSeq;
+  if(f.size>VIDEO_SIZE_SCELTO_MAX)
+    return {err:'Il file pesa '+fmtMB(f.size)+': oltre '+fmtMB(VIDEO_SIZE_SCELTO_MAX)+' non si riesce a preparare. Accorcia il video e riprova.'};
+  let meta=null;
+  try{meta=await readVideoMeta(f);}catch(_){meta=null;} // illeggibile qui: ci prova Mediabunny
+  if(seq!==videoSelSeq)return {annullato:true};
+  const dur=s=>Math.round(s)+'s';
+  const originale=(m)=>{
+    if(f.size>VIDEO_SIZE_PARACADUTE)return {err:'Il file pesa '+fmtMB(f.size)+', il massimo è '+fmtMB(VIDEO_SIZE_PARACADUTE)+'. Accorcia il video e riprova.'};
+    return {file:f,riep:'📹 '+f.name+'  ·  '+(m&&m.duration?dur(m.duration)+' · ':'')+(m?m.w+'×'+m.h+' · ':'')+fmtMB(f.size)};
+  };
+  if(meta){
+    if(meta.duration>maxDur+0.5)return {err:msgDurataVideo(meta.duration,maxDur)};
+    if(Math.min(meta.w,meta.h)<=VIDEO_TARGET_SHORT_SIDE)return originale(meta);
+  }
+  const prep={annullato:false,conv:null,srcW:0,srcH:0,duration:0};
+  videoPrep=prep;
+  uploadPrepUI(0);
+  try{
+    const r=await riduciVideo720(f,maxDur,prep,pct=>{if(videoPrep===prep)uploadPrepUI(pct);});
+    if(prep.annullato||!r)return {annullato:true};
+    if(r.lungo)return {err:msgDurataVideo(r.lungo,maxDur)};
+    if(r.piccolo)return originale({duration:r.duration,w:r.w,h:r.h});
+    if(r.file.size>VIDEO_SIZE_PARACADUTE)return {err:'Anche ridotto il video pesa '+fmtMB(r.file.size)+', il massimo è '+fmtMB(VIDEO_SIZE_PARACADUTE)+'. Accorcialo e riprova.'};
+    return {file:r.file,riep:'📹 '+f.name+'  ·  '+dur(r.duration)+' · '+r.srcW+'×'+r.srcH+' → '+r.w+'×'+r.h
+                              +' · '+fmtMB(f.size)+' → '+fmtMB(r.file.size)};
+  }catch(e){
+    if(prep.annullato)return {annullato:true};
+    console.warn('[preparaVideo] riduzione a 720p non riuscita:',e);
+    // ripiego: l'originale parte solo se non supera il 1080p e rientra nel paracadute
+    const w=meta?meta.w:prep.srcW,h=meta?meta.h:prep.srcH;
+    if(w&&h&&Math.min(w,h)<=VIDEO_FALLBACK_SHORT_SIDE&&f.size<=VIDEO_SIZE_PARACADUTE)
+      return originale(meta||{duration:prep.duration,w,h});
+    return {err:MSG_VIDEO_BROWSER};
+  }finally{
+    if(videoPrep===prep){videoPrep=null;uploadPrepUI(null);}
+  }
+}
 // ── client tus minimale (riprendibile) — identico al portale live v3.79 ──
 const TUS_CHUNK=5242880;
 const TUS_RETRY_DELAYS=[2000,4000,8000,15000,30000];
@@ -534,9 +672,11 @@ async function submitUpload(){
   if(!selFile)return toast('Seleziona un video');
   if(!sb||!user)return toast('Login richiesto');
   // E3 — guasto interno: alla persona non arriva la parola tecnica.
+  if(videoPrep)return toast('Aspetta: sto preparando il video');
   if(!uploadTgt)return window.kcAvvisi?feedbackErr(window.kcAvvisi.testo('errore_tecnico')):toast('Target mancante');
   const prog=document.getElementById('upload-prog');
   prog.classList.remove('hidden');prog.style.display='flex';
+  document.getElementById('upload-prog-txt').textContent='Caricamento...';
   let createdStreamUid=null,isTusAttempt=false;
   try{
     const{data:{session}}=await sb.auth.getSession();
