@@ -35,7 +35,7 @@ BEGIN
     RETURN;
   END IF;
 
-  -- FIX 15 ott 2026 (caso Brilli/Lorenzetti): Open pagato solo Mezza1 (lezioni_totali < 7)
+  -- FIX 15 ott 2026 (caso di due allievi): Open pagato solo Mezza1 (lezioni_totali < 7)
   -- NON e' concluso. Resta iscritto_open, corso_attivo resta 'open'. Nota per la segreteria.
   IF v_corso = 'open' AND EXISTS (
        SELECT 1 FROM iscrizioni_corso
@@ -112,8 +112,8 @@ UPDATE lead_data ld SET funnel_stage = 'iscritto_open'
    AND EXISTS (SELECT 1 FROM iscrizioni_corso i WHERE i.user_id = pd.user_id
                AND i.tipo_corso='open' AND i.status='attiva' AND i.lezioni_totali < 7);
 
--- 4) Valerio Brilli: Open lunedi' 19/10 ore 20:00 (slot Mello). Mezza2 la paga lunedi' in segreteria.
+-- 4) <user_id allievo>: Open lunedi' 19/10 ore 20:00 (slot Mello). Mezza2 la paga lunedi' in segreteria.
 INSERT INTO prenotazioni_corso (user_id, slot_id, tipo_corso, data_lezione, stato, created_ruolo)
-SELECT 'fd5916c4-499b-412e-9d75-4a1eeac07a77', '6fbf053d-bcfd-45db-af34-03ef462ba212', 'open', DATE '2026-10-19', 'prenotato', 'segreteria'
+SELECT '<user_id allievo>', '6fbf053d-bcfd-45db-af34-03ef462ba212', 'open', DATE '2026-10-19', 'prenotato', 'segreteria'
 WHERE NOT EXISTS (SELECT 1 FROM prenotazioni_corso
-  WHERE user_id='fd5916c4-499b-412e-9d75-4a1eeac07a77' AND data_lezione='2026-10-19' AND stato IN ('prenotato','presente'));
+  WHERE user_id='<user_id allievo>' AND data_lezione='2026-10-19' AND stato IN ('prenotato','presente'));
