@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: sabato v6 · 2026-10-17 · (Marco 17 ott) la certificazione dei Kata è di PRIMO LIVELLO: procedure primarie acquisite; quando/come metterle in atto nella pratica = livelli successivi. CUMULA v5 · 2026-10-17 · (Marco 17 ott) portale = prova provata dell'esperienza: video, attestato di presenza, certificazione delle abilità quando i Kata vengono validati. CUMULA v4 · 2026-10-17 · (Marco 17 ott) iscrizione annuale INCLUSA anche nella tappa 1 Open; materiali: Open con scarpette, imbrago e tutti i materiali forniti; offerte per gruppi su tutte le tappe, prezzo da concordare con Marco (Open: 216 in due, 199 in tre). CUMULA v3 · 2026-10-17 · FOTO (Marco 17 ott): una foto per tappa + uscite + ritratto, dalle foto già pubblicate su kataclimb.com (foto/…, dall_alto_primo_di_cordata_.jpg) con percorso relativo; ritratto e hero incorporati come in essence. CUMULA v2 · 2026-10-17 · ORARI (Marco 17 ott): mattina 10:00–14:00 o pomeriggio 14:00–18:00, la fascia si concorda con Marco · GRUPPO: massimo 4 persone. CUMULA v1 · 2026-10-16 · PAGINA DEDICATA "PERCORSO INTENSIVO DEL SABATO" (non pubblica: noindex,nofollow, nessun link dal sito, fuori dalla sitemap — ci arriva solo chi riceve il link da Marco). Quattro tappe da 4 ore il sabato in Accademia RCC: Corso Open KataClimb, Corso Intro Corda KataClimb primo di cordata, Corso Intro Corda KataClimb sicura al primo di cordata, Corso Evo Corda KataClimb (volo). Nomi: MAI Legami-K/Custode-K/Fly-K (regola Marco 23 set: i nomi degli intensivi Syncrolink non vanno sui corsi dell'Accademia). Mai "da secondo". Prezzi (proposta Marco 16 ott, portati a 3/6/9 per la regola intensivi): Open 249 € iscrizione inclusa · tappe corda 299 € iscrizione inclusa · Open in due 216 €/persona, in tre 199 €/persona · uscite infrasettimanali 50 € istruttori / 85 € Marco, trasferimenti a parte. Ammissione: WhatsApp + chiamata con Marco, che conferma il posto (stessa regola di Essence-K). NESSUN pagamento online in v1, NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. Foto incorporate (data URI) riprese da essence.html: file unico, niente .jpg da caricare. -->
+<!-- KC-BUILD: sabato v7 · 2026-10-17 · (Marco 17 ott) tre livelli: Livello 1 procedure fondamentali (saper volare, gestire il volo, fare sicura a chi vola) = quello che offre il percorso; Livello 2 pratica conseguita; Livello 3 pro. CUMULA v6 · 2026-10-17 · (Marco 17 ott) la certificazione dei Kata è di PRIMO LIVELLO: procedure primarie acquisite; quando/come metterle in atto nella pratica = livelli successivi. CUMULA v5 · 2026-10-17 · (Marco 17 ott) portale = prova provata dell'esperienza: video, attestato di presenza, certificazione delle abilità quando i Kata vengono validati. CUMULA v4 · 2026-10-17 · (Marco 17 ott) iscrizione annuale INCLUSA anche nella tappa 1 Open; materiali: Open con scarpette, imbrago e tutti i materiali forniti; offerte per gruppi su tutte le tappe, prezzo da concordare con Marco (Open: 216 in due, 199 in tre). CUMULA v3 · 2026-10-17 · FOTO (Marco 17 ott): una foto per tappa + uscite + ritratto, dalle foto già pubblicate su kataclimb.com (foto/…, dall_alto_primo_di_cordata_.jpg) con percorso relativo; ritratto e hero incorporati come in essence. CUMULA v2 · 2026-10-17 · ORARI (Marco 17 ott): mattina 10:00–14:00 o pomeriggio 14:00–18:00, la fascia si concorda con Marco · GRUPPO: massimo 4 persone. CUMULA v1 · 2026-10-16 · PAGINA DEDICATA "PERCORSO INTENSIVO DEL SABATO" (non pubblica: noindex,nofollow, nessun link dal sito, fuori dalla sitemap — ci arriva solo chi riceve il link da Marco). Quattro tappe da 4 ore il sabato in Accademia RCC: Corso Open KataClimb, Corso Intro Corda KataClimb primo di cordata, Corso Intro Corda KataClimb sicura al primo di cordata, Corso Evo Corda KataClimb (volo). Nomi: MAI Legami-K/Custode-K/Fly-K (regola Marco 23 set: i nomi degli intensivi Syncrolink non vanno sui corsi dell'Accademia). Mai "da secondo". Prezzi (proposta Marco 16 ott, portati a 3/6/9 per la regola intensivi): Open 249 € iscrizione inclusa · tappe corda 299 € iscrizione inclusa · Open in due 216 €/persona, in tre 199 €/persona · uscite infrasettimanali 50 € istruttori / 85 € Marco, trasferimenti a parte. Ammissione: WhatsApp + chiamata con Marco, che conferma il posto (stessa regola di Essence-K). NESSUN pagamento online in v1, NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. Foto incorporate (data URI) riprese da essence.html: file unico, niente .jpg da caricare. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -92,6 +92,11 @@
   .row b{font-weight:600;color:var(--void)}
   .row p{font-size:16px;line-height:1.55;margin:0}
   .portal{background:var(--skybg);padding:22px;margin-top:20px}
+  .livelli{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+  .livelli div{background:#fff;border-left:4px solid var(--void);padding:12px 14px}
+  .livelli div:first-child{border-left-color:var(--rope)}
+  .livelli b{display:block;font-weight:600;color:var(--void);font-size:16px;margin-bottom:2px}
+  .livelli p{font-size:15px;line-height:1.5;margin:0}
   .prova{margin:10px 0 0 20px}
   .prova li{margin-bottom:8px;font-size:16px;line-height:1.55}
   .portal b.h{display:block;font-weight:600;color:var(--void);font-size:18px;margin-bottom:6px}
@@ -239,9 +244,13 @@
     <ul class="prova">
       <li><strong>I tuoi video</strong>, tappa dopo tappa, accanto ai Kata eseguiti da Marco: vedi da dove sei partito e cosa è cambiato.</li>
       <li><strong>L'attestato di presenza</strong> per ogni tappa che completi.</li>
-      <li><strong>La certificazione di primo livello</strong>: quando il maestro valida i tuoi Kata, il portale certifica che hai acquisito quelle procedure primarie e le sai eseguire. Non solo «c'ero», ma «lo so fare».</li>
+      <li><strong>La certificazione di Livello 1</strong>: quando il maestro valida i tuoi Kata, il portale certifica che hai acquisito le procedure fondamentali. Non solo «c'ero», ma «lo so fare».</li>
     </ul>
-    <p class="note" style="margin-top:12px">I Kata sono le procedure primarie. Saperle eseguire è il primo livello. Capire quando e come metterle in atto, nella pratica reale e in condizioni diverse, è il lavoro dei livelli successivi, che si costruiscono con l'esperienza.</p>
+    <div class="livelli">
+      <div><b>Livello 1 · procedure fondamentali</b><p>Sai volare, sai gestire il volo e sai fare sicura a chi vola. <strong>È il livello che ottieni con questo percorso.</strong></p></div>
+      <div><b>Livello 2 · pratica conseguita</b><p>Le procedure sono diventate pratica: le metti in atto con continuità, al momento giusto, in condizioni diverse.</p></div>
+      <div><b>Livello 3 · pro</b><p>Il livello di chi arrampica e assicura a livello professionale.</p></div>
+    </div>
   </div>
 </section>
 
