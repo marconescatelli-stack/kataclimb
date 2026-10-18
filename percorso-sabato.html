@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: sabato v13 · 2026-10-17 · (Marco 17 ott notte) saldo in Accademia o con bonifico prima della tappa; importo del saldo non fisso (offerte per gruppi). CUMULA v12 · 2026-10-17 · (Marco 17 ott sera, opzione 1) sotto "Richiedi il colloquio" torna il bottone "Ho già fatto il colloquio — paga l'acconto 100 €" (stesso sistema di Essence-K): Marco non manda link, dopo la chiamata la persona paga dalla pagina. Link nella costante LINK_ACCONTO in fondo; finché è vuota il bottone è spento e manda a WhatsApp. CUMULA v11 · 2026-10-17 · (Marco 17 ott sera) ACCESSO: solo bottone "Richiedi il colloquio" (WhatsApp); dopo la chiamata, se Marco dà l'ok, è lui a mandare su WhatsApp il link Stripe dell'acconto 100 €: il link NON sta sulla pagina. Tolto bottone acconto e relativo script. CUMULA v10 · 2026-10-17 · (Marco 17 ott pomeriggio) PRENOTAZIONE CON ACCONTO 100 € (prezzo fisso, saldo in Accademia): bottone verso Payment Link Stripe impostato nella costante LINK_ACCONTO in fondo al file; finché è vuota il bottone resta spento con il motivo e manda a WhatsApp (mai un bottone morto) · PRIMA LEZIONE per constatare il metodo: bottoni verso inizia.html (Prima Lezione Adulti) e inizia-giovani.html (Prima Lezione Giovani 18–24) · posizionamento: per chi già arrampica o è atleta e vuole andare dritto al punto, la scalata su roccia · ROCCIA: corsi su roccia con Marco per Livello 2 e Livello 3, Marco insegna e certifica, 150 € solo per chi viene dal percorso; chi non viene dal percorso fa gli intensivi weekend con uscita incorporata (Essence-K, Legami-K, Custode-K, Fly-K) · tolte le uscite 50/85 €. CUMULA v9 · 2026-10-17 · (Marco 17 ott) Livello 2 si raggiunge con Fly (Accademia), Livello 3 con le uscite su roccia. CUMULA v8 · 2026-10-17 · (Marco 17 ott) livelli con le parole di Marco: 1 avere la procedura e capire come si fa · 2 saperla applicare (praticata e riconosciuta valida nella pratica, adattata a quello che può accadere) · 3 pro, saperla applicare su vie difficilissime. CUMULA v7 · 2026-10-17 · (Marco 17 ott) tre livelli: Livello 1 procedure fondamentali (saper volare, gestire il volo, fare sicura a chi vola) = quello che offre il percorso; Livello 2 pratica conseguita; Livello 3 pro. CUMULA v6 · 2026-10-17 · (Marco 17 ott) la certificazione dei Kata è di PRIMO LIVELLO: procedure primarie acquisite; quando/come metterle in atto nella pratica = livelli successivi. CUMULA v5 · 2026-10-17 · (Marco 17 ott) portale = prova provata dell'esperienza: video, attestato di presenza, certificazione delle abilità quando i Kata vengono validati. CUMULA v4 · 2026-10-17 · (Marco 17 ott) iscrizione annuale INCLUSA anche nella tappa 1 Open; materiali: Open con scarpette, imbrago e tutti i materiali forniti; offerte per gruppi su tutte le tappe, prezzo da concordare con Marco (Open: 216 in due, 199 in tre). CUMULA v3 · 2026-10-17 · FOTO (Marco 17 ott): una foto per tappa + uscite + ritratto, dalle foto già pubblicate su kataclimb.com (foto/…, dall_alto_primo_di_cordata_.jpg) con percorso relativo; ritratto e hero incorporati come in essence. CUMULA v2 · 2026-10-17 · ORARI (Marco 17 ott): mattina 10:00–14:00 o pomeriggio 14:00–18:00, la fascia si concorda con Marco · GRUPPO: massimo 4 persone. CUMULA v1 · 2026-10-16 · PAGINA DEDICATA "PERCORSO INTENSIVO DEL SABATO" (non pubblica: noindex,nofollow, nessun link dal sito, fuori dalla sitemap — ci arriva solo chi riceve il link da Marco). Quattro tappe da 4 ore il sabato in Accademia RCC: Corso Open KataClimb, Corso Intro Corda KataClimb primo di cordata, Corso Intro Corda KataClimb sicura al primo di cordata, Corso Evo Corda KataClimb (volo). Nomi: MAI Legami-K/Custode-K/Fly-K (regola Marco 23 set: i nomi degli intensivi Syncrolink non vanno sui corsi dell'Accademia). Mai "da secondo". Prezzi (proposta Marco 16 ott, portati a 3/6/9 per la regola intensivi): Open 249 € iscrizione inclusa · tappe corda 299 € iscrizione inclusa · Open in due 216 €/persona, in tre 199 €/persona · uscite infrasettimanali 50 € istruttori / 85 € Marco, trasferimenti a parte. Ammissione: WhatsApp + chiamata con Marco, che conferma il posto (stessa regola di Essence-K). NESSUN pagamento online in v1, NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. Foto incorporate (data URI) riprese da essence.html: file unico, niente .jpg da caricare. -->
+<!-- KC-BUILD: sabato v14 · 2026-10-18 · ACCONTO DAL SISTEMA (checkout unico eventi, stripe-worker v3.84): il bottone "Ho già fatto il colloquio" apre un modulo (tappa, sabato, fascia, nome, cognome, email, telefono, regolamento-accademia.html e termini percorso-sabato-termini.html obbligatori, consenso immagini facoltativo) che chiama /create-checkout-session con evento=1 (stripe-worker v3.85); dopo il pagamento grazie.html v5 chiede la foto del viso, obbligatoria; dopo il pagamento il sistema crea profilo, iscrizione alla tappa, Kata e mail. Ritorno ?pagato=1 / ?annullato=1 con messaggio. Via LINK_ACCONTO e il rimando WhatsApp per il link. CUMULA v13 · 2026-10-17 · (Marco 17 ott notte) saldo in Accademia o con bonifico prima della tappa; importo del saldo non fisso (offerte per gruppi). CUMULA v12 · 2026-10-17 · (Marco 17 ott sera, opzione 1) sotto "Richiedi il colloquio" torna il bottone "Ho già fatto il colloquio — paga l'acconto 100 €" (stesso sistema di Essence-K): Marco non manda link, dopo la chiamata la persona paga dalla pagina. Link nella costante LINK_ACCONTO in fondo; finché è vuota il bottone è spento e manda a WhatsApp. CUMULA v11 · 2026-10-17 · (Marco 17 ott sera) ACCESSO: solo bottone "Richiedi il colloquio" (WhatsApp); dopo la chiamata, se Marco dà l'ok, è lui a mandare su WhatsApp il link Stripe dell'acconto 100 €: il link NON sta sulla pagina. Tolto bottone acconto e relativo script. CUMULA v10 · 2026-10-17 · (Marco 17 ott pomeriggio) PRENOTAZIONE CON ACCONTO 100 € (prezzo fisso, saldo in Accademia): bottone verso Payment Link Stripe impostato nella costante LINK_ACCONTO in fondo al file; finché è vuota il bottone resta spento con il motivo e manda a WhatsApp (mai un bottone morto) · PRIMA LEZIONE per constatare il metodo: bottoni verso inizia.html (Prima Lezione Adulti) e inizia-giovani.html (Prima Lezione Giovani 18–24) · posizionamento: per chi già arrampica o è atleta e vuole andare dritto al punto, la scalata su roccia · ROCCIA: corsi su roccia con Marco per Livello 2 e Livello 3, Marco insegna e certifica, 150 € solo per chi viene dal percorso; chi non viene dal percorso fa gli intensivi weekend con uscita incorporata (Essence-K, Legami-K, Custode-K, Fly-K) · tolte le uscite 50/85 €. CUMULA v9 · 2026-10-17 · (Marco 17 ott) Livello 2 si raggiunge con Fly (Accademia), Livello 3 con le uscite su roccia. CUMULA v8 · 2026-10-17 · (Marco 17 ott) livelli con le parole di Marco: 1 avere la procedura e capire come si fa · 2 saperla applicare (praticata e riconosciuta valida nella pratica, adattata a quello che può accadere) · 3 pro, saperla applicare su vie difficilissime. CUMULA v7 · 2026-10-17 · (Marco 17 ott) tre livelli: Livello 1 procedure fondamentali (saper volare, gestire il volo, fare sicura a chi vola) = quello che offre il percorso; Livello 2 pratica conseguita; Livello 3 pro. CUMULA v6 · 2026-10-17 · (Marco 17 ott) la certificazione dei Kata è di PRIMO LIVELLO: procedure primarie acquisite; quando/come metterle in atto nella pratica = livelli successivi. CUMULA v5 · 2026-10-17 · (Marco 17 ott) portale = prova provata dell'esperienza: video, attestato di presenza, certificazione delle abilità quando i Kata vengono validati. CUMULA v4 · 2026-10-17 · (Marco 17 ott) iscrizione annuale INCLUSA anche nella tappa 1 Open; materiali: Open con scarpette, imbrago e tutti i materiali forniti; offerte per gruppi su tutte le tappe, prezzo da concordare con Marco (Open: 216 in due, 199 in tre). CUMULA v3 · 2026-10-17 · FOTO (Marco 17 ott): una foto per tappa + uscite + ritratto, dalle foto già pubblicate su kataclimb.com (foto/…, dall_alto_primo_di_cordata_.jpg) con percorso relativo; ritratto e hero incorporati come in essence. CUMULA v2 · 2026-10-17 · ORARI (Marco 17 ott): mattina 10:00–14:00 o pomeriggio 14:00–18:00, la fascia si concorda con Marco · GRUPPO: massimo 4 persone. CUMULA v1 · 2026-10-16 · PAGINA DEDICATA "PERCORSO INTENSIVO DEL SABATO" (non pubblica: noindex,nofollow, nessun link dal sito, fuori dalla sitemap — ci arriva solo chi riceve il link da Marco). Quattro tappe da 4 ore il sabato in Accademia RCC: Corso Open KataClimb, Corso Intro Corda KataClimb primo di cordata, Corso Intro Corda KataClimb sicura al primo di cordata, Corso Evo Corda KataClimb (volo). Nomi: MAI Legami-K/Custode-K/Fly-K (regola Marco 23 set: i nomi degli intensivi Syncrolink non vanno sui corsi dell'Accademia). Mai "da secondo". Prezzi (proposta Marco 16 ott, portati a 3/6/9 per la regola intensivi): Open 249 € iscrizione inclusa · tappe corda 299 € iscrizione inclusa · Open in due 216 €/persona, in tre 199 €/persona · uscite infrasettimanali 50 € istruttori / 85 € Marco, trasferimenti a parte. Ammissione: WhatsApp + chiamata con Marco, che conferma il posto (stessa regola di Essence-K). NESSUN pagamento online in v1, NESSUNA scrittura DB, NESSUNA chiamata a Worker: solo HTML statico. Foto incorporate (data URI) riprese da essence.html: file unico, niente .jpg da caricare. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -112,6 +112,27 @@
   .passi{margin:12px 0 0 20px}
   .passi li{margin-bottom:8px;font-size:16px;line-height:1.5}
   .note{font-size:15px;color:var(--ink2);margin-top:16px;line-height:1.55}
+  .acconto{background:#fff;border:2px solid var(--deep);border-radius:4px;padding:18px;margin-top:14px}
+  .acconto[hidden]{display:none}
+  .btn[hidden]{display:none}
+  .acconto h3{margin:0 0 4px;font-size:20px}
+  .acconto .intro{font-size:15px;color:var(--ink2);margin:0 0 6px;line-height:1.5}
+  .campo{margin-top:14px}
+  .campo>label,.campo>.lbl{display:block;font-size:14px;font-weight:600;color:var(--void);margin-bottom:6px}
+  .campo input[type=text],.campo input[type=email],.campo input[type=tel],.campo input[type=date],.campo select{width:100%;font-family:inherit;font-size:17px;padding:12px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink)}
+  .campo input:focus,.campo select:focus{outline:2px solid var(--sky);border-color:var(--sky)}
+  .due{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .fasce{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .fasce label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:4px;padding:12px;font-size:16px;cursor:pointer}
+  .fasce input{accent-color:var(--deep);width:18px;height:18px}
+  .check{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:15px;line-height:1.5}
+  .check input{accent-color:var(--deep);width:20px;height:20px;flex:0 0 auto;margin-top:2px}
+  .msg{margin-top:14px;padding:12px 14px;border-radius:4px;font-size:15px;line-height:1.5}
+  .msg[hidden]{display:none}
+  .msg.err{background:#FDECEC;color:#8A1C1C;border-left:4px solid #C0392B}
+  .msg.ok{background:var(--skybg);color:var(--void);border-left:4px solid var(--sky)}
+  .msg a{color:inherit;font-weight:600}
+  @media(max-width:420px){.due{grid-template-columns:1fr}}
   footer{padding:28px 20px 48px;text-align:center;font-size:14px;color:var(--ink2);line-height:1.6}
 </style>
 </head>
@@ -275,8 +296,46 @@
     </ol>
   </div>
   <a class="btn" href="https://wa.me/393318743953?text=Ciao%20Marco%2C%20vorrei%20richiedere%20un%20colloquio%20per%20il%20Percorso%20Intensivo%20del%20Sabato." target="_blank" rel="noopener">Richiedi il colloquio con Marco</a>
-  <a class="btn wa" id="btn-acconto" href="#partecipa" aria-disabled="true">Ho già fatto il colloquio — paga l'acconto 100 €</a>
-  <div class="btnnote" id="nota-acconto"></div>
+  <div class="msg ok" id="esito-pagato" hidden><strong>Acconto ricevuto: il tuo posto è bloccato.</strong> Tra pochi minuti ti arriva una mail con data, fascia e accesso al portale KataClimb, dove trovi già aperti i Kata della tua tappa. Se entro un'ora non la vedi, guarda anche nella posta indesiderata e poi scrivi a Marco su WhatsApp: <a href="https://wa.me/393318743953" target="_blank" rel="noopener">+39 331 874 3953</a>.</div>
+  <a class="btn wa" id="btn-acconto" href="#acconto">Ho già fatto il colloquio — paga l'acconto 100 €</a>
+  <form class="acconto" id="acconto" hidden novalidate>
+    <h3>Blocca il tuo posto</h3>
+    <p class="intro">Scegli la tappa, il sabato e la fascia che hai concordato con Marco. Paghi l'acconto di 100 € con carta; il saldo lo versi in Accademia o con bonifico prima della tappa.</p>
+    <div class="campo">
+      <label for="f-tappa">Tappa</label>
+      <select id="f-tappa" required>
+        <option value="">Scegli la tappa</option>
+        <option value="intensivo_sabato_open">Tappa 1 · Corso Open KataClimb intensivo</option>
+        <option value="intensivo_sabato_intro_lead">Tappa 2 · Corso Intro Corda KataClimb · primo di cordata</option>
+        <option value="intensivo_sabato_intro_belay">Tappa 3 · Corso Intro Corda KataClimb · sicura al primo di cordata</option>
+        <option value="intensivo_sabato_evo">Tappa 4 · Corso Evo Corda KataClimb · il volo</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="f-data">Sabato concordato con Marco</label>
+      <input type="date" id="f-data" required>
+    </div>
+    <div class="campo">
+      <span class="lbl">Fascia</span>
+      <div class="fasce">
+        <label><input type="radio" name="fascia" value="mattina"> Mattina 10:00 – 14:00</label>
+        <label><input type="radio" name="fascia" value="pomeriggio"> Pomeriggio 14:00 – 18:00</label>
+      </div>
+    </div>
+    <div class="due">
+      <div class="campo"><label for="f-nome">Nome</label><input type="text" id="f-nome" autocomplete="given-name" required></div>
+      <div class="campo"><label for="f-cognome">Cognome</label><input type="text" id="f-cognome" autocomplete="family-name" required></div>
+    </div>
+    <div class="campo"><label for="f-email">Email · serve per entrare nel portale</label><input type="email" id="f-email" autocomplete="email" inputmode="email" required></div>
+    <div class="campo"><label for="f-tel">Telefono</label><input type="tel" id="f-tel" autocomplete="tel" inputmode="tel" required></div>
+    <label class="check"><input type="checkbox" id="f-regolamento"> <span>Ho letto e accetto il <a href="regolamento-accademia.html" target="_blank" rel="noopener">regolamento dell'Accademia RCC</a>.</span></label>
+    <label class="check"><input type="checkbox" id="f-termini"> <span>Ho letto e accetto i <a href="percorso-sabato-termini.html" target="_blank" rel="noopener">termini del percorso</a>: rinuncia, salute, rischio e dati.</span></label>
+    <label class="check"><input type="checkbox" id="f-immagini"> <span>Facoltativo · Autorizzo l'uso pubblico delle mie immagini e dei miei video del percorso sui canali di KataClimb e dell'Accademia RCC (siti, social, materiali di presentazione).</span></label>
+    <p class="btnnote">Dopo il pagamento ti chiediamo una foto del viso: è necessaria come documentazione della tua iscrizione.</p>
+    <div class="msg err" id="f-errore" role="alert" hidden></div>
+    <button type="submit" class="btn" id="f-invia">Paga l'acconto di 100 €</button>
+    <div class="btnnote">Pagamento sicuro con carta su Stripe. Dopo il pagamento torni su questa pagina.</div>
+  </form>
   <p class="note">WhatsApp +39 331 874 3953 · <a href="mailto:marco@marconescatelli.net">marco@marconescatelli.net</a></p>
 </section>
 
@@ -298,24 +357,105 @@
 </footer>
 <script>
 /* ============================================================
-   LINK DI PAGAMENTO DELL'ACCONTO (Payment Link Stripe, 100 €)
-   Incolla qui il link creato nella dashboard Stripe.
-   Finché resta vuoto il bottone è spento, dice il motivo e
-   manda a WhatsApp: mai un bottone morto.
+   ACCONTO DAL SISTEMA (sabato v14 · stripe-worker v3.84)
+   Il modulo chiama /create-checkout-session con evento=1: il Worker
+   apre il pagamento Stripe; dopo il pagamento crea profilo,
+   iscrizione alla tappa, Kata e mail. Nessun link fisso.
    ============================================================ */
-var LINK_ACCONTO = '';   // es. 'https://buy.stripe.com/xxxxxxxx' → Acconto Percorso Intensivo del Sabato 100 €
-
 (function(){
-  var b = document.getElementById('btn-acconto');
-  var n = document.getElementById('nota-acconto');
-  var wa = 'https://wa.me/393318743953?text=' + encodeURIComponent('Ciao Marco, ho fatto il colloquio per il Percorso Intensivo del Sabato e voglio versare l\'acconto di 100 €. Mi mandi il link per pagare?');
-  if (LINK_ACCONTO){
-    b.setAttribute('href', LINK_ACCONTO); b.setAttribute('target','_blank'); b.setAttribute('rel','noopener');
-    b.setAttribute('aria-disabled','false');
-    n.textContent = 'Solo dopo il colloquio con Marco. Pagamento online con carta; il saldo lo fai in Accademia o con bonifico prima della tappa.';
-  } else {
-    b.addEventListener('click', function(e){ e.preventDefault(); });
-    n.innerHTML = 'Il pagamento online dell\'acconto è in attivazione. Se hai già fatto il colloquio, <a href="' + wa + '" target="_blank" rel="noopener">chiedi a Marco il link per l\'acconto su WhatsApp</a>.';
+  var WORKER = 'https://stripe-worker.marconescatelli.workers.dev/create-checkout-session';
+  var WA = 'https://wa.me/393318743953';
+  var btn = document.getElementById('btn-acconto');
+  var form = document.getElementById('acconto');
+  var err = document.getElementById('f-errore');
+  var invia = document.getElementById('f-invia');
+  var data = document.getElementById('f-data');
+
+  function oggiIso(){
+    var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+  }
+  data.min = oggiIso();
+
+  function apri(){ form.hidden = false; btn.hidden = true; }
+  btn.addEventListener('click', function(e){
+    e.preventDefault(); apri();
+    form.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  function mostraErrore(testo, conWa){
+    err.innerHTML = '';
+    err.appendChild(document.createTextNode(testo));
+    if (conWa){
+      err.appendChild(document.createTextNode(' '));
+      var a = document.createElement('a');
+      a.href = WA; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = 'Scrivi a Marco su WhatsApp';
+      err.appendChild(a);
+    }
+    err.hidden = false;
+    err.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  function isSabato(iso){
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+    var p = iso.split('-');
+    return new Date(Date.UTC(+p[0], +p[1]-1, +p[2], 12)).getUTCDay() === 6;
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    err.hidden = true;
+    var f = form.querySelector('input[name=fascia]:checked');
+    var v = {
+      prodotto: document.getElementById('f-tappa').value,
+      data_evento: data.value,
+      fascia: f ? f.value : '',
+      nome: document.getElementById('f-nome').value.trim(),
+      cognome: document.getElementById('f-cognome').value.trim(),
+      email: document.getElementById('f-email').value.trim(),
+      telefono: document.getElementById('f-tel').value.trim()
+    };
+    if (!v.prodotto) return mostraErrore('Scegli la tappa che hai concordato con Marco.');
+    if (!v.data_evento) return mostraErrore('Scegli il sabato concordato con Marco.');
+    if (v.data_evento < oggiIso()) return mostraErrore('La data scelta è già passata: scegli il sabato concordato con Marco.');
+    if (!isSabato(v.data_evento)) return mostraErrore('Le tappe si fanno di sabato: scegli il sabato concordato con Marco.');
+    if (!v.fascia) return mostraErrore('Scegli la fascia: mattina o pomeriggio.');
+    if (!v.nome || !v.cognome) return mostraErrore('Scrivi nome e cognome.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) return mostraErrore('Controlla l\'email: serve per entrare nel portale.');
+    if (v.telefono.replace(/\D/g,'').length < 6) return mostraErrore('Scrivi un numero di telefono valido.');
+    if (!document.getElementById('f-regolamento').checked) return mostraErrore('Per continuare leggi e accetta il regolamento dell\'Accademia RCC.');
+    if (!document.getElementById('f-termini').checked) return mostraErrore('Per continuare spunta l\'accettazione dei termini del percorso.');
+
+    var body = {
+      evento: '1', prodotto: v.prodotto, data_evento: v.data_evento, fascia: v.fascia,
+      nome: v.nome, cognome: v.cognome, email: v.email, telefono: v.telefono, accept_terms: true,
+      accept_regolamento: true,
+      consenso_immagini: document.getElementById('f-immagini').checked ? 'si' : 'no'
+    };
+    invia.disabled = true; invia.textContent = 'Apro il pagamento…';
+    fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(res){
+        if (res.ok && res.j && res.j.url){ window.location.href = res.j.url; return; }
+        var m = (res.j && (res.j.message || res.j.error)) || 'Il pagamento non si è aperto.';
+        mostraErrore(m, true);
+        invia.disabled = false; invia.textContent = 'Paga l\'acconto di 100 €';
+      })
+      .catch(function(){
+        mostraErrore('Il pagamento non si è aperto: controlla la connessione e riprova. Se si ripete', true);
+        invia.disabled = false; invia.textContent = 'Paga l\'acconto di 100 €';
+      });
+  });
+
+  // ritorno da Stripe
+  var q = new URLSearchParams(location.search);
+  if (q.get('pagato') === '1'){
+    document.getElementById('esito-pagato').hidden = false;
+    btn.hidden = true;
+  } else if (q.get('annullato') === '1'){
+    apri();
+    mostraErrore('Il pagamento non è stato completato e non ti è stato addebitato nulla. Puoi riprovare qui sotto.');
   }
 })();
 </script>

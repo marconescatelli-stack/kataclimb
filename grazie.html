@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: grazie v5 · 2026-10-18 · INTENSIVI E TAPPE (stripe-worker v3.85): con tipo=intensivo_sabato_* la pagina dice «posto bloccato» al posto della Prima Lezione e chiede la foto del viso come documentazione OBBLIGATORIA (niente «Più tardi»); stesso flusso fotocamera v4 e stesso endpoint /foto-riconoscimento esteso dal Worker agli eventi. Prima Lezione Adulti invariata. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -237,12 +238,12 @@ h1 .accent{color:var(--sky)}
 
   <div class="check-icon fu fu1">✓</div>
 
-  <h1 class="fu fu2">
+  <h1 class="fu fu2" id="g-h1">
     Ci vediamo presto<br>
     in <span class="accent">Accademia</span>.
   </h1>
 
-  <p class="lead fu fu2">
+  <p class="lead fu fu2" id="g-lead">
     Il tuo pagamento è andato a buon fine. La tua <strong>Prima Lezione di KataClimb</strong> è prenotata.
   </p>
 
@@ -251,7 +252,7 @@ h1 .accent{color:var(--sky)}
     <div class="value" id="session-id">—</div>
   </div>
 
-  <div class="next-steps fu fu3">
+  <div class="next-steps fu fu3" id="g-steps">
     <h2>Cosa succede ora</h2>
     <ol>
       <li>
@@ -285,6 +286,33 @@ h1 .accent{color:var(--sky)}
   </section>
 
 </main>
+
+<!-- ═══ v5 · Testi per intensivi e tappe (tipo=intensivo_sabato_*) ═══ -->
+<script>
+(function(){
+  var TAPPE = {
+    intensivo_sabato_open:        'Tappa 1 · Corso Open KataClimb intensivo',
+    intensivo_sabato_intro_lead:  'Tappa 2 · Corso Intro Corda KataClimb · primo di cordata',
+    intensivo_sabato_intro_belay: 'Tappa 3 · Corso Intro Corda KataClimb · sicura al primo di cordata',
+    intensivo_sabato_evo:         'Tappa 4 · Corso Evo Corda KataClimb · il volo'
+  };
+  var tipo = new URLSearchParams(location.search).get('tipo') || '';
+  if (!TAPPE[tipo]) return;
+  document.title = 'Posto bloccato · Percorso Intensivo del Sabato · Accademia RCC';
+  var h1 = document.getElementById('g-h1');
+  if (h1) h1.innerHTML = 'Il tuo posto<br>è <span class="accent">bloccato</span>.';
+  var lead = document.getElementById('g-lead');
+  if (lead) lead.innerHTML = 'Acconto ricevuto. <strong>Percorso Intensivo del Sabato · ' + TAPPE[tipo] + '</strong>.';
+  var st = document.getElementById('g-steps');
+  if (st) st.innerHTML =
+    '<h2>Cosa succede ora</h2><ol>' +
+    '<li><div><div class="step-title">Fatti riconoscere</div><div class="step-desc">Qui sotto scatta la foto del tuo viso: è la documentazione della tua iscrizione e serve all\'istruttore per riconoscerti.</div></div></li>' +
+    '<li><div><div class="step-title">Email di conferma</div><div class="step-desc">Tra pochi minuti ricevi una email con data, fascia e accesso al portale KataClimb, dove trovi già aperti i Kata della tua tappa.</div></div></li>' +
+    '<li><div><div class="step-title">Il saldo</div><div class="step-desc">Lo versi in Accademia o con bonifico prima della tappa, secondo la formula concordata con Marco.</div></div></li>' +
+    '<li><div><div class="step-title">Hai bisogno di Marco?</div><div class="step-desc">Scrivigli su WhatsApp: <a href="https://wa.me/393318743953">+39 331 874 3953</a>.</div></div></li>' +
+    '</ol>';
+})();
+</script>
 
 <!-- ═══ v4 · Overlay fotocamera ═══ -->
 <div class="cam" id="cam" hidden role="dialog" aria-modal="true" aria-label="Scatta la tua foto">
@@ -349,6 +377,10 @@ h1 .accent{color:var(--sky)}
     pacchetto_meta_open:    'Pacchetto ½ Open + Prima Lezione',
     saldo_open_intero:      'Pacchetto Open intero',
     iscrizione_meta_open:   'Mezza Open',
+    intensivo_sabato_open:        'Percorso Intensivo del Sabato · tappa 1 · acconto',
+    intensivo_sabato_intro_lead:  'Percorso Intensivo del Sabato · tappa 2 · acconto',
+    intensivo_sabato_intro_belay: 'Percorso Intensivo del Sabato · tappa 3 · acconto',
+    intensivo_sabato_evo:         'Percorso Intensivo del Sabato · tappa 4 · acconto',
   };
   const kcTipo    = params.get('tipo') || '';
   const kcImporto = parseFloat(params.get('importo') || '');
@@ -421,6 +453,8 @@ h1 .accent{color:var(--sky)}
   var MP_MODEL  = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
   var MP_TIMEOUT_MS = 20000;              // oltre: si passa al ripiego
   var TIPI_ADULTI = ['prima_lezione', 'prima_lezione_giovani'];
+  // v5 · intensivi e tappe: foto OBBLIGATORIA come documentazione dell'iscrizione
+  var TIPI_EVENTO = ['intensivo_sabato_open', 'intensivo_sabato_intro_lead', 'intensivo_sabato_intro_belay', 'intensivo_sabato_evo'];
   var WA_TESTO = '+39 331 874 3953';
   var WA_URL   = 'https://wa.me/393318743953';
 
@@ -454,7 +488,8 @@ h1 .accent{color:var(--sky)}
   var sid  = qs.get('session_id') || '';
   var tipo = qs.get('tipo') || '';
   var DEBUG = qs.get('foto_debug') === '1'; // mostra luce/nitidezza/dimensione nell'overlay, per tarare le soglie
-  if (!sid || TIPI_ADULTI.indexOf(tipo) === -1) return;
+  var EVENTO = TIPI_EVENTO.indexOf(tipo) !== -1;
+  if (!sid || (TIPI_ADULTI.indexOf(tipo) === -1 && !EVENTO)) return;
 
   var $ = function(id){ return document.getElementById(id); };
   var blk = $('foto-blk'), schedeEl = $('foto-schede');
@@ -980,6 +1015,17 @@ h1 .accent{color:var(--sky)}
   }
 
   // ── Avvio: GET partecipanti ──────────────────────────────────────
+  var GET_TENTATIVI = 6, GET_ATTESA_MS;
+  if (EVENTO){
+    // La foto è la documentazione dell'iscrizione: niente «Più tardi».
+    $('foto-dopo').hidden = true;
+    var tit = $('foto-tit'); if (tit) tit.textContent = 'Un ultimo passo, necessario: la tua foto';
+    var ld = blk.querySelector('.foto-lead');
+    if (ld) ld.textContent = 'Scatta una foto del tuo viso: è la documentazione della tua iscrizione al percorso e permette all\'istruttore di riconoscerti. Senza la foto l\'iscrizione non è completa.';
+    var pv = blk.querySelector('.foto-privacy');
+    if (pv) pv.textContent = 'La foto la vedono solo Marco, gli istruttori e la segreteria dell\'Accademia RCC. Dal tuo profilo nel portale KataClimb puoi scegliere di mostrarla anche agli altri allievi. Per cancellarla scrivi a Marco.';
+    GET_TENTATIVI = 12; // la prima iscrizione all'intensivo richiede qualche secondo in più
+  }
   $('foto-dopo').addEventListener('click', function(){
     if (cam.attivo) chiudiCamera();
     blk.hidden = true;
@@ -988,7 +1034,7 @@ h1 .accent{color:var(--sky)}
   // riprova:true = pagamento valido ma la prenotazione non è ancora registrata
   // (il webhook Stripe del singolo può arrivare dopo questa pagina): si richiede
   // ancora qualche volta, poi si rinuncia in silenzio.
-  var GET_TENTATIVI = 6, GET_ATTESA_MS = 3000;
+  GET_ATTESA_MS = 3000;
   function caricaPartecipanti(tentativo){
     fetch(WORKER + '/foto-riconoscimento?session_id=' + encodeURIComponent(sid))
       .then(function(r){
