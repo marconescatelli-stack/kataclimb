@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: grazie v5 · 2026-10-18 · INTENSIVI E TAPPE (stripe-worker v3.85): con tipo=intensivo_sabato_* la pagina dice «posto bloccato» al posto della Prima Lezione e chiede la foto del viso come documentazione OBBLIGATORIA (niente «Più tardi»); stesso flusso fotocamera v4 e stesso endpoint /foto-riconoscimento esteso dal Worker agli eventi. Prima Lezione Adulti invariata. -->
+<!-- KC-BUILD: grazie v6 · 2026-10-18 · ESSENCE-K 21–22 NOV 2026 (stripe-worker v3.86): tipo=essence_nov26_weekend|essence_nov26_open → «posto bloccato» (acconto 150 €) o «quota saldata», foto del viso obbligatoria come per le tappe. CUMULA grazie v5 · 2026-10-18 · INTENSIVI E TAPPE (stripe-worker v3.85): con tipo=intensivo_sabato_* la pagina dice «posto bloccato» al posto della Prima Lezione e chiede la foto del viso come documentazione OBBLIGATORIA (niente «Più tardi»); stesso flusso fotocamera v4 e stesso endpoint /foto-riconoscimento esteso dal Worker agli eventi. Prima Lezione Adulti invariata. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -296,7 +296,30 @@ h1 .accent{color:var(--sky)}
     intensivo_sabato_intro_belay: 'Tappa 3 · Corso Intro Corda KataClimb · sicura al primo di cordata',
     intensivo_sabato_evo:         'Tappa 4 · Corso Evo Corda KataClimb · il volo'
   };
-  var tipo = new URLSearchParams(location.search).get('tipo') || '';
+  var qs = new URLSearchParams(location.search);
+  var tipo = qs.get('tipo') || '';
+  var ESSENCE = {
+    essence_nov26_weekend: 'ESSENCE-K · 21–22 novembre 2026',
+    essence_nov26_open:    'ESSENCE-K + Corso Open KataClimb · 21–22 novembre 2026'
+  };
+  if (ESSENCE[tipo]) {
+    var imp = parseFloat(qs.get('importo') || '');
+    var acconto = !(imp > 150);
+    document.title = (acconto ? 'Posto bloccato' : 'Quota saldata') + ' · ESSENCE-K';
+    var eh1 = document.getElementById('g-h1');
+    if (eh1) eh1.innerHTML = 'Il tuo posto<br>è <span class="accent">bloccato</span>.';
+    var elead = document.getElementById('g-lead');
+    if (elead) elead.innerHTML = (acconto ? 'Acconto ricevuto. ' : 'Quota saldata. ') + '<strong>' + ESSENCE[tipo] + '</strong>.';
+    var est = document.getElementById('g-steps');
+    if (est) est.innerHTML =
+      '<h2>Cosa succede ora</h2><ol>' +
+      '<li><div><div class="step-title">Fatti riconoscere</div><div class="step-desc">Qui sotto scatta la foto del tuo viso: è la documentazione della tua iscrizione e serve a Marco e agli istruttori per riconoscerti.</div></div></li>' +
+      '<li><div><div class="step-title">Email di conferma</div><div class="step-desc">Tra pochi minuti ricevi una email con il programma del weekend e l\'accesso al portale KataClimb, dove trovi già aperti i tuoi Kata.</div></div></li>' +
+      (acconto ? '<li><div><div class="step-title">Il saldo</div><div class="step-desc">Lo versi con bonifico prima del weekend: Marco ti manda gli estremi.</div></div></li>' : '') +
+      '<li><div><div class="step-title">Il gruppo della cordata</div><div class="step-desc">Dal 9 novembre Marco ti aggiunge al gruppo WhatsApp del weekend. Per qualsiasi cosa: <a href="https://wa.me/393318743953">+39 331 874 3953</a>.</div></div></li>' +
+      '</ol>';
+    return;
+  }
   if (!TAPPE[tipo]) return;
   document.title = 'Posto bloccato · Percorso Intensivo del Sabato · Accademia RCC';
   var h1 = document.getElementById('g-h1');
@@ -381,6 +404,8 @@ h1 .accent{color:var(--sky)}
     intensivo_sabato_intro_lead:  'Percorso Intensivo del Sabato · tappa 2 · acconto',
     intensivo_sabato_intro_belay: 'Percorso Intensivo del Sabato · tappa 3 · acconto',
     intensivo_sabato_evo:         'Percorso Intensivo del Sabato · tappa 4 · acconto',
+    essence_nov26_weekend:        'ESSENCE-K 21-22 nov 2026 · weekend',
+    essence_nov26_open:           'ESSENCE-K 21-22 nov 2026 · con Corso Open',
   };
   const kcTipo    = params.get('tipo') || '';
   const kcImporto = parseFloat(params.get('importo') || '');
@@ -454,7 +479,7 @@ h1 .accent{color:var(--sky)}
   var MP_TIMEOUT_MS = 20000;              // oltre: si passa al ripiego
   var TIPI_ADULTI = ['prima_lezione', 'prima_lezione_giovani'];
   // v5 · intensivi e tappe: foto OBBLIGATORIA come documentazione dell'iscrizione
-  var TIPI_EVENTO = ['intensivo_sabato_open', 'intensivo_sabato_intro_lead', 'intensivo_sabato_intro_belay', 'intensivo_sabato_evo'];
+  var TIPI_EVENTO = ['intensivo_sabato_open', 'intensivo_sabato_intro_lead', 'intensivo_sabato_intro_belay', 'intensivo_sabato_evo', 'essence_nov26_weekend', 'essence_nov26_open'];
   var WA_TESTO = '+39 331 874 3953';
   var WA_URL   = 'https://wa.me/393318743953';
 
