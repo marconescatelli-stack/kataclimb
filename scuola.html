@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>Area scuola — KataClimb · Accademia RCC</title>
+<!-- KC-BUILD: scuola v1.1 · 2026-10-21 · ritocchi dopo il collaudo (Marco 21 ott): (1) aggiunta ragazzo: nome e cognome con l'iniziale maiuscola prima della RPC; (2) riquadro blu "Ricevuto: N moduli caricati. La segreteria li trascrive entro 2 giorni lavorativi…" che resta finche' ci sono moduli da trascrivere (calcolato dai documenti, quindi anche dopo un ricaricamento); la riga verde resta. CUMULA v1.0 (sotto). -->
 <!-- KC-BUILD: scuola v1.0 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott, aggiunte 21 ott): PAGINA NUOVA, area del referente della scuola, stesso login del portale (sessione supabase-js nello stesso localStorage). Boot: sessione -> rpc mio_lead_scuola; null -> "Questo accesso non e' collegato a una scuola" e stop. Testata da v_scuola_me (ente, prossima lezione con orario dallo slot, ragazzi/moduli). Flusso principale (21 ott, decisione Marco): "Carica moduli" = piu' foto o PDF insieme, nessun campo: ogni file -> bucket scuole <lead>/da_trascrivere/<ts>-<n>.<ext> -> scuola_carica_documento(null,'modulo_adesione',path); conteggio caricati/trascritti/da trascrivere; i moduli "da rifare" con la nota della segreteria. Lista ragazzi da v_scuola_allievi (stato modulo a colori, tesserato, presente). Secondari: "Aggiungi ragazzo" a mano -> scuola_aggiungi_allievo (scuola implicita), "Carica modulo" sulla riga di un ragazzo -> <lead>/<persona>/<ts>.<ext>. Documenti della scuola (preventivo, progetto) in sola lettura, URL firmati 10 min. Colleghi: scuola_aggiungi_referente(mio_lead_scuola()); l'accesso lo manda la segreteria. Link al modulo di adesione v2 (decisione Marco 21 ott: tutti i link al modulo puntano al v2). Mobile first: testo >= 15px, bottoni primari scuri, nessuna sidebar, nessun dato di altri allievi o della Comunita'. -->
 <style>
   :root{
@@ -37,6 +38,8 @@
   .esito.ok{display:block;background:var(--verde-bg);color:var(--verde)}
   .esito.ko{display:block;background:var(--rosso-bg);color:var(--rosso)}
   .esito.info{display:block;background:#EDE7DD;color:var(--navy)}
+  .ricevuto{margin-top:12px;padding:14px 16px;border-radius:12px;background:var(--navy);color:#fff;font-size:16px;line-height:1.5}
+  .ricevuto b{font-size:17px}
   .ragazzo{padding:12px 0;border-top:1px solid var(--bordo)}
   .ragazzo:first-child{border-top:none}
   .ragazzo .nome{font-size:16.5px;font-weight:700}
@@ -121,6 +124,7 @@
       <input type="file" id="in-scatta" accept="image/*" capture="environment" class="hidden">
       <div class="barra" id="barra"><div></div></div>
       <div class="esito" id="esito-moduli"></div>
+      <div class="ricevuto hidden" id="ricevuto" role="status"></div>
       <div id="da-rifare"></div>
     </div>
 
@@ -275,6 +279,14 @@
     var trascritti=mod.filter(function(d){return d.persona_id}).length;
     var attesa=mod.filter(function(d){return !d.persona_id&&d.esito!=='da_rifare'}).length;
     $('conti-moduli').innerHTML='<span class="conto">'+nn(mod.length,'modulo caricato','moduli caricati')+'</span><span class="conto">'+nn(trascritti,'trascritto','trascritti')+'</span><span class="conto">'+attesa+' da trascrivere</span>';
+    // v1.1: riquadro che resta finche' ci sono moduli da trascrivere (non solo subito dopo il caricamento).
+    var ric=$('ricevuto');
+    if(attesa){
+      ric.innerHTML=attesa===1
+        ?'<b>Ricevuto: 1 modulo caricato.</b> La segreteria lo trascrive entro 2 giorni lavorativi: il nome del ragazzo comparirà qui sotto.'
+        :'<b>Ricevuto: '+attesa+' moduli caricati.</b> La segreteria li trascrive entro 2 giorni lavorativi: i nomi dei ragazzi compariranno qui sotto.';
+      ric.classList.remove('hidden');
+    }else ric.classList.add('hidden');
     var rif=mod.filter(function(d){return !d.persona_id&&d.esito==='da_rifare'});
     $('da-rifare').innerHTML=rif.length?('<h2 style="margin-top:16px;font-size:17px">Da rifare</h2>'+rif.map(function(d){
       return '<div class="ragazzo"><span class="stato da_rifare">Modulo del '+esc(dataBreve(d.caricato_at))+': da rifare</span>'+(d.nota_staff?'<div class="nota-rossa">'+esc(d.nota_staff)+'</div>':'')+'</div>';
@@ -363,9 +375,12 @@
     finally{btn.disabled=false}
   }
 
+  // v1.1: nome e cognome con l'iniziale maiuscola ("luca bianchi" -> "Luca Bianchi", "d'amico" -> "D'Amico").
+  function maiuscole(t){return String(t||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('it-IT').replace(/(^|[\s'’\-])(\p{L})/gu,function(m,a,b){return a+b.toLocaleUpperCase('it-IT')})}
+
   async function aggiungiRagazzo(ev){
     ev.preventDefault();
-    var nome=$('r-nome').value.trim(),cognome=$('r-cognome').value.trim(),nascita=$('r-nascita').value;
+    var nome=maiuscole($('r-nome').value),cognome=maiuscole($('r-cognome').value),nascita=$('r-nascita').value;
     var cf=$('r-cf').value.toUpperCase().replace(/\s+/g,'');
     if(!nome||!cognome||!nascita){esito('esito-ragazzo','Servono nome, cognome e data di nascita.','ko');return}
     if(cf&&!/^[A-Z0-9]{16}$/.test(cf)){esito('esito-ragazzo','Il codice fiscale ha 16 caratteri, solo lettere e numeri.','ko');return}
