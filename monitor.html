@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: monitor v3.58 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott): la ricerca allievo esclude i profili role referente_scuola (il referente della scuola non e' un allievo). Nient'altro. CUMULA v3.57 (sotto). -->
 <!-- KC-BUILD: monitor v3.57 · 2026-06-11 21:50 · UPLOAD TUS: kata a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: monitor v3.56b · 2026-05-28 -->
 <meta charset="UTF-8">
@@ -357,7 +358,7 @@ async function searchAllievi() {
 
   // Cerca su nome, cognome o telefono
   const isNumeric = /^[0-9+\s]+$/.test(q);
-  let query = sb.from('profiles').select('user_id,nome,cognome,telefono,struttura,role').limit(20);
+  let query = sb.from('profiles').select('user_id,nome,cognome,telefono,struttura,role').neq('role','referente_scuola').limit(20); // v3.58 — Scuole F1
 
   if (isNumeric) {
     query = query.ilike('telefono', `%${q.replace(/\s/g,'')}%`);
