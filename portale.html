@@ -20,6 +20,9 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.136 · 2026-10-21 · SCUOLE F1 METÀ B, ritocchi dopo il collaudo (Marco 21 ott): (1) aggiunta allievo e trascrizione: nome e cognome con l'iniziale maiuscola prima della RPC (scMaiuscole: "luca bianchi" -> "Luca Bianchi", anche dopo apostrofo e trattino); (2) etichette stadio per le scuole: SC_FUNNEL_LABEL "Prenotato Prima Lezione · Scuole" e "Prima Lezione · Scuole fatta", nel tab Scuole e nel fascicolo dei lead scuola/allievo_scuola/referente_scuola. FUNNEL_LABEL dei privati invariato (gli stadi a DB sono gli stessi). Nient'altro. CUMULA v3.135 (sotto). -->
+<!-- KC-BUILD: portale v3.135 · 2026-10-21 · SCUOLE F1 METÀ B, giro 2 (decisioni Marco 21 ott): (1) turni sulle lezioni scuola letti da impegni_staff (stato <> ritirato, conteggio N/3) e scritti SOLO con le RPC impegno_mi_segno(p_tipo lezione, p_slot_id, p_ruolo, p_user_id) e impegno_mi_tolgo(p_impegno_id): slot_staff non esiste e non esistera'. "+ Istruttore" e "×" solo per staff_creator/staff_segreteria (= is_segreteria() delle RPC). (2) nomi: "Prima Lezione · Scuole" e "Mini percorso · Scuole" (gruppo misto, niente fascia), anche negli stadi del funnel. (3) i ragazzi delle scuole (tipo_persona allievo_scuola) restano nel fascicolo ma escono dagli elenchi commerciali e da richiamare: Lead in arrivo, Da contattare oggi / gestione contatti (get_leads_da_contattare filtrata qui: la RPC non espone tipo_persona), da richiamare dell'agenda Marco. CUMULA v3.134 (sotto). -->
+<!-- KC-BUILD: portale v3.134 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott): (1) Segreteria: interruttore 👥 Persone / 🏫 Scuole. Tab Scuole = richieste dal sito (richieste_scuole senza lead e non annullate: Crea scuola -> scuola_da_richiesta, Annulla -> stato annullata), elenco scuole (lead_data tipo_persona scuola: referente, stadio, prossima azione, ragazzi, moduli validi/mancanti, da trascrivere), + Nuova scuola -> scuola_crea. Scheda scuola: dati e funnel (stadio, prossima azione, note su lead_data; 📒 Diario contatti apre la scheda lead di sempre), referenti (principale + crm_relazioni scuola_referente; + Aggiungi referente -> scuola_aggiungi_referente; ✉️ Invia accesso singolo o a tutti -> scuola_invia_accesso, spento con motivo se manca l'email, esito {inviati}), lezioni (slot con lead_scuola_id, prenotati/25, + Crea slot Prima Lezione -> scuola_crea_slot) con i turni istruttori di slot_staff (+ Istruttore / ×, solo segreteria), moduli da trascrivere (documenti_scuola modulo_adesione senza persona: vista a due colonne, modulo a sinistra con zoom e form a destra -> scuola_trascrivi_modulo; Da rifare -> scuola_verifica_documento con nota), allievi (nome, classe, nascita, CF, consenso foto, stato modulo a colori, Apri modulo, ✓ Valido / Da rifare, tesserato, lezione e presenza, Fascicolo; + Aggiungi allievo (emergenza) -> scuola_aggiungi_allievo con p_scuola_lead_id), documenti della scuola (preventivo/altro: upload <lead>/scuola/<ts>.<ext> nel bucket scuole poi scuola_carica_documento con persona null). File letti con URL firmati da 10 minuti; nei bottoni passa l'id del documento, mai il percorso. (2) FUNNEL_LABEL/COLOR + 4 stadi scuola_mini. (3) role referente_scuola -> scuola.html (il referente non ha un fascicolo allievo). (4) Comunita': profiles_community senza role referente_scuola. CUMULA v3.133 (sotto). -->
 <!-- KC-BUILD: portale v3.133 · 2026-10-18 · INTENSIVI E TAPPE NEL PORTALE (checkout unico eventi, stripe-worker v3.84): (1) KATA_PER_CORSO + 7 chiavi (intensivo_sabato_open 1-7/11-15, intensivo_sabato_intro_lead 16-18, intensivo_sabato_intro_belay 19-26, intensivo_sabato_evo 27-33, legami_k 16-18, custode_k 19-26, fly_k 27-33), blocco identico a kata v1.5; (2) il ramo ESSENCE-K del riquadro e della pillola vale per ogni intensivo (INTENSIVI_NOMI): chi ha solo un intensivo/tappa e nessun corso attivo vede 'Sei in <intensivo>' e il prossimo passo, non l'invito alla Prima Lezione. Nient'altro. CUMULA v3.132 · 2026-10-16 · CAMBIA GIORNI ABBONAMENTO (Master v4.4 §6 Abbonamenti, primo punto): nel fascicolo, su ogni abbonamento con giorni (abbTipoConGiorni) non scaduto, SOLO SEGRETERIA (isSegreteriaPiena: creator, admin, segreteria — stessi ruoli di is_segreteria_piena() nella RPC, decisione Marco 16 ott), bottone '📅 Cambia giorni' -> modale mo-cambia-giorni con i giorni del suo tipo (abbSlotsDelTipo), spuntati quelli attuali (slotByIscr), contatore 'Giorni a settimana: N', Conferma spento se i giorni sono quelli di prima o se il numero cambia (scritta rossa: da 1 a 2 volte cambia il prezzo, si usa ➕ Abbonamento o corso), nota opzionale. Una sola chiamata: RPC cambia_giorni_abbonamento (guardie nella RPC: solo segreteria, tipo, stesso numero di giorni, capienza; non tocca importo, scadenza, pagato, abbonamenti_pagamenti). Motivo: spostare un bambino da un giorno all'altro passava da registra_abbonamento, che e' un rinnovo e scriveva un pagamento mai avvenuto. Nella modale ➕ Abbonamento o corso, in rinnovo, frase che rimanda a 📅 Cambia giorni. Nessuna scrittura diretta su tabelle. CUMULA v3.131 · 2026-10-14 · VIDEO RIDOTTI A 720p DAL PORTALE (decisione Marco 14 ott, vale per tutti; Cantieri aperti E8): niente piu' rifiuto per risoluzione. Se il lato corto supera VIDEO_TARGET_SHORT_SIDE (720) il video viene ricodificato nel browser a 720p (H.264/MP4, ~2,2 Mbps, audio copiato se possibile, verticale resta verticale) con WebCodecs tramite Mediabunny 1.60.0 da jsdelivr, caricato solo quando serve; gia' <=720 parte l'originale. Durata controllata PRIMA (kata 12s, presentazione 120s, dalle costanti). Ripiego se il browser non ce la fa: originale solo se lato corto <=1080 e <=500 MB, altrimenti messaggio chiaro. Paracadute 500 MB sul file che parte, 2 GB sul file scelto. Fase 'Preparo il video... X%' nel riquadro, Carica spento finche' non finisce, chiudere il riquadro annulla. Riepilogo con risoluzione e peso prima/dopo. Testi delle regole senza '1080p / no 4K'. Blocco 'VIDEO RIDOTTO A 720p' identico in kata.html. Worker stream-bridge e DB non toccati. CUMULA v3.130 · 2026-10-09 · VIDEO KATA MASSIMO 12 SECONDI (decisione Marco 9 ott, audit giro 2): KATA_MAX_DURATION 20 -> 12. Riquadro regole upload, etichetta '2 video per Kata · max Ns' e messaggio d'errore leggono gia' la costante: nessun numero riscritto a mano. Il Worker stream-bridge (MAX_DURATION_KATA) non e' in questo repo e non e' stato toccato. Nient'altro. CUMULA v3.129 · 2026-10-09 · ABBONAMENTI v1.2: SALA SENZA GIORNI + PIU' ABBONAMENTI PER PERSONA (DB gia' live il 9 ott: tipi sala_monitor "Sala con Monitor", sala_corda "Sala + corda", sala_corda_flylab "Sala + corda con formula Lab o Fly", mensili con slot_ammessi vuoto; registra_abbonamento chiede i giorni solo ai tipi che li hanno; vincolo uno attivo per persona+tipo). (1) Scheda Abbonamento: per i tipi con slot_ammessi vuoto (abbTipoConGiorni) il blocco Giorni e' nascosto, la conferma non chiede giorni e p_slot_ids va null; proponi_abbonamento invariato (p_giorni_sett 1). Gli altri tipi restano "Scegli almeno un giorno del corso". (2) I tipi Sala arrivano gia' da abbonamenti_tipi per ordine (Mensili): nessun nome cablato. (3) Tipo proposto e riga "Già abbonato/a fino al ..." gia' per tipo dalla v3.128: con piu' abbonamenti parte quello che scade prima, riga e giorni seguono il tipo scelto nel menu. (4) Fascicolo: una riga per ogni abbonamento attivo (gia' cosi'); senza giorni la riga dice solo scadenza/pausa, niente "nessun giorno", "null" o separatori vuoti. Nessuna modifica a DB o RPC. CUMULA v3.128 · 2026-10-08 · ABBONAMENTI v1.1, RITOCCHI DOPO IL PRIMO CONTROLLO. (1) Scheda Abbonamento: nessun metodo di pagamento preimpostato (prima partiva su Contanti e una dimenticanza registrava contanti); in conferma senza scelta "Scegli come ha pagato (o «Da pagare»)" e nessuna chiamata; "Da pagare" resta p_metodo null. Scheda Corso NON toccata. (2) Tipo proposto da solo: se la persona ha abbonamenti attivi il menu parte sul tipo che scade prima, con riga "Già abbonato/a fino al ... — stai rinnovando" (il genere non e' gestito altrove), giorni attuali spuntati e ricalcolo immediato di proponi_abbonamento; senza abbonamenti menu vuoto come prima. (3) Fascicolo: le pillole funnel/stato sotto il nome non compaiono piu' quando il valore e' vuoto (prima scrivevano "null" sui contatti inseriti a mano). Nessuna modifica a DB, RPC o altri blocchi. CUMULA v3.127 · 2026-10-08 · ABBONAMENTI IN SEGRETERIA (migration abbonamenti v1, 8 ott; decisioni Marco 7-8 ott). (1) Bottone del fascicolo "💰 Registra" -> "➕ Abbonamento o corso" (stesso colore, stessa visibilita' isStaff(), anche accesso MINI soloRegistra). (2) Modale #mo-pagamento-manuale a due schede: Abbonamento | Corso. Corso = la modale di prima INVARIATA (voci Open/Advance/Intro/Evo, Worker /manual-payment). Scheda di default: Abbonamento per lead fascia bambino/ragazzo, altrimenti Corso. (3) Scheda Abbonamento: tipi da abbonamenti_tipi (per ordine, gruppi Trimestrali/Mensili, label: nessun nome cablato); se la persona ha gia' quell'abbonamento attivo riga "Gia' abbonato fino al ... — stai rinnovando" e giorni attuali preselezionati; giorni = slot attivi di corsi_attivi_settimanali ammessi da slot_ammessi (nome del corso dello slot preso da abbonamenti_tipi); Dal (vuoto = automatico) e Fino al obbligatorio precompilato con al_suggerita; riquadro Importo consigliato da proponi_abbonamento (mesi x quota, meta' primo mese dal 15, sconto famiglia con nome del familiare) + spunta "Secondo familiare" (p_familiare), ricalcolo a ogni cambio di tipo, giorni (1 o 2+), Dal, Fino al; Importo pagato libero precompilato col consigliato; metodo Contanti/Bonifico/POS/Stripe/Da pagare (null); Nota 300; Conferma -> registra_abbonamento, errori della RPC mostrati cosi' come sono; esito toast "<label>: attivo fino al GG/MM/AAAA · N € metodo|da pagare" e fascicolo ricaricato. (4) Blocco "🎫 Abbonamenti" nel fascicolo sotto Famiglia (persona da lead_data.persona_id): una riga per abbonamento attivo da get_scadenzario_abbonamenti (label, giorni, scadenza, stato colorato, pagato, ultimo pagamento), storico abbonamenti_pagamenti chiuso di default, nessun blocco se non ci sono abbonamenti. (5) Pausa SOLO per abbonamenti mensili (adulti): "⏸ Pausa" -> Dal/Al/Motivo -> registra_pausa_abbonamento, toast "Pausa di N giorni: ora scade il GG/MM"; pause attive non ancora finite con Annulla (conferma) -> annulla_pausa_abbonamento. (6) Link "📅 Scadenze" (scadenzario.html) nella testata Segreteria accanto a Listini. Scritture SOLO via le 3 RPC; letture abbonamenti_tipi, corsi_attivi_settimanali, iscrizioni_minori_slot, abbonamenti_pause, abbonamenti_pagamenti. Worker, voci Corso, prenotazioni, contatori, presenze NON toccati. CUMULA v3.126 · 2026-10-05 · FOTO DI RICONOSCIMENTO (privata di default, pubblica per scelta): la foto scattata dopo il pagamento della Prima Lezione Adulti sta nel bucket PRIVATO riconoscimento (persone.foto_riconoscimento_path), letta solo con URL firmati 1h. (1) Fascicolo lead della segreteria: miniatura tonda accanto al nome (persona via lead_data.persona_id -> persone.foto_riconoscimento_path), tocco = ingrandimento con nome; senza foto le iniziali. Funzioni condivise rfSignedUrls (batch + cache in memoria), rfAvatarHtml, rfApriZoom. (2) #my-avatar (renderMioAvatar, unico punto): foto pubblica foto_url se c'e' (cosi' dopo «cambia foto» si vede subito quella caricata, ed e' la stessa che vede la Comunita'), altrimenti foto di riconoscimento privata, altrimenti iniziali. (3) Interruttore «Mostra la mia foto agli altri allievi nella Comunità» (input checkbox role=switch), solo se esiste la foto privata: acceso = download dal bucket privato -> upload avatars/{user.id}/avatar.jpg (stesse opzioni del cambia foto) -> profile_data.update({foto_url,foto_pubblica:true}); spento = remove avatars/{user.id}/avatar.jpg -> profile_data.update({foto_url:null,foto_pubblica:false}); errore = messaggio con motivo e dettaglio, interruttore torna com'era, disabilitato durante l'operazione. foto_pubblica letta da profile_data (non e' nella view profiles). (4) «cambia foto»: l'UPDATE scrive anche foto_pubblica:true (fallback al solo foto_url se la colonna non esiste ancora). Comunita' invariata (legge solo foto_url). CUMULA v3.125 · 2026-10-01 · COMUNITA': OGNUNO VEDE ANCHE SE' STESSO, SEGNATO "TU" (caso Claudia Rinauro, istruttrice jr: in "Istruttori" contava 4 nomi senza il suo e pensava di non risultare). I dati erano giusti (profiles_community la restituisce): la causa era .neq('user_id',user.id) nella query di loadAll. Ora: (1) via il .neq, ogni membro porta _isMe; il proprio user_id entra in memberIds e quindi nella fetch prenotazioni_unificate (serve allo step della propria card). (2) communityMembers ordinato con _isMe in testa PRIMA di ogni render: gli indici di showPubProfile(idx) restano coerenti; il resto dell'ordine invariato (sort stabile). (3) renderMemberCardHTML: pill "Tu" (.cm-tu, token --accent-soft/--accent-strong, 13px) dopo nome e cognome. (4) Vista "Tutti" raggruppata: la propria card resta nella sezione dei suoi badge, prima della sezione, nessuna sezione nuova. (5) showPubProfile: sulla propria card niente "Gestisci badge", neanche per il creator (nessuno si assegna i badge da solo). Conteggi tab, placeholder, raggruppamento, filtri e DEMO_COMMUNITY NON toccati: i conteggi includono se' stessi da soli. Nessuna modifica a DB/RPC/viste/RLS. CUMULA v3.124 · 2026-10-01 · VEDERE LA PASSWORD E CAPIRE OGNI ERRORE DI ACCESSO (collaudo Marco 1 ott). (1) Schermata di accesso: bottone Mostra/Nascondi dentro il campo Password (kcTogglePwd: button type=button, aria-label + aria-pressed, mousedown senza rubare il focus; .pwd-wrap/.pwd-eye). Niente regole della password qui: la persona usa una password che ha gia'. (2) authErrIT: credenziali sbagliate ora dice cosa controllare ("...con «Mostra» puoi vedere la password, oppure tocca «Password dimenticata?»"); "For security purposes" conta come troppi tentativi. (3) Nuova authErrMsg(e) per i quattro ingressi della schermata di accesso (email+password, Google, link via email, Password dimenticata?): tradotto se lo conosciamo, troppi tentativi (429/over_request_rate_limit), rete assente, altrimenti "Non siamo riusciti a farti entrare..." col CODICE dell'errore, mai piu' il testo inglese grezzo; errore vero in console. authErrIT resta com'era per chi la usa per sapere se un testo e' tradotto (v3.123, errore nell'hash del link). Nessun redirect, ?primo=1 o recovery toccato. CUMULA v3.123 · 2026-09-30 · IL LINK VIA EMAIL PORTA DAVVERO A "SCEGLI LA TUA PASSWORD" E UN LINK SCADUTO LO DICE (collaudo Marco in produzione, 30 set 11:34: link riuscito ma atterrato su Oggi senza password_scelta; secondo tocco = landing muta). CAUSA verificata nel codice di supabase-js @2: nel ramo implicit, dopo _getUser (richiesta di rete) fa window.location.hash='', e init leggeva l'hash dopo createClient + await giorni_chiusi, quindi vuoto: il blocco v3.122 su type=magiclink non scattava mai. (1) window.KC_HASH0 = hash fotografato nello script anti-flash in cima all'<head>, prima del tag supabase-js; init decide su quello (poi lo azzera: contiene i token). (2) Rete di sicurezza kcAccessoDaLinkEmail: se l'hash non dice type=magiclink guarda il claim amr del token (metodo piu' recente otp/magiclink, avvenuto da meno di 2 minuti; tipi AMRMethod di auth-js). Con password_scelta!==true -> imposta-password.html?primo=1, prima di loadAll e del redirect a Oggi. (3) Hash con error=/error_code= e nessuna sessione valida: pulisce l'hash, apre la schermata di accesso e lo dice (otp_expired -> "Questo link e' scaduto o e' gia' stato usato..."; altri errori, anche Google -> authErrIT o "Accesso non riuscito..."). Con sessione valida si procede come sempre, senza messaggio. Il vecchio ramo callback (toast "Email confermata", insert profiles) resta com'era e continua a leggere location.hash: NON rianimato, cambierebbe l'atterraggio di Google e riaccenderebbe una scrittura su profiles. Email+password, Google e portale gia' loggato senza hash: invariati. CUMULA v3.122 · 2026-09-29 · OGNUNO CON LA SUA PASSWORD: nessun allievo riceveva mai una password (l'account lo crea la segreteria o il pagamento con password casuale) e chi perdeva il link via email restava fuori (~14 casi, l'ultimo il 29 set). Segno "password scelta" = user_metadata.password_scelta (solo Auth, nessuna tabella; lo scrivono imposta-password v3 e impostazioni-profilo v3). (1) In init, ramo hash: se type=magiclink + sessione + password_scelta!==true, prima di loadAll pulisce l'hash e manda a imposta-password.html?primo=1 (indirizzo relativo: la sessione sta nel localStorage di questo dominio). Google e recovery NON toccati. (2) handleAuth ramo login: dopo signInWithPassword riuscito, se manca password_scelta la scrive in silenzio (updateUser senza await, errori in console): chi entra con la password la conosce. (3) Nuovo link "Password dimenticata?" sotto Accedi: resetPasswordForEmail con redirectTo kataclimb.com/imposta-password.html, esito sempre uguale che l'email esista o no, troppi tentativi -> authErrIT; nascosto in modalita' registrazione come il link via email. (4) Successo del link via email: "Controlla la tua email (anche la posta indesiderata)...". (5) Testi di accesso (link, esito, errore) da 12px a 13px. Nessuna tabella, RPC, Worker, prenotazione o pagamento toccati. CUMULA v3.121 · 2026-09-29 · PORTALE A INVITO, NIENTE PIU' VICOLO CIECO "REGISTRATI": in Supabase Auth il signup e' OFF dal 4 giu, ma la schermata di accesso mostrava ancora "Non hai un account? Registrati" e chi lo toccava riceveva l'errore grezzo "Signups not allowed for this instance" (caso reale 29 set: allievo con account attivo bloccato). Ora: (1) al posto di Registrati "Non sei ancora iscritto? Prenota la tua Prima Lezione" -> inizia.html; (2) CTA sotto la demo: "Prenota la Prima Lezione" -> inizia.html + "Sei gia' iscritto? Accedi" -> screen-login; (3) authErrIT traduce "Signups not allowed" (rete di sicurezza anche per Google con email diversa) con MSG_ACCOUNT_NON_TROVATO, usato anche da handleMagicLink al posto di "registrati con email + password qui sopra". NON cancellati toggleAuthMode, il ramo isReg di handleAuth e i campi nascosti nome/cognome/codice evento: restano nel codice, non raggiungibili dalla UI. Nessuna scrittura DB, nessun Worker. CUMULA v3.120 · 2026-09-22 · DEBITO-190 FASE C: il portale non legge piu' i contatori salvati. I numeri del pacchetto arrivano da get_contatori per l'allievo (una chiamata in loadAll, in contatoriMiei) e da contatori_corso per il fascicolo che la segreteria apre su un lead. Via dalla select di loadLeadProfileData le colonne lezioni_residue e sorelle, e via dalla mappatura dei membri i quattro *_lezioni_residue, che stavano li' ma non li leggeva nessuno: calcolaStepDerivato usa flag e presenze, non contatori. + LE RIGHE DICONO DA DOVE VIENE IL NUMERO. La hero card dell'allievo non dice piu' solo 'Hai 3 lezioni nel pacchetto Open' ma aggiunge '· 5 fatte su 8 · 2 gia' in agenda'. Nel fascicolo, la riga di un corso attivo passa da 'in corso · 5/8' a 'in corso · 5 fatte su 8 · restano 3 (2 in agenda)', con gli omaggi a parte se ce ne sono: e' quello su cui la segreteria decide. + Il bottone 'Mail credito esaurito' guardava la colonna salvata, che poteva dire 0 su un pacchetto pieno o il contrario: ora guarda prenotabili. Corretti due commenti che dicevano il falso: la fonte di calcolaStepDerivato non e' mai stata lezioni_residue, e i numeri del pacchetto non vivono piu' in profile_data. NON toccati: kata, video, CRM, tesseramenti, provisioning, permessi, il resto dei testi. CUMULA v3.119 · 2026-09-20 · IL PORTALE VISTO DA UN PARTECIPANTE ESSENCE-K (collaudo dal vivo di Marco, 20 set 2026, profilo di prova "Marco Prova Essence"). Dal 20 set il sistema crea da solo il profilo di chi compra l'intensivo ESSENCE-K (stripe-worker v3.77+ → funzione DB attiva_essence): in iscrizioni_corso una riga tipo_corso='essence' con status 'terminata', 0 lezioni e NESSUN corso_attivo. Queste persone non fanno la Prima Lezione e non devono farla, ma il portale le trattava da sconosciute. Quattro correzioni: nessuna scrittura DB, nessun Worker, solo portale.html (la 1 anche in kata.html). (1) KATA 1-15 APERTI A CHI HA ESSENCE — nel blocco condiviso "KATA VISIBILI PER CORSO" (identico byte per byte in kata.html) nuova chiave essence:[1..15]: regola di Marco, in ESSENCE-K si lavorano quasi tutti i Kata dell'Advance oltre a quelli dell'Open e i video vanno caricati negli slot. kataVisibile fa gia' l'unione e KATA_STATUS_SVOLTO contiene gia' 'terminata': nient'altro cambia nel blocco. KATA_SENZA_CORSO=['open'] e' CONFERMATO da Marco il 20 set 2026 (tolta la dicitura "da confermare, default provvisorio"). (2) VIA L'INVITO ALLA PRIMA LEZIONE — chi ha 'essence' fra i corsi svolti (stessa fonte di kataCorsiSvolti) e non ha corso_attivo non vede piu' il riquadro viola "Inizia il tuo viaggio — Prenota la prima lezione" col bottone PRIMA LEZIONE verso inizia.html, ne' la pillola "Inizia il viaggio": a chi ha appena pagato l'intensivo si proponeva di comprare una Prima Lezione da 25 €. Al loro posto la pillola "ESSENCE-K" e il riquadro "Sei in ESSENCE-K", stesso stile di prima, che dice qual e' il PROSSIMO PASSO — deciso sui dati che la pagina ha gia' caricato (presentazioneVids, kataVids), nessuna query nuova: nessuna presentazione → "Carica la presentazione" (apre openUploadPresentazione, gia' esistente); presentazione ma nessun video Kata → "Vai ai Kata" (scorre alla griglia); video Kata gia' caricati → "Scrivi a Marco" (action whatsapp, gia' esistente). Nuove fn haEssence, isEssenceSenzaCorso, buildHeroCardEssence + due azioni in heroCtaAction. Chi NON ha essence vede esattamente quello di prima; chi ha essence E un corso attivo (es. l'Open attivato dopo il weekend) segue i rami del corso, non toccati. (3) LE REGOLE DEL VIDEO SI DEVONO LEGGERE — Marco da partecipante: "non da' descrizione di come deve essere pesante o lungo il video". C'era, ma era una riga grigia da 13px in var(--text3) dentro la dropzone (#upload-dz-sub: "MP4/MOV · max 2 min · 1080p"). Ora e' un riquadro .upload-regole da 15px col colore del testo normale, fuori dalla dropzone, in italiano piano: "Durata massima: 2 minuti" (presentazione) / "20 secondi" (Kata) · "Va bene il video del telefono. Registra in Full HD (1080p), non in 4K. Formato MP4 o MOV." I numeri NON sono scritti a mano: li costruisce uploadRegoleTesto da PRES_MAX_DURATION e KATA_MAX_DURATION (nuove fn uploadDurataTesto, uploadRegoleTesto, setUploadRegole), usate in tutti e tre i punti che impostavano il testo e per il valore iniziale, che l'HTML non porta piu'. I messaggi d'errore esistenti (durata, risoluzione, 500 MB) restano come sono. (4) ETICHETTA SOPRA LA GRIGLIA KATA — "5 VIDEO · MAX 20S · AUTO-GIF" era superata: dall'11 giugno 2026 gli slot per Kata sono 2 (Memoria + Validazione) e i 5 video sono quelli della PRESENTAZIONE, dove restano davvero 5. Ora "2 VIDEO PER KATA · MAX 20S" via setKataGridMeta(), col 20 da KATA_MAX_DURATION. NON toccati upload, validazione, slot video, logica di scrittura. CUMULA v3.118 · 2026-09-18 · KATA VISIBILI PER CORSO (regola Marco, 18 set 2026: una persona vede i Kata dei corsi che sta svolgendo e di quelli gia' svolti; gli altri restano in lista col lucchetto). Via la soglia unica k>=12 legata allo step del profilo: era sbagliata nella SOGLIA (i Kata 8, 9 e 10 sono del Corso Advance KataClimb, non dell'Open) e nella FONTE (lo step non c'entra con la regola e per giunta era disallineato: kata.html sbloccava a step>=2, portale.html a step>=3). Ora un solo blocco condiviso, IDENTICO nei due file: mappa KATA_PER_CORSO da KataClimb_Lista_Kata_v2 (open 1-7 e 11-15, advance 8-10, intro_corda 16-26, evo_corda 27-33, chiavi = i tipo_corso veri), kataVisibile(k, corsiSvolti), kataVedeTutto(role, staffRole) e kataCorsiSvolti(), che legge iscrizioni_corso — fonte autorevole, RLS iscrizioni_owner_read, stessa query di profilo.html loadPercorso, nessuna colonna nuova. Valgono tutti gli status presenti (attiva, terminata, completata_pregressa, sospesa): completata_pregressa e' il percorso riconosciuto a chi era in Accademia prima del sistema ed e' la gran parte dello storico, sospesa vale perche' chi ha un corso sospeso lo ha comunque iniziato. Chi non ha nessun corso CON KATA vede i Kata dell'Open (KATA_SENZA_CORSO, default PROVVISORIO da confermare con Marco): kataVisibile tiene solo le chiavi presenti in KATA_PER_CORSO, perche' a DB esistono tipo_corso senza Kata propri (prima_lezione, lezioni_speciali, fly) e chi ha solo quelli si sarebbe ritrovato tutti e 33 i Kata bloccati. Staff, creator e istruttori vedono tutto, come prima. Se la lettura delle iscrizioni fallisce si ricade sul default: nessuna pagina si rompe. NON toccati upload, validazione, slot video. In portale renderKataGrid prende un parametro corsiSvolti in coda: lo ricevono le cinque chiamate della griglia dei PROPRI Kata (my-kata-grid); demo e profilo di un altro membro non lo passano e ricadono sul default. Il parametro step resta nella firma ma non e' piu' letto. CUMULA v3.117 · 2026-09-07 · INVIA LISTINO DAL FASCICOLO PERSONA (richiede stripe-worker v3.70, POST /invia-listino — ordine di deploy: DB (fatto) -> Worker -> portale): nel fascicolo di Segreteria dei lead con fascia bambino/ragazzo compare "💶 Invia listino Corso Bambini KataClimb" / "💶 Invia listino Corso Ragazzi KataClimb" (nome del corso sempre per esteso, anche dopo l'invio). Il frontend manda SOLO persona_id + ex_allievo (+ cc_email se forzata, + force sul re-invio): fascia, destinatario, genitore in copia e prezzi li decide il sistema (listino_destinatari lato Worker). Nessun prezzo nella mail e nessuno qui: la mail e corta e porta a listino-corsi-<fascia>.html?u=<persona_id>, una sola pagina di verita. Modale con toggle "Gia stato in corso (ex allievo)" — spuntato di default se il lead ha data_iscrizione_accademia o la nota parla di "registro", sempre correggibile — e campo "Email genitore in copia" lasciato VUOTO di proposito (vuoto = il genitore lo mette il Worker da crm_relazioni; si compila solo per forzare un altro indirizzo). Esiti del Worker gestiti tutti: 409 gia_inviato -> data + conferma esplicita -> re-invio con force:true (mai un secondo invio alla cieca); 400 email_mancante -> "sta in anagrafica (persone), si cambia da ✏️ Modifica dati" (Trappola #148); 400 fascia_non_determinata -> "Imposta la fascia sul lead"; 401 -> non autorizzato. Dopo il 200: toast "Listino inviato a <to>" e il bottone passa a "Listino ... inviato ✓" per la sessione corrente (il fascicolo non ha uno storico eventi_notifica da aggiornare: la memoria vera resta quella del Worker, che al giro dopo risponde 409). ZERO scritture DB dal frontend: scrive solo il Worker, nessun follow-up in crm_follow_ups. Nuove fn: kcListinoFascia, kcExAllievoProposto, openInviaListinoModal, submitInviaListino, chiudiListinoModal, listinoMsg, listinoBtnReset. CUMULA v3.116 · 2026-09-05 · LINK ALLE REGOLE DI PRENOTAZIONE nella vista Profilo: riga "Come funzionano le prenotazioni →" verso guida.html#prenotazioni, sotto la hero card (che porta il credito residuo del corso attivo). NOTA: il blocco "Corso Open — counter + scadenza + freeze" (v3.39) e da tempo un placeholder VUOTO in questa pagina — contatori, disdette residue e scadenza vivono in agenda.html, quindi il link e agganciato alla hero card, non a una card corso inesistente. Solo testo e link: nessuna RPC, nessuna scrittura, nessuna logica toccata. Vista Segreteria NON toccata (lo staff ha il Master). Bonifica terminologia su 2 testi utente preesistenti: placeholder scheda di conduzione ora "es. mai, in Accademia, ex pallavolo" e dato demo del logbook ora "Troppa fretta sul circuito centrale" (entrambi portavano un termine vietato dalla nomenclatura). CUMULA v3.114 · 2026-09-04 · QUESTIONARIO NEL FASCICOLO PERSONA (RPC get_questionari_persona + approva_testimonianza live, collaudate — migrazione rpc_questionari_fascicolo_persona; nessuna query diretta su questionari_valorizzazione): il questionario di valorizzazione della Prima Lezione (live dal 22 lug, questionario-prima.html) finiva a DB ma non si vedeva da nessuna pagina — dato corretto ma invisibile. Ora: (1) blocco "📝 Questionario" nel fascicolo lead di Segreteria, una riga per ogni Prima Lezione fatta: invito partito ma nessuna risposta → data invito + Copia link questionario + Manda su WhatsApp (bottone nascosto se manca il telefono; invitata_at null → "Invito automatico in partenza stanotte"); ha risposto → data di consegna, se vuole la proposta per il percorso KataClimb Open, consenso testimonianza e "Le sue parole" (le 7 risposte integrali, mai troncate, apri/chiudi con default chiuso). (2) Curatela testimonianze SOLO creator (profile_data.role, non staff_role) e SOLO con consenso della persona: textarea estratto precompilata con la risposta 6 o 7 + Approva / Revoca su approva_testimonianza. Il doppio cancello consenso_pubblicazione AND approvata resta a DB: il frontend non aggiunge logica di autorizzazione, rispetta cosa gli torna (ok:false non_autorizzato → blocco assente, nessun errore rosso). (3) "Il tuo diario del percorso" nel profilo della persona, sotto la Linea del Percorso: solo le sue parole, niente stato testimonianza, niente bottoni staff; se non ha risposto il blocco non compare. Una sola funzione di render (renderQuestionariPersona) per fascicolo e diario, zero logica doppia. CUMULA v3.113 · 2026-09-03 · CONSENSI MINORI NEL FASCICOLO (Cantieri A4; RPC get_consensi_minore + imposta_consenso_minore live, collaudate — concesso_at NOT NULL = data atto, revocato_at marca lo stato negativo, registrato_da uuid): blocco "📄 Consensi" nel fascicolo dei lead fascia bambino/ragazzo — 3 consensi fissi (Accesso al portale / Visibilita in Comunita / Utilizzo immagini) con stato e data, bottoni Concedi/Revoca in un tocco (upsert su persona+tipo), link al Modulo_Consensi_Minori_KataClimb.pdf in /docs/ (PDF ancora da caricare nel repo: 404 rilevato il 3/9). La visibilita in Comunita resta governata da persona_visibile_community: qui si registra la firma, il gate a DB ce gia. CUMULA v3.112 · 2026-09-03 · MINORE + REFERENTE IN SEGRETERIA (RPC inserisci_minore_con_referente + get_famiglia live, collaudate): (1) bottone "+ Minore + referente" accanto ad Aggiungi lead → modale mo-add-minore (figlio nome/cognome/nascita/fascia + genitore nome/cognome/email/telefono, almeno un recapito) → UN atto atomico a DB (genitore riusato se gia a sistema, dedup in garantisci_persona; figlio omonimo stessa famiglia riusato; crm_relazioni pagante=true) → ricarica lista e apre il fascicolo del minore; (2) blocco "👪 Famiglia" nel fascicolo lead: RPC get_famiglia(p_lead_id) ricompone il nucleo da qualunque ingresso (genitore o figlio) — referente con email/telefono + tutti i figli, nomi cliccabili se il lead e nella lista corrente. Base pronta per i corsi famiglia. CUMULA v3.111 · 2026-09-01 · LISTINI IN SEGRETERIA: link 💶 Listini (listini.html, target _blank) nella testata della vista Segreteria, tra Monitor e Camp — le pagine listino 2026/27 erano orfane. CUMULA v3.110 · 2026-07-10 · DEBITO-178 CORREZIONE PRESENZE CONTABILE: nuova fn correggiPresenzaPC → RPC rimarca_presenza_corso (credito + no-show coerenti in ogni direzione, mai sotto zero, audit in effetto_contabile); bottoni Correggi in assente / Correggi in presente / Ripristina prenotata nel dettaglio persona; rimuoviPresenza su prenotazioni_corso ora passa dalla RPC (fine UPDATE diretti senza effetti). CUMULA v3.109 · 2026-07-08 · PROPOSTA OPEN CON MEMORIA (richiede stripe-worker v3.66): inviaPropostaOpen gestisce il 409 gia_inviata del Worker — modale con data invio + Copia link WhatsApp + re-invio deliberato (force, con conferma); mandaPropostaOpenWA tratta il 409 come recupero link (nessun doppio invio email, feedback con data). Nuove fn: fmtDataProposta, mostraPropostaGiaInviata, copiaLinkProposta, forzaReinvioProposta, chiudiPropostaGiaInviata. CUMULA v3.108 · 2026-07-05 · COMUNITA IN BARRA: (1) kc-bar a 5 voci — nuova voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo, con toggle kc-on in showNav (la barra segue la vista Comunità/Profilo). (2) Su mobile la vecchia tab bar Profilo/Comunità (.sec-tog.nav-main, fixed bottom z50) era SEPOLTA sotto la kc-bar (z900) dal v3.91 — Comunità irraggiungibile da telefono (bug segnalato da Marco 5 lug). Ora nav-main display:none su mobile (su desktop resta in alto, invariata). CUMULA v3.107 · 2026-06-22 · FUNNEL FUORI DA SEGRETERIA (roadmap E.4): rimosso il blocco "Registro commerciale" (le 4 fasi, sm-wrap/sm-list) dalla vista segreteria -> sostituito da rimando "Gestione lead commerciali -> Console Commerciale" (commerciale.html). Il funnel di conquista (chiamate/fasi/prenotazioni) vive SOLO in commerciale.html, coerente col confine Segreteria/Commerciale = pagamento Prima Lezione. RESTANO: "Da contattare oggi" (dc-wrap, compatto) + fascicoli "Lead in arrivo" + box "Lead freddi" consultabile. renderSmistamento ha gia il guard (sm-list assente -> esce subito), smItem/routeCoda inerti ma NON rimosse (zero rischio). CUMULA v3.106 · 2026-06-22 · DA CONTATTARE OGGI a 3 stati: oltre a 🔴 Mai sentito·chiama e 🟠 Da richiamare, ora include e distingue 🟢 Da risentire·messaggia (contattato non ancora prenotato, prima escluso da isDaChiamare). +alert verde nel conteggio header. Il gia-sentito non sembra piu nuovo. CUMULA v3.105 · 2026-06-22 · LEAD FREDDI IN CONTENITORE: la lista contatti Segreteria non NASCONDE piu i lead freddi (commerciale pre-prima non convertiti) ma li raccoglie in un box collassabile "Lead freddi" sotto la lista (apri/chiudi, ricerca applicata). Estratto crmCardHtml riusato per caldi e freddi. CUMULA v3.104 · 2026-06-18 · SCALA STEP 1-BASED (Marco imperativo: il primo gradino e 1, lo 0 solo = nullo/nessun gradino). STEPS con placeholder a [0]; Prima=1, Open=2, Advance=3, Intro=4, Evo=5, Lavorato=6..Istruttore=9. Aggiornati: calcolaStepDerivato, renderProg (iterazione+gap+nodo corrente), renderKataGrid (sblocco kata avanzati da step 3), calcolaSubPallini, calcolaMemoRiga, DEMO. Allineato al trigger DB che impone la stessa scala su profile_data.step. -->
 <!-- KC-BUILD: portale v3.103 · 2026-06-18 · LEVA COMMERCIALE DA SEGRETERIA: la lista contatti di Segreteria nasconde i lead FREDDI (funnel_stage pre-prima + NON convertiti + coda commerciale/null) -> si lavorano nella console Commerciale. Restano allievi convertiti, chi è oltre la prima lezione, e coda segreteria/riacciuffo (es. minori da "+ figlio"). NB: coda='commerciale' è il default anche per ~34 allievi, quindi il filtro NON è sulla sola coda. La VIEW crm_leads ora espone coda+fascia (CREATE OR REPLACE, security_invoker preservato). Effetto: lista segreteria da 202 a ~57. CUMULA v3.102 · 2026-06-17 · FIX DIARIO NOTE: loadLeadFollowUps non mostrava nessuna nota (embed created_by_profile senza FK -> SELECT in errore silenzioso). Tolto embed, ordina per created_at, render data con fallback avvenuto_il||created_at. Le note c'erano sempre in crm_follow_ups, ora si VEDONO nel fascicolo. CUMULA v3.101 · 2026-06-17 · REGISTRO COMMERCIALE A FASI: rimpiazzati i 4 bottoni-coda di 'Gestione contatti' con 4 fasi (Da sentire / Sentiti-da far prenotare / Richiami di oggi / Prenotati) + toggle Adulti/Bambini (bambino+ragazzo). Bottone 'Manda link prenotazione' su ogni card (WhatsApp precompilato + link inizia.html, niente prenotazione fantasma -> no no-show). Zero RPC nuove, stessi filtri (isRosso/isArancio/funnel_stage), riusa smItem. CUMULA v3.100 · 2026-06-17 · Contatto sistemico: 'Salva in rubrica' via foglio di condivisione iOS (navigator.share -> Aggiungi ai contatti, no 'salva nei file'), fallback download desktop; + WhatsApp diretto. Bottoni Salva-in-rubrica + WhatsApp AGGIUNTI nel fascicolo lead di SEGRETERIA (oltre al registro chiamate). + Voce barra Portale -> Profilo (coerenza con oggi.html/profilo.html). CUMULA v3.99 · 2026-06-17 · Bottone ⚙️ Impostazioni sempre visibile nel blocco profilo (link impostazioni-profilo.html): cambio password + privacy per OGNI allievo loggato, non solo staff/corso_attivo. CUMULA v3.98 · 2026-06-16 · SCHEDA DI CONDUZIONE (livello 1): modale "Traccia chiamata" con le 4 domande leggere (lavoro / esperienza sport / perché ora / cosa ti frena) su ogni card chiamata. Legge e scrive su lead_data via RPC get_qualifica_lead + salva_qualifica_lead (COALESCE: salvataggi parziali non cancellano). Le 4 domande profonde restano per la scheda persona (livello 2). Richiede le 4 colonne lavoro/esperienza_sport/motivo_ora/freno + le 2 RPC. CUMULA v3.97 · 2026-06-16 · CODA: "Non risponde" -> resta ROSSO (da sentire), traccia tentativo (segnaNonRisponde); +1/+3/+7 ora = "ti ha chiesto di richiamare" (esito positivo), non piu su chi non risponde. + Pulsante "Salva in rubrica" (.vcf: nome · campagna · data nel nome, fonte/desiderio in nota) su ogni card chiamata. CUMULA v3.96 · 2026-06-16 · CODA CHIAMATE rifatta (feedback Marco): 2 alert ROSSO=mai sentiti / ARANCIONE=da richiamare; ordina per fascia oraria preferita (Mattina/Pomeriggio/Sera da ultima_nota) vs ora corrente; "Non risponde"->richiama tra +1/+3/+7gg (prossima_azione_il data LOCALE T#134) -> esce dal rosso, rientra arancione alla scadenza con la nota; chi viene sentito esce subito (sync dcData + nuovo->contattato). Tutto client-side, get_leads_da_contattare INVARIATA. CUMULA v3.95 · 2026-06-16 · FIX modali coperte dalla barra in fondo su mobile (feedback Marco): .mo z-index 100->950, ora sopra #kc-bar (900). I bottoni "Crea evento" (modale Nuovo evento) e "Salva" (scheda Registra contatto / note lead) non sono piu nascosti dalla barra. CUMULA v3.94 · 2026-06-15 · "Ha risposto"/"Contattato" ora aprono il fascicolo + modale Registra contatto precompilata (chiamata·ha risposto): esito e nota in un atto, niente note perse. CUMULA v3.93 · DEBITO-187-B: Comunità legge profiles_community (niente email/telefono/CF/persona_id al browser) - falla recapiti CHIUSA (richiede fix_falla_recapiti_community.sql). CUMULA v3.92 · Note dal modulo (orario richiamo + desiderio, fonte lead_richieste) ora visibili in segreteria: chip sotto il nome nella card "Da contattare oggi" + blocco "📩 Dal modulo" nella scheda lead. Richiede RPC get_leads_da_contattare con colonna ultima_nota + nuova RPC get_richieste_lead (fix_note_modulo_lead.sql). CUMULA v3.91 · 2026-06-13 notte · Barra in fondo stile console (Oggi/Agenda/Eventi/Portale) visibile SOLO su screen-app via showScreen: dal portale si torna a Oggi con un tocco (collaudo Marco). CUMULA v3.90 · Redirect console ANCHE nel percorso post-login (handleAuth): prima viveva solo in init (sessione gia presente), quindi chi faceva login fresco (telefono/incognito, collaudo Marco) atterrava sulla home vecchia. CUMULA v3.89 · Redirect console: disinnesco SOLO con ?nav o ?lead_id (prima bastava QUALSIASI query string: le app da home-screen lanciano URL con parametri propri e il redirect non scattava mai). + Velo di carico SPOSTATO come primo elemento dello <head>: prima era nel body a meta file (510KB), il browser mostrava bianco finche non lo parsava (i ~2s di bianco del collaudo Marco). Ora nero KATACLIMB dal primo byte. CUMULA v3.88 · Redirect console Oggi esteso al CREATOR (richiesta Marco: deve vivere la console per collaudarla). Segreteria/istruttori restano sul portale finché la console staff non è integrata. ?nav/?lead_id disinnescano sempre. CUMULA v3.87 · FIX pagina bianca (collaudo Marco): il velo anti-flash v3.86 nascondeva la landing per tutta la durata di init/loadAll lasciando pagina vuota (#EBF4FF). Ora velo = schermata nera KATACLIMB pulsante + paracadute 8s (se init si blocca, il velo cade e la landing riappare). CUMULA v3.86 · (1) Atterraggio allievo: login con URL nudo + corso_attivo + non staff -> redirect oggi.html (?nav/?lead_id disinnescano: niente loop dalla barra). (2) Anti-flash landing: check sincrono token localStorage pre-paint, velo kc-boot tolto da showScreen (sessione scaduta -> landing riappare). CUMULA v3.85 · UNICA riga: bottone "◉ Oggi" oro (#FFD60A) nel blocco profilo, stesso cancello del bottone Agenda (staff o corso_attivo) -> oggi.html. Ri-applicato: v3.85 risultava nel Master ma NON era live (portale fermo a v3.84). CUMULA v3.84 (03:00) striscia eventi: intestazione La vita dell Accademia / Tutti. CUMULA v3.83 · 2026-06-12 02:55 · Uscite: tema (prima/intermedia/da_primi/voli/lavorato → corso_richiesto auto) + gradi min/max 5a–8c → crea_evento v3. CUMULA v3.82 · 2026-06-12 02:30 · Nuovo evento: + punto incontro, link Maps, orari partenza/rientro (precompilati 08:00/18:00 sulle uscite) → crea_evento v2. CUMULA v3.81: "Nuovo evento" in Segreteria: 4 modelli (uscita_ragazzi/uscita_adulti/viaggio/evento) → RPC crea_evento (ruolo server-side, slug auto). CUMULA v3.80: Striscia "Prossimi eventi" in Comunità (RPC get_eventi_calendario → evento.html). CUMULA v3.79: UPLOAD TUS regola di sistema: kata+presentazioni a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); cleanup orfano disattivato se sessione riprendibile; fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: portale v3.78 · 2026-06-11 19:30 · "Campagna attiva" definizione UNICA (fonte ads_meta + ≤14gg) condivisa da bucket Gestione contatti E chip CAMPAGNA in Lead in arrivo (P-VERITA-UNICA); dcDays con fallback created_at -->
@@ -1646,6 +1649,86 @@ fill="#1d4ed8" stroke="none">
         </div>
       </div>
 
+      <!-- v3.134 — Scuole F1: interruttore Persone / Scuole -->
+      <div class="seg-switch" role="tablist">
+        <button id="seg-sw-persone" class="on" onclick="segMostra('persone')">👥 Persone</button>
+        <button id="seg-sw-scuole" onclick="segMostra('scuole')">🏫 Scuole</button>
+      </div>
+
+      <!-- v3.134 — Scuole F1: tab Scuole (codice nel blocco SCUOLE F1 METÀ B) -->
+      <div id="seg-scuole-wrap" class="hidden">
+        <style>
+        .seg-switch{display:flex;gap:8px;margin:0 0 18px}
+        .seg-switch button{flex:1;max-width:220px;font-size:15px;font-weight:700;padding:11px 14px;border-radius:11px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer}
+        .seg-switch button.on{background:var(--text);border-color:var(--text);color:var(--bg)}
+        #seg-scuole-wrap{font-size:14.5px;color:var(--text)}
+        .sc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+        .sc-head h3{margin:0;font-size:17px}
+        .sc-conta{display:inline-block;min-width:22px;text-align:center;font-size:13px;font-weight:800;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.07);color:var(--text)}
+        .sc-card{border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;background:var(--bg)}
+        .sc-click{cursor:pointer}.sc-click:hover{border-color:var(--text)}
+        .sc-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+        .sc-tit{font-size:16.5px;font-weight:800;color:var(--text)}
+        .sc-h2{font-size:21px;font-weight:800;margin:0;color:var(--text)}
+        .sc-h3{font-size:16.5px;font-weight:800;margin:0 0 10px;color:var(--text);display:flex;align-items:center;gap:8px}
+        .sc-sub{font-size:13.5px;color:var(--text2);margin-top:2px}
+        .sc-righe{display:flex;flex-direction:column;gap:4px;margin:10px 0 4px;font-size:14px;color:var(--text)}
+        .sc-righe b{font-weight:700;color:var(--text)}
+        .sc-righe a,.sc-sub a{color:var(--text);text-decoration:underline}
+        .sc-warn{color:#B45309;font-weight:700}
+        .sc-ok{color:#15803D;font-weight:700}
+        .sc-badge{display:inline-block;font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid}
+        .sc-azioni{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+        .sc-azioni-riga{margin-top:8px}
+        .sc-scuro{background:var(--text);color:var(--bg);border:none}
+        .sc-scuro:disabled,.sc-piccolo:disabled{opacity:.45;cursor:not-allowed}
+        .sc-piccolo{font-size:13.5px;padding:8px 12px}
+        .sc-sez{border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;background:var(--bg)}
+        .sc-riga{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--border)}
+        .sc-riga:first-of-type{border-top:none}
+        .sc-riga-col{align-items:flex-start}
+        .sc-riga-main{flex:1;min-width:220px}
+        .sc-turni{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+        .sc-chip{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;padding:5px 10px;border-radius:999px;background:#E1F5EE;color:#0F6E56}
+        .sc-chip-x{border:none;background:transparent;color:#0F6E56;font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
+        .sc-stato{display:inline-block;font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px}
+        .sc-stato.grigio{background:#E5E7EB;color:#374151}
+        .sc-stato.giallo{background:#FEF3C7;color:#92400E}
+        .sc-stato.verde{background:#DCFCE7;color:#166534}
+        .sc-stato.rosso{background:#FEE2E2;color:#991B1B}
+        .sc-vuoto{font-size:14px;color:var(--text2);padding:6px 0}
+        .sc-vuoto.ko,.sc-msg.ko{color:#B91C1C}
+        .sc-msg{font-size:14px;margin-top:10px;padding:9px 12px;border-radius:10px;background:#FEF2F2}
+        .sc-msg.ok{color:#166534;background:#F0FDF4}
+        .sc-nota{font-size:13.5px;color:var(--text2);margin-top:8px;line-height:1.5}
+        .sc-lbl{display:block;font-size:13.5px;font-weight:700;color:var(--text);margin:10px 0 5px}
+        .sc-in{font-size:15px!important;padding:10px 12px!important}
+        .sc-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        @media(max-width:600px){.sc-2{grid-template-columns:1fr;gap:0}}
+        .sc-radio{display:flex;gap:18px;font-size:15px}
+        .sc-radio label{display:flex;align-items:center;gap:6px;cursor:pointer}
+        .sc-carica{display:grid;grid-template-columns:200px 1fr auto;gap:8px;align-items:center;margin-top:12px}
+        @media(max-width:700px){.sc-carica{grid-template-columns:1fr}}
+        .sc-trascr{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:start}
+        @media(max-width:860px){.sc-trascr{grid-template-columns:1fr}}
+        .sc-trascr-doc{max-height:72vh;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px;background:#fff}
+        .sc-img{display:block;width:100%;height:auto;cursor:zoom-in}
+        .sc-img.zoom{width:220%;max-width:none;cursor:zoom-out}
+        .sc-pdf{width:100%;height:66vh;border:0}
+        .sc-darifare{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:grid;gap:8px}
+        </style>
+        <div id="sc-lista">
+          <div class="sc-head"><h3>📨 Richieste dal sito <span id="sc-ric-count" class="sc-conta"></span></h3></div>
+          <div id="sc-richieste"></div>
+          <div class="sc-head" style="margin-top:22px"><h3>🏫 Scuole</h3><button class="btn sc-scuro" style="padding:9px 14px;font-size:14px" onclick="scNuovaScuola()">+ Nuova scuola</button></div>
+          <div id="sc-scuole"></div>
+        </div>
+        <div id="sc-scheda" class="hidden">
+          <button class="back-btn" onclick="scTornaElenco()">← Torna alle scuole</button>
+          <div id="sc-scheda-body"></div>
+        </div>
+      </div>
+
       <!-- Dettaglio persona (hidden di default) -->
       <div id="seg-lead-detail" class="hidden">
         <button class="back-btn" onclick="closeLeadDetail()">← Torna alla lista</button>
@@ -2125,6 +2208,19 @@ fill="#1d4ed8" stroke="none">
     <div style="display:flex;gap:7px;margin-top:14px">
       <button class="btn btn-dark" id="cambia-giorni-conferma" style="flex:1;background:var(--text);color:#F5F1EB" onclick="confermaCambiaGiorni()" disabled>Conferma</button>
       <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-cambia-giorni')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- v3.134 — Modale unica del tab Scuole (contenuto riempito da scModal) -->
+<div id="mo-scuole" class="mo hidden">
+  <div class="mo-box" id="mo-scuole-box" style="max-width:520px">
+    <h3 id="mo-scuole-tit"></h3>
+    <div id="mo-scuole-body"></div>
+    <div id="mo-scuole-msg"></div>
+    <div style="display:flex;gap:7px;margin-top:16px">
+      <button class="btn btn-dark" id="mo-scuole-ok" style="flex:1;background:var(--text);color:#F5F1EB" onclick="scModalConferma()">Conferma</button>
+      <button class="btn btn-g" id="mo-scuole-annulla" style="flex:1" onclick="closeModal('mo-scuole')">Annulla</button>
     </div>
   </div>
 </div>
@@ -3774,6 +3870,9 @@ async function loadAll(){
   if(!sb||!user)return;
   const{data:p,error:pErr}=await sb.from('profiles').select('*').eq('user_id',user.id).single();
   if(p)profile=p;
+  // v3.134 — Scuole F1: il referente della scuola non e' un allievo e non ha un fascicolo: la sua pagina e' scuola.html.
+  // La promessa che non si risolve ferma init() mentre il browser cambia pagina.
+  if(p&&p.role==='referente_scuola'){window.location.replace('scuola.html');await new Promise(()=>{});}
   // Kata visibili: i corsi che la persona sta svolgendo o ha gia' svolto.
   kataCorsiMiei=await kataCorsiSvolti(sb,user.id);
   if(!profile)profile={user_id:user.id,nome:'',cognome:'',step:0,struttura:'',bio:'',citta:'',foto_url:'',codice_allievo:'',kata_certs:{}};
@@ -3827,7 +3926,8 @@ async function loadAll(){
   // §v3.93 — DEBITO-187-B: legge profiles_community (SENZA email/telefono/CF/persona_id).
   // Chiusa la falla recapiti: i dati sensibili non arrivano più al browser degli utenti.
   // §v3.125 — niente piu' .neq('user_id',user.id): ognuno si vede in Comunita', segnato "Tu" (_isMe).
-  const{data:members}=await sb.from('profiles_community').select('*');
+  // v3.134 — Scuole F1: i referenti delle scuole non sono allievi, in Comunita' non compaiono.
+  const{data:members}=await sb.from('profiles_community').select('*').neq('role','referente_scuola');
   const memberIds=(members||[]).map(m=>m.user_id);
   let prenotMapByUser={};
   if(memberIds.length){
@@ -4269,6 +4369,8 @@ const FUNNEL_LABEL={
   prenotato_istruttore_tutor:'Prenotato Istr. Tutor',iscritto_istruttore_tutor:'Iscritto Istr. Tutor',concluso_istruttore_tutor:'Istruttore Tutor',
   /* Maestro di Cordata */
   maestro_di_cordata:'Maestro di Cordata',
+  /* Scuole (F1, 20 ott 2026) */
+  prenotato_scuola_mini:'Prenotato Mini percorso · Scuole',iscritto_scuola_mini:'Iscritto Mini percorso · Scuole',concluso_scuola_mini:'Concluso Mini percorso · Scuole',concluso_interrotto_scuola_mini:'Mini percorso · Scuole interrotto',
   /* Uscita */
   perso:'Perso',ibernato:'Ibernato'
 };
@@ -4299,6 +4401,8 @@ const FUNNEL_COLOR={
   prenotato_istruttore_tutor:'#FBBF24',iscritto_istruttore_tutor:'#B45309',concluso_istruttore_tutor:'#451A03',
   /* Maestro di Cordata = oro intenso */
   maestro_di_cordata:'#C49520',
+  /* Scuole = verde acqua */
+  prenotato_scuola_mini:'#5EEAD4',iscritto_scuola_mini:'#0D9488',concluso_scuola_mini:'#115E59',concluso_interrotto_scuola_mini:'#A8A29E',
   /* Uscita */
   perso:'#9333EA',ibernato:'#64748B'
 };
@@ -4700,6 +4804,16 @@ async function loadCrmLeads(){
   renderCrmLeads();
 }
 
+// v3.135 — Scuole F1: id dei lead allievo_scuola, da togliere dalle liste commerciali e da richiamare.
+// get_leads_da_contattare non espone tipo_persona: si filtra qui. Se la lettura fallisce non si toglie niente.
+async function idsAllieviScuola(){
+  try{
+    const{data,error}=await sb.from('crm_leads').select('id').eq('tipo_persona','allievo_scuola');
+    if(error)throw error;
+    return new Set((data||[]).map(r=>r.id));
+  }catch(e){console.warn('[allievi scuola]',e.message||e);return new Set();}
+}
+
 // ─── v3.76: Da contattare oggi (campagna attiva) + Gestione contatti per coda ───
 let dcData=[];
 let dcoIdx=0;           // indice carta "oggi"
@@ -4733,9 +4847,9 @@ async function loadDaContattare(){
   const list=document.getElementById('dc-list');
   if(!list)return;
   list.innerHTML='<p class="sl-loading">Carico…</p>';
-  const{data,error}=await sb.rpc('get_leads_da_contattare');
+  const[{data,error},escl]=await Promise.all([sb.rpc('get_leads_da_contattare'),idsAllieviScuola()]);
   if(error){list.innerHTML='<p class="sl-loading" style="color:#c0392b">Errore: '+error.message+'</p>';console.error('[DC]',error);return;}
-  dcData=data||[];
+  dcData=(data||[]).filter(l=>!escl.has(l.id)); // v3.135 — niente ragazzi delle scuole da richiamare
   renderDaContattareOggi();
   renderSmistamento();
 }
@@ -5069,9 +5183,11 @@ function renderCrmLeads(){
     STAGES_PRE_PRIMA.includes(l.funnel_stage)
     && !l.converted_profile_id
     && (l.coda==='commerciale' || !l.coda);
+  // v3.135 — i ragazzi delle scuole non sono contatti da lavorare: restano in crmLeadsData (fascicolo), non in lista
+  const leadsLista=crmLeadsData.filter(l=>l.tipo_persona!=='allievo_scuola');
   const baseLeads=(isStaffSenior() && !isSegreteriaPiena())
-    ? crmLeadsData.filter(l=>!STAGES_PRE_PRIMA.includes(l.funnel_stage))
-    : crmLeadsData.filter(l=>!isCommercialeFreddo(l));
+    ? leadsLista.filter(l=>!STAGES_PRE_PRIMA.includes(l.funnel_stage))
+    : leadsLista.filter(l=>!isCommercialeFreddo(l));
   let filtered=crmCorsiaFilter==='tutti'?[...baseLeads]:baseLeads.filter(l=>matchCorsia(l,crmCorsiaFilter));
   if(crmSearchQuery){
     filtered=filtered.filter(l=>{
@@ -5671,7 +5787,7 @@ function renderLeadDetail(){
   if(!currentLeadDetail)return;
   const l=currentLeadDetail;
   const fColor=FUNNEL_COLOR[l.funnel_stage]||'#9CA3AF';
-  const fLabel=FUNNEL_LABEL[l.funnel_stage]||l.funnel_stage;
+  const fLabel=(scTipoScuola(l.tipo_persona)&&SC_FUNNEL_LABEL[l.funnel_stage])||FUNNEL_LABEL[l.funnel_stage]||l.funnel_stage;
   const sLabel=STATO_LABEL[l.stato_gestione]||l.stato_gestione;
   const fonteLabel=FONTE_LABEL[l.fonte]||l.fonte;
   const nomeCompleto=((l.nome||'')+(l.cognome?' '+l.cognome:'')).trim()||'(senza nome)';
@@ -8159,6 +8275,7 @@ async function loadAgenda(){
         .neq('stato','archiviato')
         .order('priorita',{ascending:true}).order('created_at',{ascending:true}),
       sb.from('crm_leads').select('id,nome,cognome,telefono,funnel_stage,stato_gestione,prossima_azione_il,created_at')
+        .or('tipo_persona.is.null,tipo_persona.neq.allievo_scuola') // v3.135 — niente ragazzi delle scuole da richiamare
         .lte('prossima_azione_il',today)
         .not('funnel_stage','in','(perso,ibernato)')
         .order('created_at',{ascending:false}),
@@ -9790,6 +9907,628 @@ async function init(){
   showScreen('screen-landing');initDemo();
   document.getElementById('out-date').value=new Date().toISOString().slice(0,10);
 }
+/* ═══ SCUOLE F1 METÀ B (consegna Claude 20 ott 2026, portale v3.134) — Segreteria → 🏫 Scuole ═══
+   Richieste dal sito (richieste_scuole), elenco scuole (lead_data tipo_persona='scuola'), scheda scuola:
+   dati e funnel, referenti e accesso, lezioni (slot datati) con i turni istruttori (impegni_staff), moduli
+   da trascrivere, allievi, documenti della scuola.
+   SCRITTURE: solo le RPC scuola_* (SECURITY DEFINER, guardia is_staff) piu' tre scritture dirette come
+   per gli altri lead: lead_data (stadio, prossima azione, note), richieste_scuole.stato='annullata',
+   turni solo via RPC impegno_mi_segno / impegno_mi_tolgo. File nel bucket privato 'scuole': upload sotto
+   <lead>/scuola/, lettura con URL firmati da 10 minuti. Niente dati di scuole diverse in una vista. */
+const SC_STAGES=['nuovo','contattato','da_riprogrammare','prenotato_prima_lezione','fatta_prima_lezione','prenotato_scuola_mini','iscritto_scuola_mini','concluso_scuola_mini','concluso_interrotto_scuola_mini','perso','ibernato'];
+const SC_STAGES_INIZIALI=['nuovo','contattato','da_riprogrammare','prenotato_prima_lezione','prenotato_scuola_mini','iscritto_scuola_mini'];
+const SC_TIPO_DOC={modulo_adesione:'Modulo di adesione',preventivo:'Preventivo',altro:'Progetto o altro documento'};
+const SC_TIPO_SLOT={prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'}; // nomi decisi da Marco 21 ott (gruppo misto: niente fascia)
+const SC_TURNI_TARGET=3; // istruttori attesi per lezione scuola (due fissi + uno a turno)
+const SC_MAX_BYTES=8*1024*1024;
+const SC_MIME_OK=['image/jpeg','image/png','application/pdf'];
+const SC_GIORNI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+let scScuole=[],scRichieste=[],scCorrente=null,scDati=null,scIstruttori=null,scStaffUtenti=null,scModalOk=null;
+
+function scErr(e){return String((e&&e.message)||e||'errore').replace(/^.*ERROR:\s*/i,'').replace(/^P0001:\s*/i,'')}
+function scD(iso){if(!iso)return '—';const s=String(iso).slice(0,10).split('-');return s.length===3?`${s[2]}/${s[1]}/${s[0]}`:String(iso)}
+function scDH(ts){if(!ts)return '—';const d=new Date(ts);return isNaN(d)?scD(ts):d.toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function scDataLunga(iso){if(!iso)return '—';const[a,m,g]=String(iso).slice(0,10).split('-').map(Number);const d=new Date(a,m-1,g);return SC_GIORNI[d.getDay()]+' '+scD(iso)}
+function scOra(t){return t?String(t).slice(0,5):''}
+function scNome(p){return p?((p.nome||'')+' '+(p.cognome||'')).trim()||'—':'—'}
+function scMsg(id,txt,ok){const el=document.getElementById(id);if(el)el.innerHTML=txt?`<div class="sc-msg ${ok?'ok':'ko'}">${escHtml(txt)}</div>`:''}
+function scVal(id){const el=document.getElementById(id);return el?String(el.value||'').trim():''}
+/* v3.136: nome e cognome con l'iniziale maiuscola ("luca bianchi" -> "Luca Bianchi", "d'amico" -> "D'Amico", "MARIA-CHIARA" -> "Maria-Chiara"). */
+function scMaiuscole(t){return String(t||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('it-IT').replace(/(^|[\s'’\-])(\p{L})/gu,(m,a,b)=>a+b.toLocaleUpperCase('it-IT'))}
+function scCampo(lbl,id,tipo,max,extra){return `<label class="sc-lbl" for="${id}">${lbl}</label><input id="${id}" class="input sc-in" type="${tipo||'text'}"${max?` maxlength="${max}"`:''}${extra||''}>`}
+/* v3.136: per le scuole la Prima Lezione e' quella "· Scuole" (gli stadi a DB sono gli stessi dei privati). */
+const SC_FUNNEL_LABEL={prenotato_prima_lezione:'Prenotato Prima Lezione · Scuole',fatta_prima_lezione:'Prima Lezione · Scuole fatta'};
+function scLabelFunnel(st){return SC_FUNNEL_LABEL[st]||labelFunnel(st);}
+function scTipoScuola(t){return t==='scuola'||t==='allievo_scuola'||t==='referente_scuola';}
+function scStageBadge(st){const c=(FUNNEL_COLOR&&FUNNEL_COLOR[st])||'#64748B';return `<span class="sc-badge" style="background:${c}1F;color:${c};border-color:${c}55">${escHtml(scLabelFunnel(st))}</span>`}
+function scExt(file){const n=(file.name||'').toLowerCase();const m=n.match(/\.([a-z0-9]{2,4})$/);if(m&&['jpg','jpeg','png','pdf'].includes(m[1]))return m[1]==='jpeg'?'jpg':m[1];return file.type==='application/pdf'?'pdf':(file.type==='image/png'?'png':'jpg')}
+function scFileOk(file){
+  if(!file)return 'Scegli un file.';
+  if(file.size>SC_MAX_BYTES)return `Il file pesa ${(file.size/1048576).toFixed(1)} MB: il massimo è 8 MB.`;
+  if(file.type&&!SC_MIME_OK.includes(file.type))return 'Formato non ammesso: servono foto JPG o PNG, oppure PDF.';
+  return '';
+}
+async function scUrlFirmato(path){
+  const{data,error}=await sb.storage.from('scuole').createSignedUrl(path,600);
+  if(error)throw error;
+  return data.signedUrl;
+}
+// Si passa l'id del documento, mai il percorso: il percorso lo scrive chi carica e non deve finire in un onclick
+async function scApriDoc(docId,btn){
+  const d=scDati&&(scDati.docs||[]).find(x=>x.id===docId);
+  if(!d){toast('Documento non trovato');return}
+  if(btn)btn.disabled=true;
+  try{window.open(await scUrlFirmato(d.path),'_blank','noopener');}
+  catch(e){toast('File non apribile: '+scErr(e));}
+  finally{if(btn)btn.disabled=false;}
+}
+
+/* ── Interruttore Persone / Scuole nella Segreteria ── */
+function segMostra(quale){
+  const scuole=quale==='scuole';
+  if(scuole&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
+  document.getElementById('seg-scuole-wrap').classList.toggle('hidden',!scuole);
+  document.getElementById('seg-lead-list-wrap').style.display=scuole?'none':'';
+  if(scuole)document.getElementById('seg-lead-detail').classList.add('hidden');
+  document.getElementById('seg-sw-persone').classList.toggle('on',!scuole);
+  document.getElementById('seg-sw-scuole').classList.toggle('on',scuole);
+  if(scuole){scChiudiScheda();scCaricaTutto();}
+}
+
+/* ── Modale unica del tab Scuole ── */
+function scModal(titolo,html,onOk,opz){
+  opz=opz||{};
+  document.getElementById('mo-scuole-tit').textContent=titolo;
+  document.getElementById('mo-scuole-body').innerHTML=html;
+  document.getElementById('mo-scuole-msg').innerHTML='';
+  document.getElementById('mo-scuole-box').style.maxWidth=opz.largo?'1100px':'520px';
+  const ok=document.getElementById('mo-scuole-ok');
+  ok.textContent=opz.ok||'Conferma';ok.disabled=false;ok.style.display=onOk?'':'none';
+  document.getElementById('mo-scuole-annulla').textContent=onOk?'Annulla':'Chiudi';
+  scModalOk=onOk||null;
+  openModal('mo-scuole');
+}
+async function scModalConferma(){
+  if(!scModalOk)return;
+  const ok=document.getElementById('mo-scuole-ok');ok.disabled=true;
+  scMsg('mo-scuole-msg','');
+  try{const fatto=await scModalOk();if(fatto!==false)closeModal('mo-scuole');}
+  catch(e){scMsg('mo-scuole-msg',scErr(e));}
+  finally{ok.disabled=false;}
+}
+
+/* ── Elenco: richieste dal sito + scuole ── */
+async function scCaricaTutto(){await Promise.all([scCaricaRichieste(),scCaricaScuole()]);}
+
+async function scCaricaRichieste(){
+  const box=document.getElementById('sc-richieste');
+  box.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  const{data,error}=await sb.from('richieste_scuole').select('*').is('lead_id',null).neq('stato','annullata').order('created_at',{ascending:false});
+  if(error){box.innerHTML=`<p class="sc-vuoto ko">Richieste non lette: ${escHtml(scErr(error))}</p>`;return}
+  scRichieste=data||[];
+  document.getElementById('sc-ric-count').textContent=scRichieste.length?String(scRichieste.length):'';
+  if(!scRichieste.length){box.innerHTML='<p class="sc-vuoto">Nessuna richiesta da lavorare.</p>';return}
+  box.innerHTML=scRichieste.map(r=>`<div class="sc-card">
+    <div class="sc-tit">${escHtml(r.scuola)}</div>
+    <div class="sc-sub">Richiesta dal sito del ${scDH(r.created_at)}</div>
+    <div class="sc-righe">
+      <div><b>Referente</b> ${escHtml(r.referente)}</div>
+      <div><b>Telefono</b> <a href="tel:${escHtml(r.telefono)}">${escHtml(r.telefono)}</a></div>
+      <div><b>Email</b> ${r.email?`<a href="mailto:${escHtml(r.email)}">${escHtml(r.email)}</a>`:'<span class="sc-warn">manca: chiederla</span>'}</div>
+      <div><b>Ragazzi</b> ${escHtml(r.numero_ragazzi)}${r.numero_ragazzi<15?' <span class="sc-warn">⚠️ meno di 15</span>':''} · <b>Età/classi</b> ${escHtml(r.eta_classi)} · ${escHtml(r.tipo_gruppo)}</div>
+      <div><b>Formula</b> ${escHtml(r.formula==='Percorso'?'Mini percorso':r.formula)} · <b>Periodo</b> ${escHtml(r.periodo)} · <b>Fascia</b> ${escHtml(r.fascia)}</div>
+      ${r.note?`<div><b>Note</b> ${escHtml(r.note)}</div>`:''}
+    </div>
+    <div class="sc-azioni">
+      <button class="btn sc-scuro" onclick="scCreaDaRichiesta('${r.id}',this)">Crea scuola</button>
+      <button class="btn btn-g" onclick="scAnnullaRichiesta('${r.id}',this)">Annulla</button>
+    </div>
+  </div>`).join('');
+}
+
+async function scCreaDaRichiesta(id,btn){
+  btn.disabled=true;
+  const{data,error}=await sb.rpc('scuola_da_richiesta',{p_richiesta_id:id});
+  if(error){btn.disabled=false;toast('Scuola non creata: '+scErr(error));return}
+  toast('Scuola creata');
+  await scCaricaTutto();
+  scApriScheda(data);
+}
+
+async function scAnnullaRichiesta(id,btn){
+  if(!confirm('Annullare questa richiesta? Resta nel database con stato «annullata».'))return;
+  btn.disabled=true;
+  const{data,error}=await sb.from('richieste_scuole').update({stato:'annullata'}).eq('id',id).select('id');
+  if(error||!data||!data.length){btn.disabled=false;toast('Richiesta non annullata: '+(error?scErr(error):'permesso mancante sulla tabella'));return}
+  toast('Richiesta annullata');
+  scCaricaRichieste();
+}
+
+async function scCaricaScuole(){
+  const box=document.getElementById('sc-scuole');
+  box.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  const{data:ls,error}=await sb.from('lead_data').select('id,persona_id,ente,funnel_stage,prossima_azione_il,fonte,created_at')
+    .eq('tipo_persona','scuola').order('created_at',{ascending:false});
+  if(error){box.innerHTML=`<p class="sc-vuoto ko">Scuole non lette: ${escHtml(scErr(error))}</p>`;return}
+  const scuole=ls||[];
+  const ids=scuole.map(s=>s.id),pids=scuole.map(s=>s.persona_id).filter(Boolean);
+  const vuoto={data:[],error:null};
+  const[pe,rel,doc]=await Promise.all([
+    pids.length?sb.from('persone').select('id,nome,cognome,telefono,email').in('id',pids):vuoto,
+    ids.length?sb.from('crm_relazioni').select('lead_genitore_id,tipo_relazione').in('lead_genitore_id',ids).eq('tipo_relazione','scuola_allievo'):vuoto,
+    ids.length?sb.from('documenti_scuola').select('lead_scuola_id,persona_id,esito').in('lead_scuola_id',ids).eq('tipo','modulo_adesione'):vuoto
+  ]);
+  if(rel.error)console.warn('[scuole] crm_relazioni:',rel.error.message);
+  const perP=Object.fromEntries((pe.data||[]).map(p=>[p.id,p]));
+  scScuole=scuole.map(s=>{
+    const allievi=(rel.data||[]).filter(r=>r.lead_genitore_id===s.id).length;
+    const d=(doc.data||[]).filter(x=>x.lead_scuola_id===s.id);
+    const validi=new Set(d.filter(x=>x.persona_id&&x.esito==='valido').map(x=>x.persona_id)).size;
+    const daTr=d.filter(x=>!x.persona_id&&x.esito!=='da_rifare').length;
+    return{...s,ref:perP[s.persona_id]||null,allievi,validi,mancanti:Math.max(allievi-validi,0),daTrascrivere:daTr};
+  });
+  if(!scScuole.length){box.innerHTML='<p class="sc-vuoto">Nessuna scuola. Creane una da una richiesta o con «+ Nuova scuola».</p>';return}
+  box.innerHTML=scScuole.map(s=>`<div class="sc-card sc-click" onclick="scApriScheda('${s.id}')">
+    <div class="sc-card-top"><div class="sc-tit">${escHtml(s.ente||'Scuola senza nome')}</div>${scStageBadge(s.funnel_stage)}</div>
+    <div class="sc-righe">
+      <div><b>Referente</b> ${escHtml(scNome(s.ref))}${s.ref&&s.ref.telefono?' · '+escHtml(s.ref.telefono):''}${s.ref&&s.ref.email?' · '+escHtml(s.ref.email):' · <span class="sc-warn">email mancante</span>'}</div>
+      <div><b>Prossima azione</b> ${scD(s.prossima_azione_il)}</div>
+      <div><b>Ragazzi</b> ${s.allievi} · <b>Moduli validi</b> ${s.validi} · <b>Mancanti</b> ${s.mancanti}${s.daTrascrivere?` · <span class="sc-warn">${s.daTrascrivere} da trascrivere</span>`:''}</div>
+    </div>
+  </div>`).join('')+(rel.error?`<p class="sc-vuoto ko">Conteggio ragazzi non disponibile: ${escHtml(scErr(rel.error))}</p>`:'');
+}
+
+function scNuovaScuola(){
+  scModal('🏫 Nuova scuola',`
+    ${scCampo('Nome della scuola','sc-n-ente','text',200)}
+    <div class="sc-2"><div>${scCampo('Nome del referente','sc-n-nome','text',80)}</div><div>${scCampo('Cognome del referente','sc-n-cognome','text',80)}</div></div>
+    <div class="sc-2"><div>${scCampo('Telefono','sc-n-tel','tel',40)}</div><div>${scCampo('Email','sc-n-email','email',200)}</div></div>
+    <p class="sc-nota">Serve almeno uno tra telefono ed email. Senza email il referente non può ricevere l'accesso all'area scuola: la si aggiunge dopo.</p>
+    <label class="sc-lbl" for="sc-n-fonte">Fonte</label>
+    <select id="sc-n-fonte" class="input sc-in"><option value="whatsapp">WhatsApp</option><option value="telefono">Telefono</option><option value="manuale" selected>Manuale</option></select>
+    <label class="sc-lbl" for="sc-n-stage">Stadio iniziale</label>
+    <select id="sc-n-stage" class="input sc-in">${SC_STAGES_INIZIALI.map(k=>`<option value="${k}">${escHtml(scLabelFunnel(k))}</option>`).join('')}</select>
+    <label class="sc-lbl" for="sc-n-note">Note (facoltative)</label>
+    <textarea id="sc-n-note" class="input sc-in" maxlength="1000"></textarea>`,
+  async()=>{
+    const ente=scVal('sc-n-ente'),nome=scVal('sc-n-nome'),tel=scVal('sc-n-tel'),email=scVal('sc-n-email');
+    if(!ente||!nome){scMsg('mo-scuole-msg','Servono il nome della scuola e il nome del referente.');return false}
+    if(!tel&&!email){scMsg('mo-scuole-msg','Serve almeno il telefono o l\'email del referente.');return false}
+    if(email&&email.indexOf('@')<1){scMsg('mo-scuole-msg','L\'email non è valida.');return false}
+    const{data,error}=await sb.rpc('scuola_crea',{p_ente:ente,p_nome:nome,p_cognome:scVal('sc-n-cognome')||null,p_telefono:tel||null,
+      p_email:email||null,p_fonte:scVal('sc-n-fonte'),p_funnel_stage:scVal('sc-n-stage'),p_note:scVal('sc-n-note')||null});
+    if(error)throw error;
+    toast('Scuola creata');
+    await scCaricaScuole();
+    scApriScheda(data);
+  },{ok:'Crea scuola'});
+}
+
+/* ── Scheda scuola ── */
+async function scApriScheda(id){
+  scCorrente=id;
+  document.getElementById('sc-lista').classList.add('hidden');
+  document.getElementById('sc-scheda').classList.remove('hidden');
+  document.getElementById('sc-scheda-body').innerHTML='<p class="sc-vuoto">Carico la scheda…</p>';
+  window.scrollTo(0,0);
+  await scCaricaScheda();
+}
+function scChiudiScheda(){
+  scCorrente=null;scDati=null;
+  document.getElementById('sc-scheda').classList.add('hidden');
+  document.getElementById('sc-lista').classList.remove('hidden');
+}
+async function scTornaElenco(){scChiudiScheda();await scCaricaTutto();}
+
+async function scCataloghi(){
+  if(!scIstruttori){
+    const{data,error}=await sb.from('istruttori').select('id,nome').eq('attivo',true).order('nome');
+    if(error)console.warn('[scuole] istruttori:',error.message);
+    scIstruttori=data||[];
+  }
+  if(!scStaffUtenti){
+    const{data,error}=await sb.from('profiles').select('user_id,nome,cognome,staff_role').not('staff_role','is',null).order('nome');
+    if(error)console.warn('[scuole] staff:',error.message);
+    scStaffUtenti=data||[];
+  }
+}
+
+async function scCaricaScheda(){
+  const id=scCorrente;if(!id)return;
+  const body=document.getElementById('sc-scheda-body');
+  try{
+    await scCataloghi();
+    const{data:s,error:e1}=await sb.from('lead_data').select('id,persona_id,ente,funnel_stage,prossima_azione_il,note_crm,fonte,created_at').eq('id',id).maybeSingle();
+    if(e1)throw e1;
+    if(!s)throw new Error('scuola non trovata');
+    const vuoto={data:[],error:null};
+    const[rel,slots,docs]=await Promise.all([
+      sb.from('crm_relazioni').select('lead_figlio_id,tipo_relazione').eq('lead_genitore_id',id),
+      sb.from('corsi_attivi_settimanali').select('id,tipo_corso,data_evento,ora_inizio,ora_fine,istruttore_id,capienza_max,status,note,istruttori(nome)')
+        .eq('lead_scuola_id',id).order('data_evento',{ascending:true}).order('ora_inizio',{ascending:true}),
+      sb.from('documenti_scuola').select('*').eq('lead_scuola_id',id).order('caricato_at',{ascending:false})
+    ]);
+    if(slots.error)throw slots.error;
+    if(docs.error)throw docs.error;
+    const refLeadIds=(rel.data||[]).filter(r=>r.tipo_relazione==='scuola_referente').map(r=>r.lead_figlio_id);
+    const allLeadIds=(rel.data||[]).filter(r=>r.tipo_relazione==='scuola_allievo').map(r=>r.lead_figlio_id);
+    const lf=(refLeadIds.length||allLeadIds.length)
+      ?await sb.from('lead_data').select('id,persona_id,classe,fascia,note_crm,nota_istruttore').in('id',[...refLeadIds,...allLeadIds]):vuoto;
+    if(lf.error)throw lf.error;
+    const leadById=Object.fromEntries((lf.data||[]).map(l=>[l.id,l]));
+    const allPersone=allLeadIds.map(x=>leadById[x]&&leadById[x].persona_id).filter(Boolean);
+    const tuttePersone=[s.persona_id,...(lf.data||[]).map(l=>l.persona_id)].filter(Boolean);
+    const slotIds=(slots.data||[]).map(x=>x.id);
+    const[pp,prof,cons,tess,pren,turni]=await Promise.all([
+      tuttePersone.length?sb.from('persone').select('id,nome,cognome,telefono,email,data_nascita,codice_fiscale').in('id',tuttePersone):vuoto,
+      tuttePersone.length?sb.from('profiles').select('user_id,persona_id,role').in('persona_id',tuttePersone):vuoto,
+      allPersone.length?sb.from('consensi_minori').select('persona_id,concesso,revocato_at').eq('tipo','utilizzo_immagini').in('persona_id',allPersone):vuoto,
+      allPersone.length?sb.from('tesseramenti').select('persona_id,stato,anno').in('persona_id',allPersone).eq('stato','attivo'):vuoto,
+      slotIds.length?sb.from('prenotazioni_prima_lezione').select('id,lead_id,slot_id,data_lezione,stato,presente').in('slot_id',slotIds):vuoto,
+      slotIds.length?sb.from('impegni_staff').select('id,slot_id,user_id,ruolo,stato').eq('tipo','lezione').in('slot_id',slotIds).neq('stato','ritirato'):vuoto
+    ]);
+    const perP=Object.fromEntries((pp.data||[]).map(p=>[p.id,p]));
+    const profPerP={};(prof.data||[]).forEach(p=>{profPerP[p.persona_id]=p});
+    const docsAll=docs.data||[];
+    scDati={
+      s,ref:perP[s.persona_id]||null,
+      referenti:[
+        {persona_id:s.persona_id,persona:perP[s.persona_id]||null,ruolo:'Referente principale',accesso:!!(profPerP[s.persona_id]&&profPerP[s.persona_id].role==='referente_scuola')},
+        ...refLeadIds.map(lid=>{const l=leadById[lid]||{};return{persona_id:l.persona_id,persona:perP[l.persona_id]||null,ruolo:l.note_crm||'Referente',
+          accesso:!!(profPerP[l.persona_id]&&profPerP[l.persona_id].role==='referente_scuola')}})
+      ].filter(r=>r.persona_id),
+      relErr:rel.error,
+      docs:docsAll,
+      slots:slots.data||[],
+      prenSlot:pren.data||[],prenErr:pren.error,
+      turni:turni.data||[],turniErr:turni.error,
+      daTrascrivere:docsAll.filter(d=>d.tipo==='modulo_adesione'&&!d.persona_id),
+      docScuola:docsAll.filter(d=>!d.persona_id&&d.tipo!=='modulo_adesione'),
+      allievi:allLeadIds.map(lid=>{
+        const l=leadById[lid]||{};const p=perP[l.persona_id]||{};
+        const mod=docsAll.find(d=>d.tipo==='modulo_adesione'&&d.persona_id===l.persona_id)||null; // docsAll e' gia' dal piu' recente
+        const c=(cons.data||[]).find(x=>x.persona_id===l.persona_id);
+        const pr=(pren.data||[]).filter(x=>x.lead_id===lid&&(x.stato==='prenotato'||x.stato==='fatto'||x.stato==='no_show'))
+          .sort((a,b)=>String(b.data_lezione).localeCompare(String(a.data_lezione)))[0]||null;
+        return{lead_id:lid,persona_id:l.persona_id,nome:p.nome,cognome:p.cognome,nascita:p.data_nascita,cf:p.codice_fiscale,classe:l.classe,
+          consenso:!!(c&&c.concesso&&!c.revocato_at),modulo:mod,
+          stato:mod?(mod.esito==='valido'?'valido':(mod.esito==='da_rifare'?'da_rifare':'caricato')):'mancante',
+          tesserato:(tess.data||[]).some(t=>t.persona_id===l.persona_id),pren:pr};
+      }).sort((a,b)=>(a.cognome||'').localeCompare(b.cognome||'')||(a.nome||'').localeCompare(b.nome||''))
+    };
+    scRenderScheda();
+  }catch(e){
+    console.error('[scuole] scheda:',e);
+    body.innerHTML=`<p class="sc-vuoto ko">Scheda non caricata: ${escHtml(scErr(e))}</p>`;
+  }
+}
+
+const SC_STATO_MODULO={mancante:{t:'Mancante',c:'grigio'},caricato:{t:'Caricato · in verifica',c:'giallo'},valido:{t:'Valido',c:'verde'},da_rifare:{t:'Da rifare',c:'rosso'}};
+
+function scRenderScheda(){
+  const D=scDati;if(!D)return;
+  const s=D.s;
+  const stOpts=[...SC_STAGES];if(s.funnel_stage&&!stOpts.includes(s.funnel_stage))stOpts.unshift(s.funnel_stage);
+  const mancaEmail=D.referenti.filter(r=>!(r.persona&&r.persona.email));
+  // uguale a is_segreteria() delle RPC impegno_*: solo staff_creator e staff_segreteria segnano e tolgono gli altri
+  const puoTurni=!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
+  const nomeStaff=uid=>{const u=(scStaffUtenti||[]).find(x=>x.user_id===uid);return u?scNome(u):'Istruttore'};
+  const h=[];
+
+  /* 1. Dati e funnel */
+  h.push(`<div class="sc-sez">
+    <div class="sc-card-top"><h2 class="sc-h2">${escHtml(s.ente||'Scuola')}</h2>${scStageBadge(s.funnel_stage)}</div>
+    <div class="sc-righe">
+      <div><b>Referente principale</b> ${escHtml(scNome(D.ref))}${D.ref&&D.ref.telefono?` · <a href="tel:${escHtml(D.ref.telefono)}">${escHtml(D.ref.telefono)}</a>`:''}${D.ref&&D.ref.email?` · <a href="mailto:${escHtml(D.ref.email)}">${escHtml(D.ref.email)}</a>`:''}</div>
+      <div><b>Fonte</b> ${escHtml((FONTE_LABEL&&FONTE_LABEL[s.fonte])||({form_scuole:'Modulo scuole dal sito',manuale:'Inserita a mano'})[s.fonte]||s.fonte||'—')} · <b>Creata il</b> ${scD(s.created_at)}</div>
+    </div>
+    <div class="sc-2">
+      <div><label class="sc-lbl" for="sc-f-stage">Stadio</label><select id="sc-f-stage" class="input sc-in">${stOpts.map(k=>`<option value="${k}"${k===s.funnel_stage?' selected':''}>${escHtml(scLabelFunnel(k))}</option>`).join('')}</select></div>
+      <div><label class="sc-lbl" for="sc-f-prossima">Prossima azione il</label><input id="sc-f-prossima" type="date" class="input sc-in" value="${s.prossima_azione_il?String(s.prossima_azione_il).slice(0,10):''}"></div>
+    </div>
+    <label class="sc-lbl" for="sc-f-note">Note</label>
+    <textarea id="sc-f-note" class="input sc-in" maxlength="4000">${escHtml(s.note_crm||'')}</textarea>
+    <div id="sc-f-msg"></div>
+    <div class="sc-azioni">
+      <button class="btn sc-scuro" onclick="scSalvaDati(this)">Salva</button>
+      <button class="btn btn-g" onclick="scApriFascicolo('${s.id}')">📒 Diario contatti</button>
+    </div>
+  </div>`);
+
+  /* 2. Referenti */
+  h.push(`<div class="sc-sez"><h3 class="sc-h3">Referenti</h3>
+    ${D.relErr?`<p class="sc-vuoto ko">Altri referenti non leggibili: ${escHtml(scErr(D.relErr))}</p>`:''}
+    ${D.referenti.map(r=>{const p=r.persona||{};const email=p.email;return `<div class="sc-riga">
+      <div class="sc-riga-main"><b>${escHtml(scNome(p))}</b> <span class="sc-sub">${escHtml(r.ruolo)}</span>
+        <div class="sc-sub">${email?escHtml(email):'<span class="sc-warn">manca l\'email: senza non può entrare</span>'}${p.telefono?' · '+escHtml(p.telefono):''}${r.accesso?' · <span class="sc-ok">✓ accesso creato</span>':''}</div></div>
+      <button class="btn btn-g sc-piccolo" ${email?'':'disabled title="Manca l\'email del referente"'} onclick="scInviaAccesso('${r.persona_id}',this)">✉️ Invia accesso</button>
+    </div>`}).join('')}
+    <div id="sc-acc-esito"></div>
+    <div class="sc-azioni">
+      <button class="btn btn-g" onclick="scAggiungiReferente()">+ Aggiungi referente</button>
+      <button class="btn sc-scuro" ${mancaEmail.length?'disabled':''} onclick="scInviaAccesso(null,this)">✉️ Invia accesso a tutti</button>
+    </div>
+    ${mancaEmail.length?`<p class="sc-nota">«Invia accesso a tutti» è spento: manca l'email di ${escHtml(mancaEmail.map(r=>scNome(r.persona)).join(', '))}.</p>`:''}
+  </div>`);
+
+  /* 3. Lezioni + turni istruttori */
+  h.push(`<div class="sc-sez"><h3 class="sc-h3">Lezioni</h3>
+    ${D.slots.length?D.slots.map(sl=>{
+      const pr=D.prenSlot.filter(x=>x.slot_id===sl.id&&(x.stato==='prenotato'||x.stato==='fatto'||x.stato==='no_show')).length;
+      const tu=D.turni.filter(t=>t.slot_id===sl.id);
+      return `<div class="sc-riga sc-riga-col">
+        <div class="sc-riga-main"><b>${escHtml(SC_TIPO_SLOT[sl.tipo_corso]||sl.tipo_corso)}</b>
+          <div class="sc-sub">${escHtml(scDataLunga(sl.data_evento))} · ${scOra(sl.ora_inizio)}–${scOra(sl.ora_fine)} · Istruttore ${escHtml(sl.istruttori&&sl.istruttori.nome||'da assegnare')}${sl.tipo_corso==='prima_lezione_scuola'?` · Prenotati ${pr}/${sl.capienza_max??25}`:''}${sl.status!=='attivo'?' · '+escHtml(sl.status):''}</div>
+          ${sl.note?`<div class="sc-sub">${escHtml(sl.note)}</div>`:''}</div>
+        <div class="sc-turni">${tu.length?tu.map(t=>`<span class="sc-chip">${escHtml(nomeStaff(t.user_id))}${t.ruolo==='conduce'?' · conduce':''}${t.stato==='presente'?' ✓':''}${puoTurni&&t.stato==='previsto'?` <button class="sc-chip-x" title="Togli" onclick="scTogliTurno('${t.id}',this)">×</button>`:''}</span>`).join(''):'<span class="sc-sub">Nessun istruttore segnato</span>'}
+          <span class="sc-conta">${tu.length}/${SC_TURNI_TARGET}</span>
+          ${puoTurni&&!D.turniErr?`<button class="btn btn-g sc-piccolo" onclick="scAggiungiTurno('${sl.id}')">+ Istruttore</button>`:''}</div>
+      </div>`}).join(''):'<p class="sc-vuoto">Nessuna lezione fissata.</p>'}
+    ${D.turniErr?`<p class="sc-nota">Turni istruttori non disponibili: ${escHtml(scErr(D.turniErr))}</p>`:''}
+    <div class="sc-azioni"><button class="btn sc-scuro" onclick="scCreaSlot()">+ Crea slot Prima Lezione</button></div>
+    <p class="sc-nota">Le presenze si segnano dall'agenda, come per ogni altra lezione.</p>
+  </div>`);
+
+  /* 4. Moduli da trascrivere */
+  h.push(`<div class="sc-sez"><h3 class="sc-h3">Moduli da trascrivere <span class="sc-conta">${D.daTrascrivere.length}</span></h3>
+    ${D.daTrascrivere.length?D.daTrascrivere.map(d=>`<div class="sc-riga">
+      <div class="sc-riga-main"><b>Modulo caricato il ${scDH(d.caricato_at)}</b>
+        ${d.esito==='da_rifare'?`<div class="sc-sub"><span class="sc-stato rosso">Da rifare</span> ${escHtml(d.nota_staff||'')}</div>`:''}</div>
+      <button class="btn btn-g sc-piccolo" onclick="scApriDoc('${d.id}',this)">Apri</button>
+      <button class="btn sc-scuro sc-piccolo" onclick="scTrascrivi('${d.id}')">Trascrivi</button>
+    </div>`).join(''):'<p class="sc-vuoto">Nessun modulo in attesa.</p>'}
+  </div>`);
+
+  /* 5. Allievi */
+  h.push(`<div class="sc-sez"><h3 class="sc-h3">Allievi <span class="sc-conta">${D.allievi.length}</span></h3>
+    ${D.allievi.length?D.allievi.map(a=>{const sm=SC_STATO_MODULO[a.stato];return `<div class="sc-riga sc-riga-col">
+      <div class="sc-riga-main"><b>${escHtml(scNome(a))}</b>${a.classe?' <span class="sc-sub">· '+escHtml(a.classe)+'</span>':''}
+        <div class="sc-sub">Nato/a il ${scD(a.nascita)} · CF ${escHtml(a.cf||'—')} · Foto ${a.consenso?'sì':'no'} · Tesserato ${a.tesserato?'✓':'—'} · ${a.pren?`Lezione del ${scD(a.pren.data_lezione)}${a.pren.presente===true?' · presente ✓':(a.pren.stato==='no_show'?' · assente':'')}`:'Nessuna lezione prenotata'}</div>
+        <div class="sc-sub"><span class="sc-stato ${sm.c}">${sm.t}</span>${a.stato==='da_rifare'&&a.modulo&&a.modulo.nota_staff?' '+escHtml(a.modulo.nota_staff):''}</div></div>
+      <div class="sc-azioni sc-azioni-riga">
+        ${a.modulo?`<button class="btn btn-g sc-piccolo" onclick="scApriDoc('${a.modulo.id}',this)">Apri modulo</button>
+          ${a.stato!=='valido'?`<button class="btn sc-scuro sc-piccolo" onclick="scEsito('${a.modulo.id}','valido',this)">✓ Valido</button>`:''}
+          ${a.stato!=='da_rifare'?`<button class="btn btn-g sc-piccolo" onclick="scDaRifare('${a.modulo.id}')">Da rifare</button>`:''}`:''}
+        <button class="btn btn-g sc-piccolo" onclick="scApriFascicolo('${a.lead_id}')">Fascicolo</button>
+      </div>
+    </div>`}).join(''):'<p class="sc-vuoto">Nessun ragazzo inserito.</p>'}
+    <div class="sc-azioni"><button class="btn btn-g" onclick="scAggiungiAllievo()">+ Aggiungi allievo (emergenza)</button></div>
+    <p class="sc-nota">Il flusso normale è la scuola: carica le foto dei moduli e la segreteria li trascrive qui sopra.</p>
+  </div>`);
+
+  /* 6. Documenti della scuola */
+  h.push(`<div class="sc-sez"><h3 class="sc-h3">Documenti della scuola</h3>
+    ${D.docScuola.length?D.docScuola.map(d=>`<div class="sc-riga">
+      <div class="sc-riga-main"><b>${escHtml(SC_TIPO_DOC[d.tipo]||d.tipo)}</b><div class="sc-sub">Caricato il ${scDH(d.caricato_at)}</div></div>
+      <button class="btn btn-g sc-piccolo" onclick="scApriDoc('${d.id}',this)">Apri</button>
+    </div>`).join(''):'<p class="sc-vuoto">Nessun documento.</p>'}
+    <div class="sc-carica">
+      <select id="sc-doc-tipo" class="input sc-in"><option value="preventivo">Preventivo</option><option value="altro">Progetto o altro documento</option></select>
+      <input id="sc-doc-file" type="file" accept="image/jpeg,image/png,application/pdf" class="input sc-in">
+      <button class="btn sc-scuro" onclick="scCaricaDocScuola(this)">Carica documento</button>
+    </div>
+    <div id="sc-doc-msg"></div>
+    <p class="sc-nota">La scuola li vede nella sua area, in sola lettura. JPG, PNG o PDF, massimo 8 MB.</p>
+  </div>`);
+
+  document.getElementById('sc-scheda-body').innerHTML=h.join('');
+}
+
+async function scSalvaDati(btn){
+  const s=scDati&&scDati.s;if(!s)return;
+  btn.disabled=true;scMsg('sc-f-msg','');
+  const upd={funnel_stage:scVal('sc-f-stage')||s.funnel_stage,prossima_azione_il:scVal('sc-f-prossima')||null,note_crm:scVal('sc-f-note')||null,updated_at:new Date().toISOString()};
+  const{data,error}=await sb.from('lead_data').update(upd).eq('id',s.id).select('id');
+  btn.disabled=false;
+  if(error||!data||!data.length){scMsg('sc-f-msg','Non salvato: '+(error?scErr(error):'permesso mancante'));return}
+  Object.assign(s,upd);
+  toast('Scheda salvata');
+  scRenderScheda();
+}
+
+async function scApriFascicolo(leadId){
+  if(typeof crmLeadsData==='undefined')return;
+  if(!crmLeadsData.find(l=>l.id===leadId))await loadCrmLeads();
+  if(!crmLeadsData.find(l=>l.id===leadId)){toast('Scheda non trovata nell\'elenco contatti');return}
+  segMostra('persone');
+  showLeadDetail(leadId);
+}
+
+function scAggiungiReferente(){
+  scModal('👤 Aggiungi referente',`
+    <div class="sc-2"><div>${scCampo('Nome','sc-r-nome','text',80)}</div><div>${scCampo('Cognome','sc-r-cognome','text',80)}</div></div>
+    ${scCampo('Email (serve per l\'accesso)','sc-r-email','email',200)}
+    <div class="sc-2"><div>${scCampo('Telefono (facoltativo)','sc-r-tel','tel',40)}</div><div>${scCampo('Ruolo (facoltativo)','sc-r-ruolo','text',80,' placeholder="Es. docente di scienze motorie"')}</div></div>`,
+  async()=>{
+    const nome=scVal('sc-r-nome'),email=scVal('sc-r-email');
+    if(!nome){scMsg('mo-scuole-msg','Serve il nome.');return false}
+    if(email.indexOf('@')<1){scMsg('mo-scuole-msg','Serve un\'email valida: è quella con cui il referente entra.');return false}
+    const{error}=await sb.rpc('scuola_aggiungi_referente',{p_scuola_lead_id:scCorrente,p_nome:nome,p_cognome:scVal('sc-r-cognome')||null,
+      p_email:email,p_telefono:scVal('sc-r-tel')||null,p_ruolo:scVal('sc-r-ruolo')||null});
+    if(error)throw error;
+    toast('Referente aggiunto');
+    await scCaricaScheda();
+  },{ok:'Aggiungi'});
+}
+
+async function scInviaAccesso(personaId,btn){
+  if(!confirm(personaId?'Mando la mail con l\'accesso a questo referente?':'Mando la mail con l\'accesso a tutti i referenti della scuola?'))return;
+  btn.disabled=true;
+  const args={p_scuola_lead_id:scCorrente};if(personaId)args.p_persona_referente=personaId;
+  const{data,error}=await sb.rpc('scuola_invia_accesso',args);
+  btn.disabled=false;
+  if(error){scMsg('sc-acc-esito','Accesso non inviato: '+scErr(error));return}
+  const n=(data&&data.inviati)||0;
+  scMsg('sc-acc-esito',`Mail di accesso in partenza: ${n} ${n===1?'referente':'referenti'}. Arriva in pochi minuti.`,true);
+}
+
+function scCreaSlot(){
+  const oggi=kcAddDaysLocal(0);
+  scModal('📅 Crea slot Prima Lezione',`
+    ${scCampo('Data','sc-s-data','date',null,` min="${oggi}"`)}
+    <div class="sc-2"><div>${scCampo('Ora inizio','sc-s-ini','time',null,' min="09:00" max="17:00" value="09:00"')}</div><div>${scCampo('Ora fine','sc-s-fine','time',null,' min="09:00" max="17:00" value="11:00"')}</div></div>
+    <label class="sc-lbl" for="sc-s-istr">Istruttore</label>
+    <select id="sc-s-istr" class="input sc-in"><option value="">Da assegnare</option>${(scIstruttori||[]).map(i=>`<option value="${i.id}">${escHtml(i.nome)}</option>`).join('')}</select>
+    <label class="sc-lbl" for="sc-s-note">Note (facoltative)</label>
+    <input id="sc-s-note" class="input sc-in" maxlength="300">
+    <p class="sc-nota">Orario dentro la fascia scuole, dalle 9 alle 17. Capienza 25. I ragazzi già inseriti si prenotano da soli sulla prossima lezione quando vengono aggiunti.</p>`,
+  async()=>{
+    const data=scVal('sc-s-data'),ini=scVal('sc-s-ini'),fine=scVal('sc-s-fine');
+    if(!data||!ini||!fine){scMsg('mo-scuole-msg','Servono data, ora di inizio e ora di fine.');return false}
+    if(fine<=ini){scMsg('mo-scuole-msg','L\'ora di fine deve venire dopo l\'inizio.');return false}
+    const{error}=await sb.rpc('scuola_crea_slot',{p_scuola_lead_id:scCorrente,p_data:data,p_ora_inizio:ini,p_ora_fine:fine,
+      p_istruttore_id:scVal('sc-s-istr')||null,p_note:scVal('sc-s-note')||null});
+    if(error)throw error;
+    toast('Lezione creata');
+    await scCaricaScheda();
+  },{ok:'Crea slot'});
+}
+
+function scAggiungiTurno(slotId){
+  const gia=(scDati.turni||[]).filter(t=>t.slot_id===slotId).map(t=>t.user_id);
+  const liberi=(scStaffUtenti||[]).filter(u=>!gia.includes(u.user_id));
+  if(!liberi.length){toast('Tutto lo staff è già segnato su questa lezione');return}
+  scModal('👥 Aggiungi istruttore alla lezione',`
+    <label class="sc-lbl" for="sc-t-user">Chi</label>
+    <select id="sc-t-user" class="input sc-in">${liberi.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join('')}</select>
+    <label class="sc-lbl" for="sc-t-ruolo">Ruolo</label>
+    <select id="sc-t-ruolo" class="input sc-in"><option value="supporto">Supporto</option><option value="conduce">Conduce</option></select>`,
+  async()=>{
+    const{error}=await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:slotId,p_ruolo:scVal('sc-t-ruolo'),p_user_id:scVal('sc-t-user')});
+    if(error)throw error;
+    toast('Istruttore segnato');
+    await scCaricaScheda();
+  },{ok:'Segna'});
+}
+async function scTogliTurno(impegnoId,btn){
+  if(!confirm('Togliere questo istruttore dalla lezione?'))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('impegno_mi_tolgo',{p_impegno_id:impegnoId});
+  if(error){btn.disabled=false;toast('Non tolto: '+scErr(error));return}
+  toast('Istruttore tolto');
+  await scCaricaScheda();
+}
+
+/* Form ragazzo, uguale per trascrizione e inserimento d'emergenza */
+function scFormRagazzo(pre){
+  return `<div class="sc-2"><div>${scCampo('Nome','sc-a-nome','text',80)}</div><div>${scCampo('Cognome','sc-a-cognome','text',80)}</div></div>
+    <div class="sc-2"><div>${scCampo('Data di nascita','sc-a-nascita','date')}</div><div>${scCampo('Classe','sc-a-classe','text',40,' placeholder="Es. 2B"')}</div></div>
+    ${scCampo('Codice fiscale (consigliato)','sc-a-cf','text',16,' style="text-transform:uppercase" autocapitalize="characters"')}
+    <label class="sc-lbl">Consenso foto e video</label>
+    <div class="sc-radio"><label><input type="radio" name="sc-a-foto" value="si"> Sì</label><label><input type="radio" name="sc-a-foto" value="no" checked> No</label></div>
+    <label class="sc-lbl" for="sc-a-note">Note per gli istruttori (facoltative)</label>
+    <textarea id="sc-a-note" class="input sc-in" maxlength="1000" placeholder="Allergie, salute, altro"></textarea>`;
+}
+function scLeggiRagazzo(){
+  const nome=scMaiuscole(scVal('sc-a-nome')),cognome=scMaiuscole(scVal('sc-a-cognome')),nascita=scVal('sc-a-nascita');
+  const cf=scVal('sc-a-cf').toUpperCase().replace(/\s+/g,'');
+  if(!nome||!cognome||!nascita){scMsg('mo-scuole-msg','Servono nome, cognome e data di nascita.');return null}
+  if(cf&&!/^[A-Z0-9]{16}$/.test(cf)){scMsg('mo-scuole-msg','Il codice fiscale deve avere 16 caratteri, solo lettere e numeri.');return null}
+  const foto=document.querySelector('input[name="sc-a-foto"]:checked');
+  return{p_nome:nome,p_cognome:cognome,p_nascita:nascita,p_codice_fiscale:cf||null,p_classe:scVal('sc-a-classe')||null,
+    p_consenso_foto:!!(foto&&foto.value==='si'),p_note_istruttori:scVal('sc-a-note')||null};
+}
+function scEsitoRagazzo(r){
+  const e=r&&r.esito;
+  if(e==='ambiguo')return 'Ci sono più ragazzi con questo nome: lo verifica la segreteria.';
+  if(e==='relazionato'||e==='riconosciuto')return 'Già presente: dati aggiornati.';
+  return 'Ragazzo inserito'+(r&&r.prenotato?' e prenotato sulla prossima lezione':'')+'.';
+}
+
+function scAggiungiAllievo(){
+  scModal('🧒 Aggiungi allievo (emergenza)',`<p class="sc-nota">Il flusso normale è la scuola che carica i moduli. Usalo solo se serve subito.</p>${scFormRagazzo()}`,
+  async()=>{
+    const args=scLeggiRagazzo();if(!args)return false;
+    const{data,error}=await sb.rpc('scuola_aggiungi_allievo',{...args,p_scuola_lead_id:scCorrente});
+    if(error)throw error;
+    toast(scEsitoRagazzo(data));
+    await scCaricaScheda();
+  },{ok:'Aggiungi'});
+}
+
+async function scTrascrivi(docId){
+  const d=(scDati.daTrascrivere||[]).find(x=>x.id===docId);if(!d)return;
+  scModal('✍️ Trascrivi modulo',`<div class="sc-trascr">
+      <div class="sc-trascr-doc" id="sc-tr-doc"><p class="sc-vuoto">Carico il modulo…</p></div>
+      <div class="sc-trascr-form">${scFormRagazzo()}
+        <div class="sc-darifare">
+          <label class="sc-lbl" for="sc-tr-nota">Se non si legge o manca la firma</label>
+          <input id="sc-tr-nota" class="input sc-in" maxlength="300" placeholder="Es. manca la firma del genitore">
+          <button class="btn btn-g" onclick="scTrascriviDaRifare('${docId}',this)">Da rifare</button>
+        </div>
+      </div>
+    </div>`,
+  async()=>{
+    const args=scLeggiRagazzo();if(!args)return false;
+    const{data,error}=await sb.rpc('scuola_trascrivi_modulo',{p_doc_id:docId,...args});
+    if(error)throw error;
+    toast(scEsitoRagazzo(data));
+    await scCaricaScheda();
+  },{ok:'Salva',largo:true});
+  try{
+    const url=await scUrlFirmato(d.path);
+    const box=document.getElementById('sc-tr-doc');if(!box)return;
+    box.innerHTML=/\.pdf$/i.test(d.path)
+      ?`<iframe src="${escHtml(url)}" title="Modulo" class="sc-pdf"></iframe><a href="${escHtml(url)}" target="_blank" rel="noopener" class="sc-sub">Apri in una nuova scheda</a>`
+      :`<img src="${escHtml(url)}" alt="Modulo di adesione" class="sc-img" onclick="this.classList.toggle('zoom')"><div class="sc-sub">Tocca l'immagine per ingrandire · <a href="${escHtml(url)}" target="_blank" rel="noopener">apri in una nuova scheda</a></div>`;
+  }catch(e){
+    const box=document.getElementById('sc-tr-doc');if(box)box.innerHTML=`<p class="sc-vuoto ko">Modulo non apribile: ${escHtml(scErr(e))}</p>`;
+  }
+}
+async function scTrascriviDaRifare(docId,btn){
+  const nota=scVal('sc-tr-nota');
+  if(!nota){scMsg('mo-scuole-msg','Scrivi cosa non va: la scuola lo legge.');return}
+  btn.disabled=true;
+  const{error}=await sb.rpc('scuola_verifica_documento',{p_doc_id:docId,p_esito:'da_rifare',p_nota:nota});
+  btn.disabled=false;
+  if(error){scMsg('mo-scuole-msg','Non salvato: '+scErr(error));return}
+  closeModal('mo-scuole');
+  toast('Segnato da rifare');
+  await scCaricaScheda();
+}
+
+async function scEsito(docId,esito,btn){
+  btn.disabled=true;
+  const{error}=await sb.rpc('scuola_verifica_documento',{p_doc_id:docId,p_esito:esito,p_nota:null});
+  btn.disabled=false;
+  if(error){toast('Non salvato: '+scErr(error));return}
+  toast(esito==='valido'?'Modulo valido':'Segnato');
+  await scCaricaScheda();
+}
+function scDaRifare(docId){
+  scModal('Modulo da rifare',`<label class="sc-lbl" for="sc-dr-nota">Cosa non va (la scuola lo legge)</label>
+    <input id="sc-dr-nota" class="input sc-in" maxlength="300" placeholder="Es. manca la firma del genitore">`,
+  async()=>{
+    const nota=scVal('sc-dr-nota');
+    if(!nota){scMsg('mo-scuole-msg','Scrivi cosa non va.');return false}
+    const{error}=await sb.rpc('scuola_verifica_documento',{p_doc_id:docId,p_esito:'da_rifare',p_nota:nota});
+    if(error)throw error;
+    toast('Segnato da rifare');
+    await scCaricaScheda();
+  },{ok:'Segna da rifare'});
+}
+
+async function scCaricaDocScuola(btn){
+  const file=document.getElementById('sc-doc-file').files[0];
+  const tipo=scVal('sc-doc-tipo');
+  const err=scFileOk(file);if(err){scMsg('sc-doc-msg',err);return}
+  btn.disabled=true;scMsg('sc-doc-msg','Carico…',true);
+  try{
+    const path=`${scCorrente}/scuola/${Date.now()}.${scExt(file)}`;
+    const up=await sb.storage.from('scuole').upload(path,file,{contentType:file.type||undefined,upsert:false});
+    if(up.error)throw up.error;
+    const{error}=await sb.rpc('scuola_carica_documento',{p_persona_id:null,p_tipo:tipo,p_path:path,p_scuola_lead_id:scCorrente});
+    if(error){
+      // il file senza riga in documenti_scuola non lo vedrebbe nessuno: si toglie dal bucket (lo staff puo')
+      try{await sb.storage.from('scuole').remove([path]);}catch(_){}
+      throw error;
+    }
+    toast('Documento caricato');
+    await scCaricaScheda();
+  }catch(e){scMsg('sc-doc-msg','Non caricato: '+scErr(e));}
+  finally{btn.disabled=false;}
+}
+
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
 
 const TIPI_CORSO_LBL={

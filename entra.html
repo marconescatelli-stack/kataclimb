@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>Entra — KataClimb</title>
+<!-- KC-BUILD: entra v1.1 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott): parametro next=scuola. Il worker kc-scuole v1.2 manda al referente della scuola entra.html?token_hash=…&type=email&next=scuola: dopo verifyOtp riuscito si va dritti a scuola.html, senza passare da imposta-password (il referente entra col link, la password resta facoltativa dalla pagina di accesso). Senza next (o con altro valore) tutto come prima. Testi "Entra nell'area scuola" per quel link. CUMULA v1 (sotto). -->
 <!-- KC-BUILD: entra v1 · 2026-09-30 · IL LINK DELLA MAIL SI USA SOLO AL TOCCO. Le mail di accesso (Magic link, Reset password) passano da Brevo, che riscrive i link col suo tracciamento; il vecchio link a /auth/v1/verify consumava il token appena caricato, quindi un servizio di posta che lo apriva in anticipo (Hotmail/Outlook) lo bruciava e la persona trovava "link scaduto". Ora il template punta qui: entra.html?token_hash={{ .TokenHash }}&type=<tipo>. Al caricamento la pagina NON chiama Supabase: legge la query e mostra un bottone. Il client supabase-js si crea solo al tocco (createClient gia' da solo puo' rinnovare una sessione vecchia in rete) e poi verifyOtp({token_hash,type}). Tipi ammessi: email, recovery, magiclink (deprecato in auth-js per verifyOtp -> trattato come email). Sessione nella chiave di default sb-wbtougychlhnlcnonqge-auth-token (nessuno storageKey), la stessa di portale.html e imposta-password.html; detectSessionInUrl false. Esito: recovery -> imposta-password.html; email -> imposta-password.html?primo=1 se manca user_metadata.password_scelta, altrimenti portale.html (indirizzi relativi, location.replace). Qualunque errore -> "Link scaduto o gia' usato", errore vero solo in console. -->
 <style>
   :root {
@@ -147,6 +148,8 @@
   var tipo = q.get('type') || '';
   // 'magiclink' e' deprecato per verifyOtp (auth-js): vale come 'email'.
   if (tipo === 'magiclink') tipo = 'email';
+  // Scuole F1: il link del referente porta next=scuola (solo questo valore e' ammesso, niente redirect liberi)
+  var versoScuola = q.get('next') === 'scuola' && tipo === 'email';
 
   if (!tokenHash || (tipo !== 'email' && tipo !== 'recovery')) {
     mostraErrore();
@@ -158,6 +161,11 @@
     document.getElementById('ready-title').textContent = 'Scegli la tua password';
     document.getElementById('ready-sub').textContent = 'Tocca il bottone per continuare.';
     elBtn.textContent = 'Continua';
+  }
+  if (versoScuola) {
+    document.title = 'Area scuola — KataClimb';
+    document.getElementById('ready-title').textContent = 'Entra nell\'area scuola';
+    elBtn.textContent = 'Entra nell\'area scuola';
   }
   elReady.style.display = 'block';
 
@@ -175,7 +183,9 @@
       var u = (res.data && (res.data.user || (res.data.session && res.data.session.user))) || null;
       if (!res.data || !res.data.session || !u) throw new Error('verifyOtp senza sessione');
 
-      if (tipo === 'recovery') {
+      if (versoScuola) {
+        window.location.replace('scuola.html');
+      } else if (tipo === 'recovery') {
         window.location.replace('imposta-password.html');
       } else if ((u.user_metadata || {}).password_scelta !== true) {
         window.location.replace('imposta-password.html?primo=1');
