@@ -1,3 +1,8 @@
+-- GIÀ APPLICATO IN ALTRA FORMA DA CHAT IL 21 OTT 2026. NON APPLICARE QUESTO FILE: resta come traccia.
+--   · richieste_scuole e crm_relazioni: policy staff applicate da chat (piu' lettura del referente sulla propria scuola).
+--   · slot_staff NON esiste e non esistera': i turni stanno in impegni_staff con le RPC impegno_mi_segno /
+--     impegno_mi_tolgo / impegno_presenza (portale v3.135, agenda v3.100).
+--
 -- NON ANCORA APPLICATO. Da applicare da chat (Claude, con l'ok di Marco) PRIMA del collaudo della Metà B.
 -- Claude Code non scrive sul DB: questo file raccoglie cio' che il codice di portale v3.134 / agenda v3.99 / scuola v1.0
 -- da' per esistente e che il 21 ott 2026 a DB mancava (verificato in sola lettura su pg_policies e information_schema).
