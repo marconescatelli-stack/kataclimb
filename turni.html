@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.0 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): PAGINA NUOVA per tutto lo staff (profile_data.staff_role non nullo), stile della console Oggi. (1) LEZIONI CHE CERCANO ISTRUTTORI: slot corsi_attivi_settimanali attivi con data_evento nelle prossime 4 settimane e lead_scuola_id valorizzato (per ora solo scuole, richiesti fissi 3); chip dei segnati con ruolo da impegni_staff (stato diverso da ritirato), contatore N/3, "Mi segno" con ruolo (conduce di default per istruttore senior, tutor e creator; supporto per gli altri; modificabile) -> impegno_mi_segno('lezione', slot, ruolo), "Mi tolgo" -> impegno_mi_tolgo. (2) TURNI MONITOR: griglia lun-ven per 2 settimane con le fasce 19-22 e 18-19 (la 18-19 evidenziata "da coprire": debito aperto del 2 ott, decisione Marco pendente) -> impegno_mi_segno('monitor', null, data, ora_inizio, ora_fine). (3) I MIEI IMPEGNI da oggi in poi, "Mi tolgo" finche' sono previsti. La presenza si segna su Oggi. Solo RPC per le scritture. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turni · KataClimb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --nero:#141414; --tile:#1E1E1E; --bianco:#FFF; --grigio:#B8B8B8; --velo:rgba(255,255,255,.08);
+  --etichetta:#C8C8C8; --titolo:#DADADA; --fiducia:#FFD60A; --cordata:#30D158; --rosso:#FF8A84; --arancio:#FFB340;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--nero); color:var(--bianco); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:17px; line-height:1.4; max-width:760px; margin:0 auto; padding:58px 14px 96px}
+a{color:inherit}
+h1{font-size:24px; font-weight:800; margin-bottom:4px}
+.sotto{font-size:14px; color:var(--grigio); margin-bottom:8px}
+.zona{font-size:14px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--titolo); padding:26px 2px 10px; display:flex; align-items:center; gap:8px}
+.zona::after{content:''; flex:1; height:1px; background:var(--velo)}
+.nota-zona{font-size:14px; color:#C9C9CE; margin:-4px 2px 10px}
+.box{background:var(--tile); border:1px solid var(--velo); border-radius:var(--r); padding:14px; margin-bottom:10px}
+.box.pieno{border-left:4px solid var(--cordata)}
+.box.parziale{border-left:4px solid var(--fiducia)}
+.box.scoperto{border-left:4px solid #FF3B30}
+.r1{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.tit{font-size:16px; font-weight:800}
+.conta{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:16px; white-space:nowrap}
+.conta.ok{color:var(--cordata)} .conta.mezzo{color:var(--fiducia)} .conta.zero{color:var(--rosso)}
+.det{font-size:14px; color:#C9C9CE; margin-top:3px}
+.chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px}
+.chip{font-size:13px; font-weight:700; padding:5px 10px; border-radius:999px; background:rgba(255,255,255,.1)}
+.chip.io{background:rgba(255,214,10,.2); color:var(--fiducia)}
+.chip.vuoto{background:none; border:1px dashed rgba(255,255,255,.25); color:var(--grigio)}
+.az{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px}
+.btn{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:13px; letter-spacing:.04em; padding:11px 14px; border-radius:12px; border:1px solid var(--velo);
+  background:#2A2A30; color:var(--bianco); cursor:pointer}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+.btn.prim{background:var(--fiducia); color:#000; border-color:var(--fiducia)}
+select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
+.vuota{font-size:14px; color:#C9C9CE; padding:6px 2px}
+.sett{font-size:14px; font-weight:800; color:var(--fiducia); margin:14px 2px 8px}
+.griglia{display:grid; grid-template-columns:1fr; gap:8px}
+@media (min-width:700px){ .griglia{grid-template-columns:repeat(5,1fr)} }
+.giorno{background:var(--tile); border:1px solid var(--velo); border-radius:14px; padding:10px}
+.giorno.passato{opacity:.55}
+.giorno h3{font-size:14px; font-weight:800; margin-bottom:8px; color:var(--titolo)}
+.fascia{border-top:1px solid var(--velo); padding:8px 0}
+.fascia:first-of-type{border-top:none; padding-top:0}
+.fascia .fh{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:14px}
+.fascia.dacoprire{background:rgba(255,159,10,.08); border:1px solid rgba(255,159,10,.45); border-radius:10px; padding:8px; margin-top:6px}
+.fascia .bdg{display:inline-block; font-size:13px; font-weight:800; color:var(--arancio); margin-left:4px}
+.fascia .chi{font-size:14px; margin-top:4px}
+.fascia .chi.nessuno{color:var(--grigio)}
+.fascia .btn{margin-top:6px; width:100%; padding:9px 8px}
+.imp{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:10px 0; border-top:1px solid var(--velo)}
+.imp:first-child{border-top:none}
+.imp .q{font-size:15px; font-weight:700}
+.imp .s{font-size:14px; color:#C9C9CE}
+.stato-ok{color:var(--cordata); font-weight:700}
+.stato-ko{color:var(--rosso); font-weight:700}
+.gate{padding:60px 10px; text-align:center}
+.gate p{color:#C9C9CE; margin:10px 0 22px}
+.gate a{display:inline-block; padding:14px 28px; border-radius:12px; background:var(--fiducia); color:#000; font-weight:800; text-decoration:none}
+.toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); background:#2A2A30; color:#fff; padding:12px 22px; border-radius:12px; font-size:15px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .25s; z-index:50; max-width:90vw}
+.toast.on{opacity:1}
+.bar{position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:760px; display:flex; background:rgba(13,13,15,.94); backdrop-filter:blur(12px);
+  border-top:1px solid var(--velo); padding:7px 0 max(9px, env(safe-area-inset-bottom)); z-index:40}
+.bar a{flex:1; text-align:center; color:var(--grigio); font-size:13px; text-decoration:none}
+.bar a span{display:block; font-size:1.2rem; margin-bottom:2px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}" style="position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer">←</button>
+
+<div id="st-gate" class="gate hidden">
+  <h1>Turni</h1>
+  <p>Per segnarti ai turni devi entrare dal portale.</p>
+  <a href="/portale.html">ENTRA</a>
+</div>
+<div id="st-no" class="gate hidden">
+  <h1>Turni</h1>
+  <p>Questa pagina è per lo staff dell'Accademia.</p>
+  <a href="/oggi.html">TORNA A OGGI</a>
+</div>
+
+<div id="app" class="hidden">
+  <h1>Turni</h1>
+  <p class="sotto">Ti segni qui, poi il giorno stesso segni la presenza su Oggi.</p>
+
+  <div class="zona">Lezioni che cercano istruttori</div>
+  <p class="nota-zona">Le lezioni delle scuole nelle prossime 4 settimane. Servono 3 istruttori a lezione.</p>
+  <div id="lezioni"><p class="vuota">…</p></div>
+
+  <div class="zona">Turni monitor</div>
+  <p class="nota-zona">Sala con Monitor, da lunedì a venerdì, prossime 2 settimane.</p>
+  <div id="monitor"><p class="vuota">…</p></div>
+
+  <div class="zona">I miei impegni</div>
+  <div class="box" id="miei"><p class="vuota">…</p></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bar">
+  <a href="/oggi.html"><span>◉</span>Oggi</a>
+  <a href="/agenda.html"><span>🗓</span>Agenda</a>
+  <a href="/eventi.html"><span>✈</span>Eventi</a>
+  <a href="/portale.html?nav=comunita"><span>👥</span>Comunità</a>
+  <a href="/profilo.html"><span>👤</span>Profilo</a>
+</nav>
+
+<script>
+const CFG={
+  SB_URL:'https://wbtougychlhnlcnonqge.supabase.co',
+  SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E',
+};
+/* Richiesti fissi sulle lezioni delle scuole: il campo per slot non esiste ancora (fuori consegna). */
+const RICHIESTI_LEZIONE=3;
+/* Fasce monitor standard. La 18-19 e' il debito aperto del 2 ott: si mostra evidenziata, decisione di Marco pendente. */
+const FASCE_MONITOR=[{ini:'18:00',fin:'19:00',dacoprire:true},{ini:'19:00',fin:'22:00'}];
+const RUOLI_CONDUCE=['staff_istruttore_sr','staff_istruttore_tutor','staff_creator'];
+const NOME_LEZ={prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
+const RUOLO={conduce:'conduce',supporto:'supporto',monitor:'monitor'};
+const GIORNI_FULL=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
+let sb, uid, staffRole=null, nomi={}, lezioni=[], impLez=[], impMon=[], miei=[], enti={};
+
+const $=id=>document.getElementById(id);
+const pad2=n=>String(n).padStart(2,'0');
+function isoLocal(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function dLoc(s){ const[a,m,g]=String(s).slice(0,10).split('-').map(Number); return new Date(a,m-1,g); }
+function piuGiorni(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+const ora=t=>t?String(t).slice(0,5):'';
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2600); }
+function giornoLungo(s){ const d=dLoc(s); return GIORNI_FULL[d.getDay()]+' '+d.getDate()+' '+MESI[d.getMonth()]; }
+function nome(u){ const p=nomi[u]; return p?((p.nome||'')+' '+(p.cognome||'')).trim()||'—':'—'; }
+function errTesto(e){ return String((e&&e.message)||e||'errore').replace(/^.*ERROR:\s*/i,''); }
+
+async function init(){
+  sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){ $('st-gate').classList.remove('hidden'); return; }
+  uid=session.user.id;
+  const{data:pd}=await sb.from('profile_data').select('staff_role').eq('user_id',uid).maybeSingle();
+  staffRole=pd&&pd.staff_role||null;
+  if(!staffRole){ $('st-no').classList.remove('hidden'); return; }
+  $('app').classList.remove('hidden');
+  await carica();
+}
+
+async function carica(){
+  const oggi=new Date(), oggiIso=isoLocal(oggi);
+  const fineLez=isoLocal(piuGiorni(oggi,28));
+  const lunedi=piuGiorni(oggi,-((oggi.getDay()+6)%7));
+  const fineMon=isoLocal(piuGiorni(lunedi,13));
+  try{
+    const[rs,rl,rm,rmiei,rn]=await Promise.all([
+      sb.from('corsi_attivi_settimanali').select('id, tipo_corso, data_evento, ora_inizio, ora_fine, note, lead_scuola_id')
+        .eq('status','attivo').not('lead_scuola_id','is',null).gte('data_evento',oggiIso).lte('data_evento',fineLez)
+        .order('data_evento').order('ora_inizio'),
+      sb.from('impegni_staff').select('id, user_id, slot_id, data, ruolo, stato').eq('tipo','lezione').neq('stato','ritirato')
+        .gte('data',oggiIso).lte('data',fineLez),
+      sb.from('impegni_staff').select('id, user_id, data, ora_inizio, ora_fine, stato').eq('tipo','monitor').neq('stato','ritirato')
+        .gte('data',isoLocal(lunedi)).lte('data',fineMon),
+      sb.from('impegni_staff').select('id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, presenza_inizio, presenza_fine')
+        .eq('user_id',uid).neq('stato','ritirato').gte('data',oggiIso).order('data').order('ora_inizio'),
+      sb.from('profiles').select('user_id, nome, cognome').not('staff_role','is',null)
+    ]);
+    for(const r of [rs,rl,rm,rmiei]) if(r.error) throw r.error;
+    lezioni=rs.data||[]; impLez=rl.data||[]; impMon=rm.data||[]; miei=rmiei.data||[];
+    nomi={}; (rn.data||[]).forEach(p=>{nomi[p.user_id]=p;});
+    const leadIds=[...new Set([...lezioni.map(s=>s.lead_scuola_id)].filter(Boolean))];
+    /* gli slot dei miei impegni che non sono tra le lezioni mostrate (oltre le 4 settimane) */
+    const altriSlot=[...new Set(miei.map(x=>x.slot_id).filter(id=>id&&!lezioni.some(s=>s.id===id)))];
+    if(altriSlot.length){
+      const{data:xs}=await sb.from('corsi_attivi_settimanali').select('id, tipo_corso, data_evento, ora_inizio, ora_fine, note, lead_scuola_id').in('id',altriSlot);
+      (xs||[]).forEach(s=>{ s._fuori=true; lezioni.push(s); if(s.lead_scuola_id&&!leadIds.includes(s.lead_scuola_id))leadIds.push(s.lead_scuola_id); });
+    }
+    enti={};
+    if(leadIds.length){
+      const{data:ll}=await sb.from('lead_data').select('id, ente').in('id',leadIds);
+      (ll||[]).forEach(l=>{enti[l.id]=l.ente||'';});
+    }
+  }catch(e){
+    console.error('[turni]',e);
+    ['lezioni','monitor','miei'].forEach(id=>{ $(id).innerHTML=`<p class="vuota">Non riesco a leggere i turni ora: ${esc(errTesto(e))}</p>`; });
+    return;
+  }
+  disegnaLezioni(); disegnaMonitor(lunedi); disegnaMiei();
+}
+
+function titoloLezione(s){
+  return (NOME_LEZ[s.tipo_corso]||String(s.tipo_corso||'Lezione').replace(/_/g,' '))+(enti[s.lead_scuola_id]?' · '+enti[s.lead_scuola_id]:'');
+}
+
+function disegnaLezioni(){
+  const L=lezioni.filter(s=>!s._fuori);
+  if(!L.length){ $('lezioni').innerHTML='<p class="vuota">Nessuna lezione delle scuole nelle prossime 4 settimane.</p>'; return; }
+  const ruoloDef=RUOLI_CONDUCE.includes(staffRole)?'conduce':'supporto';
+  $('lezioni').innerHTML=L.map(s=>{
+    const seg=impLez.filter(i=>i.slot_id===s.id && i.data===s.data_evento);
+    const n=seg.length, mio=seg.find(i=>i.user_id===uid);
+    const cls=n>=RICHIESTI_LEZIONE?'pieno':n?'parziale':'scoperto';
+    const ccls=n>=RICHIESTI_LEZIONE?'ok':n?'mezzo':'zero';
+    const chips=seg.sort((a,b)=>(a.ruolo==='conduce'?0:1)-(b.ruolo==='conduce'?0:1)).map(i=>
+      `<span class="chip${i.user_id===uid?' io':''}">${esc(nome(i.user_id))} · ${esc(RUOLO[i.ruolo]||i.ruolo)}${i.stato==='presente'?' ✓':i.stato==='assente'?' · assente':''}</span>`).join('')
+      +Array.from({length:Math.max(0,RICHIESTI_LEZIONE-n)},()=>'<span class="chip vuoto">posto libero</span>').join('');
+    let az;
+    if(mio){
+      az=mio.stato==='previsto'
+        ?`<span class="det">Sei segnato come ${esc(RUOLO[mio.ruolo]||mio.ruolo)}.</span><button class="btn" onclick="miTolgo('${esc(mio.id)}',this)">MI TOLGO</button>`
+        :`<span class="det">Sei segnato come ${esc(RUOLO[mio.ruolo]||mio.ruolo)}.</span>`;
+    }else{
+      az=`<select id="ruolo-${esc(s.id)}" aria-label="Ruolo">
+          <option value="conduce"${ruoloDef==='conduce'?' selected':''}>Conduco</option>
+          <option value="supporto"${ruoloDef==='supporto'?' selected':''}>Supporto</option>
+        </select>
+        <button class="btn prim" onclick="segnaLezione('${esc(s.id)}',this)">MI SEGNO</button>`;
+    }
+    return `<div class="box ${cls}">
+      <div class="r1"><span class="tit">${esc(giornoLungo(s.data_evento))} · ${esc(ora(s.ora_inizio))}–${esc(ora(s.ora_fine))}</span>
+        <span class="conta ${ccls}">${n}/${RICHIESTI_LEZIONE}</span></div>
+      <div class="det">${esc(titoloLezione(s))}${s.note?' · '+esc(s.note):''}</div>
+      <div class="chips">${chips}</div>
+      <div class="az">${az}</div>
+    </div>`;
+  }).join('');
+}
+
+function disegnaMonitor(lunedi){
+  const oggiIso=isoLocal(new Date());
+  let html='';
+  for(let w=0;w<2;w++){
+    const l=piuGiorni(lunedi,w*7), v=piuGiorni(l,4);
+    html+=`<div class="sett">Settimana dal ${l.getDate()} ${MESI[l.getMonth()]} al ${v.getDate()} ${MESI[v.getMonth()]}</div><div class="griglia">`;
+    for(let g=0;g<5;g++){
+      const d=piuGiorni(l,g), di=isoLocal(d), passato=di<oggiIso;
+      html+=`<div class="giorno${passato?' passato':''}"><h3>${GIORNI_FULL[d.getDay()]} ${d.getDate()}</h3>`;
+      FASCE_MONITOR.forEach(f=>{
+        const seg=impMon.filter(i=>i.data===di && ora(i.ora_inizio)===f.ini);
+        const mio=seg.find(i=>i.user_id===uid);
+        const chi=seg.length?seg.map(i=>esc(nome(i.user_id))+(i.stato==='presente'?' ✓':i.stato==='assente'?' · assente':'')).join(', '):'Nessuno';
+        let btn='';
+        if(!passato){
+          if(mio) btn=mio.stato==='previsto'?`<button class="btn" onclick="miTolgo('${esc(mio.id)}',this)">MI TOLGO</button>`:'';
+          else btn=`<button class="btn prim" onclick="segnaMonitor('${di}','${f.ini}','${f.fin}',this)">MI SEGNO</button>`;
+        }
+        html+=`<div class="fascia${f.dacoprire?' dacoprire':''}">
+          <div class="fh">${f.ini}–${f.fin}${f.dacoprire?'<span class="bdg">da coprire</span>':''}</div>
+          <div class="chi${seg.length?'':' nessuno'}">${chi}</div>${btn}</div>`;
+      });
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  $('monitor').innerHTML=html;
+}
+
+function disegnaMiei(){
+  if(!miei.length){ $('miei').innerHTML='<p class="vuota">Ancora nessun impegno. Segnati qui sopra.</p>'; return; }
+  const oggiIso=isoLocal(new Date());
+  $('miei').innerHTML=miei.map(x=>{
+    const s=x.slot_id?lezioni.find(l=>l.id===x.slot_id):null;
+    const cosa=x.tipo==='monitor'?'Sala con Monitor':(s?titoloLezione(s):'Lezione')+' · '+(RUOLO[x.ruolo]||x.ruolo);
+    const st=x.stato==='presente'?'<span class="stato-ok">presente ✓</span>':x.stato==='assente'?'<span class="stato-ko">assente</span>':(x.data===oggiIso?'oggi: segna la presenza su Oggi':'');
+    const btn=x.stato==='previsto'?`<button class="btn" onclick="miTolgo('${esc(x.id)}',this)">MI TOLGO</button>`:'';
+    return `<div class="imp"><div><div class="q">${esc(giornoLungo(x.data))} · ${esc(ora(x.ora_inizio))}–${esc(ora(x.ora_fine))}</div>
+      <div class="s">${esc(cosa)}${st?' · '+st:''}</div></div>${btn}</div>`;
+  }).join('');
+}
+
+async function segnaLezione(slotId,btn){
+  const ruolo=($('ruolo-'+slotId)||{}).value||'supporto';
+  btn.disabled=true;
+  const{data,error}=await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:slotId,p_ruolo:ruolo});
+  if(error){ btn.disabled=false; toast('Non segnato: '+errTesto(error)); return; }
+  toast(`Segnato. Siete in ${data&&data.segnati||1} su ${RICHIESTI_LEZIONE}.`);
+  carica();
+}
+async function segnaMonitor(data,ini,fin,btn){
+  btn.disabled=true;
+  const{error}=await sb.rpc('impegno_mi_segno',{p_tipo:'monitor',p_data:data,p_ora_inizio:ini,p_ora_fine:fin});
+  if(error){ btn.disabled=false; toast('Non segnato: '+errTesto(error)); return; }
+  toast('Segnato sul turno monitor.');
+  carica();
+}
+async function miTolgo(id,btn){
+  if(!confirm('Ti togli da questo impegno?'))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('impegno_mi_tolgo',{p_impegno_id:id});
+  if(error){ btn.disabled=false; toast('Non tolto: '+errTesto(error)); return; }
+  toast('Fatto, non sei più segnato.');
+  carica();
+}
+
+init();
+</script>
+</body>
+</html>
