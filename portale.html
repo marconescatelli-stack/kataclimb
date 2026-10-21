@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.137 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): (1) Segreteria: terzo interruttore 🗓 Turni. Settimana a colonne con le lezioni delle scuole (richiesti 3) e le fasce monitor lun-ven 19-22 e 18-19 "da coprire" (richiesto 1), segnati/richiesti e colore verde/giallo/rosso; click -> chi e' segnato, Togli (impegno_mi_tolgo), Segna assente / Riporta a previsto (impegno_presenza), Aggiungi persona (impegno_mi_segno con p_user_id). Sotto: Turni monitor da chiudere (v_compenso_turni_monitor da_chiudere) con ora di fine -> segreteria_chiudi_turno; Compensi monitor del mese da v_compenso_monitor_mese con export CSV. Azioni e compensi solo per staff_creator e staff_segreteria (is_segreteria), gli altri vedono la copertura. (2) Profilo: "Il mio diario didattico" da v_mio_diario_didattico (solo le note che l'istruttore ha scelto di mostrare), firmato dall'istruttore; vuoto -> "Qui troverai le note dei tuoi istruttori dopo le lezioni." (allo staff senza note il riquadro non compare). Non in Comunita'. CUMULA v3.136 (sotto). -->
 <!-- KC-BUILD: portale v3.136 · 2026-10-21 · SCUOLE F1 METÀ B, ritocchi dopo il collaudo (Marco 21 ott): (1) aggiunta allievo e trascrizione: nome e cognome con l'iniziale maiuscola prima della RPC (scMaiuscole: "luca bianchi" -> "Luca Bianchi", anche dopo apostrofo e trattino); (2) etichette stadio per le scuole: SC_FUNNEL_LABEL "Prenotato Prima Lezione · Scuole" e "Prima Lezione · Scuole fatta", nel tab Scuole e nel fascicolo dei lead scuola/allievo_scuola/referente_scuola. FUNNEL_LABEL dei privati invariato (gli stadi a DB sono gli stessi). Nient'altro. CUMULA v3.135 (sotto). -->
 <!-- KC-BUILD: portale v3.135 · 2026-10-21 · SCUOLE F1 METÀ B, giro 2 (decisioni Marco 21 ott): (1) turni sulle lezioni scuola letti da impegni_staff (stato <> ritirato, conteggio N/3) e scritti SOLO con le RPC impegno_mi_segno(p_tipo lezione, p_slot_id, p_ruolo, p_user_id) e impegno_mi_tolgo(p_impegno_id): slot_staff non esiste e non esistera'. "+ Istruttore" e "×" solo per staff_creator/staff_segreteria (= is_segreteria() delle RPC). (2) nomi: "Prima Lezione · Scuole" e "Mini percorso · Scuole" (gruppo misto, niente fascia), anche negli stadi del funnel. (3) i ragazzi delle scuole (tipo_persona allievo_scuola) restano nel fascicolo ma escono dagli elenchi commerciali e da richiamare: Lead in arrivo, Da contattare oggi / gestione contatti (get_leads_da_contattare filtrata qui: la RPC non espone tipo_persona), da richiamare dell'agenda Marco. CUMULA v3.134 (sotto). -->
 <!-- KC-BUILD: portale v3.134 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott): (1) Segreteria: interruttore 👥 Persone / 🏫 Scuole. Tab Scuole = richieste dal sito (richieste_scuole senza lead e non annullate: Crea scuola -> scuola_da_richiesta, Annulla -> stato annullata), elenco scuole (lead_data tipo_persona scuola: referente, stadio, prossima azione, ragazzi, moduli validi/mancanti, da trascrivere), + Nuova scuola -> scuola_crea. Scheda scuola: dati e funnel (stadio, prossima azione, note su lead_data; 📒 Diario contatti apre la scheda lead di sempre), referenti (principale + crm_relazioni scuola_referente; + Aggiungi referente -> scuola_aggiungi_referente; ✉️ Invia accesso singolo o a tutti -> scuola_invia_accesso, spento con motivo se manca l'email, esito {inviati}), lezioni (slot con lead_scuola_id, prenotati/25, + Crea slot Prima Lezione -> scuola_crea_slot) con i turni istruttori di slot_staff (+ Istruttore / ×, solo segreteria), moduli da trascrivere (documenti_scuola modulo_adesione senza persona: vista a due colonne, modulo a sinistra con zoom e form a destra -> scuola_trascrivi_modulo; Da rifare -> scuola_verifica_documento con nota), allievi (nome, classe, nascita, CF, consenso foto, stato modulo a colori, Apri modulo, ✓ Valido / Da rifare, tesserato, lezione e presenza, Fascicolo; + Aggiungi allievo (emergenza) -> scuola_aggiungi_allievo con p_scuola_lead_id), documenti della scuola (preventivo/altro: upload <lead>/scuola/<ts>.<ext> nel bucket scuole poi scuola_carica_documento con persona null). File letti con URL firmati da 10 minuti; nei bottoni passa l'id del documento, mai il percorso. (2) FUNNEL_LABEL/COLOR + 4 stadi scuola_mini. (3) role referente_scuola -> scuola.html (il referente non ha un fascicolo allievo). (4) Comunita': profiles_community senza role referente_scuola. CUMULA v3.133 (sotto). -->
@@ -1539,6 +1540,9 @@ fill="#1d4ed8" stroke="none">
       <!-- v3.114 — Il tuo diario del percorso: riempito da renderQuestionariPersona (modo diario) -->
       <div id="my-questionari-diario"></div>
 
+      <!-- v3.137 — Il mio diario didattico: le note che l'istruttore ha scelto di mostrare (v_mio_diario_didattico) -->
+      <div id="my-diario-didattico"></div>
+
       <!-- ═══ Corso Open — counter + scadenza + freeze + prossime prenotazioni (v3.39) ═══ -->
 
 
@@ -1653,6 +1657,60 @@ fill="#1d4ed8" stroke="none">
       <div class="seg-switch" role="tablist">
         <button id="seg-sw-persone" class="on" onclick="segMostra('persone')">👥 Persone</button>
         <button id="seg-sw-scuole" onclick="segMostra('scuole')">🏫 Scuole</button>
+        <button id="seg-sw-turni" onclick="segMostra('turni')">🗓 Turni</button>
+      </div>
+
+      <!-- v3.137 — Turni e presenze staff, Metà C (codice nel blocco TURNI E PRESENZE STAFF) -->
+      <div id="seg-turni-wrap" class="hidden">
+        <style>
+        .tu-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+        .tu-nav h3{margin:0 8px 0 0;font-size:17px;flex:1;min-width:200px}
+        .tu-griglia{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+        @media(max-width:900px){.tu-griglia{grid-template-columns:1fr}}
+        .tu-col{border:1px solid var(--border);border-radius:12px;padding:8px;background:var(--bg);min-width:0}
+        .tu-col.oggi{border-color:var(--text);border-width:2px}
+        .tu-g{font-size:14px;font-weight:800;margin-bottom:6px;text-transform:capitalize;color:var(--text)}
+        .tu-voce{display:block;width:100%;text-align:left;border:1px solid;border-left-width:5px;border-radius:10px;padding:7px 8px;margin-bottom:6px;cursor:pointer;font:inherit;background:var(--bg);color:var(--text)}
+        .tu-voce.verde{border-color:#16A34A55;border-left-color:#16A34A;background:#F0FDF4}
+        .tu-voce.giallo{border-color:#D9770655;border-left-color:#D97706;background:#FFFBEB}
+        .tu-voce.rosso{border-color:#DC262655;border-left-color:#DC2626;background:#FEF2F2}
+        .tu-voce.dacoprire{border-style:dashed;border-left-style:solid}
+        .tu-h{display:flex;justify-content:space-between;gap:6px;font-size:13.5px;font-weight:800}
+        .tu-t{display:block;font-size:13px;margin-top:2px;line-height:1.35}
+        .tu-n{display:block;font-size:13px;color:var(--text2);margin-top:3px;line-height:1.35}
+        .tu-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text2);margin:10px 0 0}
+        .tu-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+        .tu-tab{width:100%;border-collapse:collapse;font-size:14px}
+        .tu-tab th{text-align:left;font-size:13px;color:var(--text2);padding:7px 8px 7px 0;border-bottom:1px solid var(--border);white-space:nowrap}
+        .tu-tab td{padding:8px 8px 8px 0;border-bottom:1px solid var(--border)}
+        .tu-tab tfoot td{border-bottom:none;font-weight:700}
+        </style>
+        <p id="tu-solo-lettura" class="sc-nota hidden" style="margin:0 0 12px">Vedi la copertura. Aggiungere, togliere, segnare assenze e chiudere i turni tocca alla segreteria.</p>
+        <div class="sc-sez">
+          <div class="tu-nav">
+            <h3 id="tu-sett-tit">Settimana</h3>
+            <button class="btn btn-g sc-piccolo" onclick="tuSettimana(-1)">← Precedente</button>
+            <button class="btn btn-g sc-piccolo" onclick="tuSettimana(0)">Questa settimana</button>
+            <button class="btn btn-g sc-piccolo" onclick="tuSettimana(1)">Successiva →</button>
+          </div>
+          <div id="tu-griglia" class="tu-griglia"></div>
+          <div class="tu-leg"><span><i style="background:#16A34A"></i>coperto</span><span><i style="background:#D97706"></i>parziale</span><span><i style="background:#DC2626"></i>scoperto</span><span>Lezioni delle scuole: 3 istruttori · Sala con Monitor: 1 · bordo tratteggiato = fascia 18–19 da coprire</span></div>
+        </div>
+        <div class="sc-sez">
+          <h3 class="sc-h3">⏰ Turni monitor da chiudere <span id="tu-dachiudere-n" class="sc-conta"></span></h3>
+          <p class="sc-nota" style="margin-top:0">Turni di un giorno passato mai chiusi: valgono 0 finché non scrivi l'ora reale di fine.</p>
+          <div id="tu-dachiudere"></div>
+        </div>
+        <div class="sc-sez" id="tu-compensi-wrap">
+          <div class="tu-nav">
+            <h3>💶 Compensi monitor</h3>
+            <label class="sc-sub" for="tu-mese">Mese</label>
+            <input id="tu-mese" type="month" class="input sc-in" style="width:auto" onchange="tuCaricaCompensi()">
+            <button class="btn sc-scuro sc-piccolo" onclick="tuEsportaCsv()">Esporta CSV</button>
+          </div>
+          <p class="sc-nota" style="margin-top:0">8 € l'ora per ogni persona diversa seguita con la scheda compilata, 5 € le altre ore. Le lezioni degli istruttori restano fuori: si pagano dall'agenda.</p>
+          <div id="tu-compensi"></div>
+        </div>
       </div>
 
       <!-- v3.134 — Scuole F1: tab Scuole (codice nel blocco SCUOLE F1 METÀ B) -->
@@ -5544,6 +5602,39 @@ async function renderQuestionariPersona(personaId,containerEl,opts){
   containerEl.innerHTML=html;
 }
 
+/* v3.137 — Il mio diario didattico. La vista restituisce solo le righe con visibile_allievo e solo
+   temi affrontati, trasformazione e messaggio: mai criticita', da implementare, scale, note, Sala con Monitor.
+   Solo nel proprio profilo: non in Comunita', non pubblico. */
+const DIARIO_DID_CONTESTO={prima_lezione:'Prima Lezione Adulti',prima_lezione_genitori:'Prima Lezione Genitori',
+  prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)',
+  open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb',
+  fly:'Corso Fly KataClimb',bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',giovani:'Corso Giovani KataClimb (18–24)',
+  senior:'Corso Senior KataClimb (over 60)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',lab:'Lab',
+  prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
+async function renderMioDiarioDidattico(){
+  const el=document.getElementById('my-diario-didattico');if(!el||!sb||!user)return;
+  let righe=[];
+  try{
+    const{data,error}=await sb.from('v_mio_diario_didattico').select('id,data,contesto,temi_affrontati,trasformazione,per_allievo,istruttore').order('data',{ascending:false});
+    if(error)throw error;
+    righe=data||[];
+  }catch(e){console.warn('[diario didattico]',e.message||e);el.innerHTML='';return}
+  if(!righe.length&&profile&&profile.staff_role){el.innerHTML='';el.dataset.sig='';return} // lo staff senza note non vede il riquadro vuoto
+  const sig=JSON.stringify(righe);if(el.dataset.sig===sig)return;el.dataset.sig=sig;
+  const blocco=(lbl,t)=>t?'<div class="quest-d"><div class="quest-lbl">'+lbl+'</div><div class="quest-txt">'+escapeHtml(t)+'</div></div>':'';
+  const corpo=righe.length?righe.map(function(r){
+    const ctx=r.contesto?(DIARIO_DID_CONTESTO[r.contesto]||String(r.contesto).replace(/_/g,' ')):'';
+    return'<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">'
+      +'<div class="quest-tappa" style="font-family:var(--serif);font-size:17px;font-weight:300">'+escapeHtml(questDataLunga(r.data))+(ctx?' · '+escapeHtml(ctx):'')+'</div>'
+      +'<div class="quest-meta" style="margin-bottom:10px">'+escapeHtml(r.istruttore||'Istruttore')+'</div>'
+      +blocco('Temi affrontati',r.temi_affrontati)+blocco('Trasformazione',r.trasformazione)+blocco('Per te',r.per_allievo)
+      +'</div>';
+  }).join(''):'<p class="quest-meta" style="margin:0">Qui troverai le note dei tuoi istruttori dopo le lezioni.</p>';
+  el.innerHTML='<div class="card fu" style="margin-bottom:22px;padding:16px">'
+    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 12px">Il mio <em>diario didattico</em></h2>'
+    +corpo+'</div>';
+}
+
 /* Blocco "📝 Questionario" del fascicolo (Segreteria). */
 function questFascicoloHtml(righe,opts){
   if(!righe||!righe.length)return'';
@@ -8214,6 +8305,7 @@ function renderApp(){
   renderProg('my-prog-bar','my-prog-current',stepDerivato,profile.enrolled_next||false,calcolaSubPallini(profile,myPrenotCorso,stepDerivato));
   // v3.114 — Il tuo diario del percorso: solo le sue parole, sotto la Linea del Percorso
   renderQuestionariPersona(profile.persona_id,document.getElementById('my-questionari-diario'),{modo:'diario'});
+  renderMioDiarioDidattico(); // v3.137
   // v3.56 Home Duolingo: streak + hero (async, non blocca render)
   refreshHomeDuolingo();
   // Avatar — v3.126: foto pubblica (foto_url), altrimenti foto di riconoscimento privata, altrimenti iniziali
@@ -9965,14 +10057,17 @@ async function scApriDoc(docId,btn){
 
 /* ── Interruttore Persone / Scuole nella Segreteria ── */
 function segMostra(quale){
-  const scuole=quale==='scuole';
-  if(scuole&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
+  const scuole=quale==='scuole',turni=quale==='turni',altro=scuole||turni;
+  if(altro&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
   document.getElementById('seg-scuole-wrap').classList.toggle('hidden',!scuole);
-  document.getElementById('seg-lead-list-wrap').style.display=scuole?'none':'';
-  if(scuole)document.getElementById('seg-lead-detail').classList.add('hidden');
-  document.getElementById('seg-sw-persone').classList.toggle('on',!scuole);
+  document.getElementById('seg-turni-wrap').classList.toggle('hidden',!turni); // v3.137
+  document.getElementById('seg-lead-list-wrap').style.display=altro?'none':'';
+  if(altro)document.getElementById('seg-lead-detail').classList.add('hidden');
+  document.getElementById('seg-sw-persone').classList.toggle('on',!altro);
   document.getElementById('seg-sw-scuole').classList.toggle('on',scuole);
+  document.getElementById('seg-sw-turni').classList.toggle('on',turni);
   if(scuole){scChiudiScheda();scCaricaTutto();}
+  if(turni)tuCaricaTutto();
 }
 
 /* ── Modale unica del tab Scuole ── */
@@ -10527,6 +10622,206 @@ async function scCaricaDocScuola(btn){
     await scCaricaScheda();
   }catch(e){scMsg('sc-doc-msg','Non caricato: '+scErr(e));}
   finally{btn.disabled=false;}
+}
+
+/* ═══ TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott 2026, portale v3.137) — Segreteria → 🗓 Turni ═══
+   Settimana a colonne: lezioni delle scuole (slot con data_evento e lead_scuola_id, richiesti 3) e fasce monitor
+   lun-ven (19-22 e 18-19 "da coprire", richiesto 1). Segnati da impegni_staff (stato diverso da ritirato).
+   Scritture solo via RPC e solo per la segreteria (is_segreteria = staff_creator, staff_segreteria):
+   impegno_mi_segno con p_user_id, impegno_mi_tolgo, impegno_presenza assente/annulla, segreteria_chiudi_turno.
+   Sotto: turni monitor da chiudere e compensi del mese da v_compenso_turni_monitor / v_compenso_monitor_mese. */
+const TU_RICHIESTI_LEZ=3, TU_RICHIESTI_MON=1;
+const TU_FASCE=[{ini:'18:00',fin:'19:00',dacoprire:true},{ini:'19:00',fin:'22:00'}];
+const TU_NOME_LEZ={prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
+const TU_RUOLO={conduce:'Conduce',supporto:'Supporto',monitor:'Monitor'};
+const TU_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const TU_STATO={previsto:'previsto',presente:'presente ✓',assente:'assente'};
+let tuLunedi=null,tuDati=null,tuStaff=null,tuVoci=[],tuCompensi=[],tuDaChiudere=[];
+
+const tuPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
+function tuIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function tuPiu(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function tuLun(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());return tuPiu(x,-((x.getDay()+6)%7))}
+function tuNome(u){const p=(tuStaff||[]).find(x=>x.user_id===u);return p?scNome(p):'—'}
+function tuEur(n){return Number(n||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'})}
+function tuNum(n){return Number(n||0).toLocaleString('it-IT',{maximumFractionDigits:2})}
+
+async function tuCaricaTutto(){
+  if(!tuLunedi)tuLunedi=tuLun(new Date());
+  const tasks=[tuCaricaSettimana(),tuCaricaDaChiudere()];
+  if(tuPuo())tasks.push(tuCaricaCompensi());
+  else{document.getElementById('tu-compensi-wrap').classList.add('hidden')}
+  document.getElementById('tu-solo-lettura').classList.toggle('hidden',tuPuo());
+  await Promise.all(tasks);
+}
+function tuSettimana(delta){tuLunedi=delta===0?tuLun(new Date()):tuPiu(tuLunedi,7*delta);tuCaricaSettimana()}
+
+async function tuCaricaSettimana(){
+  const box=document.getElementById('tu-griglia');
+  const da=tuIso(tuLunedi),a=tuIso(tuPiu(tuLunedi,6));
+  const d1=tuLunedi,d2=tuPiu(tuLunedi,6);
+  document.getElementById('tu-sett-tit').textContent=`Dal ${d1.getDate()} ${TU_MESI[d1.getMonth()]} al ${d2.getDate()} ${TU_MESI[d2.getMonth()]} ${d2.getFullYear()}`;
+  box.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  try{
+    const reqs=[
+      sb.from('corsi_attivi_settimanali').select('id,tipo_corso,data_evento,ora_inizio,ora_fine,note,lead_scuola_id')
+        .eq('status','attivo').not('lead_scuola_id','is',null).gte('data_evento',da).lte('data_evento',a).order('ora_inizio'),
+      sb.from('impegni_staff').select('id,user_id,tipo,slot_id,data,ora_inizio,ora_fine,ruolo,stato,presenza_inizio,presenza_fine')
+        .neq('stato','ritirato').gte('data',da).lte('data',a)
+    ];
+    if(!tuStaff)reqs.push(sb.from('profiles').select('user_id,nome,cognome,staff_role').not('staff_role','is',null).order('nome'));
+    const res=await Promise.all(reqs);
+    if(res[0].error)throw res[0].error;
+    if(res[1].error)throw res[1].error;
+    if(res[2]){if(res[2].error)console.warn('[turni] staff:',res[2].error.message);tuStaff=res[2].data||[]}
+    const slot=res[0].data||[],imp=res[1].data||[];
+    const leadIds=[...new Set(slot.map(s=>s.lead_scuola_id))];
+    const enti={};
+    if(leadIds.length){const{data:ll}=await sb.from('lead_data').select('id,ente').in('id',leadIds);(ll||[]).forEach(l=>{enti[l.id]=l.ente||''})}
+    tuDati={slot,imp,enti};
+  }catch(e){box.innerHTML=`<p class="sc-vuoto ko">Turni non letti: ${escHtml(scErr(e))}</p>`;return}
+  tuDisegnaSettimana();
+}
+
+function tuDisegnaSettimana(){
+  const box=document.getElementById('tu-griglia');
+  const {slot,imp,enti}=tuDati;
+  tuVoci=[];
+  let html='';
+  for(let g=0;g<7;g++){
+    const d=tuPiu(tuLunedi,g),di=tuIso(d);
+    const voci=[];
+    slot.filter(s=>s.data_evento===di).forEach(s=>{
+      voci.push({tipo:'lezione',data:di,slot:s,ini:scOra(s.ora_inizio),fin:scOra(s.ora_fine),richiesti:TU_RICHIESTI_LEZ,
+        titolo:(TU_NOME_LEZ[s.tipo_corso]||String(s.tipo_corso||'').replace(/_/g,' '))+(enti[s.lead_scuola_id]?' · '+enti[s.lead_scuola_id]:''),
+        seg:imp.filter(i=>i.tipo==='lezione'&&i.slot_id===s.id&&i.data===di)});
+    });
+    if(g<5)TU_FASCE.forEach(f=>{
+      voci.push({tipo:'monitor',data:di,ini:f.ini,fin:f.fin,richiesti:TU_RICHIESTI_MON,dacoprire:!!f.dacoprire,titolo:'Sala con Monitor',
+        seg:imp.filter(i=>i.tipo==='monitor'&&i.data===di&&scOra(i.ora_inizio)===f.ini)});
+    });
+    voci.sort((x,y)=>x.ini.localeCompare(y.ini));
+    const oggi=di===tuIso(new Date());
+    html+=`<div class="tu-col${oggi?' oggi':''}"><div class="tu-g">${SC_GIORNI[d.getDay()]} ${d.getDate()}</div>`
+      +(voci.length?voci.map(v=>{
+        const k=tuVoci.push(v)-1;
+        const n=v.seg.filter(i=>i.stato!=='assente').length;
+        const col=n>=v.richiesti?'verde':n?'giallo':'rosso';
+        const nomi=v.seg.map(i=>escHtml(tuNome(i.user_id))+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
+        return `<button class="tu-voce ${col}${v.dacoprire?' dacoprire':''}" onclick="tuApriVoce(${k})">
+          <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${n}/${v.richiesti}</b></span>
+          <span class="tu-t">${escHtml(v.titolo)}${v.dacoprire?' · <span class="sc-warn">da coprire</span>':''}</span>
+          <span class="tu-n">${nomi||'Nessuno'}</span></button>`;
+      }).join(''):'<p class="sc-vuoto">—</p>')
+      +'</div>';
+  }
+  box.innerHTML=html;
+}
+
+function tuApriVoce(k){
+  const v=tuVoci[k];if(!v)return;
+  const passato=v.data<tuIso(new Date());
+  const puo=tuPuo();
+  const righe=v.seg.length?v.seg.map(i=>{
+    const az=[];
+    if(puo&&i.stato==='previsto'&&!passato)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('togli','${i.id}',${k})">Togli</button>`);
+    if(puo&&i.stato!=='assente')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('assente','${i.id}',${k})">Segna assente</button>`);
+    if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
+    const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
+    return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>
+      <div class="sc-sub">${escHtml(TU_RUOLO[i.ruolo]||i.ruolo)} · ${escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
+  }).join(''):'<p class="sc-vuoto">Nessuno segnato.</p>';
+  const gia=v.seg.map(i=>i.user_id);
+  const liberi=(tuStaff||[]).filter(u=>!gia.includes(u.user_id));
+  const aggiungi=(puo&&!passato&&liberi.length)?`
+    <label class="sc-lbl" for="tu-add-user">Aggiungi una persona</label>
+    <select id="tu-add-user" class="input sc-in">${liberi.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join('')}</select>
+    ${v.tipo==='lezione'?`<label class="sc-lbl" for="tu-add-ruolo">Ruolo</label>
+    <select id="tu-add-ruolo" class="input sc-in"><option value="supporto">Supporto</option><option value="conduce">Conduce</option></select>`:''}`:'';
+  const d=new Date(v.data+'T00:00:00');
+  scModal(`${v.tipo==='lezione'?'📅':'🟢'} ${v.titolo}`,
+    `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)} · richiesti ${v.richiesti}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
+     ${righe}${aggiungi}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
+    aggiungi?async()=>{
+      const args=v.tipo==='lezione'
+        ?{p_tipo:'lezione',p_slot_id:v.slot.id,p_ruolo:scVal('tu-add-ruolo')||'supporto',p_user_id:scVal('tu-add-user')}
+        :{p_tipo:'monitor',p_data:v.data,p_ora_inizio:v.ini,p_ora_fine:v.fin,p_user_id:scVal('tu-add-user')};
+      const{error}=await sb.rpc('impegno_mi_segno',args);
+      if(error)throw error;
+      toast('Persona segnata');
+      await tuCaricaSettimana();
+    }:null,{ok:'Segna'});
+}
+
+async function tuAzione(az,impegnoId,k){
+  const testi={togli:'Togliere questa persona dal turno?',assente:'Segnare assente questa persona?',annulla:'Riportare a previsto? Si cancellano gli orari di presenza.'};
+  if(!confirm(testi[az]))return;
+  const{error}=az==='togli'
+    ?await sb.rpc('impegno_mi_tolgo',{p_impegno_id:impegnoId})
+    :await sb.rpc('impegno_presenza',{p_impegno_id:impegnoId,p_azione:az});
+  if(error){scMsg('mo-scuole-msg',scErr(error));return}
+  toast({togli:'Tolto dal turno',assente:'Segnato assente',annulla:'Riportato a previsto'}[az]);
+  const v=tuVoci[k];
+  await tuCaricaSettimana();
+  /* riapre la stessa voce con i dati nuovi */
+  const n=tuVoci.findIndex(x=>x.tipo===v.tipo&&x.data===v.data&&x.ini===v.ini&&(x.slot?x.slot.id:null)===(v.slot?v.slot.id:null));
+  if(n>=0)tuApriVoce(n);else closeModal('mo-scuole');
+}
+
+/* ── Turni monitor da chiudere (giorno passato, mai chiusi: valgono 0 finche' la segreteria non li chiude) ── */
+async function tuCaricaDaChiudere(){
+  const box=document.getElementById('tu-dachiudere');
+  const{data,error}=await sb.from('v_compenso_turni_monitor').select('turno_id,monitor,data,inizio').eq('da_chiudere',true).order('data');
+  if(error){box.innerHTML=`<p class="sc-vuoto ko">Non letti: ${escHtml(scErr(error))}</p>`;return}
+  tuDaChiudere=data||[];
+  document.getElementById('tu-dachiudere-n').textContent=tuDaChiudere.length?String(tuDaChiudere.length):'';
+  if(!tuDaChiudere.length){box.innerHTML='<p class="sc-vuoto">Nessun turno da chiudere.</p>';return}
+  box.innerHTML=tuDaChiudere.map((t,i)=>`<div class="sc-riga">
+    <div class="sc-riga-main"><b>${escHtml(t.monitor||'—')}</b><div class="sc-sub">${escHtml(scDataLunga(t.data))} · iniziato alle ${escHtml(scDH(t.inizio).slice(-5))} · mai chiuso</div></div>
+    ${tuPuo()?`<label class="sc-sub" for="tu-fine-${i}">Fine</label><input id="tu-fine-${i}" type="time" class="input sc-in" style="width:auto">
+    <input id="tu-nota-${i}" class="input sc-in" style="width:auto;flex:1;min-width:160px" maxlength="200" placeholder="Nota (facoltativa)">
+    <button class="btn sc-scuro sc-piccolo" onclick="tuChiudiTurno(${i},this)">Chiudi turno</button>`:''}
+  </div>`).join('');
+}
+async function tuChiudiTurno(i,btn){
+  const t=tuDaChiudere[i];if(!t)return;
+  const hm=scVal('tu-fine-'+i);
+  if(!/^\d{2}:\d{2}$/.test(hm)){toast('Scrivi l’ora di fine');return}
+  const[y,m,d]=String(t.data).split('-').map(Number),[h,mi]=hm.split(':').map(Number);
+  const fine=new Date(y,m-1,d,h,mi);
+  if(!confirm(`Chiudere il turno di ${t.monitor||'—'} del ${scD(t.data)} alle ${hm}?`))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('segreteria_chiudi_turno',{p_turno_id:t.turno_id,p_fine:fine.toISOString(),p_note:scVal('tu-nota-'+i)||null});
+  if(error){btn.disabled=false;toast('Non chiuso: '+scErr(error));return}
+  toast('Turno chiuso');
+  await Promise.all([tuCaricaDaChiudere(),tuPuo()?tuCaricaCompensi():null]);
+}
+
+/* ── Compensi del mese (creator e segreteria): 8 € l'ora per ogni persona diversa seguita, 5 € il resto ── */
+async function tuCaricaCompensi(){
+  const inp=document.getElementById('tu-mese');
+  if(!inp.value){const o=new Date();inp.value=o.getFullYear()+'-'+String(o.getMonth()+1).padStart(2,'0')}
+  const box=document.getElementById('tu-compensi');
+  box.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  const{data,error}=await sb.from('v_compenso_monitor_mese').select('*').eq('mese',inp.value+'-01').order('monitor');
+  if(error){box.innerHTML=`<p class="sc-vuoto ko">Compensi non letti: ${escHtml(scErr(error))}</p>`;return}
+  tuCompensi=data||[];
+  if(!tuCompensi.length){box.innerHTML='<p class="sc-vuoto">Nessun turno in Sala con Monitor in questo mese.</p>';return}
+  const tot=tuCompensi.reduce((a,r)=>({turni:a.turni+Number(r.turni||0),ore:a.ore+Number(r.ore||0),pers:a.pers+Number(r.persone_seguite||0),o8:a.o8+Number(r.ore_a_8||0),o5:a.o5+Number(r.ore_a_5||0),eur:a.eur+Number(r.compenso_eur||0)}),{turni:0,ore:0,pers:0,o8:0,o5:0,eur:0});
+  box.innerHTML=`<div style="overflow-x:auto"><table class="tu-tab"><thead><tr><th>Monitor</th><th>Turni</th><th>Ore</th><th>Persone seguite</th><th>Ore a 8 €</th><th>Ore a 5 €</th><th>Compenso</th></tr></thead><tbody>
+    ${tuCompensi.map(r=>`<tr><td>${escHtml(r.monitor||'—')}</td><td>${r.turni}</td><td>${tuNum(r.ore)}</td><td>${tuNum(r.persone_seguite)}</td><td>${tuNum(r.ore_a_8)}</td><td>${tuNum(r.ore_a_5)}</td><td><b>${tuEur(r.compenso_eur)}</b></td></tr>`).join('')}
+    </tbody><tfoot><tr><td><b>Totale</b></td><td>${tot.turni}</td><td>${tuNum(tot.ore)}</td><td>${tuNum(tot.pers)}</td><td>${tuNum(tot.o8)}</td><td>${tuNum(tot.o5)}</td><td><b>${tuEur(tot.eur)}</b></td></tr></tfoot></table></div>
+    ${tuDaChiudere.length?`<p class="sc-nota sc-warn">${tuDaChiudere.length===1?'C’è 1 turno da chiudere: vale 0 finché non lo chiudi.':`Ci sono ${tuDaChiudere.length} turni da chiudere: valgono 0 finché non li chiudi.`}</p>`:''}`;
+}
+function tuEsportaCsv(){
+  if(!tuCompensi.length){toast('Nessun compenso da esportare');return}
+  const n=v=>String(Number(v||0)).replace('.',',');
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const righe=[['Monitor','Mese','Turni','Ore','Persone seguite','Ore a 8 euro','Ore a 5 euro','Compenso euro'].join(';')]
+    .concat(tuCompensi.map(r=>[q(r.monitor),q(String(r.mese).slice(0,7)),r.turni,n(r.ore),n(r.persone_seguite),n(r.ore_a_8),n(r.ore_a_5),n(r.compenso_eur)].join(';')));
+  const blob=new Blob(['﻿'+righe.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='compensi_monitor_'+document.getElementById('tu-mese').value+'.csv';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
 }
 
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
