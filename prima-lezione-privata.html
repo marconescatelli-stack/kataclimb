@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<!-- KC-BUILD: prima-lezione-privata v1 · 2026-10-22 · PRIMA LEZIONE PRIVATA SPECIALE (decisioni Marco 22 ott 2026): pagina RISERVATA (noindex, fuori sitemap, nessun link dal sito), il link lo manda la segreteria su WhatsApp. Un bambino per volta, 25 €, lo slot e' quello di corsi_attivi_settimanali con tipo_corso='prima_lezione_privata' (martedi' 18:00-19:00 con Claudia, capienza 1). Stesso flusso dei minori (inizia-minori v14): paga il genitore, arrampica il figlio, scheda genitore + figlio + consenso Termini, prenotazione in agenda a nome del figlio. In piu': campo FACOLTATIVO 'cosa e' utile che l'istruttrice sappia' (max 1000 caratteri) con consenso SEPARATO ed esplicito al trattamento dei dati sulla salute, obbligatorio solo se il campo e' compilato; il testo va al Worker (tabella note_accompagnamento), NON nei metadati Stripe. NIENTE Meta Pixel e niente banner cookie: pagina privata con possibili dati sulla salute, consent='no' al Worker (CAPI non parte). Deep-link ?d=YYYY-MM-DD preseleziona la data. Checkout -> stripe-worker v3.87 prodotto prima_lezione_privata. Stesse regole di inizia-minori: finestra 14 giorni, oggi fino a 4 ore prima, giorni_chiusi, slot_chiusure = PIENO a mano, conteggi_prima_lezione. -->
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Prima Lezione Privata Speciale · Accademia RCC · KataClimb</title>
+<meta name="description" content="Prima Lezione Privata Speciale all'Accademia RCC, La Storta Roma: un bambino, un'istruttrice, un'ora tutta per lui.">
+<link rel="icon" href="/favicon-192x192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --bg2:#F4F4F5; --bg3:#0A0A0A;
+  --ink:#0A0A0A; --ink2:#404040; --ink3:#737373;
+  --ink-on-dark:#FFFFFF; --ink-on-dark2:#D4D4D4;
+  --border:#E5E5E5; --border2:#D4D4D4;
+  --sky:#0EA5E9; --sky-dark:#0284C7;
+  --yellow:#FACC15; --red:#EF4444;
+  --r:8px; --r-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.55}
+@keyframes spin{to{transform:rotate(360deg)}}
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);gap:12px}
+.header .logo{height:32px;width:auto;display:block}
+.header .logo-rcc{height:28px}
+.cancel-banner{display:none;margin:16px 16px 0;padding:12px 16px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r);font-size:14px;color:#78350F}
+.cancel-banner.show{display:block}
+.hero{background:#0A0A0A;color:#fff;text-align:center;padding:36px 22px 40px}
+.hero h1{font-size:clamp(28px,7vw,42px);font-weight:900;line-height:1.1;letter-spacing:-.025em;margin:0 auto 14px;max-width:680px}
+.hero h1 em{font-style:normal;color:var(--yellow)}
+.hero p{color:var(--ink-on-dark2);font-size:17px;max-width:560px;margin:0 auto}
+.card-prezzo{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.10);max-width:520px;margin:-22px auto 0;text-align:center}
+.card-prezzo .riga{font-size:15px;color:var(--ink2)}
+.card-prezzo .prezzo{font-size:26px;font-weight:900;margin-top:4px}
+.section{max-width:720px;margin:0 auto;padding:32px 16px}
+.section h2{font-size:clamp(22px,5vw,28px);font-weight:900;letter-spacing:-.02em;margin-bottom:6px}
+.section .sub{color:var(--ink2);font-size:15px;margin-bottom:18px}
+.info-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.info-item{display:flex;gap:12px;font-size:15px;color:var(--ink2)}
+.info-item .ic{flex-shrink:0}
+.nota{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:var(--r);padding:12px 14px;font-size:14px;color:#0C4A6E;margin-bottom:18px}
+#slot-loading{display:flex;align-items:center;gap:10px;color:var(--ink2);font-size:14px;padding:18px 0}
+#slot-loading .sp{width:18px;height:18px;border:2.5px solid var(--border2);border-top-color:var(--sky);border-radius:50%;animation:spin .8s linear infinite}
+#slot-err{display:none;color:var(--red);font-size:14px;padding:12px 0}
+.slot-list{display:flex;flex-direction:column;gap:10px}
+.slot-card{border:1.5px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;background:#fff}
+.slot-card.sel{border-color:var(--sky);box-shadow:0 0 0 3px rgba(14,165,233,.15)}
+.slot-card.off{background:#FAFAFA;border-color:var(--border2);cursor:default}
+.slot-card .data{font-weight:900;font-size:16px;text-transform:capitalize}
+.slot-card .riga2{margin-top:4px;font-size:14px;color:var(--ink2)}
+.slot-card .riga2 b{color:var(--ink)}
+.slot-badge{display:inline-block;margin-top:8px;font-size:11px;font-weight:900;padding:4px 10px;letter-spacing:.06em;border-radius:var(--r-pill)}
+.slot-badge.ok{background:var(--sky);color:#fff}
+.slot-badge.full{background:var(--red);color:#fff}
+.slot-nota{margin-top:8px;font-size:13px;line-height:1.45;color:var(--ink2)}
+.slot-nota a,.kc-avviso-wa a{color:inherit;font-weight:700;text-decoration:underline}
+.form-wrap{background:var(--bg2);border-radius:14px;padding:20px 16px;margin-top:26px;display:none}
+.form-wrap.show{display:block}
+.form-wrap h3{font-size:17px;font-weight:900;margin-bottom:2px}
+.form-wrap .riep{font-size:14px;color:var(--ink2);margin-bottom:16px}
+.form-wrap .riep b{color:var(--ink)}
+.fgroup{margin-bottom:14px}
+.fgroup label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+.fgroup label small{font-weight:400;color:var(--ink2)}
+.fgroup input,.fgroup textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:16px;background:#fff}
+.fgroup textarea{min-height:110px;resize:vertical;line-height:1.45}
+.fgroup input:focus,.fgroup textarea:focus{outline:none;border-color:var(--sky)}
+.conta{font-size:13px;color:var(--ink2);text-align:right;margin-top:4px}
+.fsplit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fsezione{font-size:13px;font-weight:900;letter-spacing:.06em;color:var(--ink2);text-transform:uppercase;margin:20px 0 10px}
+.fsezione:first-child{margin-top:0}
+.eta-warn{display:none;background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r);padding:10px 12px;font-size:14px;color:#78350F;margin-bottom:14px}
+.eta-warn.show{display:block}
+.eta-warn a{color:inherit;font-weight:700}
+.terms{display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-size:14px;color:var(--ink2)}
+.terms input{width:20px;height:20px;margin-top:1px;flex-shrink:0}
+.terms a{color:var(--sky-dark)}
+#riga-salute{display:none}
+.paga-btn{width:100%;background:var(--sky);color:#fff;border:none;border-radius:var(--r-pill);padding:16px;font-family:inherit;font-size:17px;font-weight:900;cursor:pointer}
+.paga-btn:disabled{opacity:.6;cursor:default}
+.paga-btn .sp{display:none;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:8px}
+.paga-btn.loading .sp{display:inline-block}
+#form-err{display:none;color:#B91C1C;font-size:14px;margin-top:10px;text-align:center}
+#form-err a{color:inherit;font-weight:700}
+.privacy-note{font-size:13px;color:var(--ink2);margin-top:12px;line-height:1.5}
+.footer{background:var(--bg3);color:var(--ink-on-dark2);text-align:center;padding:28px 20px;font-size:13px;margin-top:44px}
+.footer a{color:#fff}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <img src="/logo-rcc.png" alt="Accademia RCC" class="logo logo-rcc">
+  <img src="/kataclimb-logo.svg" alt="KataClimb" class="logo">
+</header>
+
+<div class="cancel-banner" id="cancel-banner">Pagamento annullato, nessun addebito. Quando volete, la data è ancora qui sotto.</div>
+
+<section class="hero">
+  <h1>Prima Lezione <em>Privata Speciale</em></h1>
+  <p>Un bambino, un'istruttrice, un'ora tutta per lui all'Accademia RCC. Il ritmo lo dà lui.</p>
+</section>
+
+<div class="card-prezzo">
+  <div class="riga" id="riga-orario">Martedì · 18:00 – 19:00</div>
+  <div class="prezzo">25 €</div>
+</div>
+
+<section class="section">
+  <h2>Come funziona</h2>
+  <div class="info-list">
+    <div class="info-item"><span class="ic">🧗</span><span><b>Una lezione verticale tutta per lui</b>: l'istruttrice segue solo lui, con i suoi tempi.</span></div>
+    <div class="info-item"><span class="ic">📝</span><span><b>Qui sotto potete raccontarci</b> quello che è utile sapere per accompagnarlo al meglio.</span></div>
+    <div class="info-item"><span class="ic">👟</span><span><b>Serve solo abbigliamento comodo e calzini.</b> Scarpette, imbrago e tutto il materiale li mettiamo noi.</span></div>
+    <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b> — Via Cassia 1634, La Storta, Roma.</span></div>
+    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivete alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
+  </div>
+</section>
+
+<section class="section" id="calendario">
+  <h2>Scegli il giorno</h2>
+  <p class="sub">Vi aspettiamo in Accademia 10 minuti prima dell'orario.</p>
+
+  <div id="slot-loading"><span class="sp"></span> Carico le date disponibili…</div>
+  <div id="slot-err">Le date non si sono caricate. Ricarica la pagina; se si ripete scrivete alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
+  <div class="nota" id="avviso-calendario" style="display:none"></div>
+
+  <div class="slot-list" id="slot-list"></div>
+
+  <div class="form-wrap" id="form-wrap">
+    <h3>Prenota la lezione</h3>
+    <p class="riep" id="riepilogo"></p>
+
+    <div class="fsezione">Chi arrampica</div>
+    <div class="fsplit">
+      <div class="fgroup"><label for="f-fnome">Nome*</label><input id="f-fnome" autocomplete="off"></div>
+      <div class="fgroup"><label for="f-fcognome">Cognome*</label><input id="f-fcognome" autocomplete="off"></div>
+    </div>
+    <div class="fgroup"><label for="f-fnascita">Data di nascita*</label><input id="f-fnascita" type="date"></div>
+    <div class="eta-warn" id="eta-warn"></div>
+
+    <div class="fgroup">
+      <label for="f-note">C'è qualcosa che è utile che l'istruttrice sappia per accompagnarlo al meglio? <small>(facoltativo)</small></label>
+      <textarea id="f-note" maxlength="1000" placeholder="Per esempio: cosa lo mette a suo agio, cosa lo agita, come preferisce che gli si parli, eventuali indicazioni del medico o del terapista."></textarea>
+      <div class="conta" id="conta-note">0 / 1000</div>
+    </div>
+    <label class="terms" id="riga-salute">
+      <input type="checkbox" id="f-salute">
+      <span>Acconsento al trattamento delle informazioni che ho scritto qui sopra, anche se riguardano la salute di mio figlio/a, solo per permettere all'istruttrice di accompagnarlo/a in sicurezza. Le leggono solo la segreteria e l'istruttrice; posso chiederne la cancellazione in qualsiasi momento alla segreteria.</span>
+    </label>
+
+    <div class="fsezione">Genitore (referente e pagante)</div>
+    <div class="fsplit">
+      <div class="fgroup"><label for="f-nome">Nome*</label><input id="f-nome" autocomplete="given-name"></div>
+      <div class="fgroup"><label for="f-cognome">Cognome*</label><input id="f-cognome" autocomplete="family-name"></div>
+    </div>
+    <div class="fgroup"><label for="f-email">Email*</label><input id="f-email" type="email" inputmode="email" autocomplete="email"></div>
+    <div class="fgroup"><label for="f-telefono">Telefono*</label><input id="f-telefono" type="tel" inputmode="tel" autocomplete="tel"></div>
+
+    <label class="terms">
+      <input type="checkbox" id="f-terms">
+      <span>In qualità di genitore/esercente la responsabilità genitoriale, accetto i <a href="/Termini_Prima_Lezione.pdf" target="_blank" rel="noopener">Termini della Prima Lezione</a> e acconsento alla creazione del profilo riservato di mio figlio/a sul portale KataClimb (non visibile al pubblico né alla Comunità).</span>
+    </label>
+
+    <button class="paga-btn" id="paga-btn"><span class="sp"></span><span id="paga-label">Paga 25 € e prenota</span></button>
+    <div id="form-err"></div>
+    <p class="privacy-note">Il profilo di vostro figlio/a resta riservato: lo vedete voi e gli istruttori.</p>
+  </div>
+</section>
+
+<footer class="footer">
+  Accademia ArrampiKata RCC · Via Cassia 1634, La Storta, Roma<br>
+  <a href="https://kataclimb.com">kataclimb.com</a>
+</footer>
+
+<script src="/kc-avvisi.js?v=2"></script>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL  = 'https://wbtougychlhnlcnonqge.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+  const WORKER_URL    = 'https://stripe-worker.marconescatelli.workers.dev';
+  const PRODOTTO      = 'prima_lezione_privata';
+  const PREZZO        = 25;
+  const GIORNI_AVANTI = 14;
+  const CUTOFF_OGGI_MIN = 240;
+  const ETA_MIN = 4, ETA_MAX = 17;
+  const WA = '<a href="https://wa.me/393318743953">WhatsApp</a>';
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+  const $ = id => document.getElementById(id);
+
+  let giorniChiusi = new Set(), slotChiusi = new Set(), occupati = {};
+  let slotDate = [], selezione = null;
+
+  if (new URLSearchParams(location.search).get('cancelled') === '1') $('cancel-banner').classList.add('show');
+  const dataRichiesta = new URLSearchParams(location.search).get('d') || '';
+
+  // date in LOCALE (trappola #134)
+  function isoLocale(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function labelData(iso){
+    return new Date(iso + 'T00:00:00').toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' });
+  }
+  function oraRange(i, f){ return `${i.substring(0,5)} – ${f ? f.substring(0,5) : ''}`; }
+
+  async function caricaGiorniChiusi(){
+    try { const { data } = await sb.from('giorni_chiusi').select('data'); (data||[]).forEach(r => giorniChiusi.add(r.data)); }
+    catch(e){ console.warn('giorni_chiusi non caricati', e); }
+  }
+  async function caricaSlotChiusure(){
+    try { const { data } = await sb.from('slot_chiusure').select('slot_id, data'); (data||[]).forEach(r => slotChiusi.add(`${r.slot_id}|${r.data}`)); }
+    catch(e){ console.warn('slot_chiusure non caricate', e); }
+  }
+  async function caricaOccupati(righe){
+    if (!righe.length) return;
+    const date = righe.map(r => r.dataISO).sort();
+    try {
+      const { data, error } = await sb.rpc('conteggi_prima_lezione', { p_dal: date[0], p_al: date[date.length-1] });
+      if (error) throw error;
+      (data||[]).forEach(r => { occupati[`${r.slot_id}|${r.data_lezione}`] = r.occupati; });
+    } catch(e){ console.warn('conteggi non caricati', e); }
+  }
+  async function caricaSlot(){
+    let res = await sb.from('corsi_attivi_settimanali')
+      .select('id, giorno_settimana, ora_inizio, ora_fine, capienza_max, istruttori(nome)')
+      .eq('tipo_corso', 'prima_lezione_privata').eq('status', 'attivo');
+    if (res.error) {   // se il nome dell'istruttore non si legge, basta lo slot
+      res = await sb.from('corsi_attivi_settimanali')
+        .select('id, giorno_settimana, ora_inizio, ora_fine, capienza_max')
+        .eq('tipo_corso', 'prima_lezione_privata').eq('status', 'attivo');
+    }
+    if (res.error) throw res.error;
+    return res.data || [];
+  }
+
+  function mancanoOggi(oraInizio){
+    const hm = String(oraInizio).split(':');
+    const inizio = new Date(); inizio.setHours(+hm[0], +hm[1] || 0, 0, 0);
+    return inizio.getTime() - Date.now();
+  }
+  function statoRiga(s){
+    const oggiIso = isoLocale(new Date());
+    if (s.dataISO < oggiIso) return 'via';
+    if (s.dataISO !== oggiIso) return null;
+    const m = mancanoOggi(s.ora_inizio);
+    if (m <= 0) return 'via';
+    return m < CUTOFF_OGGI_MIN * 60000 ? 'taglio' : null;
+  }
+  function pieno(s){
+    if (slotChiusi.has(s.key)) return true;
+    return s.capienza_max != null && (occupati[s.key] || 0) >= s.capienza_max;
+  }
+
+  function generaDate(slots){
+    const out = [];
+    const oggi = new Date(); oggi.setHours(0,0,0,0);
+    for (let offset = 0; offset <= GIORNI_AVANTI; offset++) {
+      const d = new Date(oggi); d.setDate(oggi.getDate() + offset);
+      const iso = isoLocale(d);
+      if (giorniChiusi.has(iso)) continue;
+      const dow = d.getDay() === 0 ? 7 : d.getDay();
+      for (const s of slots) {
+        if (s.giorno_settimana !== dow) continue;
+        out.push({ key: `${s.id}|${iso}`, slot_id: s.id, dataISO: iso, ora_inizio: s.ora_inizio, ora_fine: s.ora_fine,
+                   capienza_max: s.capienza_max, istruttore: (s.istruttori && s.istruttori.nome) || '' });
+      }
+    }
+    out.sort((a,b) => a.dataISO === b.dataISO ? a.ora_inizio.localeCompare(b.ora_inizio) : a.dataISO.localeCompare(b.dataISO));
+    return out;
+  }
+
+  function render(){
+    const list = $('slot-list');
+    list.innerHTML = '';
+    const visibili = slotDate.filter(s => statoRiga(s) !== 'via');
+    if (!visibili.length) {
+      list.innerHTML = `<p style="color:var(--ink2);font-size:14px">In questo momento non ci sono date libere: scrivete alla segreteria su ${WA} e troviamo insieme il giorno.</p>`;
+      return;
+    }
+    for (const s of visibili) {
+      const taglio = statoRiga(s) === 'taglio';
+      const esaurito = !taglio && pieno(s);
+      const chiuso = taglio || esaurito;
+      const div = document.createElement('div');
+      div.className = 'slot-card' + (chiuso ? ' off' : '') + (!chiuso && selezione && selezione.key === s.key ? ' sel' : '');
+      div.innerHTML = `
+        <div class="data">${labelData(s.dataISO)}</div>
+        <div class="riga2"><b>${oraRange(s.ora_inizio, s.ora_fine)}</b>${s.istruttore ? ' · con ' + s.istruttore : ''} · <b>${PREZZO} €</b></div>
+        <span class="slot-badge ${chiuso ? 'full' : 'ok'}">${taglio ? 'CHIUSO' : (esaurito ? 'GIÀ PRENOTATO' : 'LIBERO')}</span>`;
+      if (chiuso) {
+        const nota = document.createElement('div');
+        nota.className = 'slot-nota';
+        if (esaurito) nota.innerHTML = `Questa data è già prenotata: scegliete un'altra data o scrivete alla segreteria su ${WA}.`;
+        else if (window.kcAvvisi) window.kcAvvisi.mostra(nota, window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN / 60 }));
+        else nota.textContent = `Per oggi si prenota fino a ${CUTOFF_OGGI_MIN / 60} ore prima dell'inizio: scegliete un'altra data.`;
+        div.appendChild(nota);
+      } else {
+        div.addEventListener('click', () => seleziona(s));
+      }
+      list.appendChild(div);
+    }
+  }
+
+  function seleziona(s, scorri = true){
+    selezione = s;
+    $('avviso-calendario').style.display = 'none';
+    render();
+    $('riepilogo').innerHTML = `<b>Prima Lezione Privata Speciale</b> · ${labelData(s.dataISO)} · <b>${oraRange(s.ora_inizio, s.ora_fine)}</b>${s.istruttore ? ' · con ' + s.istruttore : ''} · ${PREZZO} €`;
+    $('form-wrap').classList.add('show');
+    verificaEta();
+    if (scorri) $('form-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function etaAllaData(nascitaISO, dataISO){
+    const n = new Date(nascitaISO + 'T00:00:00'), d = new Date(dataISO + 'T00:00:00');
+    let e = d.getFullYear() - n.getFullYear();
+    const m = d.getMonth() - n.getMonth();
+    if (m < 0 || (m === 0 && d.getDate() < n.getDate())) e--;
+    return e;
+  }
+  function verificaEta(){
+    const warn = $('eta-warn');
+    warn.classList.remove('show');
+    const nascita = $('f-fnascita').value;
+    if (!nascita || !selezione) return true;
+    const eta = etaAllaData(nascita, selezione.dataISO);
+    if (eta >= ETA_MIN && eta <= ETA_MAX) return true;
+    warn.innerHTML = eta > ETA_MAX
+      ? `Alla data scelta avrà <b>${eta} anni</b>: per i maggiorenni c'è la Prima Lezione Adulti. Scrivete alla segreteria su ${WA}.`
+      : `Alla data scelta avrà <b>${eta} anni</b>: scrivete alla segreteria su ${WA}, troviamo insieme la formula giusta.`;
+    warn.classList.add('show');
+    return false;
+  }
+  $('f-fnascita').addEventListener('change', verificaEta);
+
+  // la casella del consenso compare solo quando c'è qualcosa scritto
+  function aggiornaNote(){
+    const n = $('f-note').value.trim().length;
+    $('conta-note').textContent = `${$('f-note').value.length} / 1000`;
+    $('riga-salute').style.display = n ? 'flex' : 'none';
+    if (!n) $('f-salute').checked = false;
+  }
+  $('f-note').addEventListener('input', aggiornaNote);
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function erroreForm(msg){ const e = $('form-err'); e.innerHTML = msg; e.style.display = 'block'; }
+
+  $('paga-btn').addEventListener('click', async () => {
+    $('form-err').style.display = 'none';
+    if (!selezione) { erroreForm('Scegliete prima una data qui sopra.'); return; }
+    const stato = statoRiga(selezione);
+    if (stato) {
+      selezione = null; render(); $('form-wrap').classList.remove('show');
+      const a = $('avviso-calendario');
+      a.textContent = stato === 'via' ? 'Quella data è passata: sceglietene un\'altra qui sotto.' : `Per oggi si prenota fino a ${CUTOFF_OGGI_MIN / 60} ore prima dell'inizio: scegliete un'altra data.`;
+      a.style.display = ''; a.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const figlio_nome    = $('f-fnome').value.trim();
+    const figlio_cognome = $('f-fcognome').value.trim();
+    const figlio_nascita = $('f-fnascita').value;
+    const note           = $('f-note').value.trim();
+    const nome     = $('f-nome').value.trim();
+    const cognome  = $('f-cognome').value.trim();
+    const email    = $('f-email').value.trim().toLowerCase();
+    const telefono = $('f-telefono').value.trim();
+
+    if (!figlio_nome || !figlio_cognome) { erroreForm('Scrivete nome e cognome di chi arrampica.'); return; }
+    if (!figlio_nascita) { erroreForm('Inserite la data di nascita: l\'istruttrice prepara la lezione sull\'età.'); return; }
+    if (!verificaEta()) { erroreForm('Controllate l\'età: vedete l\'avviso sotto la data di nascita.'); return; }
+    if (note && !$('f-salute').checked) { erroreForm('Avete scritto delle note per l\'istruttrice: per inviarle spuntate il consenso sotto il campo. Se preferite, cancellate le note e ce le dite a voce.'); return; }
+    if (!nome || !cognome) { erroreForm('Scrivete nome e cognome del genitore.'); return; }
+    if (!emailRe.test(email)) { erroreForm('Controllate l\'email del genitore: lì arriva la conferma.'); return; }
+    if (telefono.replace(/\D/g,'').length < 6) { erroreForm('Controllate il telefono del genitore.'); return; }
+    if (!$('f-terms').checked) { erroreForm('Per prenotare spuntate l\'accettazione dei Termini da parte del genitore.'); return; }
+
+    const btn = $('paga-btn');
+    btn.disabled = true; btn.classList.add('loading'); $('paga-label').textContent = 'Un attimo…';
+    try {
+      const res = await fetch(`${WORKER_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prodotto: PRODOTTO,
+          slot_id: selezione.slot_id,
+          data_lezione: selezione.dataISO,
+          nome, cognome, email, telefono,
+          figlio_nome, figlio_cognome, figlio_nascita,
+          note_istruttore: note,
+          consenso_salute: (note && $('f-salute').checked) ? 'si' : 'no',
+          accept_terms: true,
+          consent: 'no',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) { window.location.href = data.url; return; }
+      erroreForm(data.message || `Il pagamento non si è aperto. Riprovate tra un minuto; se si ripete scrivete alla segreteria su ${WA}.`);
+    } catch (e) {
+      erroreForm(`Connessione instabile: riprovate. Se si ripete scrivete alla segreteria su ${WA}.`);
+    }
+    btn.disabled = false; btn.classList.remove('loading'); $('paga-label').textContent = 'Paga 25 € e prenota';
+  });
+
+  (async () => {
+    try {
+      await caricaGiorniChiusi();
+      await caricaSlotChiusure();
+      const slots = await caricaSlot();
+      if (slots[0]) $('riga-orario').textContent = `Martedì · ${oraRange(slots[0].ora_inizio, slots[0].ora_fine)}${slots[0].istruttori && slots[0].istruttori.nome ? ' · con ' + slots[0].istruttori.nome : ''}`;
+      slotDate = generaDate(slots);
+      await caricaOccupati(slotDate);
+      $('slot-loading').style.display = 'none';
+      render();
+      // ?d=YYYY-MM-DD dal link della segreteria: preseleziona quella data se è libera
+      const pre = slotDate.find(s => s.dataISO === dataRichiesta && !statoRiga(s) && !pieno(s));
+      if (pre) seleziona(pre, false);
+    } catch (e) {
+      console.error(e);
+      $('slot-loading').style.display = 'none';
+      $('slot-err').style.display = 'block';
+    }
+  })();
+</script>
+</body>
+</html>
