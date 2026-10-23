@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.24 · 2026-10-23 · IL PORTALE GUIDA, SALA CON MONITOR (consegna Claude 23 ott, principio di Marco: la procedura e' dichiarata e sostenuta, non affidata alla memoria). (0) Tessera TURNO che chiede: a turno chiuso "Sei in sala? Inizia il turno." + INIZIO TURNO; a turno aperto "Cosa vuoi fare?" + SEGNA CHI STAI SEGUENDO (cursore nella ricerca) · CHIUDI IL TURNO; sotto, sempre, "Oggi hai segnato N persone" con i nomi. (1) Scheda in sala: al posto delle due caselle una guida a 3 passi con pallini (Su cosa avete lavorato con Nome? · Com'e' andata? · Controlla e segna), minimo 10 caratteri per passo con il motivo sotto AVANTI spento, riepilogo con la riga sugli 8 € (veterano: resta a 5 €, letto da persone.veterano e profile_data.badges come v_compenso_turni_monitor), SEGNA -> monitor_segna(p_persona_id, passo 1 in p_su_cosa, passo 2 in p_note), conferma verde con SEGNA UN'ALTRA PERSONA · TORNA ALLA SCHEDA; persona gia' segnata: "Vuoi aggiungere qualcosa su Nome?". (2) Uscita dalla scheda con dialogo della pagina (niente confirm): guida iniziata e non segnata, persona aperta dalla ricerca in turno e non segnata, Nuova osservazione scritta e non salvata; vale per il bottone ←, Esc, il gesto indietro (popstate rimette lo stato e chiude solo su "Esci…") e le voci della barra; beforeunload solo con testo non salvato. (3) FINE TURNO (anche HO FINITO dell'impegno monitor): dialogo di riepilogo con le persone segnate, avviso con 0, la nota di fine turno "Com'e' andata la sala in generale (facoltativo)" spostata nel dialogo; SEGNA QUALCUN ALTRO · Chiudi il turno. HO FINITO delle lezioni: dialogo al posto di confirm. (4) Promemoria calcolati al caricamento e ogni 5 minuti: in turno da piu' di 45 minuti con 0 persone; turno non iniziato dopo le 19 (sabato 14, domenica no) con impegno monitor oggi o dopo aver aperto una scheda in sala, in cima a Oggi e in testa alla guida. (4bis) Rendiconto creator/admin: tabella Sala per giorno · ultime 4 settimane da v_compenso_turni_monitor (turni, media persone a turno, serate a 0, costo, costo per persona; media sotto 1 in arancio). Nessuna modifica a RPC o tabelle. CUMULA v2.23 (sotto). -->
 <!-- KC-BUILD: oggi v2.23 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): (1) tessera "I tuoi impegni · oggi" (impegni_staff dell'utente di oggi, stato diverso da ritirato) in tutte le viste staff, anche per lo staff senza console propria (es. staff_assistente, vista allievo): SONO QUI -> impegno_presenza(id,'inizio'), HO FINITO -> 'fine'; per i turni monitor gli stessi bottoni chiamano anche monitor_turno inizio/fine e l'id del turno si salva in impegni_staff.turno_monitor_id (update della propria riga). Al contrario INIZIO/FINE TURNO della tessera Sala allineano l'impegno monitor di oggi piu' vicino all'ora. (2) tessera Turni -> turni.html in console istruttore, monitor, segreteria. (3) nel turno, riga del compenso da v_compenso_turni_monitor ("2h 15 · 1 persona seguita · 8 + 5 + 1,25 = 14,25 €"), ricaricata a ogni monitor_segna. (4) scheda didattica: Temi affrontati, Criticita' (solo staff), Trasformazione osservata, Da implementare alla prossima (solo staff) sopra le scale; blocco "Per l'allievo" con per_allievo e l'interruttore Mostra all'allievo (visibile_allievo), mostrati anche nelle osservazioni gia' scritte. salva_osservazione riceve i nuovi campi con gli stessi nomi. CUMULA v2.22 (sotto). -->
 <!-- KC-BUILD: oggi v2.22 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott): SLOT DATATI nella console istruttore. Uno slot con data_evento (lezioni delle scuole, prima_lezione_scuola e scuola_mini) compare solo nel giorno della sua data: prima, letto solo per giorno_settimana, sarebbe comparso ogni settimana. Nient'altro. CUMULA v2.21 (sotto). -->
 <!-- KC-BUILD: oggi v2.21 · 2026-10-07 · NUOVA OSSERVAZIONE NON ALLA SEGRETERIA: il bottone resta per creator e istruttori ed e' nascosto a chi ha profile_data.staff_role='staff_segreteria' (oltre che quando la scheda e' ridotta). Una riga. CUMULA v2.20 · 2026-10-07 · ISTRUTTORE IN TURNO, SCHEDA COMPLETA: allineata alle decisioni di Marco applicate sul DB (sql/monitor/05): l'istruttore con turno sala aperto vede la scheda completa di tutti e scrive osservazioni su chiunque; ridotta resta solo per il monitor sulle persone non sue. Il bottone Nuova osservazione si mostra in base a ridotta della risposta di get_scheda_allievo, non al ruolo (via puoOsservare). Commento del ripiego senza turno aggiornato. Nient'altro. CUMULA v2.19 · 2026-10-07 · VIA I BLOCCHI IN PAGINA: applicati sul DB i quattro sql/monitor/ (7 ott 12:25), osservazione e nota di sala stanno su righe separate (indici unici parziali), quindi la pagina non blocca piu' l'osservazione dopo una nota di sala ne' la nota dopo un'osservazione. Il ripiego nome + Annota resta solo per l'istruttore SENZA turno aperto (con il turno get_scheda_allievo apre la scheda ridotta), con il testo nuovo. Sulla scheda ridotta niente Nuova osservazione (salva_osservazione la respinge). Nessuna modifica a RPC o tabelle. CUMULA v2.18 · 2026-10-06 · CONSOLE MONITOR: nuova vista monitor (profile_data.staff_role='staff_monitor', override ?vista=monitor) per il telefono in sala: saluto 'Sala con Monitor', tessera TURNO (Inizio turno / In turno dalle HH:MM + Fine turno con nota facoltativa / Turno HH:MM → HH:MM · N persone seguite) con la riga fissa sul compenso, tessera CHI STAI SEGUENDO (cerca_persona_staff da 2 caratteri, 300 ms) → Scheda Allievo in modalita' sala con 'Su cosa avete lavorato?' + nota + Annota (monitor_segna), tabella OGGI (monitor_oggi.seguiti), tabella I MIEI TURNI (storico 30 giorni, totali del mese), Eventi. Il monitor e' un TURNO: turno e chi stai seguendo anche nella console ISTRUTTORE sotto le tessere allievi, I MIEI TURNI in fondo, OGGI IN SALA solo se non vuota; per l'istruttore la scheda resta completa e, se la persona non e' sua (get_scheda_allievo la nega), resta il nome della ricerca con il campo Annota. Scheda (tutte le viste): le osservazioni con ruolo monitor sono righe verdi 'Sala con Monitor · autore · giorno' con una riga per orario, senza pallini, nello stesso elenco cronologico; il monitor non scrive osservazioni con le scale. Protezione: osservazione e nota di sala dello stesso giorno sono la STESSA riga a DB (persona, autore, data), quindi la pagina blocca l'osservazione dopo una nota di sala e la nota dopo un'osservazione (debito DB segnalato a Marco). Diario segreteria: righe sala con pallino verde, chip anche per i monitor. Rendiconto: riga 7 giorni con persone seguite in sala e turni; per creator/admin tessera Compensi monitor · mese (get_compenso_monitor dal primo del mese a oggi, totale per monitor, 'ancora aperto' in arancione). Nessuna modifica a RPC o tabelle. CUMULA v2.17 · 2026-10-06 · LEGGIBILITÀ (solo CSS, tre viste): fondo pagina #141414, tessere #1E1E1E, corpo 17px. Etichette .et 13px #C8C8C8 nel carattere di testo in maiuscoletto (letter-spacing .04em), il monospazio resta a comandi e numeri; titoli di sezione 14px #DADADA con 28px sopra; numeri .big 28/36/44px (mai oltre 44). Testo secondario mai sotto #B0B0B0 (--grigio #B8B8B8). Una sola tessera accesa per sezione: ADESSO/CHIAMA rossa e DA VALIDARE viola restano (tinte scurite quanto basta: rosso #D10B00→#A51515, viola #A212EA→#6E1A9A), Eventi gialla e blu diventano scure con bordo sinistro colorato di 4px. Schermo largo: console max 1100px centrata, spazio 14px, padding 18px. Contrasto verificato coppia per coppia >= 4.5:1 (sistemati anche tag Advance/Evo e bottone WhatsApp). Nessuna modifica a HTML, JS o RPC. CUMULA v2.16 · 2026-10-06 · RENDICONTO CREATOR: nella console SEGRETERIA (creator, admin, segreteria) nuova sezione RENDICONTO dopo LA CURA. (1) Striscia di 5 contatori da get_rendiconto(): Da far prenotare → commerciale.html?coda=commerciale · Prenotati → agenda · Prima fatta · non iscritti → elenco allievi filtro Da richiamare · In corso → elenco filtro Corsi · Ultime lezioni → elenco filtro Ultime (rossa se > 0). Sotto: lezioni registrate e osservazioni scritte negli ultimi 7 giorni + Prime senza presenza registrata (la RPC le conta sui 30 giorni e il testo lo dice; rossa e cliccabile verso l'agenda se > 0). (2) DIARIO ISTRUTTORI da get_diario_istruttori(): chip per istruttore raggruppati per istruttore_user_id (soprannome tra parentesi o nome: le lezioni portano il nome della riga istruttori, le osservazioni quello del profilo, lo slot condiviso Claudia e Mattia arriva una volta per membro e in Tutti si mostra una volta sola), giorni 7/14/30 (default 14 come la RPC), righe per giorno, tap → Scheda Allievo. (3) Elenco e Scheda della v2.15 riusati tali e quali (pann-all anche in questa vista); in segreteria Nuova osservazione solo per il creator. Vista ISTRUTTORE e ALLIEVO non toccate (le tre tessere istruttore passano in htmlTessereAllievi(), stesso markup). Nessuna modifica a RPC o tabelle. CUMULA v2.15 · 2026-10-06 · SCHEDA ALLIEVO ISTRUTTORE: nella console ISTRUTTORE, sotto ADESSO, tre tessere da UNA chiamata a get_miei_allievi() tenuta in memoria e ricaricata dopo ogni azione: 👥 I miei allievi (totale, una riga per persona), 🔚 Ultime lezioni (ultima_lezione; rossa se una cade oggi), 📞 Da richiamare (da_richiamare; prima 🔴 mai sentiti dopo la Prima — ultima_interazione nel giorno della Prima o prima — poi 🟠 richiamo scaduto). Tap = elenco a tutta larghezza con chip Tutti/Prima Lezione/Corsi/Minori/Ultime lezioni/Da richiamare; riga con foto di riconoscimento (bucket privato, URL firmati 1h, come agenda v3.95) o iniziali, nome completo del corso, contatori, badge. Tap riga = SCHEDA ALLIEVO a schermo intero (get_scheda_allievo): testa con Chiama/WhatsApp, banner ultima lezione con prossimo passo, Percorso Prima→Open→Advance→Intro Corda→Evo Corda (minori: Bambini→Ragazzi→Giovani, passo in corso dedotto dall'eta'), Osservazioni (ultima in evidenza, storico compresso, form 5 scale + note → salva_osservazione), Quadro commerciale con diario e azioni → istruttore_azione_lead. Solo RPC, nessuna scrittura diretta a tabelle. NON toccate: viste segreteria e allievo. CUMULA v2.14 · 2026-09-22 · DEBITO-190 FASE C: i numeri del pacchetto arrivano da get_contatori e non piu' dalle colonne salvate in profile_data. Spariscono la mappa _COLCRED corso→colonna e l'indovinello su quale delle quattro guardare: la view sa gia' di quale corso si parla. La tessera Lezioni tiene il numero grande ma sotto dice da dove viene, '5 su 8 · PRENOTA', perche' un numero solo non si puo' controllare. NON toccati: agenda, eventi, kata, viste per ruolo, il resto dei testi. CUMULA v2.13  2026-09-01 · (1) VALIDA SOLO IL MAESTRO: rimossa la tessera '▶ Da validare' dalla console ISTRUTTORE (era live dal v2.2 puntando a monitor.html; la validazione Kata è esclusiva del creator, valida.html è già solo-creator) — vista istruttore non chiama più loadIstrValida. (2) LISTINI RAGGIUNGIBILI: tessera 💶 Listini (/listini.html) nella console SEGRETERIA (zona La cura, prima di Fascicoli) e nella console ISTRUTTORE (dopo Agenda). Le pagine listino 2026/27 erano orfane: gate ok, porta d’ingresso assente. CUMULA v2.12 · 2026-07-20 · ONDA 4 AUDIT: dati operativi min 13px (staff col telefono in mano, poca luce) — .saluto span (data), .t .cmd + .t .big small, .t-adesso .cosa span/.bell, .t-lez .riga/.h/.n/.vuota (orari e conteggi posti erano 8–12.8px), .tag; anche override desktop di .t .cmd e .t-adesso .cosa span. Solo font-size; etichette decorative invariate; nessuna modifica a JS/query/testi. CUMULA v2.11 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo — la Comunità torna raggiungibile da mobile (era sepolta sotto kc-bar nel portale). CUMULA v2.10 · 2026-06-30 · CONTATORI CODA 30/60 + VECCHI via RPC conta_code_lead() (fonte unica, stessa regola di codaEff in commerciale v1.13): Commerciale <=30 · Riacciuffo 31-60 · Lead vecchi >60. + tessera 'Lead vecchi' (?coda=vecchi). Sostituisce la regola 45gg-su-nuovo replicata in JS (debito chiuso). CUMULA v2.9 · 2026-06-24 · (1) tessera Riacciuffo ora apre commerciale.html?coda=riacciuffo (era portale vecchio). (2) contatori coda allineati a codaEff: i mai-sentiti >45gg contano in RIACCIUFFO non in Commerciale (commTot-riacDeriv / riacBase+riacDeriv). Numero = lista. CUMULA v2.8 · 2026-06-24 · tessere coda Commerciale e Chiamate ora aprono commerciale.html?coda=commerciale|segreteria (lista cliccabile con Chiama/Dati/Rubrica) invece del solo contatore in portale. Roberta tocca Chiamate -> vede i lead girati da contattare. CUMULA v2.7 · 2026-06-17 · + icona ⚙ Impostazioni FISSA in alto a destra (speculare alla freccia indietro) -> impostazioni-profilo.html. CUMULA v2.6 · 2026-06-17 · Voce barra rinominata Portale -> Profilo (coerenza: porta a profilo.html, che si chiama Profilo da dentro). CUMULA v2.5 · 2026-06-13 notte · Tessere DA VALIDARE -> valida.html (sala di revisione solo-creator: lista video ready con allievo+player, certifica/rifiuta con correzioni; basta cerca-allievo del monitor). CUMULA v2.4 · Tessere Cura e barra puntano a profilo.html (fascicolo nuovo LIVE, integrazione del proto approvato). CUMULA v2.3 · CHIAMA = CAMPAGNA ATTIVA (fonte ads_meta + created_at <=14gg, colonne lead_data verificate da Marco): basta il calderone dei 184 di get_leads_da_contattare — quelli vivono nelle code sotto. CUMULA v2.2 · Collaudo Marco: (1) tessera DA VALIDARE anche in console segreteria/creator (Marco unico validatore); (2) desktop riempie (1280px, tessere compatte, tutto in vista) e barra in basso maggiorata. NOTA: CHIAMA ancora su get_leads_da_contattare, in attesa colonne lead_data per filtro campagna attiva (fonte ads_meta + 14gg). CUMULA v2.1 · Desktop largo (>=1200px): console 1100px a 6 colonne,
@@ -412,6 +413,49 @@ body{font-size:17px}
 .aiuto{font-size:13px; color:#C9C9CE; margin-top:8px}
 .oss .per-a{border-top:1px solid var(--velo); padding-top:8px}
 
+/* v2.24 il portale guida: tessera turno che chiede, guida a passi, dialoghi, promemoria */
+.turno-dom{font-size:17px; font-weight:700; margin:10px 0 0}
+.turno-btns{display:flex; flex-direction:column; gap:8px; margin-top:10px}
+.turno-btns .btn{width:100%}
+.turno-oggi{font-size:15px; color:#E5E5EA; margin-top:12px; padding-top:10px; border-top:1px solid var(--velo)}
+.avviso-ar{border:1px solid #FFB340; border-left:4px solid #FFB340; background:rgba(255,179,64,.10); color:#FFE2B8; border-radius:12px; padding:12px 14px; font-size:16px; margin-top:10px}
+.avviso-ar.full{margin-top:0}
+.avviso-ar[hidden]{display:none}
+.avviso-ar .lnk{color:#FFE2B8}
+.avviso-ar .btn{margin-top:10px}
+.guida .pallini{display:flex; align-items:center; gap:7px; font-size:13px; color:#C9C9CE; margin-bottom:6px}
+.guida .pallini i{width:13px; height:13px; border-radius:50%; border:2px solid var(--cordata)}
+.guida .pallini i.on{background:var(--cordata)}
+.guida .pallini span{margin-left:4px}
+.guida .g-tit{font-size:19px; font-weight:700; margin:6px 0 2px}
+.guida .g-dom{font-size:18px; font-weight:700; margin:12px 0 6px}
+.guida textarea{width:100%; min-height:110px; font:inherit; font-size:17px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:12px; resize:vertical}
+.guida textarea::placeholder{color:#8E8E96}
+.guida .aiuto{font-size:14px; margin:0 0 8px}
+.guida .sch-btns .btn{flex:1; font-size:15px; padding:15px 12px}
+.guida .perche{font-size:14px; color:#FFB340; margin-top:8px}
+.guida .perche[hidden]{display:none}
+.guida .riep{background:#0E0E10; border:1px solid #3A3A40; border-radius:12px; padding:12px; font-size:16px}
+.guida .riep div{margin-top:8px}
+.guida .riep span{color:#C9C9CE}
+.guida .riga-fissa{font-size:15px; color:var(--cordata); font-weight:700; margin-top:10px}
+.guida-ok{text-align:center; padding:6px 0}
+.guida-ok .spunta{width:64px; height:64px; margin:4px auto 10px; border-radius:50%; background:#1E6B34; color:#fff; font-size:36px; line-height:64px}
+.guida-ok .ok-tit{font-size:19px; font-weight:700}
+.guida-ok .sch-btns{flex-direction:column}
+.dlg{position:fixed; inset:0; z-index:10010; background:rgba(0,0,0,.72); display:flex; align-items:flex-end; justify-content:center; padding:16px}
+.dlg[hidden]{display:none}
+.dlg-box{width:100%; max-width:480px; max-height:90vh; overflow-y:auto; background:#1E1E1E; border:1px solid #3A3A40; border-radius:18px; padding:20px 18px; font-size:17px; line-height:1.45; color:var(--bianco)}
+.dlg-testo p+p{margin-top:10px}
+.dlg-testo .frm label{font-size:15px; color:#E5E5EA}
+.dlg-testo .frm textarea{font-size:16px}
+.dlg-btns{display:flex; flex-direction:column; gap:10px; margin-top:18px}
+.dlg-btns .btn{width:100%; font-size:16px; padding:16px}
+@media (min-width:700px){ .dlg{align-items:center} }
+.rend-gg{margin-top:0}
+.rend-gg .tab tr.vuota td{color:#FFB340}
+.rend-gg .tab tr.vuota-r td{color:#FFB340; font-size:13px; padding-top:0}
+
 /* testo secondario mai sotto #B0B0B0, barra in basso a 13px */
 .bar a{font-size:13px}
 
@@ -450,6 +494,17 @@ body{font-size:17px}
 <div class="scheda" id="scheda" hidden role="dialog" aria-modal="true" aria-label="Scheda Allievo">
   <button class="sch-back" aria-label="Chiudi la scheda" onclick="chiudiScheda()">←</button>
   <div class="sch-corpo" id="sch-corpo"></div>
+</div>
+
+<!-- v2.24 dialogo della pagina al posto di confirm(): un testo e due bottoni grandi -->
+<div class="dlg" id="dlg" hidden role="alertdialog" aria-modal="true" aria-labelledby="dlg-testo">
+  <div class="dlg-box">
+    <div class="dlg-testo" id="dlg-testo"></div>
+    <div class="dlg-btns">
+      <button class="btn prim" id="dlg-1" onclick="dlgPremi(0)"></button>
+      <button class="btn" id="dlg-2" onclick="dlgPremi(1)"></button>
+    </div>
+  </div>
 </div>
 
 <nav class="bar">
@@ -728,6 +783,7 @@ function renderIstruttore(){
   const c=document.getElementById('console');
   c.innerHTML=`
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'ISTRUTTORE')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+  <div class="avviso-ar full" id="avv-turno" hidden></div>
 
   <div class="zona mono">Il tempo</div>
 
@@ -1268,9 +1324,12 @@ function disegnaElenco(){
 }
 
 /* ── Scheda Allievo ── */
-function apriScheda(pid,sala){
-  schedaPid=pid; schedaDati=null; ossAperta=false;
-  schedaSala=!!sala || vista==='monitor'; // v2.18: in testa il campo "Su cosa avete lavorato?" 
+function apriScheda(pid,sala,origine){
+  schedaPid=pid; schedaDati=null; ossAperta=false; ossSporca=false;
+  schedaSala=!!sala || vista==='monitor'; // v2.18: in testa il campo "Su cosa avete lavorato?"
+  /* v2.24: la guida riparte da capo a ogni scheda; "ricerca" = aperta da CHI STAI SEGUENDO */
+  guida=guidaNuova(); schedaDaRicerca=origine==='ricerca'; schedaVeterano=false;
+  if(schedaSala){ _salaUsata=true; disegnaAvvisoTurno(); }
   const s=document.getElementById('scheda');
   document.getElementById('sch-corpo').innerHTML=`<p class="sch-vuoto">Un attimo, apro la scheda…</p>`;
   s.hidden=false; s.scrollTop=0;
@@ -1283,17 +1342,46 @@ function nascondiScheda(){
   document.getElementById('scheda').hidden=true;
   document.body.style.overflow='';
   schedaPid=null; schedaDati=null; ossAperta=false; schedaSala=false;
+  guida=guidaNuova(); schedaDaRicerca=false; schedaVeterano=false; ossSporca=false; _esciOk=false;
 }
+/* v2.24: prima di chiudere, se c'e' qualcosa da non perdere, la pagina lo chiede (dialogoUscita).
+   _esciOk = l'utente ha gia' scelto "Esci…": si chiude senza chiedere di nuovo. */
 function chiudiScheda(){
+  if(!_esciOk && dialogoUscita())return;
   if(schedaInHistory){ history.back(); return; } // popstate nasconde
   nascondiScheda();
 }
-window.addEventListener('popstate',()=>{ if(schedaInHistory){ schedaInHistory=false; nascondiScheda(); } });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !document.getElementById('scheda').hidden)chiudiScheda(); });
+function esciScheda(){ _esciOk=true; chiudiScheda(); }
+window.addEventListener('popstate',()=>{
+  if(!schedaInHistory)return;
+  schedaInHistory=false;
+  /* gesto indietro del telefono: la scheda resta, si rimette lo stato e si chiede */
+  if(!_esciOk && motivoUscita()){
+    history.pushState({kcScheda:1},''); schedaInHistory=true;
+    dialogoUscita(); return;
+  }
+  nascondiScheda();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(!document.getElementById('dlg').hidden){ chiudiDialogo(); return; }
+  if(!document.getElementById('scheda').hidden)chiudiScheda();
+});
+/* voci della barra in basso: se c'e' qualcosa da non perdere si chiede prima di andare */
+document.addEventListener('click',e=>{
+  const a=e.target.closest&&e.target.closest('.bar a'); if(!a || document.getElementById('scheda').hidden)return;
+  if(dialogoUscita(()=>{ _esciOk=true; location.href=a.href; }))e.preventDefault();
+},true);
+/* uscita dalla pagina (ricarica, chiusura): solo con testo scritto e non salvato; il testo lo decide il browser */
+window.addEventListener('beforeunload',e=>{
+  if(_esciOk || !(guidaIniziata() || (ossAperta && ossSporca)))return;
+  e.preventDefault(); e.returnValue='';
+});
 
 async function caricaScheda(){
   const s=document.getElementById('scheda'), corpo=document.getElementById('sch-corpo');
   const pid=schedaPid, top=s.scrollTop;
+  if(schedaSala)caricaVeterano(pid);
   try{
     const{data,error}=await sb.rpc('get_scheda_allievo',{p_persona_id:pid});
     if(error)throw error;
@@ -1392,7 +1480,7 @@ function htmlFormOss(d){
   const ctx=o.contesto||R.corso_attivo||R.tipo||'prima_lezione';
   const opz=Object.keys(NOME_CORSO).map(k=>`<option value="${k}"${k===ctx?' selected':''}>${esc(NOME_CORSO[k])}</option>`).join('')
     +(NOME_CORSO[ctx]?'':`<option value="${esc(ctx)}" selected>${esc(nomeCorso(ctx))}</option>`);
-  return `<div class="frm" id="oss-form">
+  return `<div class="frm" id="oss-form" oninput="ossSporca=true" onchange="ossSporca=true">
     ${o.id?`<p class="sch-vuoto">Oggi hai già scritto un'osservazione: la stai aggiornando.</p>`:''}
     <label>Contesto</label><select name="contesto">${opz}</select>
     ${DIDATTICA.map(([k,l,staff])=>`<label>${l}${staff?' <span class="solo-staff">solo staff</span>':''}</label><textarea name="${k}">${esc(o[k]||'')}</textarea>`).join('')}
@@ -1409,13 +1497,13 @@ function htmlFormOss(d){
     </div>
     <div class="sch-btns">
       <button class="btn prim" onclick="salvaOss(this)">SALVA OSSERVAZIONE</button>
-      <button class="btn" onclick="ossAperta=false;disegnaScheda()">ANNULLA</button>
+      <button class="btn" onclick="ossAperta=false;ossSporca=false;disegnaScheda()">ANNULLA</button>
     </div></div>`;
 }
 function ossScala(btn,v){
   const s=btn.parentElement;
   const nuovo=String(v)===s.dataset.v?'':String(v); // ritocco sullo stesso pallino = azzera
-  s.dataset.v=nuovo;
+  s.dataset.v=nuovo; ossSporca=true;
   s.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',!!nuovo && i<Number(nuovo)));
 }
 async function salvaOss(btn){
@@ -1429,7 +1517,7 @@ async function salvaOss(btn){
   btn.disabled=true;
   const{error}=await sb.rpc('salva_osservazione',{p_persona_id:schedaPid,p});
   if(error){ btn.disabled=false; toast('Osservazione non salvata: '+error.message); return; }
-  ossAperta=false;
+  ossAperta=false; ossSporca=false;
   toast('Osservazione salvata.');
   await caricaScheda();
   loadAllievi();
@@ -1499,7 +1587,7 @@ function disegnaScheda(){
   const ossHtml=(ossAperta&&scrive)?htmlFormOss(d):(oss.length?htmlOss(oss[0],true)+(oss.length>1?`<div style="margin-top:10px">${oss.slice(1).map(o=>
         `<details class="oss-old"><summary>${ossSala(o)?'🟢 ':''}${ggmm(o.data)} · ${esc(o.autore||'—')}${ossSala(o)?' · Sala con Monitor':''}</summary>${htmlOss(o,false)}</details>`).join('')}</div>`:'')
       :`<p class="sch-vuoto">${scrive?'Ancora nessuna osservazione: scrivi la prima dopo la lezione.':'Ancora nessuna osservazione degli istruttori.'}</p>`)
-     +(scrive?`<div class="sch-btns"><button class="btn prim" onclick="ossAperta=true;disegnaScheda()">NUOVA OSSERVAZIONE</button></div>`:'');
+     +(scrive?`<div class="sch-btns"><button class="btn prim" onclick="ossAperta=true;ossSporca=false;disegnaScheda()">NUOVA OSSERVAZIONE</button></div>`:'');
   const corpo=document.getElementById('sch-corpo');
   corpo.innerHTML=`
     <section class="sch-sez">
@@ -1634,7 +1722,7 @@ function disegnaDiario(){
    Solo RPC: monitor_oggi · monitor_turno · cerca_persona_staff · monitor_segna · get_compenso_monitor. */
 let salaOggi=null, schedaSala=false, _salaTimer=null, _salaTok=0;
 const _salaPersone={}; // persona_id -> {nome,cognome,foto_path} dall'ultima ricerca
-const RIGA_COMPENSO="Ogni persona che segui e annoti vale un'ora a 8 €. Le ore senza nessuno valgono 5 €.";
+const RIGA_COMPENSO="Ogni persona che segui e segni nella sua scheda vale un'ora a 8 €. Le ore senza nessuno valgono 5 €.";
 const hhmm=ts=>{ if(!ts)return ''; const d=new Date(ts); return pad2(d.getHours())+':'+pad2(d.getMinutes()); };
 const numIt=n=>Number(n||0).toLocaleString('it-IT',{maximumFractionDigits:1});
 const euro=n=>Number(n||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
@@ -1643,6 +1731,7 @@ function renderMonitor(){
   const oggi=new Date();
   document.getElementById('console').innerHTML=`
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'MONITOR')}</b> · Sala con Monitor · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+  <div class="avviso-ar full" id="avv-turno" hidden></div>
 
   <div class="zona mono">Il turno</div>
   ${htmlImpegniOggi()}
@@ -1691,7 +1780,7 @@ async function loadMonitor(){
     if(error)throw error;
     salaOggi=data||{turno:null,seguiti:[],storico:[]};
   }catch(e){ console.error('[monitor]',e); salaOggi=null; }
-  disegnaTurno(); disegnaSalaOggi(); disegnaTurni();
+  disegnaTurno(); disegnaSalaOggi(); disegnaTurni(); disegnaAvvisoTurno(); avviaPromemoria();
   loadCompensoTurno();
   if(schedaSala && schedaDati && !document.getElementById('scheda').hidden)disegnaScheda();
 }
@@ -1699,26 +1788,35 @@ async function loadMonitor(){
 function disegnaTurno(){
   const el=document.getElementById('turno-corpo'); if(!el)return;
   if(!salaOggi){ el.innerHTML='<p class="vuota-all">Non riesco a leggere il turno ora. Riprova tra poco.</p>'; return; }
-  const t=salaOggi.turno, n=(salaOggi.seguiti||[]).length;
+  const t=salaOggi.turno, L=salaOggi.seguiti||[], n=L.length;
+  /* v2.24: sotto, sempre, chi hai segnato oggi */
+  const oggiTxt=`<p class="turno-oggi">Oggi hai segnato <b>${n}</b> ${n===1?'persona':'persone'}${n?': '+L.map(x=>esc(x.nome||'—')).join(', '):'.'}</p>`;
   if(t && !t.fine){
-    el.innerHTML=`<p class="turno-stato">In turno dalle <b>${hhmm(t.inizio)}</b> · ${n} ${n===1?'persona seguita':'persone seguite'}</p>
+    const min=Math.floor((Date.now()-new Date(t.inizio).getTime())/60000);
+    const avv=(min>45 && !n)?`<div class="avviso-ar">Sei in turno da ${Math.floor(min/60)}h ${pad2(min%60)}m e non hai segnato nessuno. <button class="lnk" onclick="vaiARicerca()">Chi stai seguendo?</button></div>`:'';
+    el.innerHTML=`<p class="turno-stato">In turno dalle <b>${hhmm(t.inizio)}</b></p>
       <p class="turno-comp" id="turno-comp"></p>
-      <div class="frm"><label>Com'è andata la sala? (facoltativo)</label><textarea id="turno-nota"></textarea></div>
-      <div class="sch-btns"><button class="btn fine" onclick="salaTurno('fine',this)">FINE TURNO</button></div>`;
+      ${avv}
+      <p class="turno-dom">Cosa vuoi fare?</p>
+      <div class="turno-btns">
+        <button class="btn prim grande" onclick="vaiARicerca()">SEGNA CHI STAI SEGUENDO</button>
+        <button class="btn fine" onclick="salaTurno('fine',this)">CHIUDI IL TURNO</button>
+      </div>${oggiTxt}`;
     return;
   }
-  el.innerHTML=(t?`<p class="turno-stato">Turno ${hhmm(t.inizio)} → ${hhmm(t.fine)} · ${n} ${n===1?'persona seguita':'persone seguite'}</p><p class="turno-comp" id="turno-comp"></p>`:'')+
-    `<div class="sch-btns"><button class="btn prim grande" onclick="salaTurno('inizio',this)">INIZIO TURNO</button></div>`;
+  el.innerHTML=(t?`<p class="turno-stato">Turno ${hhmm(t.inizio)} → ${hhmm(t.fine)}</p><p class="turno-comp" id="turno-comp"></p>`:'')+
+    `<p class="turno-dom">Sei in sala? Inizia il turno.</p>
+    <div class="turno-btns"><button class="btn prim grande" onclick="salaTurno('inizio',this)">INIZIO TURNO</button></div>${oggiTxt}`;
 }
 async function salaTurno(az,btn){
-  let note=null;
-  if(az==='fine'){
-    if(!confirm('Chiudi il turno adesso?'))return;
-    note=(document.getElementById('turno-nota')?.value||'').trim()||null;
-  }
-  btn.disabled=true;
+  /* v2.24: niente confirm, prima di chiudere il riepilogo di chi hai segnato */
+  if(az==='fine'){ dialogoFineTurno(note=>eseguiTurno('fine',btn,note)); return; }
+  eseguiTurno(az,btn,null);
+}
+async function eseguiTurno(az,btn,note){
+  if(btn)btn.disabled=true;
   const{data,error}=await sb.rpc('monitor_turno',{p_azione:az,p_note:note});
-  if(error){ btn.disabled=false; toast('Turno non registrato: '+error.message); return; }
+  if(error){ if(btn)btn.disabled=false; toast('Turno non registrato: '+error.message); return; }
   toast(az==='inizio'?(data?.gia_aperto?'Il turno era già aperto.':'Turno iniziato. Buona sala!'):'Turno chiuso. Grazie!');
   await allineaImpegnoMonitor(az,data&&data.turno_id); // v2.23: il turno segnato in Turni segue il turno reale
   loadMonitor();
@@ -1737,10 +1835,102 @@ function salaCerca(q){
     const L=data||[];
     if(!L.length){ box.innerHTML=`<div class="vuota-all">Nessuno con questo nome.</div>`; return; }
     L.forEach(x=>{_salaPersone[x.persona_id]={nome:x.nome,cognome:x.cognome,foto_path:x.foto_path};});
-    box.innerHTML=L.map(x=>`<button class="all-riga" onclick="apriScheda('${esc(x.persona_id)}',true)">
+    box.innerHTML=L.map(x=>`<button class="all-riga" onclick="apriScheda('${esc(x.persona_id)}',true,'ricerca')">
       ${avatarHtml(x.nome,x.cognome,x.foto_path)}<span class="txt"><b>${esc((x.nome||'')+' '+(x.cognome||''))}</b></span></button>`).join('');
     applicaFoto(box);
   },300);
+}
+
+/* ── v2.24 dialogo della pagina: testo + due bottoni grandi. Il primo e' sempre la strada giusta. ── */
+let _dlgFn=[null,null];
+function dialogo(testoHtml,primo,secondo){
+  document.getElementById('dlg-testo').innerHTML=testoHtml;
+  const b1=document.getElementById('dlg-1'), b2=document.getElementById('dlg-2');
+  b1.textContent=primo[0]; b2.textContent=secondo[0];
+  _dlgFn=[primo[1]||null,secondo[1]||null];
+  document.getElementById('dlg').hidden=false;
+  b1.focus();
+}
+function chiudiDialogo(){ document.getElementById('dlg').hidden=true; _dlgFn=[null,null]; }
+function dlgPremi(i){
+  const nota=(document.getElementById('dlg-nota')?.value||'').trim()||null; // letta prima di chiudere
+  const f=_dlgFn[i];
+  chiudiDialogo();
+  if(f)f(nota);
+}
+
+function dialogoFineTurno(chiudi){
+  const L=(salaOggi&&salaOggi.seguiti)||[], n=L.length;
+  const chi=n
+    ?`<p>Hai segnato <b>${n}</b> ${n===1?'persona':'persone'} oggi: ${L.map(x=>esc(x.nome||'—')).join(', ')}.</p>`
+    :`<p><b>Non hai segnato nessuno.</b> Se hai seguito qualcuno, segnalo adesso nella sua scheda, altrimenti tutte le ore sono a 5 €.</p>`;
+  dialogo(`${chi}
+    <p>Hai seguito qualcun altro? Segnalo prima di chiudere. Le persone scritte nella nota di fine turno non contano.</p>
+    <div class="frm"><label for="dlg-nota">Com'è andata la sala in generale (facoltativo)</label><textarea id="dlg-nota"></textarea>
+      <p class="aiuto">Qui non si segnano le persone: usa la loro scheda.</p></div>`,
+    ["SEGNA QUALCUN ALTRO",()=>vaiARicerca()],
+    ["Chiudi il turno",chiudi]);
+}
+
+/* cursore nella ricerca di CHI STAI SEGUENDO (chiude la scheda se e' aperta) */
+function vaiARicerca(){
+  const vai=()=>{ const q=document.getElementById('sala-q'); if(!q)return;
+    q.scrollIntoView({behavior:'smooth',block:'center'}); q.focus({preventScroll:true}); };
+  if(!document.getElementById('scheda').hidden){ esciScheda(); setTimeout(vai,120); }
+  else vai();
+}
+
+/* ── v2.24 la guida a passi nella scheda in sala ── */
+const MIN_GUIDA=10;
+let guida=null, schedaDaRicerca=false, schedaVeterano=false, ossSporca=false, _esciOk=false, _salaUsata=false;
+const guidaNuova=()=>({passo:1,cosa:'',nota:'',alle:null});
+guida=guidaNuova();
+const guidaIniziata=()=>!!(schedaSala && schedaPid && [1,2,3].includes(guida.passo) && (guida.cosa.trim()||guida.nota.trim()));
+const giaSegnato=pid=>!!((salaOggi&&salaOggi.seguiti)||[]).find(x=>x.persona_id===pid);
+const turnoAperto=()=>!!(salaOggi&&salaOggi.turno&&!salaOggi.turno.fine);
+function nomeScheda(pieno){
+  const d=schedaDati||{}, P=d.persona||{}, R=d.riga||{}, S=_salaPersone[schedaPid]||{};
+  const nome=P.nome||R.nome||S.nome||'', cogn=P.cognome||R.cognome||S.cognome||'';
+  return (pieno?(nome+' '+cogn).trim():nome.trim())||'questa persona';
+}
+/* veterano: stessa regola di v_compenso_turni_monitor (persone.veterano o badge 'veterano' in profile_data) */
+async function caricaVeterano(pid){
+  try{
+    const[a,b]=await Promise.all([
+      sb.from('persone').select('veterano').eq('id',pid).maybeSingle(),
+      sb.from('profile_data').select('badges').eq('persona_id',pid)
+    ]);
+    if(pid!==schedaPid)return;
+    schedaVeterano=!!(a.data&&a.data.veterano) || (b.data||[]).some(r=>Array.isArray(r.badges)&&r.badges.includes('veterano'));
+    if(guida.passo===3)disegnaGuida();
+  }catch(e){ console.warn('[veterano]',e?.message||e); }
+}
+
+/* Perche' uscire costa qualcosa, in ordine: guida iniziata · osservazione non salvata · cercato in turno e non segnato */
+function motivoUscita(){
+  if(document.getElementById('scheda').hidden || !schedaPid)return null;
+  if(guidaIniziata())return 'guida';
+  if(ossAperta && ossSporca)return 'oss';
+  if(schedaSala && schedaDaRicerca && turnoAperto() && !giaSegnato(schedaPid) && guida.passo!=='fatto')return 'ricerca';
+  return null;
+}
+function dialogoUscita(onEsci){
+  const m=motivoUscita(); if(!m)return false;
+  const N=`<b>${esc(nomeScheda())}</b>`, n=esc(nomeScheda());
+  const esci=onEsci||esciScheda;
+  if(m==='guida')
+    dialogo(giaSegnato(schedaPid)
+        ?`<p>Non hai finito di segnare ${N}. Quello che hai scritto si perde.</p>`
+        :`<p>Non hai finito di segnare ${N}. Quello che hai scritto si perde, e ${n} non risulta seguito/a: l'ora resta a 5 €.</p>`,
+      ['FINISCI ADESSO',()=>disegnaGuida(true)],['Esci senza segnare',esci]);
+  else if(m==='oss')
+    dialogo(`<p>Non hai salvato l'osservazione su ${N}. Se esci si perde.</p>`,
+      ['SALVA ADESSO',()=>{ const b=document.querySelector('#oss-form .btn.prim'); if(b){ b.scrollIntoView({behavior:'smooth',block:'center'}); salvaOss(b); } }],
+      ['Esci senza salvare',esci]);
+  else
+    dialogo(`<p>Hai seguito ${N} oggi? Se sì, rispondi alle due domande e premi SEGNA. Se non segni, non risulta.</p>`,
+      ['SEGNA ADESSO',()=>disegnaGuida(true)],["L'ho solo cercato/a, esci",esci]);
+  return true;
 }
 
 /* blocco in testa alla scheda: le note di oggi vengono da monitor_oggi, cosi' valgono anche quando la scheda e' negata */
@@ -1753,28 +1943,114 @@ function htmlSalaScheda(d){
     return `<div class="dr mia"><div class="dh">${firma} · Sala con Monitor · ${esc(m?m[1]:'')}</div>${esc(m?m[2]:x)}</div>`;
   }).join('');
   return `<section class="sch-sez sala-box"><h3>🟢 Sala con Monitor · oggi</h3>
-    ${d.soloSala?`<p class="sch-vuoto">La scheda di questa persona si apre quando sei in turno. Puoi già annotare il lavoro di oggi: il turno si apre da solo.</p>`:''}
-    <div class="frm">
-      <label for="sala-cosa">Su cosa avete lavorato?</label>
-      <input id="sala-cosa" placeholder="es. piedi sul circuito verde · prima calata in sicura · paura del vuoto">
-      <label for="sala-nota">Nota (facoltativa)</label>
-      <input id="sala-nota">
-    </div>
-    <div class="sch-btns"><button class="btn prim" onclick="salaAnnota(this)">ANNOTA</button></div>
+    ${d.soloSala?`<p class="sch-vuoto">La scheda di questa persona si apre quando sei in turno. Puoi già segnare il lavoro di oggi: il turno si apre da solo.</p>`:''}
+    <div class="guida" id="guida">${htmlGuida()}</div>
     ${righe?`<div class="diario">${righe}</div>`:''}
   </section>`;
 }
-async function salaAnnota(btn){
+function htmlGuida(){
+  const n=esc(nomeScheda()), g=guida;
+  const avv=avvisoTurnoHtml();
+  if(g.passo==='fatto')
+    return `<div class="guida-ok"><div class="spunta" aria-hidden="true">✓</div>
+      <p class="ok-tit">Fatto. ${n} è segnato/a alle ${esc(g.alle||'')}.</p>
+      <div class="sch-btns"><button class="btn prim" onclick="vaiARicerca()">SEGNA UN'ALTRA PERSONA</button>
+        <button class="btn" onclick="guidaRiparti()">TORNA ALLA SCHEDA</button></div></div>`;
+  const pall=`<div class="pallini" aria-label="Passo ${g.passo} di 3">${[1,2,3].map(i=>`<i class="${i<=g.passo?'on':''}"></i>`).join('')}<span>Passo ${g.passo} di 3</span></div>`;
+  const tit=giaSegnato(schedaPid)?`<p class="g-tit">Vuoi aggiungere qualcosa su ${n}?</p>`:'';
+  if(g.passo===3){
+    const vet=schedaVeterano;
+    const fissa=giaSegnato(schedaPid)
+      ?`Premendo SEGNA, quello che hai scritto si aggiunge alle note di oggi su ${n}.`
+      :vet?`Premendo SEGNA, ${n} risulta seguito/a oggi. È veterano/a: l'ora resta a 5 €.`
+      :`Premendo SEGNA, ${n} risulta seguito/a oggi e quest'ora vale 8 €.`;
+    return `${avv}${pall}${tit}<p class="g-dom">Controlla e segna</p>
+      <div class="riep"><b>${esc(nomeScheda(true))}</b> · oggi ${hhmm(new Date())}
+        <div><span>Su cosa:</span> ${esc(g.cosa.trim())}</div>
+        <div><span>Com'è andata:</span> ${esc(g.nota.trim())}</div></div>
+      <p class="riga-fissa">${fissa}</p>
+      <div class="sch-btns"><button class="btn" onclick="guidaVai(2)">INDIETRO</button>
+        <button class="btn prim" onclick="guidaSegna(this)">SEGNA</button></div>`;
+  }
+  const p1=g.passo===1;
+  const val=p1?g.cosa:g.nota, ok=val.trim().length>=MIN_GUIDA;
+  return `${avv}${pall}${tit}
+    <label class="g-dom" for="guida-t" style="display:block">${p1?`Su cosa avete lavorato con ${n}?`:'Com’è andata?'}</label>
+    <p class="aiuto">${p1?'Cosa avete fatto, in concreto: vie, esercizi, obiettivo.':'Cosa hai visto, cosa è cambiato, cosa riprendere la prossima volta.'}</p>
+    <textarea id="guida-t" oninput="guidaScrivi(this)" placeholder="${p1
+      ?'Piombi sul totem: 3 vie, ultima presa alta con caduta voluta. Obiettivo: paura dell&#39;altezza.'
+      :'Prima rigida, all&#39;ultima caduta pulita e contenta. Prossima volta: cadute più alte.'}">${esc(val)}</textarea>
+    <div class="sch-btns">${p1?'':`<button class="btn" onclick="guidaVai(1)">INDIETRO</button>`}
+      <button class="btn prim" id="guida-avanti" onclick="guidaVai(${g.passo+1})"${ok?'':' disabled'}>AVANTI</button></div>
+    <p class="perche" id="guida-perche"${ok?' hidden':''}>Scrivi ancora qualcosa (almeno ${MIN_GUIDA} caratteri).</p>`;
+}
+function disegnaGuida(fuoco){
+  const el=document.getElementById('guida'); if(!el)return;
+  el.innerHTML=htmlGuida();
+  if(fuoco){
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+    const t=document.getElementById('guida-t'); if(t){ t.focus({preventScroll:true}); t.setSelectionRange(t.value.length,t.value.length); }
+  }
+}
+function guidaScrivi(el){
+  guida[guida.passo===1?'cosa':'nota']=el.value;
+  const ok=el.value.trim().length>=MIN_GUIDA;
+  const b=document.getElementById('guida-avanti'); if(b)b.disabled=!ok;
+  const p=document.getElementById('guida-perche'); if(p)p.hidden=ok;
+}
+function guidaVai(n){
+  if(n>=2 && guida.cosa.trim().length<MIN_GUIDA)n=1;
+  else if(n>=3 && guida.nota.trim().length<MIN_GUIDA)n=2;
+  guida.passo=n; disegnaGuida(true);
+}
+function guidaRiparti(){
+  guida=guidaNuova(); disegnaGuida();
+  const dopo=document.querySelector('.sala-box')?.nextElementSibling;
+  if(dopo)dopo.scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function guidaSegna(btn){
   const pid=schedaPid; if(!pid)return;
-  const cosa=(document.getElementById('sala-cosa')?.value||'').trim();
-  const nota=(document.getElementById('sala-nota')?.value||'').trim()||null;
-  if(cosa.length<3){ toast('Scrivi su cosa avete lavorato.'); document.getElementById('sala-cosa')?.focus(); return; }
+  const cosa=guida.cosa.trim(), nota=guida.nota.trim();
+  if(cosa.length<MIN_GUIDA){ guidaVai(1); return; }
+  if(nota.length<MIN_GUIDA){ guidaVai(2); return; }
   btn.disabled=true;
+  /* passo 1 -> p_su_cosa, passo 2 -> p_note */
   const{error}=await sb.rpc('monitor_segna',{p_persona_id:pid,p_su_cosa:cosa,p_note:nota});
-  if(error){ btn.disabled=false; toast('Non annotato: '+error.message); return; }
-  toast('Annotato.');
-  await loadMonitor();          // turno (si apre da solo) e tabella OGGI
+  if(error){ btn.disabled=false; toast('Non segnato: '+error.message); return; }
+  if(pid===schedaPid){ guida={passo:'fatto',cosa:'',nota:'',alle:hhmm(new Date())}; disegnaGuida(true); }
+  await loadMonitor();          // turno (si apre da solo), tabella OGGI e la scheda con la conferma
   if(pid===schedaPid)caricaScheda();
+}
+
+/* ── v2.24 promemoria: turno non iniziato. Regola di Marco 23 ott: lun–ven 19–22, sabato 14–18,
+   le ore contano da INIZIO TURNO. Si calcola al caricamento e ogni 5 minuti, nessuna notifica push. ── */
+function fasciaTurno(d){ const g=d.getDay(); return g===0?null:g===6?{da:14,a:18}:{da:19,a:22}; }
+function turnoDaIniziare(){
+  if(!salaOggi || salaOggi.turno)return null; // gia' un turno oggi, aperto o chiuso
+  if(!document.getElementById('turno-corpo'))return null; // solo nelle viste con la tessera del turno
+  const ora=new Date(), f=fasciaTurno(ora); if(!f)return null;
+  const h=ora.getHours()+ora.getMinutes()/60; if(h<f.da || h>=f.a)return null;
+  const impegno=(impegniOggi||[]).some(x=>x.tipo==='monitor' && x.stato!=='assente' && !x.presenza_fine);
+  return (impegno||_salaUsata)?f.da:null;
+}
+function avvisoTurnoTesto(){
+  const da=turnoDaIniziare(); if(da==null)return '';
+  return `Il tuo turno è iniziato alle ${da}. Premi INIZIO TURNO adesso: le ore contano da quando lo premi.
+    <button class="btn prim grande" onclick="salaTurno('inizio',this)">INIZIO TURNO</button>`;
+}
+function avvisoTurnoHtml(){ const t=avvisoTurnoTesto(); return t?`<div class="avviso-ar">${t}</div>`:''; }
+function disegnaAvvisoTurno(){
+  const el=document.getElementById('avv-turno'); if(!el)return;
+  const t=avvisoTurnoTesto();
+  el.hidden=!t; el.innerHTML=t;
+}
+let _promemoriaTimer=null;
+function avviaPromemoria(){
+  if(_promemoriaTimer)return;
+  _promemoriaTimer=setInterval(()=>{
+    disegnaTurno(); loadCompensoTurno(); disegnaAvvisoTurno();
+    if(!document.getElementById('scheda').hidden && schedaSala && guida.passo===3)disegnaGuida(); // l'ora del riepilogo
+  },5*60000);
 }
 
 function disegnaSalaOggi(){
@@ -1784,7 +2060,7 @@ function disegnaSalaOggi(){
   /* in console istruttore la tabella compare solo quando c'e' qualcosa: il turno in sala e' occasionale */
   const vuota=!L.length;
   if(vista==='istruttore'){ el.hidden=vuota; const z=document.getElementById('z-sala-oggi'); if(z)z.hidden=vuota; }
-  if(vuota){ el.innerHTML='<div class="vuota-all">Nessuno ancora. Appena segui qualcuno, annotalo nella sua scheda.</div>'; return; }
+  if(vuota){ el.innerHTML='<div class="vuota-all">Nessuno ancora. Appena segui qualcuno, segnalo nella sua scheda.</div>'; return; }
   el.innerHTML=`<table class="tab"><thead><tr><th>Nome</th><th>Note</th><th>Ultimo aggiornamento</th></tr></thead><tbody>${
     L.map(x=>`<tr><td><button class="lnk" onclick="apriScheda('${esc(x.persona_id)}',true)">${esc(x.nome||'—')}</button></td>
       <td class="pre">${esc(x.note||'')}</td><td class="num">${hhmm(x.aggiornato)}</td></tr>`).join('')}</tbody></table>`;
@@ -1811,7 +2087,11 @@ function htmlCompensiTessera(){
     <div class="big" id="comp-tot">…</div>
     <span class="cmd mono">DETTAGLIO ›</span>
   </a>
-  <div class="full pann-all" id="comp-pann" hidden></div>`;
+  <div class="full pann-all" id="comp-pann" hidden></div>
+  <div class="full pann-all rend-gg">
+    <h3 class="di-tit mono">Sala per giorno · ultime 4 settimane</h3>
+    <div id="sala-gg"><div class="vuota-all">…</div></div>
+  </div>`;
 }
 let compensi=null;
 async function loadCompensi(){
@@ -1824,6 +2104,43 @@ async function loadCompensi(){
   const t=document.getElementById('comp-tot');
   if(t)t.textContent=compensi?euro(compensi.reduce((s,r)=>s+Number(r.importo||0),0)):'—';
   const p=document.getElementById('comp-pann'); if(p && !p.hidden)disegnaCompensi();
+  loadSalaPerGiorno();
+}
+
+/* v2.24 quali serate restano vuote: v_compenso_turni_monitor degli ultimi 28 giorni, per giorno della settimana.
+   La regola 5 € + 3 € per persona resta; Marco valuta la base delle serate vuote dopo un mese di dati veri. */
+async function loadSalaPerGiorno(){
+  const el=document.getElementById('sala-gg'); if(!el)return;
+  const da=new Date(); da.setDate(da.getDate()-28);
+  let L;
+  try{
+    const{data,error}=await sb.from('v_compenso_turni_monitor').select('turno_id, data, persone_seguite, compenso_eur').gte('data',isoLocal(da));
+    if(error)throw error;
+    L=data||[];
+  }catch(e){ console.error('[sala per giorno]',e); el.innerHTML='<div class="vuota-all">Non riesco a leggere i turni ora.</div>'; return; }
+  const piede=`<p class="aiuto">Contano solo i turni aperti con INIZIO TURNO e le persone segnate nella loro scheda.</p>`;
+  if(!L.length){ el.innerHTML='<div class="vuota-all">Nessun turno in Sala con Monitor nelle ultime 4 settimane.</div>'+piede; return; }
+  /* giorno_settimana come il DB: 1=Lun … 7=Dom; la domenica compare solo se c'e' un turno */
+  const G=new Map();
+  L.forEach(r=>{
+    const g=gsOggi(dLoc(r.data));
+    const x=G.get(g)||{turni:0,persone:0,costo:0,serate:new Map()};
+    x.turni++; x.persone+=Number(r.persone_seguite||0); x.costo+=Number(r.compenso_eur||0);
+    const k=String(r.data).slice(0,10); x.serate.set(k,(x.serate.get(k)||0)+Number(r.persone_seguite||0));
+    G.set(g,x);
+  });
+  const nomi=['','lunedì','martedì','mercoledì','giovedì','venerdì','sabato','domenica'];
+  const righe=[1,2,3,4,5,6,7].filter(g=>g<7||G.has(g)).map(g=>{
+    const x=G.get(g);
+    if(!x)return `<tr><td>${nomi[g]}</td><td class="num">0</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>`;
+    const media=x.persone/x.turni, vuote=[...x.serate.values()].filter(v=>v===0).length;
+    const quasi=media<1;
+    return `<tr${quasi?' class="vuota"':''}><td>${nomi[g]}</td><td class="num">${x.turni}</td><td class="num">${numIt(media)}</td>
+      <td class="num">${vuote}</td><td class="num">${euro(x.costo)}</td><td class="num">${x.persone?euro(x.costo/x.persone):'—'}</td></tr>`+
+      (quasi?`<tr class="vuota-r"><td colspan="6">Serata quasi vuota: si paga la presenza, non il lavoro.</td></tr>`:'');
+  }).join('');
+  el.innerHTML=`<table class="tab"><thead><tr><th>Giorno</th><th>Turni</th><th>Media persone a turno</th><th>Serate a 0</th><th>Costo</th><th>€ per persona</th></tr></thead>
+    <tbody>${righe}</tbody></table>${piede}`;
 }
 function apriCompensi(){
   const p=document.getElementById('comp-pann'); if(!p)return;
@@ -1887,7 +2204,7 @@ async function loadImpegniOggi(){
     }
     impegniOggi=L.map(x=>({...x,slot:slot[x.slot_id]||null}));
   }catch(e){ console.error('[impegni]',e); impegniOggi=[]; }
-  disegnaImpegniOggi();
+  disegnaImpegniOggi(); disegnaAvvisoTurno();
 }
 function disegnaImpegniOggi(){
   const box=document.getElementById('t-imp'), el=document.getElementById('imp-corpo'); if(!box||!el)return;
@@ -1906,14 +2223,20 @@ function disegnaImpegniOggi(){
       ${btn?`<div class="sch-btns">${btn}</div>`:''}</div>`;
   }).join('');
 }
-async function impPresenza(id,az,btn){
+function impPresenza(id,az,btn){
   const x=impegniOggi.find(i=>i.id===id); if(!x)return;
-  if(az==='fine' && !confirm('Hai finito? Segno l’ora di fine adesso.'))return;
+  /* v2.24: niente confirm. Il turno monitor si chiude con lo stesso riepilogo di FINE TURNO */
+  if(az==='fine' && x.tipo==='monitor' && salaOggi){ dialogoFineTurno(note=>segnaPresenza(x,az,btn,note)); return; }
+  if(az==='fine'){ dialogo('<p>Hai finito? Segno l’ora di fine adesso.</p>',['HO FINITO',()=>segnaPresenza(x,az,btn,null)],['Non ancora',null]); return; }
+  segnaPresenza(x,az,btn,null);
+}
+async function segnaPresenza(x,az,btn,note){
+  const id=x.id;
   btn.disabled=true;
   try{
     let turnoId=null;
     if(x.tipo==='monitor'){
-      const r=await sb.rpc('monitor_turno',{p_azione:az,p_note:null});
+      const r=await sb.rpc('monitor_turno',{p_azione:az,p_note:note});
       if(r.error && !(az==='fine' && /nessun turno aperto/i.test(r.error.message||'')))throw r.error;
       turnoId=r.data&&r.data.turno_id||null;
     }
