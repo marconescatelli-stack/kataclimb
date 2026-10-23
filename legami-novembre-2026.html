@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: legami-novembre-2026 v4 · 2026-10-19 · quattro settimane, non cinque: 2 prima del weekend + 2 dopo (Marco 19 ott). CUMULA v3 · 2026-10-19 · ISCRIZIONE: scade il 31 dicembre di ogni anno (Marco 19 ott). CUMULA v2 · 2026-10-18 · impegno a esserci, spostamento solo con un mese di anticipo (Marco). CUMULA v1 · 2026-10-18 · PAGINA NUOVA (regola traccia: si aggiunge). LEGAMI-K venerdì 20 nov 2026 13:30–18:00 in Accademia + domenica 22 nov su roccia insieme a ESSENCE-K (decisioni Marco 18 ott). Formule: LEGAMI-K 369 € con consenso video / 469 € intero; LEGAMI-K + Corso Advance KataClimb 2×/sett (190 €) 559 / 659 €; Intro Corda il mese dopo, a parte. Acconto 150 € o intera quota sul checkout unico (stripe-worker v3.86, legami_nov26_weekend|legami_nov26_advance, data 2026-11-20), saldo con bonifico entro 7 giorni. Testi del lavoro da Listino_Intensivi v1.4 §5 (fonti di Marco). noindex, solo su link. -->
+<!-- KC-BUILD: legami-novembre-2026 v5 · 2026-10-21 · PROPEDEUTICITA' ESPLICITA (Marco 21 ott): requisito = aver fatto ESSENCE-K (non piu' "ESSENCE-K o Corso Open"); riquadro "La scala degli intensivi" ESSENCE-K → LEGAMI-K → CUSTODE-K → FLY-K; scheda "Requisito"; spunta obbligatoria "Ho già fatto ESSENCE-K" che blocca solo il bottone (nessun campo nuovo inviato al Worker). CUMULA v4 · 2026-10-19 · quattro settimane, non cinque: 2 prima del weekend + 2 dopo (Marco 19 ott). CUMULA v3 · 2026-10-19 · ISCRIZIONE: scade il 31 dicembre di ogni anno (Marco 19 ott). CUMULA v2 · 2026-10-18 · impegno a esserci, spostamento solo con un mese di anticipo (Marco). CUMULA v1 · 2026-10-18 · PAGINA NUOVA (regola traccia: si aggiunge). LEGAMI-K venerdì 20 nov 2026 13:30–18:00 in Accademia + domenica 22 nov su roccia insieme a ESSENCE-K (decisioni Marco 18 ott). Formule: LEGAMI-K 369 € con consenso video / 469 € intero; LEGAMI-K + Corso Advance KataClimb 2×/sett (190 €) 559 / 659 €; Intro Corda il mese dopo, a parte. Acconto 150 € o intera quota sul checkout unico (stripe-worker v3.86, legami_nov26_weekend|legami_nov26_advance, data 2026-11-20), saldo con bonifico entro 7 giorni. Testi del lavoro da Listino_Intensivi v1.4 §5 (fonti di Marco). noindex, solo su link. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -130,6 +130,7 @@
 
 <style>
 /* v19 — ammissione su chiamata: WhatsApp primario, pagamento secondario */
+.scala{border:2px solid var(--deep);border-left:6px solid var(--rope);border-radius:4px;padding:14px 16px;margin:18px 0 0;background:#fff;font-size:16px;line-height:1.55}
 .posti{border:2px solid var(--deep);border-radius:4px;padding:16px 18px;margin-top:22px;background:#fff}
 .posti h3{margin:0 0 6px;font-size:19px}
 .posti p{margin:6px 0 0;font-size:16px;line-height:1.5}
@@ -185,7 +186,8 @@
 
   <p><strong>Cosa ottieni.</strong> Entri nella corda. Impari a legarti, a parlare con chi ti tiene, a salire da primo di cordata: il primo passo del Corso Intro Corda KataClimb, vissuto con Marco in un weekend.</p>
   <p><strong>Su cosa lavora.</strong> Sulla responsabilità e sulla fiducia: la tua vita nelle mani di un altro, quella dell'altro nelle tue. La paura di sbagliare, la dipendenza dall'altro — e come diventano legame.</p>
-  <p><strong>Per chi.</strong> Per chi ha già fatto ESSENCE-K o il Corso Open KataClimb. Si entra su proposta di Marco, dopo una chiamata.</p>
+  <p><strong>Per chi.</strong> Per chi ha già fatto ESSENCE-K: è il requisito per entrare. Si entra su proposta di Marco, dopo una chiamata.</p>
+  <p class="scala"><strong>La scala degli intensivi.</strong> Ogni passo apre il successivo, in quest'ordine: <b>ESSENCE-K</b> → <b>LEGAMI-K</b> → <b>CUSTODE-K</b> → <b>FLY-K</b>. Non si salta un passo.</p>
 
   <div class="work">
     <div class="kicker dark">In concreto</div>
@@ -212,7 +214,7 @@
   <div class="facts">
     <div><span>Con chi</span><b>Marco Nescatelli in persona</b></div>
     <div><span>Gruppo</span><b>Massimo 8 persone</b></div>
-    <div><span>Livello</span><b>Dopo ESSENCE-K o Open</b></div>
+    <div><span>Requisito</span><b>Aver fatto ESSENCE-K</b></div>
     <div><span>Materiali</span><b>Imbrago, corde, rinvii forniti</b></div>
   </div>
 </section>
@@ -335,6 +337,7 @@
       </div>
     </div>
     <p class="riepilogo" id="f-riepilogo" aria-live="polite"></p>
+    <label class="spunta"><input type="checkbox" id="f-requisito"> <span>Ho già fatto ESSENCE-K: è il requisito per LEGAMI-K.</span></label>
     <label class="spunta"><input type="checkbox" id="f-regolamento"> <span>Ho letto e accetto il <a href="regolamento-accademia.html" target="_blank" rel="noopener">regolamento dell'Accademia RCC</a>.</span></label>
     <label class="spunta"><input type="checkbox" id="f-termini"> <span>Ho letto e accetto <a href="legami-novembre-2026-termini.html" target="_blank" rel="noopener">termini e liberatoria di LEGAMI-K</a>: pagamento, rinuncia, salute, rischio e dati. Confermo di essere maggiorenne.</span></label>
     <p class="btnnote">Dopo il pagamento ti chiediamo una foto del viso: è necessaria come documentazione della tua iscrizione.</p>
@@ -431,6 +434,7 @@
     if (!v.nome || !v.cognome) return mostraErrore('Scrivi nome e cognome.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) return mostraErrore('Controlla l\'email: serve per entrare nel portale.');
     if (v.telefono.replace(/\D/g,'').length < 6) return mostraErrore('Scrivi un numero di telefono valido.');
+    if (!document.getElementById('f-requisito').checked) return mostraErrore('LEGAMI-K viene dopo ESSENCE-K: spunta la conferma di averlo fatto. Se non l\'hai ancora fatto, il tuo passo è ESSENCE-K:', true);
     if (!document.getElementById('f-regolamento').checked) return mostraErrore('Per continuare leggi e accetta il regolamento dell\'Accademia RCC.');
     if (!document.getElementById('f-termini').checked) return mostraErrore('Per continuare spunta l\'accettazione di termini e liberatoria.');
 
