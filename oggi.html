@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.26 · 2026-10-23 · FINE TURNO EVIDENTE (collaudo Marco 23 ott 11:58 e 12:01: a turno aperto non trovava come chiudere, e lo cercava dentro la scheda dopo aver segnato Lorenzo). (1) Nella tessera TURNO il bottone torna FINE TURNO, rosso pieno #A51515 (il rosso di ADESSO v2.17) con testo bianco, grande come INIZIO TURNO, sotto SEGNA CHI STAI SEGUENDO. (2) BARRA FISSA DEL TURNO a turno aperto, nelle viste con il turno (monitor e istruttore): sopra la barra di navigazione e, a scheda aperta, in fondo alla scheda a schermo intero e sopra di essa; "In turno dalle HH:MM · N segnati" e FINE TURNO rosso, che apre lo stesso riepilogo dialogoFineTurno; dentro una scheda con qualcosa da non perdere (guida a meta', osservazione non salvata, persona aperta e non segnata) prima il dialogo della v2.24, poi il riepilogo; con il turno chiuso sparisce; spazio in fondo a pagina e scheda. (3) Chiusura automatica a DB (chiudi_turni_monitor_automatico, dal 23 ott): sotto "In turno dalle", in tessera e barra, "si chiude da solo alle HH:MM" da fine_turno_prevista_turno(turno_id). (4) CAMBIO TURNO: INIZIO TURNO (e SONO QUI dell'impegno monitor) chiede prima monitor_turni_aperti_altri(); con un collega in turno "Nome e' in turno dalle HH:MM. E' un cambio?" SI', CHIUDO IL SUO TURNO -> monitor_cambio_turno(turno_id) e poi il mio inizio · NO, SIAMO IN DUE -> solo il mio; con piu' colleghi una riga ciascuno con il suo SI'; errore = toast con il motivo e il turno si apre lo stesso. Nessuna modifica a RPC o tabelle. CUMULA v2.25 (sotto). -->
 <!-- KC-BUILD: oggi v2.25 · 2026-10-23 · GRIGLIA "CHI STAI SEGUENDO" (consegna Claude 23 ott, integra il portale guida §0bis): la tessera CHI STAI SEGUENDO mostra la griglia di chi puo' essere in sala oggi da sala_papabili_oggi() (gia' ordinata, senza veterani) in tre fasce, Prenotati oggi (con l'orario) · Allievi con sala attiva · Visti di recente in sala, le vuote non si mostrano; tessera persona con foto di riconoscimento (URL firmati come prima) o 📷 "manca la foto", nome e cognome; gia' segnato oggi = bordo verde, spunta, "segnato alle HH:MM", resta toccabile; tocco -> apriScheda(persona_id, true) con la guida a passi; in fondo "Non lo trovi? Cerca per nome" apre la ricerca di prima (cerca_persona_staff, anche per i veterani); 3 tessere per riga sul telefono, 6 su schermo largo; si ricarica a ogni loadMonitor, quindi dopo ogni SEGNA; con errore della RPC "Non riesco a caricare la sala ora." e sotto la ricerca. SEGNA CHI STAI SEGUENDO, SEGNA UN'ALTRA PERSONA, SEGNA QUALCUN ALTRO e il promemoria portano alla griglia. FOTO DI RICONOSCIMENTO SCATTATA DAL MONITOR: nella guida, per chi non ha la foto, un passo Foto prima del passo 1, saltabile (SCATTA FOTO con input file capture=user · Non adesso; anteprima, USA QUESTA · RIFAI); ridotta a 800 px sul lato lungo, JPEG 0.85, caricata nel bucket riconoscimento in persone/<persona_id>/staff-<timestamp>.jpg, poi staff_salva_foto_riconoscimento(p_persona_id, p_path); "Non adesso" vale fino a domani (solo in memoria della pagina); un errore di caricamento da' il toast con il motivo e la guida prosegue, la foto non blocca mai il SEGNA. Nessuna modifica a RPC o tabelle. CUMULA v2.24 (sotto). -->
 <!-- KC-BUILD: oggi v2.24 · 2026-10-23 · IL PORTALE GUIDA, SALA CON MONITOR (consegna Claude 23 ott, principio di Marco: la procedura e' dichiarata e sostenuta, non affidata alla memoria). (0) Tessera TURNO che chiede: a turno chiuso "Sei in sala? Inizia il turno." + INIZIO TURNO; a turno aperto "Cosa vuoi fare?" + SEGNA CHI STAI SEGUENDO (cursore nella ricerca) · CHIUDI IL TURNO; sotto, sempre, "Oggi hai segnato N persone" con i nomi. (1) Scheda in sala: al posto delle due caselle una guida a 3 passi con pallini (Su cosa avete lavorato con Nome? · Com'e' andata? · Controlla e segna), minimo 10 caratteri per passo con il motivo sotto AVANTI spento, riepilogo con la riga sugli 8 € (veterano: resta a 5 €, letto da persone.veterano e profile_data.badges come v_compenso_turni_monitor), SEGNA -> monitor_segna(p_persona_id, passo 1 in p_su_cosa, passo 2 in p_note), conferma verde con SEGNA UN'ALTRA PERSONA · TORNA ALLA SCHEDA; persona gia' segnata: "Vuoi aggiungere qualcosa su Nome?". (2) Uscita dalla scheda con dialogo della pagina (niente confirm): guida iniziata e non segnata, persona aperta dalla ricerca in turno e non segnata, Nuova osservazione scritta e non salvata; vale per il bottone ←, Esc, il gesto indietro (popstate rimette lo stato e chiude solo su "Esci…") e le voci della barra; beforeunload solo con testo non salvato. (3) FINE TURNO (anche HO FINITO dell'impegno monitor): dialogo di riepilogo con le persone segnate, avviso con 0, la nota di fine turno "Com'e' andata la sala in generale (facoltativo)" spostata nel dialogo; SEGNA QUALCUN ALTRO · Chiudi il turno. HO FINITO delle lezioni: dialogo al posto di confirm. (4) Promemoria calcolati al caricamento e ogni 5 minuti: in turno da piu' di 45 minuti con 0 persone; turno non iniziato dopo le 19 (sabato 14, domenica no) con impegno monitor oggi o dopo aver aperto una scheda in sala, in cima a Oggi e in testa alla guida. (4bis) Rendiconto creator/admin: tabella Sala per giorno · ultime 4 settimane da v_compenso_turni_monitor (turni, media persone a turno, serate a 0, costo, costo per persona; media sotto 1 in arancio). Nessuna modifica a RPC o tabelle. CUMULA v2.23 (sotto). -->
 <!-- KC-BUILD: oggi v2.23 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): (1) tessera "I tuoi impegni · oggi" (impegni_staff dell'utente di oggi, stato diverso da ritirato) in tutte le viste staff, anche per lo staff senza console propria (es. staff_assistente, vista allievo): SONO QUI -> impegno_presenza(id,'inizio'), HO FINITO -> 'fine'; per i turni monitor gli stessi bottoni chiamano anche monitor_turno inizio/fine e l'id del turno si salva in impegni_staff.turno_monitor_id (update della propria riga). Al contrario INIZIO/FINE TURNO della tessera Sala allineano l'impegno monitor di oggi piu' vicino all'ora. (2) tessera Turni -> turni.html in console istruttore, monitor, segreteria. (3) nel turno, riga del compenso da v_compenso_turni_monitor ("2h 15 · 1 persona seguita · 8 + 5 + 1,25 = 14,25 €"), ricaricata a ogni monitor_segna. (4) scheda didattica: Temi affrontati, Criticita' (solo staff), Trasformazione osservata, Da implementare alla prossima (solo staff) sopra le scale; blocco "Per l'allievo" con per_allievo e l'interruttore Mostra all'allievo (visibile_allievo), mostrati anche nelle osservazioni gia' scritte. salva_osservazione riceve i nuovi campi con gli stessi nomi. CUMULA v2.22 (sotto). -->
@@ -473,6 +474,22 @@ body{font-size:17px}
 @media (min-width:900px){ .sg-griglia{grid-template-columns:repeat(6,1fr)} }
 .guida .foto-ant{display:block; width:100%; max-width:320px; margin:10px auto 0; border-radius:14px; border:1px solid #3A3A40}
 .guida .foto-in{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
+/* v2.26 fine turno evidente: rosso di ADESSO (v2.17), bianco su #A51515 = 7,7:1 */
+.btn.btn-fine{background:#A51515; border-color:#A51515; color:#fff; font-weight:800}
+.turno-auto{font-size:14px; color:#C9C9CE; margin:-2px 0 4px}
+.barra-turno{position:fixed; left:50%; transform:translateX(-50%); bottom:var(--nav-h,64px); width:100%; max-width:480px; z-index:10005;
+  min-height:60px; display:flex; align-items:center; gap:10px; padding:8px 12px; background:#1E1E1E; border-top:3px solid #A51515; box-shadow:0 -6px 18px rgba(0,0,0,.5)}
+.barra-turno[hidden]{display:none}
+body.sch-on .barra-turno{bottom:0; padding-bottom:max(8px, env(safe-area-inset-bottom))}
+.barra-turno .bt-txt{flex:1; min-width:0; font-size:15px; line-height:1.25; color:var(--bianco)}
+.barra-turno .bt-txt small{display:block; font-size:13px; color:#C9C9CE; margin-top:2px}
+.barra-turno .btn-fine{flex:none; font-size:15px; padding:14px 16px}
+body.turno-on{padding-bottom:calc(var(--nav-h,64px) + 84px)}
+body.turno-on .sch-corpo{padding-bottom:110px}
+.cambio-r{padding:12px 0; border-top:1px solid #3A3A40}
+.cambio-r .btn{width:100%; margin-top:8px; font-size:15px; padding:14px}
+@media (min-width:900px){ .barra-turno{max-width:760px} }
+@media (min-width:1200px){ .barra-turno{max-width:1280px} }
 .rend-gg{margin-top:0}
 .rend-gg .tab tr.vuota td{color:#FFB340}
 .rend-gg .tab tr.vuota-r td{color:#FFB340; font-size:13px; padding-top:0}
@@ -515,6 +532,12 @@ body{font-size:17px}
 <div class="scheda" id="scheda" hidden role="dialog" aria-modal="true" aria-label="Scheda Allievo">
   <button class="sch-back" aria-label="Chiudi la scheda" onclick="chiudiScheda()">←</button>
   <div class="sch-corpo" id="sch-corpo"></div>
+</div>
+
+<!-- v2.26 barra fissa del turno: sopra la barra di navigazione e sopra la scheda a schermo intero -->
+<div class="barra-turno" id="barra-turno" hidden role="region" aria-label="Turno in corso">
+  <div class="bt-txt"><b id="bt-stato"></b><small id="bt-auto"></small></div>
+  <button class="btn btn-fine" onclick="fineTurnoDaBarra(this)">FINE TURNO</button>
 </div>
 
 <!-- v2.24 dialogo della pagina al posto di confirm(): un testo e due bottoni grandi -->
@@ -1354,14 +1377,14 @@ function apriScheda(pid,sala,origine){
   const s=document.getElementById('scheda');
   document.getElementById('sch-corpo').innerHTML=`<p class="sch-vuoto">Un attimo, apro la scheda…</p>`;
   s.hidden=false; s.scrollTop=0;
-  document.body.style.overflow='hidden';
+  document.body.style.overflow='hidden'; document.body.classList.add('sch-on');
   /* il tasto indietro del telefono chiude la scheda, non la pagina */
   if(!schedaInHistory){ history.pushState({kcScheda:1},''); schedaInHistory=true; }
   caricaScheda();
 }
 function nascondiScheda(){
   document.getElementById('scheda').hidden=true;
-  document.body.style.overflow='';
+  document.body.style.overflow=''; document.body.classList.remove('sch-on');
   schedaPid=null; schedaDati=null; ossAperta=false; schedaSala=false;
   if(guida)fotoLibera();
   guida=guidaNuova(); schedaDaRicerca=false; schedaVeterano=false; ossSporca=false; _esciOk=false;
@@ -1807,12 +1830,14 @@ async function loadMonitor(){
     salaOggi=data||{turno:null,seguiti:[],storico:[]};
   }catch(e){ console.error('[monitor]',e); salaOggi=null; }
   disegnaTurno(); disegnaSalaOggi(); disegnaTurni(); disegnaAvvisoTurno(); avviaPromemoria();
+  loadFinePrevista();
   loadPapabili(); // v2.25: dopo ogni SEGNA le spunte della griglia sono aggiornate
   loadCompensoTurno();
   if(schedaSala && schedaDati && !document.getElementById('scheda').hidden)disegnaScheda();
 }
 
 function disegnaTurno(){
+  aggiornaBarraTurno();
   const el=document.getElementById('turno-corpo'); if(!el)return;
   if(!salaOggi){ el.innerHTML='<p class="vuota-all">Non riesco a leggere il turno ora. Riprova tra poco.</p>'; return; }
   const t=salaOggi.turno, L=salaOggi.seguiti||[], n=L.length;
@@ -1821,13 +1846,14 @@ function disegnaTurno(){
   if(t && !t.fine){
     const min=Math.floor((Date.now()-new Date(t.inizio).getTime())/60000);
     const avv=(min>45 && !n)?`<div class="avviso-ar">Sei in turno da ${Math.floor(min/60)}h ${pad2(min%60)}m e non hai segnato nessuno. <button class="lnk" onclick="vaiAllaGriglia()">Chi stai seguendo?</button></div>`:'';
-    el.innerHTML=`<p class="turno-stato">In turno dalle <b>${hhmm(t.inizio)}</b></p>
+    const auto=_finePrev.id===t.id&&_finePrev.ora?`<p class="turno-auto">si chiude da solo alle ${_finePrev.ora}</p>`:'';
+    el.innerHTML=`<p class="turno-stato">In turno dalle <b>${hhmm(t.inizio)}</b></p>${auto}
       <p class="turno-comp" id="turno-comp"></p>
       ${avv}
       <p class="turno-dom">Cosa vuoi fare?</p>
       <div class="turno-btns">
         <button class="btn prim grande" onclick="vaiAllaGriglia()">SEGNA CHI STAI SEGUENDO</button>
-        <button class="btn fine" onclick="salaTurno('fine',this)">CHIUDI IL TURNO</button>
+        <button class="btn prim grande btn-fine" onclick="salaTurno('fine',this)">FINE TURNO</button>
       </div>${oggiTxt}`;
     return;
   }
@@ -1838,7 +1864,64 @@ function disegnaTurno(){
 async function salaTurno(az,btn){
   /* v2.24: niente confirm, prima di chiudere il riepilogo di chi hai segnato */
   if(az==='fine'){ dialogoFineTurno(note=>eseguiTurno('fine',btn,note)); return; }
-  eseguiTurno(az,btn,null);
+  chiediCambio(()=>eseguiTurno(az,btn,null)); // v2.26: prima si guarda se e' un cambio
+}
+
+/* ── v2.26 barra fissa del turno e ora della chiusura automatica ── */
+let _finePrev={id:null,ora:null};
+async function loadFinePrevista(){
+  const t=salaOggi&&salaOggi.turno; if(!t||t.fine||_finePrev.id===t.id)return;
+  try{
+    const{data,error}=await sb.rpc('fine_turno_prevista_turno',{p_turno_id:t.id});
+    if(error)throw error;
+    _finePrev={id:t.id,ora:data?hhmm(data):null};
+  }catch(e){ console.warn('[fine prevista]',e?.message||e); return; }
+  disegnaTurno(); loadCompensoTurno();
+}
+function aggiornaBarraTurno(){
+  const b=document.getElementById('barra-turno'); if(!b)return;
+  const t=salaOggi&&salaOggi.turno;
+  const on=!!(document.getElementById('turno-corpo') && t && !t.fine);
+  b.hidden=!on; document.body.classList.toggle('turno-on',on);
+  if(!on)return;
+  const nav=document.querySelector('nav.bar'); if(nav)document.documentElement.style.setProperty('--nav-h',nav.offsetHeight+'px');
+  const n=(salaOggi.seguiti||[]).length;
+  document.getElementById('bt-stato').textContent=`In turno dalle ${hhmm(t.inizio)} · ${n} ${n===1?'segnato':'segnati'}`;
+  document.getElementById('bt-auto').textContent=_finePrev.id===t.id&&_finePrev.ora?`si chiude da solo alle ${_finePrev.ora}`:'';
+}
+window.addEventListener('resize',()=>aggiornaBarraTurno());
+/* dentro una scheda con qualcosa da non perdere, prima il dialogo della v2.24, poi il riepilogo */
+function fineTurnoDaBarra(btn){
+  const chiudi=()=>salaTurno('fine',btn);
+  if(!document.getElementById('scheda').hidden && dialogoUscita(()=>{ esciScheda(); setTimeout(chiudi,150); }))return;
+  chiudi();
+}
+
+/* ── v2.26 cambio turno: "Claudia fa dalle 19 alle 20 e Mattia dalle 20 alle 22" ── */
+let _cambio={altri:[],poi:null};
+async function chiediCambio(poi){
+  let altri;
+  try{
+    const{data,error}=await sb.rpc('monitor_turni_aperti_altri');
+    if(error)throw error;
+    altri=data||[];
+  }catch(e){ toast('Non riesco a vedere chi è in turno: '+(e?.message||e)); return poi(); }
+  if(!altri.length)return poi();
+  _cambio={altri,poi};
+  const riga=a=>`<b>${esc(a.nome||'Un collega')}</b> è in turno dalle ${hhmm(a.inizio)}. È un cambio?`;
+  if(altri.length===1)
+    dialogo(`<p>${riga(altri[0])}</p>`,['SÌ, CHIUDO IL SUO TURNO',()=>cambioTurno(0)],['NO, SIAMO IN DUE',()=>poi()]);
+  else
+    dialogo(altri.map((a,i)=>`<div class="cambio-r"><p>${riga(a)}</p>
+      <button class="btn btn-fine" onclick="chiudiDialogo();cambioTurno(${i})">SÌ, CHIUDO IL SUO TURNO</button></div>`).join(''),
+      ['NO, SIAMO IN DUE',()=>poi()],null);
+}
+async function cambioTurno(i){
+  const a=_cambio.altri[i], poi=_cambio.poi; if(!a||!poi)return;
+  const{error}=await sb.rpc('monitor_cambio_turno',{p_turno_id:a.turno_id});
+  await poi(); // il mio turno si apre comunque
+  /* dopo il toast del mio inizio, cosi' il motivo dell'errore non si perde */
+  toast(error?'Cambio non registrato: '+error.message:`Cambio fatto: il turno di ${a.nome||'un collega'} è chiuso.`);
 }
 async function eseguiTurno(az,btn,note){
   if(btn)btn.disabled=true;
@@ -1873,8 +1956,8 @@ let _dlgFn=[null,null];
 function dialogo(testoHtml,primo,secondo){
   document.getElementById('dlg-testo').innerHTML=testoHtml;
   const b1=document.getElementById('dlg-1'), b2=document.getElementById('dlg-2');
-  b1.textContent=primo[0]; b2.textContent=secondo[0];
-  _dlgFn=[primo[1]||null,secondo[1]||null];
+  b1.textContent=primo[0]; b2.textContent=secondo?secondo[0]:''; b2.hidden=!secondo;
+  _dlgFn=[primo[1]||null,(secondo&&secondo[1])||null];
   document.getElementById('dlg').hidden=false;
   b1.focus();
 }
@@ -2364,6 +2447,7 @@ function impPresenza(id,az,btn){
   /* v2.24: niente confirm. Il turno monitor si chiude con lo stesso riepilogo di FINE TURNO */
   if(az==='fine' && x.tipo==='monitor' && salaOggi){ dialogoFineTurno(note=>segnaPresenza(x,az,btn,note)); return; }
   if(az==='fine'){ dialogo('<p>Hai finito? Segno l’ora di fine adesso.</p>',['HO FINITO',()=>segnaPresenza(x,az,btn,null)],['Non ancora',null]); return; }
+  if(az==='inizio' && x.tipo==='monitor'){ chiediCambio(()=>segnaPresenza(x,az,btn,null)); return; }
   segnaPresenza(x,az,btn,null);
 }
 async function segnaPresenza(x,az,btn,note){
