@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.25 · 2026-10-23 · GRIGLIA "CHI STAI SEGUENDO" (consegna Claude 23 ott, integra il portale guida §0bis): la tessera CHI STAI SEGUENDO mostra la griglia di chi puo' essere in sala oggi da sala_papabili_oggi() (gia' ordinata, senza veterani) in tre fasce, Prenotati oggi (con l'orario) · Allievi con sala attiva · Visti di recente in sala, le vuote non si mostrano; tessera persona con foto di riconoscimento (URL firmati come prima) o 📷 "manca la foto", nome e cognome; gia' segnato oggi = bordo verde, spunta, "segnato alle HH:MM", resta toccabile; tocco -> apriScheda(persona_id, true) con la guida a passi; in fondo "Non lo trovi? Cerca per nome" apre la ricerca di prima (cerca_persona_staff, anche per i veterani); 3 tessere per riga sul telefono, 6 su schermo largo; si ricarica a ogni loadMonitor, quindi dopo ogni SEGNA; con errore della RPC "Non riesco a caricare la sala ora." e sotto la ricerca. SEGNA CHI STAI SEGUENDO, SEGNA UN'ALTRA PERSONA, SEGNA QUALCUN ALTRO e il promemoria portano alla griglia. FOTO DI RICONOSCIMENTO SCATTATA DAL MONITOR: nella guida, per chi non ha la foto, un passo Foto prima del passo 1, saltabile (SCATTA FOTO con input file capture=user · Non adesso; anteprima, USA QUESTA · RIFAI); ridotta a 800 px sul lato lungo, JPEG 0.85, caricata nel bucket riconoscimento in persone/<persona_id>/staff-<timestamp>.jpg, poi staff_salva_foto_riconoscimento(p_persona_id, p_path); "Non adesso" vale fino a domani (solo in memoria della pagina); un errore di caricamento da' il toast con il motivo e la guida prosegue, la foto non blocca mai il SEGNA. Nessuna modifica a RPC o tabelle. CUMULA v2.24 (sotto). -->
 <!-- KC-BUILD: oggi v2.24 · 2026-10-23 · IL PORTALE GUIDA, SALA CON MONITOR (consegna Claude 23 ott, principio di Marco: la procedura e' dichiarata e sostenuta, non affidata alla memoria). (0) Tessera TURNO che chiede: a turno chiuso "Sei in sala? Inizia il turno." + INIZIO TURNO; a turno aperto "Cosa vuoi fare?" + SEGNA CHI STAI SEGUENDO (cursore nella ricerca) · CHIUDI IL TURNO; sotto, sempre, "Oggi hai segnato N persone" con i nomi. (1) Scheda in sala: al posto delle due caselle una guida a 3 passi con pallini (Su cosa avete lavorato con Nome? · Com'e' andata? · Controlla e segna), minimo 10 caratteri per passo con il motivo sotto AVANTI spento, riepilogo con la riga sugli 8 € (veterano: resta a 5 €, letto da persone.veterano e profile_data.badges come v_compenso_turni_monitor), SEGNA -> monitor_segna(p_persona_id, passo 1 in p_su_cosa, passo 2 in p_note), conferma verde con SEGNA UN'ALTRA PERSONA · TORNA ALLA SCHEDA; persona gia' segnata: "Vuoi aggiungere qualcosa su Nome?". (2) Uscita dalla scheda con dialogo della pagina (niente confirm): guida iniziata e non segnata, persona aperta dalla ricerca in turno e non segnata, Nuova osservazione scritta e non salvata; vale per il bottone ←, Esc, il gesto indietro (popstate rimette lo stato e chiude solo su "Esci…") e le voci della barra; beforeunload solo con testo non salvato. (3) FINE TURNO (anche HO FINITO dell'impegno monitor): dialogo di riepilogo con le persone segnate, avviso con 0, la nota di fine turno "Com'e' andata la sala in generale (facoltativo)" spostata nel dialogo; SEGNA QUALCUN ALTRO · Chiudi il turno. HO FINITO delle lezioni: dialogo al posto di confirm. (4) Promemoria calcolati al caricamento e ogni 5 minuti: in turno da piu' di 45 minuti con 0 persone; turno non iniziato dopo le 19 (sabato 14, domenica no) con impegno monitor oggi o dopo aver aperto una scheda in sala, in cima a Oggi e in testa alla guida. (4bis) Rendiconto creator/admin: tabella Sala per giorno · ultime 4 settimane da v_compenso_turni_monitor (turni, media persone a turno, serate a 0, costo, costo per persona; media sotto 1 in arancio). Nessuna modifica a RPC o tabelle. CUMULA v2.23 (sotto). -->
 <!-- KC-BUILD: oggi v2.23 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): (1) tessera "I tuoi impegni · oggi" (impegni_staff dell'utente di oggi, stato diverso da ritirato) in tutte le viste staff, anche per lo staff senza console propria (es. staff_assistente, vista allievo): SONO QUI -> impegno_presenza(id,'inizio'), HO FINITO -> 'fine'; per i turni monitor gli stessi bottoni chiamano anche monitor_turno inizio/fine e l'id del turno si salva in impegni_staff.turno_monitor_id (update della propria riga). Al contrario INIZIO/FINE TURNO della tessera Sala allineano l'impegno monitor di oggi piu' vicino all'ora. (2) tessera Turni -> turni.html in console istruttore, monitor, segreteria. (3) nel turno, riga del compenso da v_compenso_turni_monitor ("2h 15 · 1 persona seguita · 8 + 5 + 1,25 = 14,25 €"), ricaricata a ogni monitor_segna. (4) scheda didattica: Temi affrontati, Criticita' (solo staff), Trasformazione osservata, Da implementare alla prossima (solo staff) sopra le scale; blocco "Per l'allievo" con per_allievo e l'interruttore Mostra all'allievo (visibile_allievo), mostrati anche nelle osservazioni gia' scritte. salva_osservazione riceve i nuovi campi con gli stessi nomi. CUMULA v2.22 (sotto). -->
 <!-- KC-BUILD: oggi v2.22 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott): SLOT DATATI nella console istruttore. Uno slot con data_evento (lezioni delle scuole, prima_lezione_scuola e scuola_mini) compare solo nel giorno della sua data: prima, letto solo per giorno_settimana, sarebbe comparso ogni settimana. Nient'altro. CUMULA v2.21 (sotto). -->
@@ -452,6 +453,26 @@ body{font-size:17px}
 .dlg-btns{display:flex; flex-direction:column; gap:10px; margin-top:18px}
 .dlg-btns .btn{width:100%; font-size:16px; padding:16px}
 @media (min-width:700px){ .dlg{align-items:center} }
+/* v2.25 griglia chi stai seguendo e passo Foto */
+.sg-fascia{font-size:14px; font-weight:800; letter-spacing:.06em; color:var(--titolo); margin:14px 0 8px}
+.sg-fascia:first-child{margin-top:4px}
+.sg-griglia{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.sg-t{position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 6px 12px; background:#141414; border:1px solid #3A3A40; border-radius:14px;
+  color:var(--bianco); font:inherit; text-align:center; cursor:pointer; min-width:0}
+.sg-t .av{width:64px; height:64px; font-size:20px}
+.sg-t .sg-nofoto{width:64px; height:64px; border-radius:50%; border:2px dashed #6A6A72; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; line-height:1}
+.sg-t .sg-nofoto small{font-size:13px; color:#C9C9CE; margin-top:2px; line-height:1.1}
+.sg-t .sg-nome{font-size:17px; font-weight:700; line-height:1.2; overflow-wrap:anywhere}
+.sg-t .sg-ora{font-size:14px; color:#E5E5EA}
+.sg-t.on{border:2px solid var(--cordata); background:rgba(48,209,88,.08)}
+.sg-t .sg-ok{position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:#1E6B34; color:#fff; font-size:15px; line-height:24px; font-weight:800}
+.sg-t .sg-alle{font-size:14px; color:var(--cordata); font-weight:700}
+.sg-cerca-btn{margin-top:14px; width:100%}
+.sg-cerca{margin-top:10px}
+.sg-cerca[hidden]{display:none}
+@media (min-width:900px){ .sg-griglia{grid-template-columns:repeat(6,1fr)} }
+.guida .foto-ant{display:block; width:100%; max-width:320px; margin:10px auto 0; border-radius:14px; border:1px solid #3A3A40}
+.guida .foto-in{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
 .rend-gg{margin-top:0}
 .rend-gg .tab tr.vuota td{color:#FFB340}
 .rend-gg .tab tr.vuota-r td{color:#FFB340; font-size:13px; padding-top:0}
@@ -1342,6 +1363,7 @@ function nascondiScheda(){
   document.getElementById('scheda').hidden=true;
   document.body.style.overflow='';
   schedaPid=null; schedaDati=null; ossAperta=false; schedaSala=false;
+  if(guida)fotoLibera();
   guida=guidaNuova(); schedaDaRicerca=false; schedaVeterano=false; ossSporca=false; _esciOk=false;
 }
 /* v2.24: prima di chiudere, se c'e' qualcosa da non perdere, la pagina lo chiede (dialogoUscita).
@@ -1760,10 +1782,14 @@ function htmlSalaTessere(){
     <p class="turno-regola">${RIGA_COMPENSO}</p>
   </div>
 
-  <div class="t full fermo t-segui">
+  <div class="t full fermo t-segui" id="t-segui">
     <span class="et mono">🔎 Chi stai seguendo</span>
-    <div class="frm"><input id="sala-q" type="search" autocomplete="off" placeholder="Cerca l'allievo" oninput="salaCerca(this.value)"></div>
-    <div id="sala-ris"></div>
+    <div id="sala-griglia"><p class="vuota-all">…</p></div>
+    <button class="btn sg-cerca-btn" onclick="apriCercaNome()">Non lo trovi? Cerca per nome</button>
+    <div class="sg-cerca" id="sala-cerca" hidden>
+      <div class="frm"><input id="sala-q" type="search" autocomplete="off" placeholder="Cerca l'allievo" oninput="salaCerca(this.value)"></div>
+      <div id="sala-ris"></div>
+    </div>
   </div>`;
 }
 function htmlSalaTabelle(){
@@ -1781,6 +1807,7 @@ async function loadMonitor(){
     salaOggi=data||{turno:null,seguiti:[],storico:[]};
   }catch(e){ console.error('[monitor]',e); salaOggi=null; }
   disegnaTurno(); disegnaSalaOggi(); disegnaTurni(); disegnaAvvisoTurno(); avviaPromemoria();
+  loadPapabili(); // v2.25: dopo ogni SEGNA le spunte della griglia sono aggiornate
   loadCompensoTurno();
   if(schedaSala && schedaDati && !document.getElementById('scheda').hidden)disegnaScheda();
 }
@@ -1793,13 +1820,13 @@ function disegnaTurno(){
   const oggiTxt=`<p class="turno-oggi">Oggi hai segnato <b>${n}</b> ${n===1?'persona':'persone'}${n?': '+L.map(x=>esc(x.nome||'—')).join(', '):'.'}</p>`;
   if(t && !t.fine){
     const min=Math.floor((Date.now()-new Date(t.inizio).getTime())/60000);
-    const avv=(min>45 && !n)?`<div class="avviso-ar">Sei in turno da ${Math.floor(min/60)}h ${pad2(min%60)}m e non hai segnato nessuno. <button class="lnk" onclick="vaiARicerca()">Chi stai seguendo?</button></div>`:'';
+    const avv=(min>45 && !n)?`<div class="avviso-ar">Sei in turno da ${Math.floor(min/60)}h ${pad2(min%60)}m e non hai segnato nessuno. <button class="lnk" onclick="vaiAllaGriglia()">Chi stai seguendo?</button></div>`:'';
     el.innerHTML=`<p class="turno-stato">In turno dalle <b>${hhmm(t.inizio)}</b></p>
       <p class="turno-comp" id="turno-comp"></p>
       ${avv}
       <p class="turno-dom">Cosa vuoi fare?</p>
       <div class="turno-btns">
-        <button class="btn prim grande" onclick="vaiARicerca()">SEGNA CHI STAI SEGUENDO</button>
+        <button class="btn prim grande" onclick="vaiAllaGriglia()">SEGNA CHI STAI SEGUENDO</button>
         <button class="btn fine" onclick="salaTurno('fine',this)">CHIUDI IL TURNO</button>
       </div>${oggiTxt}`;
     return;
@@ -1868,22 +1895,63 @@ function dialogoFineTurno(chiudi){
     <p>Hai seguito qualcun altro? Segnalo prima di chiudere. Le persone scritte nella nota di fine turno non contano.</p>
     <div class="frm"><label for="dlg-nota">Com'è andata la sala in generale (facoltativo)</label><textarea id="dlg-nota"></textarea>
       <p class="aiuto">Qui non si segnano le persone: usa la loro scheda.</p></div>`,
-    ["SEGNA QUALCUN ALTRO",()=>vaiARicerca()],
+    ["SEGNA QUALCUN ALTRO",()=>vaiAllaGriglia()],
     ["Chiudi il turno",chiudi]);
 }
 
-/* cursore nella ricerca di CHI STAI SEGUENDO (chiude la scheda se e' aperta) */
-function vaiARicerca(){
-  const vai=()=>{ const q=document.getElementById('sala-q'); if(!q)return;
-    q.scrollIntoView({behavior:'smooth',block:'center'}); q.focus({preventScroll:true}); };
+/* v2.25: la griglia di CHI STAI SEGUENDO (chiude la scheda se e' aperta) */
+function vaiAllaGriglia(){
+  const vai=()=>{ const t=document.getElementById('t-segui'); if(!t)return;
+    t.scrollIntoView({behavior:'smooth',block:'start'}); };
   if(!document.getElementById('scheda').hidden){ esciScheda(); setTimeout(vai,120); }
   else vai();
+}
+/* "Non lo trovi? Cerca per nome": la ricerca di prima, serve anche per i veterani */
+function apriCercaNome(){
+  const c=document.getElementById('sala-cerca'), q=document.getElementById('sala-q'); if(!c||!q)return;
+  c.hidden=false; q.scrollIntoView({behavior:'smooth',block:'center'}); q.focus({preventScroll:true});
+}
+
+/* ── v2.25 griglia: sala_papabili_oggi() gia' ordinata e senza veterani ── */
+const FASCE_SALA=[['prenotato','Prenotati oggi'],['iscritto','Allievi con sala attiva'],['abituale','Visti di recente in sala']];
+let papabili=null, _papTok=0;
+async function loadPapabili(){
+  if(!document.getElementById('sala-griglia'))return;
+  const tok=++_papTok;
+  try{
+    const{data,error}=await sb.rpc('sala_papabili_oggi');
+    if(error)throw error;
+    if(tok!==_papTok)return;
+    papabili=data||[];
+    papabili.forEach(x=>{_salaPersone[x.persona_id]={nome:x.nome,cognome:x.cognome,foto_path:x.foto_path};});
+  }catch(e){ if(tok!==_papTok)return; console.error('[sala papabili]',e); papabili=null; }
+  disegnaGriglia();
+}
+function disegnaGriglia(){
+  const el=document.getElementById('sala-griglia'); if(!el)return;
+  if(!papabili){ el.innerHTML='<p class="vuota-all">Non riesco a caricare la sala ora.</p>'; return; }
+  if(!papabili.length){ el.innerHTML='<p class="vuota-all">Oggi nessuno in elenco. Cerca per nome qui sotto.</p>'; return; }
+  el.innerHTML=FASCE_SALA.map(([m,tit])=>{
+    const L=papabili.filter(x=>x.motivo===m); if(!L.length)return '';
+    return `<p class="sg-fascia">${tit}</p><div class="sg-griglia">${L.map(x=>{
+      const nome=esc(((x.nome||'')+' '+(x.cognome||'')).trim()||'—');
+      const viso=x.foto_path?avatarHtml(x.nome,x.cognome,x.foto_path)
+        :`<span class="sg-nofoto" aria-hidden="true">📷<small>manca la foto</small></span>`;
+      return `<button class="sg-t${x.segnato_oggi?' on':''}" onclick="apriScheda('${esc(x.persona_id)}',true,'ricerca')"
+          aria-label="${nome}${x.segnato_oggi?', segnato alle '+hhmm(x.segnato_alle):''}${x.foto_path?'':', manca la foto'}">
+        ${x.segnato_oggi?'<span class="sg-ok" aria-hidden="true">✓</span>':''}${viso}
+        <span class="sg-nome">${nome}</span>
+        ${m==='prenotato'&&x.ora?`<span class="sg-ora">alle ${esc(oraBreve(x.ora))}</span>`:''}
+        ${x.segnato_oggi?`<span class="sg-alle">segnato alle ${hhmm(x.segnato_alle)}</span>`:''}
+      </button>`;}).join('')}</div>`;
+  }).join('');
+  applicaFoto(el);
 }
 
 /* ── v2.24 la guida a passi nella scheda in sala ── */
 const MIN_GUIDA=10;
 let guida=null, schedaDaRicerca=false, schedaVeterano=false, ossSporca=false, _esciOk=false, _salaUsata=false;
-const guidaNuova=()=>({passo:1,cosa:'',nota:'',alle:null});
+const guidaNuova=()=>({passo:1,cosa:'',nota:'',alle:null,fotoFatta:false,foto:null,fotoUrl:null});
 guida=guidaNuova();
 const guidaIniziata=()=>!!(schedaSala && schedaPid && [1,2,3].includes(guida.passo) && (guida.cosa.trim()||guida.nota.trim()));
 const giaSegnato=pid=>!!((salaOggi&&salaOggi.seguiti)||[]).find(x=>x.persona_id===pid);
@@ -1948,13 +2016,81 @@ function htmlSalaScheda(d){
     ${righe?`<div class="diario">${righe}</div>`:''}
   </section>`;
 }
+/* ── v2.25 passo Foto: prima del passo 1, solo per chi non ha la foto di riconoscimento, saltabile ── */
+const _fotoNonAdesso={}; // persona_id -> giorno: "Non adesso" vale fino a domani, solo in memoria della pagina
+function fotoPersona(){ const d=schedaDati||{}; return (d.persona&&d.persona.foto_path)||(_salaPersone[schedaPid]||{}).foto_path||null; }
+function passoFoto(){
+  const g=guida;
+  return !!(schedaSala && schedaPid && schedaDati && g.passo===1 && !g.fotoFatta && !g.cosa.trim()
+    && !fotoPersona() && _fotoNonAdesso[schedaPid]!==isoLocal(new Date()));
+}
+function htmlPassoFoto(n,avv){
+  const g=guida;
+  const input=`<input type="file" accept="image/*" capture="user" class="foto-in" id="foto-in" onchange="fotoScelta(this)" tabindex="-1" aria-hidden="true">`;
+  if(g.fotoUrl)return `${avv}<p class="g-dom">Prima di iniziare · Foto</p>
+    <img class="foto-ant" src="${g.fotoUrl}" alt="Anteprima della foto di ${n}">${input}
+    <div class="sch-btns"><button class="btn" onclick="fotoRifai()">RIFAI</button>
+      <button class="btn prim" id="foto-usa" onclick="fotoUsa(this)">USA QUESTA</button></div>`;
+  return `${avv}<p class="g-dom">Prima di iniziare · Foto</p>
+    <p><b>${n}</b> non ha ancora la foto di riconoscimento. Chiedigli se puoi fargliela adesso: un primo piano, viso ben visibile. La vede solo lo staff.</p>${input}
+    <div class="sch-btns"><button class="btn" onclick="fotoNonAdesso()">Non adesso</button>
+      <button class="btn prim" onclick="document.getElementById('foto-in').click()">📷 SCATTA FOTO</button></div>`;
+}
+/* 800 px sul lato lungo, JPEG 0.85 */
+async function riduciFoto(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((ok,ko)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=()=>ko(new Error('immagine non leggibile')); i.src=url; });
+    const k=Math.min(1,800/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement('canvas');
+    c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    return await new Promise((ok,ko)=>c.toBlob(b=>b?ok(b):ko(new Error('conversione non riuscita')),'image/jpeg',0.85));
+  }finally{ URL.revokeObjectURL(url); }
+}
+function fotoLibera(){ if(guida.fotoUrl)URL.revokeObjectURL(guida.fotoUrl); guida.foto=null; guida.fotoUrl=null; }
+async function fotoScelta(inp){
+  const f=inp.files&&inp.files[0]; if(!f)return;
+  const pid=schedaPid;
+  try{
+    const b=await riduciFoto(f);
+    if(pid!==schedaPid)return;
+    fotoLibera(); guida.foto=b; guida.fotoUrl=URL.createObjectURL(b);
+  }catch(e){ toast('Foto non letta: '+(e?.message||e)); return; }
+  disegnaGuida();
+}
+function fotoRifai(){ fotoLibera(); disegnaGuida(); document.getElementById('foto-in')?.click(); }
+function fotoNonAdesso(){ _fotoNonAdesso[schedaPid]=isoLocal(new Date()); fotoLibera(); guida.fotoFatta=true; disegnaGuida(true); }
+async function fotoUsa(btn){
+  const pid=schedaPid, blob=guida.foto; if(!pid||!blob)return;
+  btn.disabled=true;
+  const path=`persone/${pid}/staff-${Date.now()}.jpg`;
+  try{
+    const up=await sb.storage.from('riconoscimento').upload(path,blob,{contentType:'image/jpeg',upsert:false});
+    if(up.error)throw up.error;
+    const{error}=await sb.rpc('staff_salva_foto_riconoscimento',{p_persona_id:pid,p_path:path});
+    if(error)throw error;
+    toast('Foto salvata');
+    if(_salaPersone[pid])_salaPersone[pid].foto_path=path;
+    if(pid===schedaPid && schedaDati && schedaDati.persona)schedaDati.persona.foto_path=path;
+    loadPapabili(); // la tessera della griglia mostra la foto
+  }catch(e){
+    /* la foto non blocca mai il SEGNA: si dice perche' e si va avanti */
+    toast('Foto non salvata: '+(e?.message||e));
+  }
+  if(pid!==schedaPid)return;
+  fotoLibera(); guida.fotoFatta=true;
+  disegnaScheda(); disegnaGuida(true); // testa della scheda con la foto, poi il passo 1
+}
+
 function htmlGuida(){
   const n=esc(nomeScheda()), g=guida;
   const avv=avvisoTurnoHtml();
+  if(passoFoto())return htmlPassoFoto(n,avv);
   if(g.passo==='fatto')
     return `<div class="guida-ok"><div class="spunta" aria-hidden="true">✓</div>
       <p class="ok-tit">Fatto. ${n} è segnato/a alle ${esc(g.alle||'')}.</p>
-      <div class="sch-btns"><button class="btn prim" onclick="vaiARicerca()">SEGNA UN'ALTRA PERSONA</button>
+      <div class="sch-btns"><button class="btn prim" onclick="vaiAllaGriglia()">SEGNA UN'ALTRA PERSONA</button>
         <button class="btn" onclick="guidaRiparti()">TORNA ALLA SCHEDA</button></div></div>`;
   const pall=`<div class="pallini" aria-label="Passo ${g.passo} di 3">${[1,2,3].map(i=>`<i class="${i<=g.passo?'on':''}"></i>`).join('')}<span>Passo ${g.passo} di 3</span></div>`;
   const tit=giaSegnato(schedaPid)?`<p class="g-tit">Vuoi aggiungere qualcosa su ${n}?</p>`:'';
@@ -2004,7 +2140,7 @@ function guidaVai(n){
   guida.passo=n; disegnaGuida(true);
 }
 function guidaRiparti(){
-  guida=guidaNuova(); disegnaGuida();
+  guida={...guidaNuova(),fotoFatta:guida.fotoFatta}; disegnaGuida(); // la foto non si richiede due volte
   const dopo=document.querySelector('.sala-box')?.nextElementSibling;
   if(dopo)dopo.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -2017,7 +2153,7 @@ async function guidaSegna(btn){
   /* passo 1 -> p_su_cosa, passo 2 -> p_note */
   const{error}=await sb.rpc('monitor_segna',{p_persona_id:pid,p_su_cosa:cosa,p_note:nota});
   if(error){ btn.disabled=false; toast('Non segnato: '+error.message); return; }
-  if(pid===schedaPid){ guida={passo:'fatto',cosa:'',nota:'',alle:hhmm(new Date())}; disegnaGuida(true); }
+  if(pid===schedaPid){ guida={...guidaNuova(),passo:'fatto',alle:hhmm(new Date()),fotoFatta:guida.fotoFatta}; disegnaGuida(true); }
   await loadMonitor();          // turno (si apre da solo), tabella OGGI e la scheda con la conferma
   if(pid===schedaPid)caricaScheda();
 }
