@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.27 · 2026-10-23 · UN SOLO MONITOR ALLA VOLTA (Marco 23 ott 13:49: mai due turni monitor pagati in contemporanea). A DB (23 ott 13:50) monitor_turno('inizio') e monitor_segna chiudono da soli il turno di chiunque altro sia ancora aperto oggi, con la nota del cambio. Nella pagina il dialogo del cambio della v2.26 (INIZIO TURNO e SONO QUI dell'impegno monitor) diventa un avviso: "Nome e' in turno dalle HH:MM. In sala c'e' un monitor alla volta: se inizi il tuo turno, il suo si chiude adesso." (piu' colleghi = elenco dei nomi), INIZIA IL MIO TURNO -> solo monitor_turno('inizio'), niente piu' monitor_cambio_turno · ANNULLA non fa niente. Tolta l'opzione dei due monitor insieme e il suo ramo (la frase resta solo nella storia della v2.26 qui sotto). Dopo l'apertura il toast "Turno iniziato. Il turno di Nome e' chiuso alle HH:MM.". monitor_turni_aperti_altri() resta solo per avvisare. Nessuna modifica a RPC o tabelle. CUMULA v2.26 (sotto). -->
 <!-- KC-BUILD: oggi v2.26 · 2026-10-23 · FINE TURNO EVIDENTE (collaudo Marco 23 ott 11:58 e 12:01: a turno aperto non trovava come chiudere, e lo cercava dentro la scheda dopo aver segnato Lorenzo). (1) Nella tessera TURNO il bottone torna FINE TURNO, rosso pieno #A51515 (il rosso di ADESSO v2.17) con testo bianco, grande come INIZIO TURNO, sotto SEGNA CHI STAI SEGUENDO. (2) BARRA FISSA DEL TURNO a turno aperto, nelle viste con il turno (monitor e istruttore): sopra la barra di navigazione e, a scheda aperta, in fondo alla scheda a schermo intero e sopra di essa; "In turno dalle HH:MM · N segnati" e FINE TURNO rosso, che apre lo stesso riepilogo dialogoFineTurno; dentro una scheda con qualcosa da non perdere (guida a meta', osservazione non salvata, persona aperta e non segnata) prima il dialogo della v2.24, poi il riepilogo; con il turno chiuso sparisce; spazio in fondo a pagina e scheda. (3) Chiusura automatica a DB (chiudi_turni_monitor_automatico, dal 23 ott): sotto "In turno dalle", in tessera e barra, "si chiude da solo alle HH:MM" da fine_turno_prevista_turno(turno_id). (4) CAMBIO TURNO: INIZIO TURNO (e SONO QUI dell'impegno monitor) chiede prima monitor_turni_aperti_altri(); con un collega in turno "Nome e' in turno dalle HH:MM. E' un cambio?" SI', CHIUDO IL SUO TURNO -> monitor_cambio_turno(turno_id) e poi il mio inizio · NO, SIAMO IN DUE -> solo il mio; con piu' colleghi una riga ciascuno con il suo SI'; errore = toast con il motivo e il turno si apre lo stesso. Nessuna modifica a RPC o tabelle. CUMULA v2.25 (sotto). -->
 <!-- KC-BUILD: oggi v2.25 · 2026-10-23 · GRIGLIA "CHI STAI SEGUENDO" (consegna Claude 23 ott, integra il portale guida §0bis): la tessera CHI STAI SEGUENDO mostra la griglia di chi puo' essere in sala oggi da sala_papabili_oggi() (gia' ordinata, senza veterani) in tre fasce, Prenotati oggi (con l'orario) · Allievi con sala attiva · Visti di recente in sala, le vuote non si mostrano; tessera persona con foto di riconoscimento (URL firmati come prima) o 📷 "manca la foto", nome e cognome; gia' segnato oggi = bordo verde, spunta, "segnato alle HH:MM", resta toccabile; tocco -> apriScheda(persona_id, true) con la guida a passi; in fondo "Non lo trovi? Cerca per nome" apre la ricerca di prima (cerca_persona_staff, anche per i veterani); 3 tessere per riga sul telefono, 6 su schermo largo; si ricarica a ogni loadMonitor, quindi dopo ogni SEGNA; con errore della RPC "Non riesco a caricare la sala ora." e sotto la ricerca. SEGNA CHI STAI SEGUENDO, SEGNA UN'ALTRA PERSONA, SEGNA QUALCUN ALTRO e il promemoria portano alla griglia. FOTO DI RICONOSCIMENTO SCATTATA DAL MONITOR: nella guida, per chi non ha la foto, un passo Foto prima del passo 1, saltabile (SCATTA FOTO con input file capture=user · Non adesso; anteprima, USA QUESTA · RIFAI); ridotta a 800 px sul lato lungo, JPEG 0.85, caricata nel bucket riconoscimento in persone/<persona_id>/staff-<timestamp>.jpg, poi staff_salva_foto_riconoscimento(p_persona_id, p_path); "Non adesso" vale fino a domani (solo in memoria della pagina); un errore di caricamento da' il toast con il motivo e la guida prosegue, la foto non blocca mai il SEGNA. Nessuna modifica a RPC o tabelle. CUMULA v2.24 (sotto). -->
 <!-- KC-BUILD: oggi v2.24 · 2026-10-23 · IL PORTALE GUIDA, SALA CON MONITOR (consegna Claude 23 ott, principio di Marco: la procedura e' dichiarata e sostenuta, non affidata alla memoria). (0) Tessera TURNO che chiede: a turno chiuso "Sei in sala? Inizia il turno." + INIZIO TURNO; a turno aperto "Cosa vuoi fare?" + SEGNA CHI STAI SEGUENDO (cursore nella ricerca) · CHIUDI IL TURNO; sotto, sempre, "Oggi hai segnato N persone" con i nomi. (1) Scheda in sala: al posto delle due caselle una guida a 3 passi con pallini (Su cosa avete lavorato con Nome? · Com'e' andata? · Controlla e segna), minimo 10 caratteri per passo con il motivo sotto AVANTI spento, riepilogo con la riga sugli 8 € (veterano: resta a 5 €, letto da persone.veterano e profile_data.badges come v_compenso_turni_monitor), SEGNA -> monitor_segna(p_persona_id, passo 1 in p_su_cosa, passo 2 in p_note), conferma verde con SEGNA UN'ALTRA PERSONA · TORNA ALLA SCHEDA; persona gia' segnata: "Vuoi aggiungere qualcosa su Nome?". (2) Uscita dalla scheda con dialogo della pagina (niente confirm): guida iniziata e non segnata, persona aperta dalla ricerca in turno e non segnata, Nuova osservazione scritta e non salvata; vale per il bottone ←, Esc, il gesto indietro (popstate rimette lo stato e chiude solo su "Esci…") e le voci della barra; beforeunload solo con testo non salvato. (3) FINE TURNO (anche HO FINITO dell'impegno monitor): dialogo di riepilogo con le persone segnate, avviso con 0, la nota di fine turno "Com'e' andata la sala in generale (facoltativo)" spostata nel dialogo; SEGNA QUALCUN ALTRO · Chiudi il turno. HO FINITO delle lezioni: dialogo al posto di confirm. (4) Promemoria calcolati al caricamento e ogni 5 minuti: in turno da piu' di 45 minuti con 0 persone; turno non iniziato dopo le 19 (sabato 14, domenica no) con impegno monitor oggi o dopo aver aperto una scheda in sala, in cima a Oggi e in testa alla guida. (4bis) Rendiconto creator/admin: tabella Sala per giorno · ultime 4 settimane da v_compenso_turni_monitor (turni, media persone a turno, serate a 0, costo, costo per persona; media sotto 1 in arancio). Nessuna modifica a RPC o tabelle. CUMULA v2.23 (sotto). -->
@@ -486,8 +487,8 @@ body.sch-on .barra-turno{bottom:0; padding-bottom:max(8px, env(safe-area-inset-b
 .barra-turno .btn-fine{flex:none; font-size:15px; padding:14px 16px}
 body.turno-on{padding-bottom:calc(var(--nav-h,64px) + 84px)}
 body.turno-on .sch-corpo{padding-bottom:110px}
-.cambio-r{padding:12px 0; border-top:1px solid #3A3A40}
-.cambio-r .btn{width:100%; margin-top:8px; font-size:15px; padding:14px}
+.cambio-l{margin:8px 0 10px 20px}
+.cambio-l li{margin-top:4px}
 @media (min-width:900px){ .barra-turno{max-width:760px} }
 @media (min-width:1200px){ .barra-turno{max-width:1280px} }
 .rend-gg{margin-top:0}
@@ -1897,8 +1898,8 @@ function fineTurnoDaBarra(btn){
   chiudi();
 }
 
-/* ── v2.26 cambio turno: "Claudia fa dalle 19 alle 20 e Mattia dalle 20 alle 22" ── */
-let _cambio={altri:[],poi:null};
+/* ── v2.27 un solo monitor alla volta: monitor_turno('inizio') chiude da solo il turno degli altri.
+   monitor_turni_aperti_altri() serve solo ad avvisare prima. ── */
 async function chiediCambio(poi){
   let altri;
   try{
@@ -1907,29 +1908,26 @@ async function chiediCambio(poi){
     altri=data||[];
   }catch(e){ toast('Non riesco a vedere chi è in turno: '+(e?.message||e)); return poi(); }
   if(!altri.length)return poi();
-  _cambio={altri,poi};
-  const riga=a=>`<b>${esc(a.nome||'Un collega')}</b> è in turno dalle ${hhmm(a.inizio)}. È un cambio?`;
-  if(altri.length===1)
-    dialogo(`<p>${riga(altri[0])}</p>`,['SÌ, CHIUDO IL SUO TURNO',()=>cambioTurno(0)],['NO, SIAMO IN DUE',()=>poi()]);
-  else
-    dialogo(altri.map((a,i)=>`<div class="cambio-r"><p>${riga(a)}</p>
-      <button class="btn btn-fine" onclick="chiudiDialogo();cambioTurno(${i})">SÌ, CHIUDO IL SUO TURNO</button></div>`).join(''),
-      ['NO, SIAMO IN DUE',()=>poi()],null);
-}
-async function cambioTurno(i){
-  const a=_cambio.altri[i], poi=_cambio.poi; if(!a||!poi)return;
-  const{error}=await sb.rpc('monitor_cambio_turno',{p_turno_id:a.turno_id});
-  await poi(); // il mio turno si apre comunque
-  /* dopo il toast del mio inizio, cosi' il motivo dell'errore non si perde */
-  toast(error?'Cambio non registrato: '+error.message:`Cambio fatto: il turno di ${a.nome||'un collega'} è chiuso.`);
+  const chi=a=>`<b>${esc(a.nome||'Un collega')}</b> è in turno dalle ${hhmm(a.inizio)}`;
+  const testo=altri.length===1
+    ?`<p>${chi(altri[0])}. In sala c'è un monitor alla volta: se inizi il tuo turno, il suo si chiude adesso.</p>`
+    :`<p>Sono ancora in turno:</p><ul class="cambio-l">${altri.map(a=>`<li>${chi(a)}</li>`).join('')}</ul>
+      <p>In sala c'è un monitor alla volta: se inizi il tuo turno, i loro si chiudono adesso.</p>`;
+  dialogo(testo,['INIZIA IL MIO TURNO',async()=>{
+    if(await poi()!==true)return; // il toast dell'errore l'ha gia' dato chi apre il turno
+    const nomi=altri.map(a=>esc(String(a.nome||'un collega').trim().split(/\s+/)[0]));
+    const elenco=nomi.length>1?nomi.slice(0,-1).join(', ')+' e '+nomi[nomi.length-1]:nomi[0];
+    toast(`Turno iniziato. ${nomi.length>1?'I turni di '+elenco+' sono chiusi':'Il turno di '+elenco+' è chiuso'} alle ${hhmm(new Date())}.`);
+  }],['ANNULLA',null]);
 }
 async function eseguiTurno(az,btn,note){
   if(btn)btn.disabled=true;
   const{data,error}=await sb.rpc('monitor_turno',{p_azione:az,p_note:note});
-  if(error){ if(btn)btn.disabled=false; toast('Turno non registrato: '+error.message); return; }
+  if(error){ if(btn)btn.disabled=false; toast('Turno non registrato: '+error.message); return false; }
   toast(az==='inizio'?(data?.gia_aperto?'Il turno era già aperto.':'Turno iniziato. Buona sala!'):'Turno chiuso. Grazie!');
   await allineaImpegnoMonitor(az,data&&data.turno_id); // v2.23: il turno segnato in Turni segue il turno reale
   loadMonitor();
+  return true;
 }
 
 function salaCerca(q){
@@ -2467,9 +2465,10 @@ async function segnaPresenza(x,az,btn,note){
       if(u.error)console.warn('[impegni] turno_monitor_id:',u.error.message);
     }
     toast(az==='inizio'?'Presenza segnata. Buon lavoro!':'Fine segnata. Grazie!');
-  }catch(e){ btn.disabled=false; toast('Non registrato: '+(e?.message||e)); return; }
+  }catch(e){ btn.disabled=false; toast('Non registrato: '+(e?.message||e)); return false; }
   await loadImpegniOggi();
   if(x.tipo==='monitor' && document.getElementById('turno-corpo'))loadMonitor();
+  return true;
 }
 /* INIZIO / FINE TURNO dalla tessera del turno: se oggi c'e' un turno monitor segnato, la presenza lo segue */
 async function allineaImpegnoMonitor(az,turnoId){
