@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.138 · 2026-10-23 · TURNI MONITOR SOLO 19-22 (decisione Marco 23 ott): tolta la fascia monitor 18-19 "da coprire" dalla settimana di Segreteria → Turni. Sala e monitor partono dalle 19; se un istruttore arriva prima per motivi suoi non e' un turno. L'unico impegno 18-19 gia' in DB (22 ott) e' gia' ritirato e resta come traccia. CUMULA v3.137 (sotto). -->
 <!-- KC-BUILD: portale v3.137 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): (1) Segreteria: terzo interruttore 🗓 Turni. Settimana a colonne con le lezioni delle scuole (richiesti 3) e le fasce monitor lun-ven 19-22 e 18-19 "da coprire" (richiesto 1), segnati/richiesti e colore verde/giallo/rosso; click -> chi e' segnato, Togli (impegno_mi_tolgo), Segna assente / Riporta a previsto (impegno_presenza), Aggiungi persona (impegno_mi_segno con p_user_id). Sotto: Turni monitor da chiudere (v_compenso_turni_monitor da_chiudere) con ora di fine -> segreteria_chiudi_turno; Compensi monitor del mese da v_compenso_monitor_mese con export CSV. Azioni e compensi solo per staff_creator e staff_segreteria (is_segreteria), gli altri vedono la copertura. (2) Profilo: "Il mio diario didattico" da v_mio_diario_didattico (solo le note che l'istruttore ha scelto di mostrare), firmato dall'istruttore; vuoto -> "Qui troverai le note dei tuoi istruttori dopo le lezioni." (allo staff senza note il riquadro non compare). Non in Comunita'. CUMULA v3.136 (sotto). -->
 <!-- KC-BUILD: portale v3.136 · 2026-10-21 · SCUOLE F1 METÀ B, ritocchi dopo il collaudo (Marco 21 ott): (1) aggiunta allievo e trascrizione: nome e cognome con l'iniziale maiuscola prima della RPC (scMaiuscole: "luca bianchi" -> "Luca Bianchi", anche dopo apostrofo e trattino); (2) etichette stadio per le scuole: SC_FUNNEL_LABEL "Prenotato Prima Lezione · Scuole" e "Prima Lezione · Scuole fatta", nel tab Scuole e nel fascicolo dei lead scuola/allievo_scuola/referente_scuola. FUNNEL_LABEL dei privati invariato (gli stadi a DB sono gli stessi). Nient'altro. CUMULA v3.135 (sotto). -->
 <!-- KC-BUILD: portale v3.135 · 2026-10-21 · SCUOLE F1 METÀ B, giro 2 (decisioni Marco 21 ott): (1) turni sulle lezioni scuola letti da impegni_staff (stato <> ritirato, conteggio N/3) e scritti SOLO con le RPC impegno_mi_segno(p_tipo lezione, p_slot_id, p_ruolo, p_user_id) e impegno_mi_tolgo(p_impegno_id): slot_staff non esiste e non esistera'. "+ Istruttore" e "×" solo per staff_creator/staff_segreteria (= is_segreteria() delle RPC). (2) nomi: "Prima Lezione · Scuole" e "Mini percorso · Scuole" (gruppo misto, niente fascia), anche negli stadi del funnel. (3) i ragazzi delle scuole (tipo_persona allievo_scuola) restano nel fascicolo ma escono dagli elenchi commerciali e da richiamare: Lead in arrivo, Da contattare oggi / gestione contatti (get_leads_da_contattare filtrata qui: la RPC non espone tipo_persona), da richiamare dell'agenda Marco. CUMULA v3.134 (sotto). -->
@@ -10626,12 +10627,13 @@ async function scCaricaDocScuola(btn){
 
 /* ═══ TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott 2026, portale v3.137) — Segreteria → 🗓 Turni ═══
    Settimana a colonne: lezioni delle scuole (slot con data_evento e lead_scuola_id, richiesti 3) e fasce monitor
-   lun-ven (19-22 e 18-19 "da coprire", richiesto 1). Segnati da impegni_staff (stato diverso da ritirato).
+   lun-ven 19-22, richiesto 1 (la 18-19 "da coprire" tolta in v3.138). Segnati da impegni_staff (stato diverso da ritirato).
    Scritture solo via RPC e solo per la segreteria (is_segreteria = staff_creator, staff_segreteria):
    impegno_mi_segno con p_user_id, impegno_mi_tolgo, impegno_presenza assente/annulla, segreteria_chiudi_turno.
    Sotto: turni monitor da chiudere e compensi del mese da v_compenso_turni_monitor / v_compenso_monitor_mese. */
 const TU_RICHIESTI_LEZ=3, TU_RICHIESTI_MON=1;
-const TU_FASCE=[{ini:'18:00',fin:'19:00',dacoprire:true},{ini:'19:00',fin:'22:00'}];
+/* v3.138 (Marco 23 ott 2026): tolta la fascia 18-19, sala e monitor partono dalle 19. Nessuna richiesta oggi, non si paga la sala un'ora in piu'. */
+const TU_FASCE=[{ini:'19:00',fin:'22:00'}];
 const TU_NOME_LEZ={prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
 const TU_RUOLO={conduce:'Conduce',supporto:'Supporto',monitor:'Monitor'};
 const TU_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
