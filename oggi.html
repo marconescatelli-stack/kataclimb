@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.28 · 2026-10-24 · PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): nella tessera "I tuoi impegni · oggi", sotto ogni lezione ancora senza presenza, la riga "Ricordati SONO QUI: senza presenza la lezione non viene pagata."; finita da piu' di 30 minuti e senza presenza, riga arancio "Non hai segnato la presenza alla lezione delle HH:MM" con SEGNA ADESSO (impegno_presenza 'fine', che segna presente con inizio e fine). Ricalcolo ogni 5 minuti. Nome della lezione dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)), ruolo "assistente" per compenso_tipo ora. Nessuna modifica a RPC o tabelle. CUMULA v2.27 (sotto). -->
 <!-- KC-BUILD: oggi v2.27 · 2026-10-23 · UN SOLO MONITOR ALLA VOLTA (Marco 23 ott 13:49: mai due turni monitor pagati in contemporanea). A DB (23 ott 13:50) monitor_turno('inizio') e monitor_segna chiudono da soli il turno di chiunque altro sia ancora aperto oggi, con la nota del cambio. Nella pagina il dialogo del cambio della v2.26 (INIZIO TURNO e SONO QUI dell'impegno monitor) diventa un avviso: "Nome e' in turno dalle HH:MM. In sala c'e' un monitor alla volta: se inizi il tuo turno, il suo si chiude adesso." (piu' colleghi = elenco dei nomi), INIZIA IL MIO TURNO -> solo monitor_turno('inizio'), niente piu' monitor_cambio_turno · ANNULLA non fa niente. Tolta l'opzione dei due monitor insieme e il suo ramo (la frase resta solo nella storia della v2.26 qui sotto). Dopo l'apertura il toast "Turno iniziato. Il turno di Nome e' chiuso alle HH:MM.". monitor_turni_aperti_altri() resta solo per avvisare. Nessuna modifica a RPC o tabelle. CUMULA v2.26 (sotto). -->
 <!-- KC-BUILD: oggi v2.26 · 2026-10-23 · FINE TURNO EVIDENTE (collaudo Marco 23 ott 11:58 e 12:01: a turno aperto non trovava come chiudere, e lo cercava dentro la scheda dopo aver segnato Lorenzo). (1) Nella tessera TURNO il bottone torna FINE TURNO, rosso pieno #A51515 (il rosso di ADESSO v2.17) con testo bianco, grande come INIZIO TURNO, sotto SEGNA CHI STAI SEGUENDO. (2) BARRA FISSA DEL TURNO a turno aperto, nelle viste con il turno (monitor e istruttore): sopra la barra di navigazione e, a scheda aperta, in fondo alla scheda a schermo intero e sopra di essa; "In turno dalle HH:MM · N segnati" e FINE TURNO rosso, che apre lo stesso riepilogo dialogoFineTurno; dentro una scheda con qualcosa da non perdere (guida a meta', osservazione non salvata, persona aperta e non segnata) prima il dialogo della v2.24, poi il riepilogo; con il turno chiuso sparisce; spazio in fondo a pagina e scheda. (3) Chiusura automatica a DB (chiudi_turni_monitor_automatico, dal 23 ott): sotto "In turno dalle", in tessera e barra, "si chiude da solo alle HH:MM" da fine_turno_prevista_turno(turno_id). (4) CAMBIO TURNO: INIZIO TURNO (e SONO QUI dell'impegno monitor) chiede prima monitor_turni_aperti_altri(); con un collega in turno "Nome e' in turno dalle HH:MM. E' un cambio?" SI', CHIUDO IL SUO TURNO -> monitor_cambio_turno(turno_id) e poi il mio inizio · NO, SIAMO IN DUE -> solo il mio; con piu' colleghi una riga ciascuno con il suo SI'; errore = toast con il motivo e il turno si apre lo stesso. Nessuna modifica a RPC o tabelle. CUMULA v2.25 (sotto). -->
 <!-- KC-BUILD: oggi v2.25 · 2026-10-23 · GRIGLIA "CHI STAI SEGUENDO" (consegna Claude 23 ott, integra il portale guida §0bis): la tessera CHI STAI SEGUENDO mostra la griglia di chi puo' essere in sala oggi da sala_papabili_oggi() (gia' ordinata, senza veterani) in tre fasce, Prenotati oggi (con l'orario) · Allievi con sala attiva · Visti di recente in sala, le vuote non si mostrano; tessera persona con foto di riconoscimento (URL firmati come prima) o 📷 "manca la foto", nome e cognome; gia' segnato oggi = bordo verde, spunta, "segnato alle HH:MM", resta toccabile; tocco -> apriScheda(persona_id, true) con la guida a passi; in fondo "Non lo trovi? Cerca per nome" apre la ricerca di prima (cerca_persona_staff, anche per i veterani); 3 tessere per riga sul telefono, 6 su schermo largo; si ricarica a ogni loadMonitor, quindi dopo ogni SEGNA; con errore della RPC "Non riesco a caricare la sala ora." e sotto la ricerca. SEGNA CHI STAI SEGUENDO, SEGNA UN'ALTRA PERSONA, SEGNA QUALCUN ALTRO e il promemoria portano alla griglia. FOTO DI RICONOSCIMENTO SCATTATA DAL MONITOR: nella guida, per chi non ha la foto, un passo Foto prima del passo 1, saltabile (SCATTA FOTO con input file capture=user · Non adesso; anteprima, USA QUESTA · RIFAI); ridotta a 800 px sul lato lungo, JPEG 0.85, caricata nel bucket riconoscimento in persone/<persona_id>/staff-<timestamp>.jpg, poi staff_salva_foto_riconoscimento(p_persona_id, p_path); "Non adesso" vale fino a domani (solo in memoria della pagina); un errore di caricamento da' il toast con il motivo e la guida prosegue, la foto non blocca mai il SEGNA. Nessuna modifica a RPC o tabelle. CUMULA v2.24 (sotto). -->
@@ -404,6 +405,8 @@ body{font-size:17px}
 .imp .imp-s{font-size:14px; color:#C9C9CE; margin-top:2px}
 .imp .sch-btns{margin-top:8px}
 .imp .ok-t{color:var(--cordata); font-weight:700}
+.imp .imp-ricorda{font-size:14px; color:#E5E5EA; margin-top:8px}
+.imp .avviso-ar .btn{width:100%}
 .turno-comp{font-family:'JetBrains Mono',monospace; font-weight:800; font-size:15px; color:var(--cordata); margin:2px 0 6px}
 .turno-comp:empty{display:none}
 
@@ -2406,14 +2409,14 @@ async function loadImpegniOggi(){
   const box=document.getElementById('t-imp'); if(!box)return;
   try{
     const{data,error}=await sb.from('impegni_staff')
-      .select('id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, presenza_inizio, presenza_fine, turno_monitor_id')
+      .select('id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, presenza_inizio, presenza_fine, turno_monitor_id, compenso_tipo')
       .eq('user_id',uid).eq('data',isoLocal(new Date())).neq('stato','ritirato').order('ora_inizio');
     if(error)throw error;
     const L=data||[];
     const slotIds=[...new Set(L.map(x=>x.slot_id).filter(Boolean))];
     const slot={};
     if(slotIds.length){
-      const{data:ss}=await sb.from('corsi_attivi_settimanali').select('id, tipo_corso, lead_scuola_id').in('id',slotIds);
+      const{data:ss}=await sb.from('corsi_attivi_settimanali').select('id, tipo_corso, fascia, lead_scuola_id').in('id',slotIds);
       const leadIds=[...new Set((ss||[]).map(x=>x.lead_scuola_id).filter(Boolean))];
       const ente={};
       if(leadIds.length){ const{data:ll}=await sb.from('lead_data').select('id, ente').in('id',leadIds); (ll||[]).forEach(l=>{ente[l.id]=l.ente;}); }
@@ -2421,25 +2424,50 @@ async function loadImpegniOggi(){
     }
     impegniOggi=L.map(x=>({...x,slot:slot[x.slot_id]||null}));
   }catch(e){ console.error('[impegni]',e); impegniOggi=[]; }
-  disegnaImpegniOggi(); disegnaAvvisoTurno();
+  disegnaImpegniOggi(); disegnaAvvisoTurno(); avviaPromemoriaImpegni();
 }
 function disegnaImpegniOggi(){
   const box=document.getElementById('t-imp'), el=document.getElementById('imp-corpo'); if(!box||!el)return;
   box.hidden=!impegniOggi.length;
   el.innerHTML=impegniOggi.map(x=>{
     const cosa=x.tipo==='monitor'?'Sala con Monitor'
-      :((x.slot&&(IMP_LEZ[x.slot.tipo_corso]||nomeCorso(x.slot.tipo_corso)))||'Lezione')+(x.slot&&x.slot.ente?' · '+x.slot.ente:'');
-    const ruolo=x.tipo==='lezione'?' · '+(IMP_RUOLO[x.ruolo]||x.ruolo):'';
-    let stato='', btn='';
+      :((x.slot&&(IMP_LEZ[x.slot.tipo_corso]||nomeLezioneSlot(x.slot)))||'Lezione')+(x.slot&&x.slot.ente?' · '+x.slot.ente:'');
+    const ruolo=x.tipo==='lezione'?' · '+(x.compenso_tipo==='ora'?'assistente':(IMP_RUOLO[x.ruolo]||x.ruolo)):'';
+    let stato='', btn='', ricorda='';
+    /* v2.28: le lezioni si pagano solo con la presenza; finita senza presenza, SEGNA ADESSO prende il posto di SONO QUI */
+    const dimenticata=x.tipo==='lezione' && x.stato==='previsto' && lezioneDimenticata(x);
+    if(x.tipo==='lezione' && x.stato==='previsto'){
+      ricorda=dimenticata
+        ?`<div class="avviso-ar">Non hai segnato la presenza alla lezione delle ${esc(oraBreve(x.ora_inizio))}.
+            <button class="btn prim grande" onclick="segnaPresenzaDimenticata('${esc(x.id)}',this)">SEGNA ADESSO</button></div>`
+        :'<p class="imp-ricorda">Ricordati SONO QUI: senza presenza la lezione non viene pagata.</p>';
+    }
     if(x.stato==='assente') stato='La segreteria ti ha segnato assente.';
     else if(x.presenza_fine) stato=`<span class="ok-t">✓ Presente dalle ${hhmm(x.presenza_inizio)} alle ${hhmm(x.presenza_fine)}</span>`;
     else if(x.stato==='presente'){ stato=`<span class="ok-t">Sei qui dalle ${hhmm(x.presenza_inizio)}</span>`; btn=`<button class="btn fine" onclick="impPresenza('${esc(x.id)}','fine',this)">HO FINITO</button>`; }
     else btn=`<button class="btn prim grande" onclick="impPresenza('${esc(x.id)}','inizio',this)">SONO QUI</button>`;
     return `<div class="imp"><div class="imp-h">${esc(oraBreve(x.ora_inizio))}–${esc(oraBreve(x.ora_fine))} · ${esc(cosa)}</div>
       <div class="imp-s">${esc(ruolo.replace(/^ · /,''))}${stato?(ruolo?' · ':'')+stato:''}</div>
-      ${btn?`<div class="sch-btns">${btn}</div>`:''}</div>`;
+      ${btn&&!dimenticata?`<div class="sch-btns">${btn}</div>`:''}${ricorda}</div>`;
   }).join('');
 }
+/* v2.28 nome completo delle lezioni dei corsi: per i minori conta la fascia */
+function nomeLezioneSlot(sl){
+  if(sl.tipo_corso==='bambini')return sl.fascia==='ragazzi'?NOME_CORSO.ragazzi:NOME_CORSO.bambini;
+  if(sl.tipo_corso==='genitori')return 'Corso Genitori KataClimb';
+  return nomeCorso(sl.tipo_corso);
+}
+/* finita da piu' di 30 minuti, ancora senza presenza */
+function lezioneDimenticata(x){
+  if(!x.ora_fine || x.data!==isoLocal(new Date()))return false;
+  return minuti(pad2(new Date().getHours())+':'+pad2(new Date().getMinutes()))>minuti(x.ora_fine)+30;
+}
+async function segnaPresenzaDimenticata(id,btn){
+  const x=impegniOggi.find(i=>i.id===id); if(!x)return;
+  segnaPresenza(x,'fine',btn,null); // presente, con inizio e fine: la lezione e' gia' finita
+}
+let _impTimer=null;
+function avviaPromemoriaImpegni(){ if(!_impTimer)_impTimer=setInterval(disegnaImpegniOggi,5*60000); }
 function impPresenza(id,az,btn){
   const x=impegniOggi.find(i=>i.id===id); if(!x)return;
   /* v2.24: niente confirm. Il turno monitor si chiude con lo stesso riepilogo di FINE TURNO */
