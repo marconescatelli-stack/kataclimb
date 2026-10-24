@@ -20,7 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
-<!-- KC-BUILD: portale v3.139 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): Segreteria → 🗓 Turni. (1) Nella settimana a colonne entrano le lezioni dei corsi con piano di copertura (slot_copertura + corsi_attivi_settimanali ricorrenti, giorno_settimana): "Istruttori 1/1 · Assistenti 0/1" contati da impegni_staff come v_copertura_lezioni (compenso_tipo lezione = istruttore, ora = assistente; stato previsto o presente), verde se coperta e rossa se scoperta, anche nelle settimane passate; nome dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)); richiesta di supporto aperta (richieste_supporto) segnalata nella voce. Al click: chi c'e' con il ruolo e "dal piano", Togli, Segna presente (impegno_presenza 'inizio', da oggi indietro), Segna assente, Riporta a previsto, Annulla richiesta di supporto (annulla_supporto), Aggiungi persona (impegno_mi_segno con p_slot_id, p_data e p_user_id). (2) Compensi lezioni dei corsi del mese da v_compenso_lezioni: per persona lezioni pagate, ore, euro e da confermare; elenco "Da confermare" (giorni passati ancora previsti, valgono 0) con Era presente (impegno_presenza 'inizio') / Assente ('assente'); export CSV come per il monitor. Azioni e compensi solo per staff_creator e staff_segreteria. Nessuna modifica a RPC o tabelle. CUMULA v3.138 (sotto). -->
+<!-- KC-BUILD: portale v3.139 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): Segreteria → 🗓 Turni. (1) Nella settimana a colonne entrano le lezioni dei corsi con piano di copertura (slot_copertura + corsi_attivi_settimanali ricorrenti, giorno_settimana): "Istruttori 1/1 · Assistenti 0/1" contati da impegni_staff come v_copertura_lezioni (compenso_tipo lezione = istruttore, ora = assistente; stato previsto o presente), verde se coperta e rossa se scoperta, anche nelle settimane passate; nome dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)); richiesta di supporto aperta (richieste_supporto) segnalata nella voce. Al click: chi c'e' con il ruolo e "dal piano", Togli, Segna presente (impegno_presenza 'inizio', da oggi indietro), Segna assente, Riporta a previsto, Annulla richiesta di supporto (annulla_supporto), Aggiungi persona con la scelta Istruttore / Assistente (impegno_mi_segno con p_slot_id, p_data, p_user_id e p_ruolo 'conduce' oppure 'assistente', che la RPC salva come supporto pagato a ore; gli staff_assistente sono sempre a ore e la scelta si imposta da sola quando li selezioni). (2) Compensi lezioni dei corsi del mese da v_compenso_lezioni: per persona lezioni pagate, ore, euro e da confermare; elenco "Da confermare" (giorni passati ancora previsti, valgono 0) con Era presente (impegno_presenza 'inizio') / Assente ('assente'); export CSV come per il monitor. Azioni e compensi solo per staff_creator e staff_segreteria. Nessuna modifica a RPC o tabelle. CUMULA v3.138 (sotto). -->
 <!-- KC-BUILD: portale v3.138 · 2026-10-23 · TURNI MONITOR SOLO 19-22 (decisione Marco 23 ott): tolta la fascia monitor 18-19 "da coprire" dalla settimana di Segreteria → Turni. Sala e monitor partono dalle 19; se un istruttore arriva prima per motivi suoi non e' un turno. L'unico impegno 18-19 gia' in DB (22 ott) e' gia' ritirato e resta come traccia. CUMULA v3.137 (sotto). -->
 <!-- KC-BUILD: portale v3.137 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): (1) Segreteria: terzo interruttore 🗓 Turni. Settimana a colonne con le lezioni delle scuole (richiesti 3) e le fasce monitor lun-ven 19-22 e 18-19 "da coprire" (richiesto 1), segnati/richiesti e colore verde/giallo/rosso; click -> chi e' segnato, Togli (impegno_mi_tolgo), Segna assente / Riporta a previsto (impegno_presenza), Aggiungi persona (impegno_mi_segno con p_user_id). Sotto: Turni monitor da chiudere (v_compenso_turni_monitor da_chiudere) con ora di fine -> segreteria_chiudi_turno; Compensi monitor del mese da v_compenso_monitor_mese con export CSV. Azioni e compensi solo per staff_creator e staff_segreteria (is_segreteria), gli altri vedono la copertura. (2) Profilo: "Il mio diario didattico" da v_mio_diario_didattico (solo le note che l'istruttore ha scelto di mostrare), firmato dall'istruttore; vuoto -> "Qui troverai le note dei tuoi istruttori dopo le lezioni." (allo staff senza note il riquadro non compare). Non in Comunita'. CUMULA v3.136 (sotto). -->
 <!-- KC-BUILD: portale v3.136 · 2026-10-21 · SCUOLE F1 METÀ B, ritocchi dopo il collaudo (Marco 21 ott): (1) aggiunta allievo e trascrizione: nome e cognome con l'iniziale maiuscola prima della RPC (scMaiuscole: "luca bianchi" -> "Luca Bianchi", anche dopo apostrofo e trattino); (2) etichette stadio per le scuole: SC_FUNNEL_LABEL "Prenotato Prima Lezione · Scuole" e "Prima Lezione · Scuole fatta", nel tab Scuole e nel fascicolo dei lead scuola/allievo_scuola/referente_scuola. FUNNEL_LABEL dei privati invariato (gli stadi a DB sono gli stessi). Nient'altro. CUMULA v3.135 (sotto). -->
@@ -10790,8 +10790,10 @@ function tuApriVoce(k){
   const liberi=(tuStaff||[]).filter(u=>!gia.includes(u.user_id));
   const aggiungi=(puo&&!passato&&liberi.length)?`
     <label class="sc-lbl" for="tu-add-user">Aggiungi una persona</label>
-    <select id="tu-add-user" class="input sc-in">${liberi.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join('')}</select>
-    ${v.tipo!=='monitor'?`<label class="sc-lbl" for="tu-add-ruolo">Ruolo</label>
+    <select id="tu-add-user" class="input sc-in"${v.tipo==='corso'?' onchange="tuRuoloDaUtente()"':''}>${liberi.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join('')}</select>
+    ${v.tipo==='corso'?`<label class="sc-lbl" for="tu-add-ruolo">Come</label>
+    <select id="tu-add-ruolo" class="input sc-in"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>`
+    :v.tipo==='lezione'?`<label class="sc-lbl" for="tu-add-ruolo">Ruolo</label>
     <select id="tu-add-ruolo" class="input sc-in"><option value="supporto">Supporto</option><option value="conduce">Conduce</option></select>`:''}`:'';
   /* v3.139 richiesta di supporto aperta sulla lezione del corso */
   const supp=v.tipo==='corso'&&v.req?`<div class="tu-supp-box">Supporto richiesto${v.req.chiesto_da?' da <b>'+escHtml(tuNome(v.req.chiesto_da))+'</b>':''}${v.req.note?': '+escHtml(v.req.note):''}
@@ -10800,10 +10802,10 @@ function tuApriVoce(k){
   const d=new Date(v.data+'T00:00:00');
   scModal(`${v.tipo==='monitor'?'🟢':'📅'} ${v.titolo}`,
     `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}${conta}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
-     ${supp}${righe}${aggiungi}${aggiungi&&v.tipo==='corso'?'<p class="sc-nota">Chi aggiungi da qui conta come istruttore (15 € a lezione).</p>':''}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
+     ${supp}${righe}${aggiungi}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
     aggiungi?async()=>{
       const args=v.tipo==='corso'
-        ?{p_tipo:'lezione',p_slot_id:v.slot.id,p_data:v.data,p_ruolo:scVal('tu-add-ruolo')||'supporto',p_user_id:scVal('tu-add-user')}
+        ?{p_tipo:'lezione',p_slot_id:v.slot.id,p_data:v.data,p_ruolo:scVal('tu-add-ruolo')||'conduce',p_user_id:scVal('tu-add-user')}
         :v.tipo==='lezione'
         ?{p_tipo:'lezione',p_slot_id:v.slot.id,p_ruolo:scVal('tu-add-ruolo')||'supporto',p_user_id:scVal('tu-add-user')}
         :{p_tipo:'monitor',p_data:v.data,p_ora_inizio:v.ini,p_ora_fine:v.fin,p_user_id:scVal('tu-add-user')};
@@ -10813,6 +10815,11 @@ function tuApriVoce(k){
       await tuCaricaSettimana();
       if(v.tipo==='corso'&&tuPuo())tuCaricaCompLez();
     }:null,{ok:'Segna'});
+}
+/* gli staff_assistente sono sempre pagati a ore: selezionandoli la scelta passa ad Assistente */
+function tuRuoloDaUtente(){
+  const u=(tuStaff||[]).find(x=>x.user_id===scVal('tu-add-user')),r=document.getElementById('tu-add-ruolo');
+  if(r)r.value=u&&u.staff_role==='staff_assistente'?'assistente':'conduce';
 }
 async function tuAnnullaSupporto(id,k){
   if(!confirm('Annullare la richiesta di supporto?'))return;
