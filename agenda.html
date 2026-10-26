@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.103 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) sotto ogni lezione (solo staff, non scuole ne' Sala con Monitor) la riga Staff da impegni_staff per slot + data: nome, istruttore/assistente, stato a colori (previsto grigio, presente verde ✓, assente rosso), "Nome (sostituisce Nome)" dalle note di sostituzione; nessuno = "Nessun istruttore segnato" in rosso. (2) Segreteria (creator e segreteria, stesso cancello di is_segreteria): PRESENTE (solo fino a oggi) -> impegno_presenza 'fine'; ASSENTE con conferma "Se è assente, il portale chiama il suo sostituto (se previsto)." -> 'assente'; SOSTITUISCI -> modale con lo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore; ANNULLA -> 'annulla'; + AGGIUNGI STAFF -> persona e ruolo (istruttore/assistente, gli staff_assistente passano ad assistente da soli) -> impegno_mi_segno con p_user_id e, se la data e' passata, impegno_presenza 'fine' sul nuovo impegno. (3) Istruttore che fa l'appello: dopo la prima presenza segnata si rilegge la lezione (il trigger lo ha segnato presente) e compare l'avviso "Presenza registrata: la lezione è a tuo nome." oppure "Hai sostituito NOME: la lezione è a tuo nome e la segreteria lo vede."; la segreteria non viene segnata e non vede l'avviso. Scritture solo via RPC, nessuna modifica a RPC o tabelle. CUMULA v3.102 (sotto). -->
 <!-- KC-BUILD: agenda v3.102 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): nuovo tipo_corso 'manovra_sosta', slot singolo datato (data_evento) creato dalla Segreteria del portale con crea_slot_manovra. In agenda: voce nel menu, colore --manovra, etichetta 'Corso Manovra in Sosta KataClimb' in TIPO_LABELS/labelSlot/fallback. Partecipanti da v_lista_manovra_sosta (stato prenotato/svolto, data_lezione del giorno, slot_id), anche nella vista Tutti; capienza dello slot (max 4). Accanto al nome l'esito (Abile / Non abile) se gia' segnato. Sola lettura: niente P/A, niente Sposta/Annulla, niente + Prenota (la lista si gestisce in Segreteria → Manovra in Sosta, l'esito con esito_manovra). Realtime anche su lista_manovra_sosta. CUMULA v3.101 (sotto). -->
 <!-- KC-BUILD: agenda v3.101 · 2026-10-22 · PRIMA LEZIONE PRIVATA SPECIALE (decisione Marco 22 ott): nuovo tipo_corso 'prima_lezione_privata' (martedi' 18-19 con Claudia, capienza 1, fascia bambini, link riservato prima-lezione-privata.html) entra nella famiglia Prima Lezione: stessa tabella prenotazioni_prima_lezione, stessa logica di prenota/sposta/presenza, colore Prima, compare anche nel tab Bambini e Ragazzi. Etichetta 'Prima Lezione Privata Speciale' in griglia, legenda e fallback. NIENT'ALTRO toccato. -->
 <!-- KC-BUILD: agenda v3.100 · 2026-10-21 · SCUOLE F1 METÀ B, giro 2 (decisioni Marco 21 ott): (1) TURNI su impegni_staff (slot_staff non esiste e non esistera'): lettura tipo lezione, stato <> ritirato, per slot E data; "Mi segno" = rpc impegno_mi_segno(p_tipo lezione, p_slot_id, p_data, p_ruolo supporto), "Mi tolgo" = rpc impegno_mi_tolgo(p_impegno_id); conteggio N/3; chi ha gia' la presenza registrata non si toglie da qui (lo dice la RPC). (2) nomi "Prima Lezione · Scuole" e "Mini percorso · Scuole" (gruppo misto, niente fascia). CUMULA v3.99 (sotto). -->
@@ -116,6 +117,19 @@
   .turni .t-btn { font-size:14px; font-weight:700; padding:.35rem .8rem; border-radius:8px; border:1px solid #0F6E56; background:#fff; color:#0F6E56; cursor:pointer; }
   .turni .t-btn.segno { background:#0F6E56; color:#fff; }
   .turni .t-btn:disabled { opacity:.5; cursor:not-allowed; }
+  /* v3.103 — riga Staff su ogni lezione */
+  .staffrow { margin-top:.6rem; padding-top:.6rem; border-top:1px dashed var(--border); display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; font-size:15px; }
+  .staffrow .t-tit { font-weight:800; margin-right:.2rem; }
+  .staffrow .s-voce { display:flex; flex-wrap:wrap; gap:.3rem; align-items:center; }
+  .staffrow .s-chip { font-weight:700; padding:.2rem .6rem; border-radius:999px; font-size:14px; }
+  .staffrow .s-chip.previsto { background:#E5E7EB; color:#374151; }
+  .staffrow .s-chip.presente { background:#DCFCE7; color:#166534; }
+  .staffrow .s-chip.assente { background:#FEE2E2; color:#991B1B; }
+  .staffrow .s-vuoto { color:#B91C1C; font-weight:700; }
+  .staffrow .s-btn { font-size:13px; font-weight:800; padding:.3rem .6rem; border-radius:8px; border:1px solid var(--ink); background:#fff; color:var(--ink); cursor:pointer; }
+  .staffrow .s-btn.s-agg { background:var(--ink); color:#fff; }
+  .staffrow .s-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .avviso-appello { position:fixed; left:50%; transform:translateX(-50%); top:12px; z-index:2000; max-width:min(92vw,520px); background:#166534; color:#fff; font-weight:700; font-size:15px; padding:.8rem 1rem; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,.25); cursor:pointer; }
   .slot.mia-prenot { background:linear-gradient(90deg,rgba(10,127,75,.06),#fff); }
 
   /* v3.61 — Griglia settimanale "Tutti i corsi" (solo segreteria desktop) */
@@ -425,6 +439,26 @@
     </div>
   </div>
 </div>
+
+<!-- v3.103 — Modale staff: Sostituisci / Aggiungi staff (solo segreteria) -->
+<div id="modal-staff" class="modal-bg">
+  <div class="modal">
+    <h3 id="stf-tit">Staff</h3>
+    <p id="stf-info" style="font-size:14px;margin:.4rem 0 .6rem 0"></p>
+    <label for="stf-persona" style="font-size:14px;font-weight:700">Persona</label>
+    <select id="stf-persona"></select>
+    <div id="stf-ruolo-box">
+      <label for="stf-ruolo" style="font-size:14px;font-weight:700">Ruolo</label>
+      <select id="stf-ruolo"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>
+    </div>
+    <div id="stf-msg" class="modal-msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ann" id="stf-annulla">Annulla</button>
+      <button class="btn-ok" id="stf-conferma">Conferma</button>
+    </div>
+  </div>
+</div>
+<div id="avviso-appello" class="avviso-appello" hidden onclick="this.hidden=true"></div>
 
 <!-- Modale Lead Picker (segreteria, Prima lezione) -->
 <div id="modal-lead" class="modal-bg">
@@ -1503,6 +1537,7 @@
       lezioni.sort((a,b) => a.dtInizio - b.dtInizio);
 
       await caricaTurniEScuole(lezioni); // v3.99 — Scuole F1: nomi delle scuole + turni impegni_staff (solo staff)
+      await caricaStaffLezioni(lezioni); // v3.103 — riga Staff su tutte le altre lezioni (solo staff)
 
       grid.innerHTML = '';
 
@@ -1523,6 +1558,7 @@
 
       bindSlotEvents(lezioni, cfg);
       bindTurni(); // v3.99 — 7b
+      bindStaff(); // v3.103
       idrataFotoRiconoscimento(); // v3.95 — async, non blocca: se fallisce restano le iniziali
 
     } catch (err) {
@@ -1851,7 +1887,8 @@
     }
 
     // v3.99/v3.100 — 7b turni (impegni_staff): solo staff, solo sugli slot che li prevedono
-    const turniHtml = (viewMode !== 'allievo' && haTurni(s)) ? renderTurni(s, dataIso, passato) : '';
+    const turniHtml = (viewMode !== 'allievo' && haTurni(s)) ? renderTurni(s, dataIso, passato)
+      : (viewMode !== 'allievo' && haRigaStaff(s)) ? renderStaff(s, dataIso) : ''; // v3.103 — riga Staff
 
     card.innerHTML =
       '<div class="slot-head">' + colData + colPosti + '<span class="slot-toggle">' + '\u25be' + '</span></div>' +
@@ -1934,6 +1971,191 @@
         await render();
       };
     });
+  }
+
+  /* ===== v3.103 — STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti) =====
+     Riga Staff sotto ogni lezione (solo staff): chi c'e' da impegni_staff per slot + data, con ruolo e stato a colori.
+     Una lettura per settimana; le righe ritirate servono solo a dire chi e' stato sostituito.
+     Segreteria (STAFF_COMPLETO = stesso cancello di is_segreteria): PRESENTE / ASSENTE / SOSTITUISCI / ANNULLA su ogni
+     persona e + AGGIUNGI STAFF sulla lezione. Scritture solo via RPC: impegno_presenza, sostituisci_istruttore,
+     impegno_mi_segno. Nelle liste per primo il sostituto automatico (slot_piano_staff.sostituto_user_id). */
+  let staffSlot = {};      // slot_id|data -> righe impegni_staff (tutti gli stati)
+  let staffNomi = null;    // user_id -> {nome, staff_role}
+  let staffPiano = null;   // righe slot_piano_staff attive
+  let staffErr = null;
+  let staffCtx = null;     // {az, slotId, dataIso, impId, userId}
+  const avvisiAppello = new Set();
+  const isSegreteriaAg = () => STAFF_COMPLETO.includes(userStaffRole);
+  const haRigaStaff = (s) => !haTurni(s) && s.tipo_corso !== 'monitor'; // scuole: riga Istruttori di sempre · Sala con Monitor: turni a parte
+  const STAFF_STATO = { previsto: 'previsto', presente: 'presente ✓', assente: 'assente' };
+
+  async function caricaStaffLezioni(lezioni) {
+    staffSlot = {}; staffErr = null;
+    if (viewMode === 'allievo') return;
+    const conStaff = lezioni.filter(l => haRigaStaff(l.slot));
+    if (!conStaff.length) return;
+    const slotIds = [...new Set(conStaff.map(l => l.slot.id))];
+    const date = conStaff.map(l => l.dataIso).sort();
+    const [rImp, rNomi, rPiano] = await Promise.all([
+      sb.from('impegni_staff').select('id, slot_id, data, user_id, ruolo, stato, compenso_tipo, da_piano, note, presenza_inizio')
+        .eq('tipo', 'lezione').in('slot_id', slotIds).gte('data', date[0]).lte('data', date[date.length - 1]),
+      staffNomi ? { data: null } : sb.from('profiles').select('user_id, nome, cognome, staff_role').not('staff_role', 'is', null),
+      staffPiano ? { data: null } : sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo', true)
+    ]);
+    if (rImp.error) { staffErr = rImp.error; console.warn('[staff] impegni_staff:', rImp.error.message); return; }
+    if (rNomi.data) { staffNomi = {}; rNomi.data.forEach(p => { staffNomi[p.user_id] = { nome: ((p.nome || '') + ' ' + (p.cognome || '')).trim() || 'Staff', staff_role: p.staff_role }; }); }
+    if (rPiano && rPiano.error) console.warn('[staff] slot_piano_staff:', rPiano.error.message);
+    if (rPiano && rPiano.data) staffPiano = rPiano.data;
+    (rImp.data || []).forEach(r => { const k = r.slot_id + '|' + r.data; (staffSlot[k] = staffSlot[k] || []).push(r); });
+  }
+  const staffNome = (u) => (staffNomi && staffNomi[u] && staffNomi[u].nome) || 'Staff';
+  /* chi ha preso il posto di chi: il sostituto ha la nota "sostituzione…" o "sostituto da piano",
+     il sostituito resta assente o ritirato con la nota "sostituito" (sostituisci_istruttore, trigger dell'appello) */
+  function sostituisceChi(r, righe) {
+    if (!/sostituzione|sostituto da piano/i.test(r.note || '')) return null;
+    const via = righe.find(x => x.user_id !== r.user_id && (x.stato === 'assente' || x.stato === 'ritirato') && /sostituit/i.test(x.note || ''));
+    return via ? staffNome(via.user_id) : null;
+  }
+
+  function renderStaff(s, dataIso) {
+    if (staffErr) return `<div class="staffrow"><span class="t-tit">Staff</span><span>non disponibile (${escAttr(staffErr.message || 'errore')})</span></div>`;
+    const righe = staffSlot[s.id + '|' + dataIso] || [];
+    const vis = righe.filter(r => r.stato !== 'ritirato')
+      .sort((a, b) => (a.compenso_tipo === 'ora' ? 1 : 0) - (b.compenso_tipo === 'ora' ? 1 : 0));
+    const seg = isSegreteriaAg();
+    const oggiIso = isoD(new Date());
+    const voci = vis.map(r => {
+      const chi = sostituisceChi(r, righe);
+      const lab = escAttr(staffNome(r.user_id)) + (chi ? ' (sostituisce ' + escAttr(chi) + ')' : '')
+        + ' · ' + (r.compenso_tipo === 'ora' ? 'assistente' : 'istruttore') + ' · ' + (STAFF_STATO[r.stato] || r.stato);
+      let az = '';
+      if (seg) {
+        const b = (a, t) => `<button class="s-btn" data-staff-az="${a}" data-imp="${r.id}" data-user="${r.user_id}" data-slot="${s.id}" data-data="${dataIso}">${t}</button>`;
+        if (r.stato !== 'presente' && dataIso <= oggiIso) az += b('presente', 'PRESENTE');
+        if (r.stato !== 'assente') az += b('assente', 'ASSENTE');
+        if (r.stato !== 'assente') az += b('sostituisci', 'SOSTITUISCI');
+        if (r.stato !== 'previsto') az += b('annulla', 'ANNULLA');
+      }
+      return `<div class="s-voce"><span class="s-chip ${r.stato}">${lab}</span>${az}</div>`;
+    }).join('');
+    const vuoto = vis.length ? '' : '<span class="s-vuoto">Nessun istruttore segnato</span>';
+    const aggiungi = seg ? `<button class="s-btn s-agg" data-staff-az="aggiungi" data-slot="${s.id}" data-data="${dataIso}">+ AGGIUNGI STAFF</button>` : '';
+    return `<div class="staffrow"><span class="t-tit">Staff</span>${voci}${vuoto}${aggiungi}</div>`;
+  }
+
+  /* lista per Sostituisci / Aggiungi: per primo il sostituto automatico della lezione, poi tutto lo staff per nome */
+  function opzioniStaff(slotId, titolare, escludi) {
+    const auto = titolare && staffPiano ? (staffPiano.find(p => p.slot_id === slotId && p.user_id === titolare) || {}).sostituto_user_id : null;
+    const tutti = Object.keys(staffNomi || {}).filter(u => !escludi.includes(u))
+      .sort((a, b) => staffNome(a).localeCompare(staffNome(b), 'it'));
+    const ord = auto && tutti.includes(auto) ? [auto, ...tutti.filter(u => u !== auto)] : tutti;
+    return ord.map(u => `<option value="${u}">${escAttr(staffNome(u))}${u === auto ? ' (sostituto previsto)' : ''}</option>`).join('');
+  }
+
+  function bindStaff() {
+    document.querySelectorAll('[data-staff-az]').forEach(b => {
+      b.onclick = async (ev) => {
+        ev.stopPropagation();
+        const d = b.dataset;
+        const righe = staffSlot[d.slot + '|' + d.data] || [];
+        if (d.staffAz === 'sostituisci' || d.staffAz === 'aggiungi') { apriStaff(d.staffAz, d, righe); return; }
+        const nome = staffNome(d.user);
+        const testi = {
+          presente: `Segnare presente ${nome}? La lezione viene pagata.`,
+          assente: `Segnare assente ${nome}?\n\nSe è assente, il portale chiama il suo sostituto (se previsto).`,
+          annulla: `Riportare ${nome} a previsto? Si cancellano gli orari di presenza.`
+        };
+        if (!confirm(testi[d.staffAz])) return;
+        b.disabled = true;
+        const { error } = await sb.rpc('impegno_presenza', { p_impegno_id: d.imp, p_azione: d.staffAz === 'presente' ? 'fine' : d.staffAz });
+        if (error) { b.disabled = false; toast(traduciErrore(error, 'Staff'), true); return; }
+        toast({ presente: '✓ Segnato presente', assente: 'Segnato assente', annulla: 'Riportato a previsto' }[d.staffAz]);
+        await render();
+      };
+    });
+  }
+
+  function apriStaff(az, d, righe) {
+    const vis = righe.filter(r => r.stato !== 'ritirato' && r.stato !== 'assente').map(r => r.user_id);
+    staffCtx = { az, slotId: d.slot, dataIso: d.data, impId: d.imp || null, userId: d.user || null };
+    document.getElementById('stf-tit').textContent = az === 'aggiungi' ? 'Aggiungi staff' : 'Sostituisci ' + staffNome(d.user);
+    document.getElementById('stf-info').textContent = az === 'aggiungi'
+      ? (d.data < isoD(new Date()) ? 'Lezione passata: la persona risulta subito presente.' : 'La persona viene segnata sulla lezione.')
+      : (d.data < isoD(new Date()) ? 'Lezione passata: chi scegli risulta presente al posto suo.' : 'Chi scegli prende il suo posto sulla lezione.');
+    document.getElementById('stf-persona').innerHTML = az === 'aggiungi'
+      ? opzioniStaff(d.slot, null, vis)
+      : opzioniStaff(d.slot, d.user, [d.user]);
+    document.getElementById('stf-ruolo-box').style.display = az === 'aggiungi' ? '' : 'none';
+    staffRuoloDaPersona();
+    const msg = document.getElementById('stf-msg'); msg.className = 'modal-msg'; msg.textContent = '';
+    const btn = document.getElementById('stf-conferma'); btn.disabled = false; btn.textContent = az === 'aggiungi' ? 'Aggiungi' : 'Sostituisci';
+    document.getElementById('stf-annulla').onclick = () => closeModal('modal-staff');
+    document.getElementById('stf-persona').onchange = staffRuoloDaPersona;
+    btn.onclick = confermaStaff;
+    openModal('modal-staff');
+  }
+  /* gli staff_assistente sono sempre pagati a ore: scegliendoli il ruolo passa ad Assistente */
+  function staffRuoloDaPersona() {
+    const u = document.getElementById('stf-persona').value;
+    document.getElementById('stf-ruolo').value = staffNomi && staffNomi[u] && staffNomi[u].staff_role === 'staff_assistente' ? 'assistente' : 'conduce';
+  }
+  async function confermaStaff() {
+    if (!staffCtx) return;
+    const c = staffCtx, nuovo = document.getElementById('stf-persona').value;
+    const btn = document.getElementById('stf-conferma'), msg = document.getElementById('stf-msg');
+    if (!nuovo) return;
+    btn.disabled = true;
+    let error = null;
+    if (c.az === 'sostituisci') {
+      ({ error } = await sb.rpc('sostituisci_istruttore', { p_impegno_id: c.impId, p_nuovo_user: nuovo, p_note: 'sostituzione registrata dalla segreteria in agenda' }));
+    } else {
+      const r = await sb.rpc('impegno_mi_segno', { p_tipo: 'lezione', p_slot_id: c.slotId, p_data: c.dataIso, p_ora_inizio: null, p_ora_fine: null,
+        p_ruolo: document.getElementById('stf-ruolo').value, p_user_id: nuovo });
+      error = r.error;
+      if (!error && c.dataIso < isoD(new Date()) && r.data && r.data.id) {
+        ({ error } = await sb.rpc('impegno_presenza', { p_impegno_id: r.data.id, p_azione: 'fine' }));
+      }
+    }
+    if (error) { msg.className = 'modal-msg err'; msg.textContent = traduciErrore(error, 'Staff'); btn.disabled = false; return; }
+    closeModal('modal-staff');
+    toast(c.az === 'sostituisci' ? `✓ ${staffNome(nuovo)} sostituisce ${staffNome(c.userId)}` : `✓ ${staffNome(nuovo)} aggiunto alla lezione`);
+    staffCtx = null;
+    await render();
+  }
+
+  /* dopo la prima presenza segnata dall'istruttore: il trigger dell'appello lo ha segnato presente;
+     si rilegge la lezione e si dice se e' a suo nome o se ha sostituito qualcuno. La segreteria non viene segnata. */
+  async function avvisoAppello(prenotId, tipo) {
+    if (!isStaffIstruttore()) return;
+    try {
+      const tab = usaTabellaPrima(tipo) || tipo === 'prima_lezione' ? 'prenotazioni_prima_lezione' : 'prenotazioni_corso';
+      const { data: p } = await sb.from(tab).select('slot_id, data_lezione').eq('id', prenotId).maybeSingle();
+      if (!p) return;
+      const k = p.slot_id + '|' + p.data_lezione;
+      if (avvisiAppello.has(k)) return;
+      const { data: righe } = await sb.from('impegni_staff').select('user_id, stato, note')
+        .eq('tipo', 'lezione').eq('slot_id', p.slot_id).eq('data', p.data_lezione);
+      const mio = (righe || []).find(r => r.user_id === userId && r.stato === 'presente');
+      if (!mio) return;
+      avvisiAppello.add(k);
+      const via = /sostitu/i.test(mio.note || '')
+        ? (righe || []).find(r => r.user_id !== userId && (r.stato === 'assente' || r.stato === 'ritirato') && /sostituit/i.test(r.note || ''))
+        : null;
+      let nomeVia = via ? staffNome(via.user_id) : '';
+      if (via && nomeVia === 'Staff') {
+        const { data: pr } = await sb.from('profiles').select('nome, cognome').eq('user_id', via.user_id).maybeSingle();
+        nomeVia = pr ? ((pr.nome || '') + ' ' + (pr.cognome || '')).trim() : 'il titolare';
+      }
+      mostraAvvisoAppello(via ? `Hai sostituito ${nomeVia}: la lezione è a tuo nome e la segreteria lo vede.`
+                              : 'Presenza registrata: la lezione è a tuo nome.');
+    } catch (e) { console.warn('[appello] avviso non mostrato:', e); }
+  }
+  function mostraAvvisoAppello(testo) {
+    const el = document.getElementById('avviso-appello');
+    el.textContent = testo;
+    el.hidden = false;
+    clearTimeout(mostraAvvisoAppello._t);
+    mostraAvvisoAppello._t = setTimeout(() => { el.hidden = true; }, 12000);
   }
 
   // ===== kc-avvisi v2 — vista allievo =====
@@ -2500,6 +2722,7 @@
     toast(`✓ Segnato ${lab}`);
     notifyParent('marca_presenza');
     await render();
+    avvisoAppello(prenotId, tipo); // v3.103 — l'istruttore vede se la lezione e' a suo nome o se ha sostituito
   }
 
   // ─── DEBITO-178: instradamento marca vs correzione (rimarca) ───────

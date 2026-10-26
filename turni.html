@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.2 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) LEZIONI DEI CORSI mostra tutto v_copertura_lezioni, corsi adulti e Prime Lezioni compresi (nessun filtro sui minori in pagina): nomi completi per Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale (minori dalla fascia come prima). (2) Sulle proprie lezioni ancora previste, accanto a NON CI SONO: MI SOSTITUISCE… -> scelta dallo staff (per primo il sostituto automatico della lezione da slot_piano_staff, poi tutti per nome) -> conferma "La lezione passa a NOME. Tu non risulti più in questa lezione." -> sostituisci_istruttore. (3) Chip "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). Nessuna modifica a RPC o tabelle. CUMULA v1.1 (sotto). -->
 <!-- KC-BUILD: turni v1.1 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): nuova sezione LEZIONI DEI CORSI sopra le scuole, settimana per settimana, da v_copertura_lezioni (prossimi 28 giorni) con chi e' segnato da impegni_staff (istruttore = compenso_tipo lezione, assistente = ora) e il contatore "Istruttori 1/1 · Assistenti 0/1"; verde se coperta, rossa se scoperta; nome del corso dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)). Richiesta di supporto aperta (richieste_supporto) = banner giallo con chi l'ha chiesta e la nota, ACCETTO IO -> accetta_supporto, ANNULLA RICHIESTA per chi l'ha aperta -> annulla_supporto. Sulle proprie lezioni future: NON CI SONO -> impegno_mi_tolgo dopo la conferma "Se non ci sei, il portale chiama il tuo sostituto (se previsto) e la segreteria vede la lezione scoperta." (il sostituto lo crea il trigger a DB) e CHIEDI SUPPORTO con nota facoltativa -> chiedi_supporto. Lezioni scoperte o con supporto richiesto: MI SEGNO -> impegno_mi_segno('lezione', slot, data) o accetta_supporto se la richiesta e' aperta. In I MIEI IMPEGNI i corsi hanno il nome completo e NON CI SONO. TURNI MONITOR SOLO 19-22 (decisione Marco 23 ott, come portale v3.138): tolta la fascia 18-19 "da coprire". Nessuna modifica a RPC o tabelle. CUMULA v1.0 (sotto). -->
 <!-- KC-BUILD: turni v1.0 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): PAGINA NUOVA per tutto lo staff (profile_data.staff_role non nullo), stile della console Oggi. (1) LEZIONI CHE CERCANO ISTRUTTORI: slot corsi_attivi_settimanali attivi con data_evento nelle prossime 4 settimane e lead_scuola_id valorizzato (per ora solo scuole, richiesti fissi 3); chip dei segnati con ruolo da impegni_staff (stato diverso da ritirato), contatore N/3, "Mi segno" con ruolo (conduce di default per istruttore senior, tutor e creator; supporto per gli altri; modificabile) -> impegno_mi_segno('lezione', slot, ruolo), "Mi tolgo" -> impegno_mi_tolgo. (2) TURNI MONITOR: griglia lun-ven per 2 settimane con le fasce 19-22 e 18-19 (la 18-19 evidenziata "da coprire": debito aperto del 2 ott, decisione Marco pendente) -> impegno_mi_segno('monitor', null, data, ora_inizio, ora_fine). (3) I MIEI IMPEGNI da oggi in poi, "Mi tolgo" finche' sono previsti. La presenza si segna su Oggi. Solo RPC per le scritture. -->
 <meta name="robots" content="noindex, nofollow">
@@ -84,6 +85,7 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 .supp b{color:#FFF3C4}
 .supp .az{margin-top:8px}
 .frm-supp{display:flex; gap:8px; flex-wrap:wrap; width:100%; margin-top:8px}
+.frm-supp select{flex:1; min-width:180px; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
 .frm-supp input{flex:1; min-width:180px; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
 .btn.rosso{background:#A51515; border-color:#A51515; color:#fff}
 </style>
@@ -149,11 +151,24 @@ const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','ag
 
 let sb, uid, staffRole=null, nomi={}, lezioni=[], impLez=[], impMon=[], miei=[], enti={};
 let copertura=[], richieste=[], slotCorsi={}, corsiVoci=[], _suppAperto=null; // v1.1 lezioni dei corsi
+let impLezTutti=[], piano=[], _sostAperto=null; // v1.2 sostituzioni (righe ritirate solo per i nomi) e piano fisso
 /* v1.1 nome completo: per i minori conta la fascia (le lezioni delle 18 di lun e gio hanno tipo bambini e fascia ragazzi) */
-const NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb'};
+const NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb',
+  /* v1.2 corsi adulti e Prime Lezioni */
+  open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb',fly:'Corso Fly KataClimb',
+  giovani:'Corso Giovani KataClimb (18–24)',senior:'Corso Senior KataClimb (over 60)',lab:'Lab',manovra_sosta:'Corso Manovra in Sosta KataClimb',
+  prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Prima Lezione Privata Speciale',prima_lezione_genitori:'Prima Lezione Genitori',
+  prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)'};
 function nomeCorsoLez(tipo,fascia){
   if(tipo==='bambini')return fascia==='ragazzi'?NOME_CORSO.ragazzi:NOME_CORSO.bambini;
   return NOME_CORSO[tipo]||NOME_LEZ[tipo]||String(tipo||'Lezione').replace(/_/g,' ');
+}
+/* v1.2 chi ha preso il posto di chi: il sostituto ha la nota "sostituzione…" o "sostituto da piano",
+   il sostituito resta assente o ritirato con la nota "sostituito" */
+function sostituisceChi(x){
+  if(!/sostituzione|sostituto da piano/i.test(x.note||''))return null;
+  const via=impLezTutti.find(y=>y.slot_id===x.slot_id&&y.data===x.data&&y.user_id!==x.user_id&&(y.stato==='assente'||y.stato==='ritirato')&&/sostituit/i.test(y.note||''));
+  return via?nome(via.user_id):null;
 }
 const TESTO_NON_CI_SONO='Se non ci sei, il portale chiama il tuo sostituto (se previsto) e la segreteria vede la lezione scoperta.';
 
@@ -191,8 +206,8 @@ async function carica(){
       sb.from('corsi_attivi_settimanali').select('id, tipo_corso, data_evento, ora_inizio, ora_fine, note, lead_scuola_id')
         .eq('status','attivo').not('lead_scuola_id','is',null).gte('data_evento',oggiIso).lte('data_evento',fineLez)
         .order('data_evento').order('ora_inizio'),
-      sb.from('impegni_staff').select('id, user_id, slot_id, data, ruolo, stato, compenso_tipo, da_piano').eq('tipo','lezione').neq('stato','ritirato')
-        .gte('data',oggiIso).lte('data',fineLez),
+      sb.from('impegni_staff').select('id, user_id, slot_id, data, ruolo, stato, compenso_tipo, da_piano, note').eq('tipo','lezione')
+        .gte('data',oggiIso).lte('data',fineLez), // v1.2 anche le ritirate: servono a dire chi e' stato sostituito
       sb.from('impegni_staff').select('id, user_id, data, ora_inizio, ora_fine, stato').eq('tipo','monitor').neq('stato','ritirato')
         .gte('data',isoLocal(lunedi)).lte('data',fineMon),
       sb.from('impegni_staff').select('id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, presenza_inizio, presenza_fine')
@@ -200,7 +215,9 @@ async function carica(){
       sb.from('profiles').select('user_id, nome, cognome').not('staff_role','is',null)
     ]);
     for(const r of [rs,rl,rm,rmiei]) if(r.error) throw r.error;
-    lezioni=rs.data||[]; impLez=rl.data||[]; impMon=rm.data||[]; miei=rmiei.data||[];
+    lezioni=rs.data||[]; impLezTutti=rl.data||[]; impLez=impLezTutti.filter(x=>x.stato!=='ritirato'); impMon=rm.data||[]; miei=rmiei.data||[];
+    const rp=await sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo',true); // v1.2
+    if(rp.error)console.warn('[turni] piano:',rp.error.message); piano=rp.data||[];
     await caricaCorsi(oggiIso);
     nomi={}; (rn.data||[]).forEach(p=>{nomi[p.user_id]=p;});
     const leadIds=[...new Set([...lezioni.map(s=>s.lead_scuola_id)].filter(Boolean))];
@@ -255,7 +272,7 @@ function htmlCorso(c,i){
   const req=c.supporto_richiesto_id?richieste.find(r=>r.id===c.supporto_richiesto_id)||{id:c.supporto_richiesto_id}:null;
   const ni=Number(c.istruttori||0), na=Number(c.assistenti||0), mi=Number(c.istruttori_min||0), ma=Number(c.assistenti_min||0);
   const conta=`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:'');
-  const chips=seg.map(x=>`<span class="chip${x.compenso_tipo==='ora'?' ass':''}${x.user_id===uid?' io':''}">${esc(nome(x.user_id))} · ${x.compenso_tipo==='ora'?'assistente':'istruttore'}${x.stato==='presente'?' ✓':''}</span>`).join('')
+  const chips=seg.map(x=>{const chi=sostituisceChi(x);return `<span class="chip${x.compenso_tipo==='ora'?' ass':''}${x.user_id===uid?' io':''}">${esc(nome(x.user_id))}${chi?' (sostituisce '+esc(chi)+')':''} · ${x.compenso_tipo==='ora'?'assistente':'istruttore'}${x.stato==='presente'?' ✓':''}</span>`}).join('')
     +assenti.map(x=>`<span class="chip vuoto">${esc(nome(x.user_id))} · assente</span>`).join('')
     +(seg.length?'':'<span class="chip vuoto">nessuno segnato</span>');
   let supp='';
@@ -269,6 +286,9 @@ function htmlCorso(c,i){
   let az='';
   if(mio && mio.stato==='previsto'){
     az=`<button class="btn rosso" onclick="nonCiSono('${esc(mio.id)}',this)">NON CI SONO</button>`
+      +`<button class="btn" onclick="apriSostituto(${i})">MI SOSTITUISCE…</button>`
+      +(_sostAperto===chiaveCorso(c)?`<div class="frm-supp"><select id="sost-chi" aria-label="Chi ti sostituisce">${opzioniSostituto(c.slot_id)}</select>
+          <button class="btn prim" onclick="confermaSostituto('${esc(mio.id)}',this)">CONFERMA</button><button class="btn" onclick="_sostAperto=null;disegnaCorsi()">ANNULLA</button></div>`:'')
       +(req?'':`<button class="btn" onclick="apriSupporto(${i})">CHIEDI SUPPORTO</button>`)
       +(_suppAperto===chiaveCorso(c)?`<div class="frm-supp"><input id="supp-nota" maxlength="200" placeholder="Nota facoltativa, es. 3 prime lezioni" aria-label="Nota per la richiesta di supporto">
           <button class="btn prim" onclick="chiediSupporto(${i},this)">CHIEDI</button><button class="btn" onclick="_suppAperto=null;disegnaCorsi()">ANNULLA</button></div>`:'');
@@ -291,6 +311,24 @@ async function nonCiSono(id,btn){
   const{error}=await sb.rpc('impegno_mi_tolgo',{p_impegno_id:id});
   if(error){ btn.disabled=false; toast('Non registrato: '+errTesto(error)); return; }
   toast('Fatto. Se c’è un sostituto, adesso è segnato lui.');
+  carica();
+}
+/* v1.2 MI SOSTITUISCE…: per primo il sostituto automatico della lezione, poi tutto lo staff per nome */
+function opzioniSostituto(slotId){
+  const auto=(piano.find(p=>p.slot_id===slotId&&p.user_id===uid)||{}).sostituto_user_id||null;
+  const tutti=Object.keys(nomi).filter(u=>u!==uid).sort((a,b)=>nome(a).localeCompare(nome(b),'it'));
+  const ord=auto&&tutti.includes(auto)?[auto,...tutti.filter(u=>u!==auto)]:tutti;
+  return ord.map(u=>`<option value="${esc(u)}">${esc(nome(u))}${u===auto?' (sostituto previsto)':''}</option>`).join('');
+}
+function apriSostituto(i){ const c=corsiVoci[i]; if(!c)return; _sostAperto=chiaveCorso(c); _suppAperto=null; disegnaCorsi(); }
+async function confermaSostituto(impId,btn){
+  const u=($('sost-chi')||{}).value; if(!u)return;
+  if(!confirm(`La lezione passa a ${nome(u)}. Tu non risulti più in questa lezione.\n\nConfermi?`))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('sostituisci_istruttore',{p_impegno_id:impId,p_nuovo_user:u,p_note:'sostituzione chiesta dal titolare in Turni'});
+  if(error){ btn.disabled=false; toast('Non registrata: '+errTesto(error)); return; }
+  _sostAperto=null;
+  toast(`Fatto: la lezione è di ${nome(u)}.`);
   carica();
 }
 function apriSupporto(i){ const c=corsiVoci[i]; if(!c)return; _suppAperto=chiaveCorso(c); disegnaCorsi(); $('supp-nota')?.focus(); }
