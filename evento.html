@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: evento v1.4 · 2026-10-26 · bottone "Scopri e iscriviti" dalla pagina di iscrizione dell'evento (eventi.pagina_url, via RPC get_evento_pubblico; Marco 24 ott: l'evento in Agenda deve portare all'iscrizione). LANDINGS resta come riserva (KataCamp). Nient'altro. -->
 <!-- KC-BUILD: evento v1.3 · 2026-10-09 · RITROVO UNA VOLTA SOLA (audit v2.0 giro 1): nella vista invito il blocco Ritrovo usciva due volte (variabile inline ritrovo + ritrovoHTML(e)). Tolta la copia inline e il suo uso; ritrovoHTML resta l'unico punto e prende dalla copia inline cio' che le mancava: ricerca sul navigatore con anche il luogo, link "📍 punto → apri il navigatore", partenza e rientro in grassetto, orari escapati. Nient'altro. CUMULA v1.2 · 2026-06-12 02:55 · + blocco Livello (tema uscita, corso richiesto, gradi min–max). CUMULA v1.1 · 2026-06-12 02:30 · + blocco Ritrovo: punto incontro cliccabile (punto_incontro_url o link Maps costruito dal testo → navigatore), orari partenza/rientro. CUMULA v1.0: Pagina evento generica a due vite: futuro=invito (descrizione, CTA WhatsApp+worker, liste cordata/interessati), passato=memoria (galleria foto, minivideo Stream, scudetto). Fonte: RPC get_evento_pubblico(slug). Iscrizione: kc-eventi (richiede v3 con evento_slug+stato) -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -148,7 +149,8 @@ function render(){
   let main='';
   if(!past){
     /* ── VITA 1: INVITO ── */
-    const landing=LANDINGS[e.slug];
+    const pu=(e.pagina_url||'').trim();
+    const landing=pu?(/^(https?:)?\//.test(pu)?pu:'/'+pu):LANDINGS[e.slug];
     main='<div class="grid">'+
       '<div class="panel"><h2>L\'evento</h2>'+
         '<div class="desc">'+(e.descrizione?esc(e.descrizione):'I dettagli arrivano presto. Intanto segna la data.')+'</div>'+
@@ -160,7 +162,7 @@ function render(){
       '<div class="panel">'+
         '<h2>Vieni con noi</h2>'+
         (landing
-          ?'<a class="btn btn-amber" href="'+landing+'">Scopri e iscriviti →</a>'
+          ?'<a class="btn btn-amber" href="'+esc(landing)+'">Scopri e iscriviti →</a>'
           :'<a class="btn btn-amber" href="'+waLink(e)+'">Voglio esserci → WhatsApp</a>')+
         '<button class="btn btn-ghost" id="btnInt" onclick="interessa()">✋ Mi interessa</button>'+
         '<div class="note-int">Nessun impegno: dici solo "tienimi d\'occhio".</div>'+
