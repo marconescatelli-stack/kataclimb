@@ -1,6 +1,8 @@
 -- ════════════════════════════════════════════════════════════════════
 -- CORSO MANOVRA IN SOSTA KATACLIMB — correzioni 26 ott 2026 (decisioni Marco 26 ott)
 -- Da lanciare DOPO manovra_sosta_2026-10-25.sql e PRIMA di stripe-worker v3.90.
+-- APPLICATO il 26 ott 2026 ("vai" di Marco) come migrazione manovra_sosta_correzioni_2026_10_26
+-- (versione 20261026180641). Corpo live verificato identico a questo file (md5 di prosrc).
 -- Solo CREATE OR REPLACE di due funzioni: stessa firma, stessi permessi (le GRANT restano).
 --
 -- a. crea_slot_manovra: messaggi d'errore con il nome completo "Corso Manovra in Sosta KataClimb".
@@ -10,7 +12,10 @@
 --    Chiunque altro: errore. Controllo a prova di NULL: nel dubbio nega (anonimo compreso).
 -- c. crea_slot_manovra: prima di creare lo slot ricontrolla che l'ora sia ancora libera
 --    nell'agenda di Mello, con le stesse regole di proponi_slot_manovra; se no, dice quale
---    e' il problema e cosa fare. Un lucchetto di transazione mette in fila due "Crea lo slot"
+--    e' il problema e cosa fare. Se l'ora e' occupata il messaggio dice l'orario e il NOME
+--    COMPLETO di cosa la occupa (Marco 26 ott), es. "Mello è già impegnato dalle 17:00 alle
+--    18:00 nel Corso Intro Corda KataClimb: scegli un'altra ora libera." Nomi dalla stessa
+--    mappa di oggi.html (NOME_CORSO) + agenda; mai la chiave tecnica. Un lucchetto di transazione mette in fila due "Crea lo slot"
 --    premuti nello stesso momento (il secondo vede lo slot del primo e si ferma).
 -- ════════════════════════════════════════════════════════════════════
 
@@ -43,7 +48,7 @@ CREATE OR REPLACE FUNCTION public.crea_slot_manovra(p_data date, p_ora_inizio ti
  SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
-DECLARE v_slot uuid; v_n int; v_fine time; v_dow int; v_conflitto text;
+DECLARE v_slot uuid; v_n int; v_fine time; v_dow int; v_conflitto text; v_ist text;
 BEGIN
   IF NOT is_staff() THEN RAISE EXCEPTION 'Solo lo staff può creare lo slot del Corso Manovra in Sosta KataClimb'; END IF;
   IF p_data <= current_date THEN RAISE EXCEPTION 'La data deve essere da domani in poi'; END IF;
@@ -67,23 +72,64 @@ BEGIN
      OR (v_dow BETWEEN 1 AND 5 AND (p_ora_inizio < '17:00' OR v_fine > '22:00')) THEN
     RAISE EXCEPTION 'Alle % del % l''Accademia non ha ore per il Corso Manovra in Sosta KataClimb (lun–ven 17–22, sab 14–18): ricarica le ore libere in Segreteria e scegline un''altra.', to_char(p_ora_inizio, 'HH24:MI'), to_char(p_data, 'DD/MM');
   END IF;
-  SELECT 'dalle ' || to_char(c.ora_inizio, 'HH24:MI') || ' alle ' || to_char(c.ora_fine, 'HH24:MI') INTO v_conflitto
-    FROM corsi_attivi_settimanali c
-   WHERE c.istruttore_id = p_istruttore AND c.status = 'attivo'
-     AND ((c.data_evento IS NULL AND c.giorno_settimana = v_dow) OR c.data_evento = p_data)
-     AND c.ora_inizio < v_fine AND c.ora_fine > p_ora_inizio
-     AND NOT EXISTS (SELECT 1 FROM slot_chiusure sc WHERE sc.slot_id = c.id AND sc.data = p_data)
-   LIMIT 1;
+  -- chi e' l'istruttore: il soprannome tra parentesi se c'e' ("Marco Mellozzini (Mello)" -> Mello)
+  SELECT coalesce(substring(i.nome FROM '\(([^)]+)\)'), i.nome, 'L''istruttore') INTO v_ist
+    FROM istruttori i WHERE i.id = p_istruttore;
+  v_ist := coalesce(v_ist, 'L''istruttore');
+
+  -- cosa occupa l'ora: lezione dell'istruttore (slot settimanale o datato) oppure impegno in agenda staff
+  WITH occupa AS (
+    SELECT c.ora_inizio AS ora_i, c.ora_fine AS ora_f, c.tipo_corso AS tipo, c.fascia, false AS turno_monitor
+      FROM corsi_attivi_settimanali c
+     WHERE c.istruttore_id = p_istruttore AND c.status = 'attivo'
+       AND ((c.data_evento IS NULL AND c.giorno_settimana = v_dow) OR c.data_evento = p_data)
+       AND c.ora_inizio < v_fine AND c.ora_fine > p_ora_inizio
+       AND NOT EXISTS (SELECT 1 FROM slot_chiusure sc WHERE sc.slot_id = c.id AND sc.data = p_data)
+    UNION ALL
+    SELECT s.ora_inizio, s.ora_fine, cs.tipo_corso, cs.fascia, (s.tipo = 'monitor')
+      FROM impegni_staff s
+      JOIN istruttori i ON i.user_id = s.user_id
+      LEFT JOIN corsi_attivi_settimanali cs ON cs.id = s.slot_id
+     WHERE i.id = p_istruttore AND s.data = p_data AND s.stato <> 'ritirato'
+       AND s.ora_inizio < v_fine AND s.ora_fine > p_ora_inizio
+  ), nominato AS (
+    SELECT ora_i, ora_f,
+           CASE
+             WHEN turno_monitor THEN 'turno di Sala con Monitor'
+             WHEN tipo = 'prima_lezione'          THEN 'Prima Lezione Adulti'
+             WHEN tipo = 'prima_lezione_genitori' THEN 'Prima Lezione Genitori'
+             WHEN tipo = 'prima_lezione_bambini'  THEN 'Prima Lezione Bambini (6–11)'
+             WHEN tipo = 'prima_lezione_ragazzi'  THEN 'Prima Lezione Ragazzi (12–17)'
+             WHEN tipo = 'prima_lezione_privata'  THEN 'Prima Lezione Privata Speciale'
+             WHEN tipo = 'prima_lezione_scuola'   THEN 'Prima Lezione · Scuole'
+             WHEN tipo = 'scuola_mini'            THEN 'Mini percorso · Scuole'
+             WHEN tipo = 'open'        THEN 'Corso Open KataClimb'
+             WHEN tipo = 'advance'     THEN 'Corso Advance KataClimb'
+             WHEN tipo = 'intro_corda' THEN 'Corso Intro Corda KataClimb'
+             WHEN tipo = 'evo_corda'   THEN 'Corso Evo Corda KataClimb'
+             WHEN tipo = 'fly'         THEN 'Corso Fly KataClimb'
+             WHEN tipo = 'bambini' AND fascia = 'bambini' THEN 'Corso Bambini (6–11)'
+             WHEN tipo = 'bambini' AND fascia = 'ragazzi' THEN 'Corso Ragazzi (12–17)'
+             WHEN tipo = 'bambini'     THEN 'Corso Bambini e Ragazzi'
+             WHEN tipo = 'giovani'     THEN 'Corso Giovani KataClimb (18–24)'
+             WHEN tipo = 'senior'      THEN 'Corso Senior KataClimb (over 60)'
+             WHEN tipo = 'genitori'    THEN 'Corso Genitori KataClimb'
+             WHEN tipo = 'evo_ragazzi' THEN 'Corso Evo Ragazzi'
+             WHEN tipo = 'expert'      THEN 'Corso Expert'
+             WHEN tipo = 'lab'         THEN 'Lab'
+             WHEN tipo = 'monitor'     THEN 'Sala con Monitor'
+             WHEN tipo = 'manovra_sosta' THEN 'Corso Manovra in Sosta KataClimb'
+           END AS nome
+      FROM occupa
+  )
+  SELECT 'dalle ' || to_char(ora_i, 'HH24:MI') || ' alle ' || to_char(ora_f, 'HH24:MI')
+         || CASE WHEN nome IS NULL THEN ' con un altro impegno'
+                 WHEN nome LIKE 'Prima %' OR nome LIKE 'Sala %' THEN ' nella ' || nome
+                 ELSE ' nel ' || nome END
+    INTO v_conflitto
+    FROM nominato ORDER BY ora_i LIMIT 1;
   IF v_conflitto IS NOT NULL THEN
-    RAISE EXCEPTION 'Il % alle % l''istruttore ha già una lezione %: l''ora non è più libera. Ricarica le ore libere in Segreteria e scegline un''altra.', to_char(p_data, 'DD/MM'), to_char(p_ora_inizio, 'HH24:MI'), v_conflitto;
-  END IF;
-  SELECT 'dalle ' || to_char(s.ora_inizio, 'HH24:MI') || ' alle ' || to_char(s.ora_fine, 'HH24:MI') INTO v_conflitto
-    FROM impegni_staff s JOIN istruttori i ON i.user_id = s.user_id
-   WHERE i.id = p_istruttore AND s.data = p_data AND s.stato <> 'ritirato'
-     AND s.ora_inizio < v_fine AND s.ora_fine > p_ora_inizio
-   LIMIT 1;
-  IF v_conflitto IS NOT NULL THEN
-    RAISE EXCEPTION 'Il % alle % l''istruttore ha già un impegno in agenda %: l''ora non è più libera. Ricarica le ore libere in Segreteria e scegline un''altra.', to_char(p_data, 'DD/MM'), to_char(p_ora_inizio, 'HH24:MI'), v_conflitto;
+    RAISE EXCEPTION '% è già impegnato %: scegli un''altra ora libera (ricarica le ore libere in Segreteria).', v_ist, v_conflitto;
   END IF;
 
   INSERT INTO corsi_attivi_settimanali
