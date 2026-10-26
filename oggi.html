@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.29 · 2026-10-26 · PROSSIMO PASSO: CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): nella console ALLIEVO, dopo la tessera Lezioni, tessera a tutta larghezza "Prossimo passo · Corso Manovra in Sosta KataClimb" -> manovra-sosta.html, nascosta finche' loadManovra non verifica che la persona ha concluso il Corso Evo Corda KataClimb (RPC puo_iscriversi_manovra) e non ha righe in lista_manovra_sosta. Mai allo staff. Solo letture. CUMULA v2.28 (sotto). -->
 <!-- KC-BUILD: oggi v2.28 · 2026-10-24 · PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): nella tessera "I tuoi impegni · oggi", sotto ogni lezione ancora senza presenza, la riga "Ricordati SONO QUI: senza presenza la lezione non viene pagata."; finita da piu' di 30 minuti e senza presenza, riga arancio "Non hai segnato la presenza alla lezione delle HH:MM" con SEGNA ADESSO (impegno_presenza 'fine', che segna presente con inizio e fine). Ricalcolo ogni 5 minuti. Nome della lezione dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)), ruolo "assistente" per compenso_tipo ora. Nessuna modifica a RPC o tabelle. CUMULA v2.27 (sotto). -->
 <!-- KC-BUILD: oggi v2.27 · 2026-10-23 · UN SOLO MONITOR ALLA VOLTA (Marco 23 ott 13:49: mai due turni monitor pagati in contemporanea). A DB (23 ott 13:50) monitor_turno('inizio') e monitor_segna chiudono da soli il turno di chiunque altro sia ancora aperto oggi, con la nota del cambio. Nella pagina il dialogo del cambio della v2.26 (INIZIO TURNO e SONO QUI dell'impegno monitor) diventa un avviso: "Nome e' in turno dalle HH:MM. In sala c'e' un monitor alla volta: se inizi il tuo turno, il suo si chiude adesso." (piu' colleghi = elenco dei nomi), INIZIA IL MIO TURNO -> solo monitor_turno('inizio'), niente piu' monitor_cambio_turno · ANNULLA non fa niente. Tolta l'opzione dei due monitor insieme e il suo ramo (la frase resta solo nella storia della v2.26 qui sotto). Dopo l'apertura il toast "Turno iniziato. Il turno di Nome e' chiuso alle HH:MM.". monitor_turni_aperti_altri() resta solo per avvisare. Nessuna modifica a RPC o tabelle. CUMULA v2.26 (sotto). -->
 <!-- KC-BUILD: oggi v2.26 · 2026-10-23 · FINE TURNO EVIDENTE (collaudo Marco 23 ott 11:58 e 12:01: a turno aperto non trovava come chiudere, e lo cercava dentro la scheda dopo aver segnato Lorenzo). (1) Nella tessera TURNO il bottone torna FINE TURNO, rosso pieno #A51515 (il rosso di ADESSO v2.17) con testo bianco, grande come INIZIO TURNO, sotto SEGNA CHI STAI SEGUENDO. (2) BARRA FISSA DEL TURNO a turno aperto, nelle viste con il turno (monitor e istruttore): sopra la barra di navigazione e, a scheda aperta, in fondo alla scheda a schermo intero e sopra di essa; "In turno dalle HH:MM · N segnati" e FINE TURNO rosso, che apre lo stesso riepilogo dialogoFineTurno; dentro una scheda con qualcosa da non perdere (guida a meta', osservazione non salvata, persona aperta e non segnata) prima il dialogo della v2.24, poi il riepilogo; con il turno chiuso sparisce; spazio in fondo a pagina e scheda. (3) Chiusura automatica a DB (chiudi_turni_monitor_automatico, dal 23 ott): sotto "In turno dalle", in tessera e barra, "si chiude da solo alle HH:MM" da fine_turno_prevista_turno(turno_id). (4) CAMBIO TURNO: INIZIO TURNO (e SONO QUI dell'impegno monitor) chiede prima monitor_turni_aperti_altri(); con un collega in turno "Nome e' in turno dalle HH:MM. E' un cambio?" SI', CHIUDO IL SUO TURNO -> monitor_cambio_turno(turno_id) e poi il mio inizio · NO, SIAMO IN DUE -> solo il mio; con piu' colleghi una riga ciascuno con il suo SI'; errore = toast con il motivo e il turno si apre lo stesso. Nessuna modifica a RPC o tabelle. CUMULA v2.25 (sotto). -->
@@ -650,7 +651,7 @@ async function init(){
   if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); }
   else if(vista==='monitor'){ renderMonitor(); loadMonitor(); loadEventi(); }
-  else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); }
+  else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); }
 }
 
 /* ════════════════════════ CONSOLE ALLIEVO (v1.1 invariata) ════════════════════════ */
@@ -674,6 +675,12 @@ function renderAllievo(){
     <span class="et mono">🔔 Lezioni</span>
     <div class="big">${creditoCorso()??'—'}</div>
     <span class="cmd mono">${(()=>{const c=contatore();return c?`${c.fatte} su ${c.totali} · PRENOTA ›`:'PRENOTA ›';})()}</span>
+  </a>
+
+  <a class="t t-uscita full" id="t-manovra" href="/manovra-sosta.html" style="display:none">
+    <span class="et mono">🪢 Prossimo passo</span>
+    <p style="font-weight:800;font-size:1rem;line-height:1.3;margin:6px 0 2px">Corso Manovra in Sosta KataClimb</p>
+    <span class="cmd mono">SCOPRI ›</span>
   </a>
 
   <a class="t t-malaga" id="t-ev1" href="/eventi.html">
@@ -731,6 +738,19 @@ function renderAllievo(){
     <span class="cmd mono">SULLA CORDA ›</span>
   </a>
   ${back}`;
+}
+
+/* ── v2.29 Prossimo passo: Corso Manovra in Sosta KataClimb, a chi ha concluso il Corso Evo Corda KataClimb e non e' in lista ── */
+async function loadManovra(){
+  const el=document.getElementById('t-manovra');
+  if(!el||pdata.staff_role)return;
+  try{
+    const{data:puo,error}=await sb.rpc('puo_iscriversi_manovra',{p_user:uid});
+    if(error||!puo)return;
+    const{data:righe,error:e2}=await sb.from('lista_manovra_sosta').select('id').eq('user_id',uid).limit(1);
+    if(e2||(righe&&righe.length))return;
+    el.style.display='';
+  }catch(e){ console.warn('[manovra]',e); }
 }
 
 /* ── ADESSO allievo: motore compiti v1 — 4 stati ── */

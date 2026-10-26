@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.140 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): (1) Segreteria: quarto interruttore 🪢 Corso Manovra in Sosta KataClimb. Lista da v_lista_manovra_sosta (in lista da N giorni, rosso con due_settimane_scadute); ore libere di Mello in Accademia da proponi_slot_manovra(14), raggruppate per giorno; si tocca un orario e il bottone "Crea lo slot" e' attivo con almeno 2 in lista oppure almeno uno da 2 settimane -> conferma -> crea_slot_manovra (prenota i primi 4 in lista) -> stripe-worker POST /manovra-sosta/avvisi {tipo:'slot', slot_id} manda la mail di conferma a ogni prenotato. Prenotati e lezioni da segnare: Abile / Non abile + nota -> esito_manovra; al primo Abile -> /manovra-sosta/avvisi {tipo:'abile', lista_id}, mail con la proposta della parte su roccia con Marco. Il Worker tiene memoria degli invii (eventi_notifica): niente doppioni. Se la mail non parte lo dice in chiaro, lo slot e l'esito restano. (2) Home allievo: sotto il riquadro del prossimo passo, chi ha il Corso Evo Corda KataClimb concluso (puo_iscriversi_manovra) e nessuna riga in lista_manovra_sosta vede la carta "Prossimo passo: Corso Manovra in Sosta KataClimb" -> manovra-sosta.html. Mai allo staff. Scritture solo via RPC. CUMULA v3.139 (sotto). -->
 <!-- KC-BUILD: portale v3.139 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): Segreteria → 🗓 Turni. (1) Nella settimana a colonne entrano le lezioni dei corsi con piano di copertura (slot_copertura + corsi_attivi_settimanali ricorrenti, giorno_settimana): "Istruttori 1/1 · Assistenti 0/1" contati da impegni_staff come v_copertura_lezioni (compenso_tipo lezione = istruttore, ora = assistente; stato previsto o presente), verde se coperta e rossa se scoperta, anche nelle settimane passate; nome dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)); richiesta di supporto aperta (richieste_supporto) segnalata nella voce. Al click: chi c'e' con il ruolo e "dal piano", Togli, Segna presente (impegno_presenza 'inizio', da oggi indietro), Segna assente, Riporta a previsto, Annulla richiesta di supporto (annulla_supporto), Aggiungi persona con la scelta Istruttore / Assistente (impegno_mi_segno con p_slot_id, p_data, p_user_id e p_ruolo 'conduce' oppure 'assistente', che la RPC salva come supporto pagato a ore; gli staff_assistente sono sempre a ore e la scelta si imposta da sola quando li selezioni). (2) Compensi lezioni dei corsi del mese da v_compenso_lezioni: per persona lezioni pagate, ore, euro e da confermare; elenco "Da confermare" (giorni passati ancora previsti, valgono 0) con Era presente (impegno_presenza 'inizio') / Assente ('assente'); export CSV come per il monitor. Azioni e compensi solo per staff_creator e staff_segreteria. Nessuna modifica a RPC o tabelle. CUMULA v3.138 (sotto). -->
 <!-- KC-BUILD: portale v3.138 · 2026-10-23 · TURNI MONITOR SOLO 19-22 (decisione Marco 23 ott): tolta la fascia monitor 18-19 "da coprire" dalla settimana di Segreteria → Turni. Sala e monitor partono dalle 19; se un istruttore arriva prima per motivi suoi non e' un turno. L'unico impegno 18-19 gia' in DB (22 ott) e' gia' ritirato e resta come traccia. CUMULA v3.137 (sotto). -->
 <!-- KC-BUILD: portale v3.137 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): (1) Segreteria: terzo interruttore 🗓 Turni. Settimana a colonne con le lezioni delle scuole (richiesti 3) e le fasce monitor lun-ven 19-22 e 18-19 "da coprire" (richiesto 1), segnati/richiesti e colore verde/giallo/rosso; click -> chi e' segnato, Togli (impegno_mi_tolgo), Segna assente / Riporta a previsto (impegno_presenza), Aggiungi persona (impegno_mi_segno con p_user_id). Sotto: Turni monitor da chiudere (v_compenso_turni_monitor da_chiudere) con ora di fine -> segreteria_chiudi_turno; Compensi monitor del mese da v_compenso_monitor_mese con export CSV. Azioni e compensi solo per staff_creator e staff_segreteria (is_segreteria), gli altri vedono la copertura. (2) Profilo: "Il mio diario didattico" da v_mio_diario_didattico (solo le note che l'istruttore ha scelto di mostrare), firmato dall'istruttore; vuoto -> "Qui troverai le note dei tuoi istruttori dopo le lezioni." (allo staff senza note il riquadro non compare). Non in Comunita'. CUMULA v3.136 (sotto). -->
@@ -1533,6 +1534,8 @@ fill="#1d4ed8" stroke="none">
         </div>
         <!-- v3.56 Home Duolingo: hero card dinamica -->
         <div id="my-hero-card" class="my-hero-card" style="display:none"></div>
+        <!-- v3.140 — Prossimo passo: Corso Manovra in Sosta KataClimb (msCartaAllievo) -->
+        <div id="my-manovra-card" class="my-hero-card" style="display:none"></div>
         <!-- v3.115 — link unico alle regole di prenotazione (testo in guida.html#prenotazioni, P-VERITA-UNICA) -->
         <div style="margin-top:12px;text-align:right">
           <a href="guida.html#prenotazioni" style="font-size:13px;color:var(--accent);text-decoration:none;font-weight:600">Come funzionano le prenotazioni &rarr;</a>
@@ -1660,6 +1663,7 @@ fill="#1d4ed8" stroke="none">
         <button id="seg-sw-persone" class="on" onclick="segMostra('persone')">👥 Persone</button>
         <button id="seg-sw-scuole" onclick="segMostra('scuole')">🏫 Scuole</button>
         <button id="seg-sw-turni" onclick="segMostra('turni')">🗓 Turni</button>
+        <button id="seg-sw-manovra" onclick="segMostra('manovra')">🪢 Corso Manovra in Sosta KataClimb</button>
       </div>
 
       <!-- v3.137 — Turni e presenze staff, Metà C (codice nel blocco TURNI E PRESENZE STAFF) -->
@@ -1727,6 +1731,39 @@ fill="#1d4ed8" stroke="none">
           <h3 class="sc-h3" style="margin-top:16px">⏰ Da confermare <span id="tu-daconf-n" class="sc-conta"></span></h3>
           <p class="sc-nota" style="margin-top:0">Lezioni di giorni passati senza presenza: valgono 0 finché non confermi chi c'era.</p>
           <div id="tu-daconf"></div>
+        </div>
+      </div>
+
+      <!-- v3.140 — Corso Manovra in Sosta KataClimb (codice nel blocco CORSO MANOVRA IN SOSTA) -->
+      <div id="seg-manovra-wrap" class="hidden">
+        <style>
+        .ms-giorno{padding:10px 0;border-top:1px solid var(--border)}
+        .ms-giorno:first-child{border-top:none}
+        .ms-giorno b{display:block;font-size:14.5px;margin-bottom:6px;text-transform:capitalize}
+        .ms-ore{display:flex;gap:6px;flex-wrap:wrap}
+        .ms-esito{display:flex;gap:6px;flex-wrap:wrap;align-items:center;width:100%}
+        .ms-esito input{flex:1;min-width:180px}
+        .ms-ora{font-size:14px;font-weight:700;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer}
+        .ms-ora.on{background:var(--text);border-color:var(--text);color:var(--bg)}
+        .ms-ora:disabled{opacity:.45;cursor:not-allowed}
+        .seg-switch{flex-wrap:wrap}
+        </style>
+        <div id="ms-msg"></div>
+        <div class="sc-sez">
+          <h3 class="sc-h3">🪢 Corso Manovra in Sosta KataClimb — lista <span id="ms-lista-n" class="sc-conta"></span></h3>
+          <p class="sc-nota" style="margin-top:0">Chi ha pagato la lezione in Accademia (25 €) e aspetta il giorno. Con almeno 2 persone si crea lo slot, al massimo 4. Chi aspetta da 2 settimane la fa anche da solo.</p>
+          <div id="ms-lista"></div>
+        </div>
+        <div class="sc-sez">
+          <h3 class="sc-h3">🕒 Ore libere di Mello in Accademia · prossimi 14 giorni</h3>
+          <p id="ms-ore-nota" class="sc-nota" style="margin-top:0"></p>
+          <div id="ms-ore"></div>
+          <div class="sc-azioni"><button id="ms-crea" class="btn sc-scuro" disabled onclick="msCreaSlot(this)">Crea lo slot</button><span id="ms-scelta" class="sc-sub" style="align-self:center"></span></div>
+        </div>
+        <div class="sc-sez">
+          <h3 class="sc-h3">✅ Prenotati ed esito <span id="ms-pren-n" class="sc-conta"></span></h3>
+          <p class="sc-nota" style="margin-top:0">Dopo la lezione segna Abile o Non abile. Chi è abile riceve la mail con la proposta della parte su roccia con Marco.</p>
+          <div id="ms-prenotati"></div>
         </div>
       </div>
 
@@ -8304,6 +8341,7 @@ async function refreshHomeDuolingo(){
     renderStatRow(profile, daysSinceLastPresence, stepIdx);
     const cfg = buildHeroCardConfig(profile, myPrenotCorso, daysSinceLastPresence);
     renderHeroCard(cfg);
+    msCartaAllievo(); // v3.140
   }catch(e){
     console.warn('[home-duolingo]', e);
   }
@@ -10074,17 +10112,20 @@ async function scApriDoc(docId,btn){
 
 /* ── Interruttore Persone / Scuole nella Segreteria ── */
 function segMostra(quale){
-  const scuole=quale==='scuole',turni=quale==='turni',altro=scuole||turni;
+  const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',altro=scuole||turni||manovra;
   if(altro&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
   document.getElementById('seg-scuole-wrap').classList.toggle('hidden',!scuole);
   document.getElementById('seg-turni-wrap').classList.toggle('hidden',!turni); // v3.137
+  document.getElementById('seg-manovra-wrap').classList.toggle('hidden',!manovra); // v3.140
   document.getElementById('seg-lead-list-wrap').style.display=altro?'none':'';
   if(altro)document.getElementById('seg-lead-detail').classList.add('hidden');
   document.getElementById('seg-sw-persone').classList.toggle('on',!altro);
   document.getElementById('seg-sw-scuole').classList.toggle('on',scuole);
   document.getElementById('seg-sw-turni').classList.toggle('on',turni);
+  document.getElementById('seg-sw-manovra').classList.toggle('on',manovra);
   if(scuole){scChiudiScheda();scCaricaTutto();}
   if(turni)tuCaricaTutto();
+  if(manovra)msCaricaTutto();
 }
 
 /* ── Modale unica del tab Scuole ── */
@@ -10639,6 +10680,159 @@ async function scCaricaDocScuola(btn){
     await scCaricaScheda();
   }catch(e){scMsg('sc-doc-msg','Non caricato: '+scErr(e));}
   finally{btn.disabled=false;}
+}
+
+/* ═══ CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott 2026, portale v3.140) — Segreteria → 🪢 ═══
+   Lista da v_lista_manovra_sosta, ore libere di Mello da proponi_slot_manovra(14). Scritture solo via RPC:
+   crea_slot_manovra (crea lo slot e prenota i primi 4 in lista) ed esito_manovra. Le mail (conferma dello slot
+   a ogni prenotato, proposta della parte su roccia a chi e' abile) le manda stripe-worker POST /manovra-sosta/avvisi,
+   che tiene memoria degli invii in eventi_notifica: ripetere la chiamata non manda doppioni. */
+const MS_GIORNI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+const MS_NOME='Corso Manovra in Sosta KataClimb';
+let msRighe=[],msSlot={},msNote={},msScelta=null;
+function msData(iso){const d=new Date(String(iso).slice(0,10)+'T12:00:00');return MS_GIORNI[d.getDay()]+' '+d.getDate()+' '+TU_MESI[d.getMonth()]}
+function msOra(t){return String(t||'').slice(0,5)}
+function msMsg(html,ok){document.getElementById('ms-msg').innerHTML=html?`<div class="sc-msg ${ok?'ok':'ko'}" style="margin:0 0 14px">${html}</div>`:''}
+
+async function msCaricaTutto(){
+  const boxL=document.getElementById('ms-lista'),boxO=document.getElementById('ms-ore'),boxP=document.getElementById('ms-prenotati');
+  boxL.innerHTML=boxO.innerHTML=boxP.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  const[rl,ro]=await Promise.all([
+    sb.from('v_lista_manovra_sosta').select('id,nome,cognome,stato,slot_id,data_lezione,esito,in_lista_dal,giorni_in_lista,due_settimane_scadute')
+      .in('stato',['in_lista','prenotato','svolto']).order('in_lista_dal'),
+    sb.rpc('proponi_slot_manovra',{p_giorni:14})
+  ]);
+  if(rl.error){boxL.innerHTML=boxP.innerHTML=`<p class="sc-vuoto ko">Lista non letta: ${escHtml(scErr(rl.error))}</p>`;msRighe=[]}
+  else msRighe=rl.data||[];
+  /* orari e istruttore degli slot dei prenotati, note gia' scritte */
+  const slotIds=[...new Set(msRighe.map(r=>r.slot_id).filter(Boolean))];
+  const pIds=msRighe.filter(r=>r.stato!=='in_lista').map(r=>r.id);
+  msSlot={};msNote={};
+  const extra=await Promise.all([
+    slotIds.length?sb.from('corsi_attivi_settimanali').select('id,data_evento,ora_inizio,ora_fine,istruttori(nome)').in('id',slotIds):{data:[]},
+    pIds.length?sb.from('lista_manovra_sosta').select('id,esito_note').in('id',pIds):{data:[]}
+  ]);
+  (extra[0].data||[]).forEach(s=>{msSlot[s.id]=s});
+  (extra[1].data||[]).forEach(r=>{msNote[r.id]=r.esito_note||''});
+  if(!rl.error){msDisegnaLista();msDisegnaPrenotati()}
+  if(ro.error){boxO.innerHTML=`<p class="sc-vuoto ko">Ore libere non lette: ${escHtml(scErr(ro.error))}</p>`;return}
+  msDisegnaOre(ro.data||[]);
+}
+
+function msInLista(){return msRighe.filter(r=>r.stato==='in_lista')}
+function msSiPuoCreare(){const l=msInLista();return l.length>=2||l.some(r=>r.due_settimane_scadute)}
+
+function msDisegnaLista(){
+  const l=msInLista(),box=document.getElementById('ms-lista');
+  document.getElementById('ms-lista-n').textContent=l.length;
+  if(!l.length){box.innerHTML='<p class="sc-vuoto">Nessuno in lista.</p>';return}
+  box.innerHTML=l.map(r=>{
+    const gg=r.giorni_in_lista===1?'1 giorno':r.giorni_in_lista+' giorni';
+    return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(scNome(r))}</b><div class="sc-sub">In lista dal ${msData(r.in_lista_dal)} · da ${gg}</div></div>
+      ${r.due_settimane_scadute?'<span class="sc-stato rosso">2 settimane passate: si fa anche da solo</span>':''}</div>`;
+  }).join('');
+}
+
+function msDisegnaOre(ore){
+  const box=document.getElementById('ms-ore'),nota=document.getElementById('ms-ore-nota');
+  const puo=msSiPuoCreare(),n=msInLista().length;
+  nota.textContent=puo
+    ?`Tocca un orario per creare lo slot con Mello: entrano i primi ${Math.min(n,4)} in lista (massimo 4) e a ognuno arriva la mail di conferma.`
+    :(n===0?'Nessuno in lista: gli orari si attivano con almeno 2 persone.':'Una sola persona in lista: gli orari si attivano con la seconda, oppure quando la prima aspetta da 2 settimane.');
+  msScegli(null);
+  if(!ore.length){box.innerHTML='<p class="sc-vuoto">Nessuna ora libera di Mello nei prossimi 14 giorni.</p>';return}
+  const perGiorno={};ore.forEach(o=>{(perGiorno[o.data]=perGiorno[o.data]||[]).push(o)});
+  box.innerHTML=Object.keys(perGiorno).map(g=>`<div class="ms-giorno"><b>${msData(g)}</b><div class="ms-ore">${perGiorno[g].map(o=>
+    `<button class="ms-ora" data-k="${g}|${o.ora_inizio}" ${puo?'':'disabled'} onclick="msScegli('${g}','${o.ora_inizio}')">${msOra(o.ora_inizio)}–${msOra(o.ora_fine)}</button>`).join('')}</div></div>`).join('');
+}
+function msScegli(data,ora){
+  msScelta=data?{data,ora}:null;
+  document.querySelectorAll('#ms-ore .ms-ora').forEach(b=>b.classList.toggle('on',!!msScelta&&b.dataset.k===data+'|'+ora));
+  document.getElementById('ms-crea').disabled=!msScelta||!msSiPuoCreare();
+  document.getElementById('ms-scelta').textContent=msScelta?`${msData(data)} alle ${msOra(ora)} con Mello`:'';
+}
+
+function msDisegnaPrenotati(){
+  const box=document.getElementById('ms-prenotati'),oggi=tuIso(new Date());
+  /* prenotati, e chi l'ha gia' svolta negli ultimi 30 giorni (per correggere l'esito) */
+  const limite=tuIso(tuPiu(new Date(),-30));
+  const l=msRighe.filter(r=>r.stato==='prenotato'||(r.stato==='svolto'&&String(r.data_lezione||'')>=limite))
+    .sort((a,b)=>String(a.data_lezione).localeCompare(String(b.data_lezione)));
+  document.getElementById('ms-pren-n').textContent=l.length;
+  if(!l.length){box.innerHTML='<p class="sc-vuoto">Nessuno prenotato.</p>';return}
+  box.innerHTML=l.map(r=>{
+    const s=msSlot[r.slot_id]||{},ist=s.istruttori&&s.istruttori.nome?' con '+escHtml(s.istruttori.nome):'';
+    const quando=`${msData(r.data_lezione)}${s.ora_inizio?' alle '+msOra(s.ora_inizio):''}${ist}`;
+    const fatta=String(r.data_lezione)<=oggi;
+    const badge=r.esito==='abile'?'<span class="sc-stato verde">Abile</span>':r.esito==='non_abile'?'<span class="sc-stato grigio">Non abile</span>':fatta?'<span class="sc-stato giallo">Esito da segnare</span>':'<span class="sc-stato grigio">Prenotato</span>';
+    const esito=fatta?`<div class="ms-esito"><input id="ms-nota-${r.id}" class="input sc-in" maxlength="500" placeholder="Nota (facoltativa)" value="${escHtml(msNote[r.id]||'')}">
+      <button class="btn sc-scuro sc-piccolo" onclick="msEsito('${r.id}',true,this)">Abile</button>
+      <button class="btn btn-g sc-piccolo" onclick="msEsito('${r.id}',false,this)">Non abile</button></div>`:'';
+    return `<div class="sc-riga sc-riga-col"><div class="sc-riga-main"><b>${escHtml(scNome(r))}</b><div class="sc-sub">${quando}</div></div>${badge}${esito}</div>`;
+  }).join('');
+}
+
+/* chiamata al Worker per le mail: non blocca mai, dice in chiaro se non sono partite */
+async function msAvvisa(corpo){
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session)throw new Error('sessione scaduta');
+    const r=await fetch(STRIPE_WORKER_BASE+'/manovra-sosta/avvisi',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify(corpo)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+    return{ok:true,inviate:j.inviate||0,gia:j.gia_inviate||0,errori:j.errori||[]};
+  }catch(e){return{ok:false,err:e.message||String(e)}}
+}
+
+async function msCreaSlot(btn){
+  if(!msScelta)return;
+  const{data,ora}=msScelta,n=Math.min(msInLista().length,4);
+  if(!confirm(`Creare lo slot del ${MS_NOME}\n${msData(data)} alle ${msOra(ora)} con Mello?\n\nEntrano ${n===1?'la prima persona':'le prime '+n+' persone'} in lista e a ognuna arriva la mail di conferma.`))return;
+  btn.disabled=true;msMsg('');
+  const{data:res,error}=await sb.rpc('crea_slot_manovra',{p_data:data,p_ora_inizio:ora});
+  if(error){btn.disabled=false;msMsg('Slot non creato: '+escHtml(scErr(error)));return}
+  const r=(res&&res[0])||{};
+  const av=await msAvvisa({tipo:'slot',slot_id:r.slot_id});
+  const pers=r.prenotati===1?'1 persona prenotata':(r.prenotati||0)+' persone prenotate';
+  const mail=av.ok?` Mail di conferma inviate: ${av.inviate}${av.gia?' (già inviate prima: '+av.gia+')':''}.${av.errori.length?' Non partite: '+escHtml(av.errori.join(', '))+'.':''}`
+    :` <b>Le mail di conferma non sono partite</b> (${escHtml(av.err)}): avvisa le persone a mano. Lo slot c'è.`;
+  msMsg(`Slot creato: ${msData(data)} alle ${msOra(ora)} con Mello, ${pers}.${mail}`,av.ok&&!av.errori.length);
+  msCaricaTutto();
+}
+
+async function msEsito(id,abile,btn){
+  const prima=(msRighe.find(r=>r.id===id)||{}).esito;
+  const nota=(document.getElementById('ms-nota-'+id)||{}).value||'';
+  btn.disabled=true;msMsg('');
+  const{error}=await sb.rpc('esito_manovra',{p_id:id,p_abile:abile,p_note:nota.trim()||null});
+  btn.disabled=false;
+  if(error){msMsg('Esito non salvato: '+escHtml(scErr(error)));return}
+  if(abile&&prima!=='abile'){
+    const av=await msAvvisa({tipo:'abile',lista_id:id});
+    msMsg(av.ok?(av.gia?'Esito salvato: abile. La mail con la proposta su roccia era già partita.':'Esito salvato: abile. Mail con la proposta della parte su roccia con Marco inviata.')
+      :`Esito salvato: abile. <b>La mail con la proposta su roccia non è partita</b> (${escHtml(av.err)}): scrivigli a mano.`,av.ok);
+  }else toast('Esito salvato ✓');
+  msCaricaTutto();
+}
+
+/* ── Home allievo: carta "Prossimo passo" a chi ha concluso il Corso Evo Corda KataClimb e non e' ancora in lista ── */
+async function msCartaAllievo(){
+  const el=document.getElementById('my-manovra-card');
+  if(!el)return;
+  el.style.display='none';
+  if(!user||!profile||isStaffRole(profile.staff_role))return;
+  try{
+    const{data:puo,error}=await sb.rpc('puo_iscriversi_manovra',{p_user:user.id});
+    if(error||!puo)return;
+    const{data:righe,error:e2}=await sb.from('lista_manovra_sosta').select('id').eq('user_id',user.id).limit(1);
+    if(e2||(righe&&righe.length))return;
+    el.style.background='var(--duo-yellow-bg)';el.style.borderColor='#B45309';
+    el.onclick=()=>{window.location.href='manovra-sosta.html'};
+    el.innerHTML='<div class="hero-icon">🪢</div><div class="hero-text"><div class="hero-title" style="color:#B45309">Prossimo passo: '+MS_NOME+'</div>'
+      +'<div class="hero-sub">Hai concluso il Corso Evo Corda KataClimb. Ora la manovra in sosta: prima in Accademia con Mello, poi, se sei pronto, su roccia con Marco.</div></div>'
+      +'<button class="hero-cta" style="background:#B45309">Scopri</button>';
+    el.style.display='flex';
+  }catch(e){console.warn('[manovra carta]',e)}
 }
 
 /* ═══ TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott 2026, portale v3.137) — Segreteria → 🗓 Turni ═══
