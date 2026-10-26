@@ -7,7 +7,7 @@
 -- b. puo_iscriversi_manovra: risponde solo per l'utente collegato (auth.uid()), per lo staff
 --    (is_staff()) e per le chiamate server: service_role (stripe-worker v3.90 la chiama con la
 --    service key, dove auth.uid() e' vuoto) e SQL Editor (nessun JWT: auth.role() nullo).
---    Chiunque altro: errore.
+--    Chiunque altro: errore. Controllo a prova di NULL: nel dubbio nega (anonimo compreso).
 -- c. crea_slot_manovra: prima di creare lo slot ricontrolla che l'ora sia ancora libera
 --    nell'agenda di Mello, con le stesse regole di proponi_slot_manovra; se no, dice quale
 --    e' il problema e cosa fare. Un lucchetto di transazione mette in fila due "Crea lo slot"
@@ -24,9 +24,10 @@ CREATE OR REPLACE FUNCTION public.puo_iscriversi_manovra(p_user uuid)
  SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF NOT (p_user = auth.uid()
-          OR is_staff()
-          OR auth.role() = 'service_role'
+  -- ogni termine e' true/false, mai NULL: un caso incerto (es. anonimo, auth.uid() vuoto) da' errore
+  IF NOT (coalesce(p_user IS NOT NULL AND p_user = auth.uid(), false)
+          OR coalesce(is_staff(), false)
+          OR coalesce(auth.role() = 'service_role', false)
           OR auth.role() IS NULL) THEN
     RAISE EXCEPTION 'Puoi verificare solo la tua iscrizione al Corso Manovra in Sosta KataClimb';
   END IF;
