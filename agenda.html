@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.102 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): nuovo tipo_corso 'manovra_sosta', slot singolo datato (data_evento) creato dalla Segreteria del portale con crea_slot_manovra. In agenda: voce nel menu, colore --manovra, etichetta 'Corso Manovra in Sosta KataClimb' in TIPO_LABELS/labelSlot/fallback. Partecipanti da v_lista_manovra_sosta (stato prenotato/svolto, data_lezione del giorno, slot_id), anche nella vista Tutti; capienza dello slot (max 4). Accanto al nome l'esito (Abile / Non abile) se gia' segnato. Sola lettura: niente P/A, niente Sposta/Annulla, niente + Prenota (la lista si gestisce in Segreteria → Manovra in Sosta, l'esito con esito_manovra). Realtime anche su lista_manovra_sosta. CUMULA v3.101 (sotto). -->
 <!-- KC-BUILD: agenda v3.101 · 2026-10-22 · PRIMA LEZIONE PRIVATA SPECIALE (decisione Marco 22 ott): nuovo tipo_corso 'prima_lezione_privata' (martedi' 18-19 con Claudia, capienza 1, fascia bambini, link riservato prima-lezione-privata.html) entra nella famiglia Prima Lezione: stessa tabella prenotazioni_prima_lezione, stessa logica di prenota/sposta/presenza, colore Prima, compare anche nel tab Bambini e Ragazzi. Etichetta 'Prima Lezione Privata Speciale' in griglia, legenda e fallback. NIENT'ALTRO toccato. -->
 <!-- KC-BUILD: agenda v3.100 · 2026-10-21 · SCUOLE F1 METÀ B, giro 2 (decisioni Marco 21 ott): (1) TURNI su impegni_staff (slot_staff non esiste e non esistera'): lettura tipo lezione, stato <> ritirato, per slot E data; "Mi segno" = rpc impegno_mi_segno(p_tipo lezione, p_slot_id, p_data, p_ruolo supporto), "Mi tolgo" = rpc impegno_mi_tolgo(p_impegno_id); conteggio N/3; chi ha gia' la presenza registrata non si toglie da qui (lo dice la RPC). (2) nomi "Prima Lezione · Scuole" e "Mini percorso · Scuole" (gruppo misto, niente fascia). CUMULA v3.99 (sotto). -->
 <!-- KC-BUILD: agenda v3.99 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott + 7b del 21 ott): (1) SLOT DATATI: uno slot con data_evento compare SOLO nella sua data (prima ogni settimana nel suo giorno: gli 8 scuola_mini del Saint-Dominique si ripetevano in tutte le settimane della vista Tutti). Vale per tutti i tab. (2) Nuovo tab staff "🏫 Scuole" (prima_lezione_scuola + scuola_mini): stessa tabella prenotazioni_prima_lezione e stesse presenze P/A (marca_presenza_prima_lezione) della Prima Lezione, ma fuori da PRIMA_FAMILY: niente "+ Prenota" lead, niente ↔ Sposta, niente "+ Prenota allievo" a credito; capienza dello slot (25). Etichetta "Prima Lezione Scuola · <ente>" / "Mini percorso Scuola «Arrampicata e Consapevolezza» · <ente>". Clic dalla vista Tutti -> tab Scuole. (3) 7b TURNI: sugli slot con lead_scuola_id, chip con chi si e' segnato (slot_staff) + "Mi segno" / "Mi tolgo" per lo staff e conteggio N/3; componente generico (haTurni) pronto per i turni monitor. (4) Ricerca allievo: esclusi i profili role referente_scuola. Nessuna RPC nuova. CUMULA v3.98 (sotto). -->
@@ -13,7 +14,7 @@
 <style>
   :root { --bg:#FFFFFF; --card:#fff; --ink:#000000; --gold:#A77E11; --muted:#262626; --muted2:#737373;
           --open:#0A7F4B; --advance:#064E2F; --intro:#0095F6; --evo:#7B2D8E; --prima:#A77E11;
-          --bambini:#D6336C; --fly:#C77F0A; --lab:#0E8C8C; --evorag:#8E24AA; --expert:#37474F; --monitor:#78909C; --giovani:#2E7D32; --senior:#5D4037; --genitori:#3949AB; --scuola:#0D9488;
+          --bambini:#D6336C; --fly:#C77F0A; --lab:#0E8C8C; --evorag:#8E24AA; --expert:#37474F; --monitor:#78909C; --giovani:#2E7D32; --senior:#5D4037; --genitori:#3949AB; --scuola:#0D9488; --manovra:#B45309;
           --info:#0095F6; --warn:#ED4956; --ok:#0A7F4B; --border:rgba(0,0,0,.16); }
   * { box-sizing: border-box; }
   body { margin:0; padding:1rem 2rem; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); font-size:17px; line-height:1.45; overflow-x:hidden; max-width:100%; }
@@ -106,6 +107,7 @@
   .slot.genitori { border-left-color:var(--genitori); }
   .slot.monitor { border-left-color:var(--monitor); }
   .slot.prima_lezione_scuola, .slot.scuola_mini { border-left-color:var(--scuola); }
+  .slot.manovra_sosta { border-left-color:var(--manovra); }
   .turni { margin-top:.6rem; padding-top:.6rem; border-top:1px dashed var(--border); display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; font-size:15px; }
   .turni .t-tit { font-weight:700; margin-right:.2rem; }
   .turni .t-chip { background:#E1F5EE; color:#0F6E56; font-weight:700; padding:.2rem .6rem; border-radius:999px; font-size:14px; }
@@ -143,6 +145,7 @@
   .gblk.genitori { background:var(--genitori); }
   .gblk.monitor { background:var(--monitor); }
   .gblk.prima_lezione_scuola, .gblk.scuola_mini { background:var(--scuola); }
+  .gblk.manovra_sosta { background:var(--manovra); }
   .slot strong { display:block; margin-bottom:.2rem; font-size:16px; color:var(--ink); }
   .ora { color:var(--gold); font-weight:700; font-size:1.15rem; }
   .ist { color:var(--muted); font-size:.95rem; font-weight:600; }
@@ -365,6 +368,7 @@
           <option value="fly">Fly</option>
           <option value="monitor">Sala con Monitor</option>
           <option value="scuole">🏫 Scuole</option>
+          <option value="manovra_sosta">Corso Manovra in Sosta KataClimb</option>
         </select>
       </div>
       <div class="bar-right">
@@ -627,6 +631,9 @@
   const SCUOLA_TIPI = ['prima_lezione_scuola', 'scuola_mini'];
   const isScuolaTipo = (t) => SCUOLA_TIPI.includes(t);
   const usaTabellaPrima = (t) => isPrimaTipo(t) || t === 'prima_lezione_scuola';
+  // v3.102 — Corso Manovra in Sosta KataClimb: slot datati, partecipanti da lista_manovra_sosta (sola lettura qui)
+  const isManovra = (t) => t === 'manovra_sosta';
+  const STATI_MANOVRA = ['prenotato', 'svolto'];
   // v3.99/v3.100 — 7b TURNI (impegni_staff, RPC impegno_mi_segno/mi_tolgo): chi si segna su uno slot. Componente generico: oggi gli slot scuola,
   // domani i turni monitor (basta allargare haTurni). TURNI_TARGET = istruttori attesi per lezione scuola
   // (decisione Marco 21 ott: due fissi + Mattia o Claudia a turno come terzo).
@@ -662,6 +669,7 @@
     monitor:       { label: 'Sala con Monitor', color: 'var(--monitor)' },
     prima_lezione_scuola: { label: 'Prima Lezione · Scuole', color: 'var(--scuola)' },
     scuola_mini:   { label: 'Mini percorso · Scuole', color: 'var(--scuola)' },
+    manovra_sosta: { label: 'Corso Manovra in Sosta KataClimb', color: 'var(--manovra)' },
     scuole:        { label: 'Scuole', color: 'var(--scuola)' },
     lab:           { label: 'Lab',           color: 'var(--lab)' },
     fly:           { label: 'Fly',           color: 'var(--fly)' },
@@ -676,6 +684,7 @@
     if (tipo === 'prima_lezione_privata') return 'Prima Lezione Privata Speciale'; // v3.101
     if (tipo === 'prima_lezione_scuola') return 'Prima Lezione · Scuole'; // nomi decisi da Marco 21 ott: gruppo misto, niente fascia
     if (tipo === 'scuola_mini') return 'Mini percorso · Scuole';
+    if (isManovra(tipo)) return 'Corso Manovra in Sosta KataClimb'; // v3.102
     if (isPrimaTipo(tipo)) {
       if (fascia === 'bambini') return 'Prima Lezione Bambini 6-11';
       if (fascia === 'ragazzi') return 'Prima Lezione Ragazzi 12-17';
@@ -876,6 +885,11 @@
       }
     }
 
+    // v3.102 — Corso Manovra in Sosta KataClimb: nessuna riga in tipi_corso_config, capienza vera sullo slot (max 4)
+    if (!tipiConfig.manovra_sosta) {
+      tipiConfig.manovra_sosta = { tipo_corso: 'manovra_sosta', label: 'Corso Manovra in Sosta KataClimb', capienza_max: 4, capienza_target: 2, apertura_prenotazione_giorni: 14, finestra_prenotazione_ore: 0, finestra_disdetta_ore: 0 };
+    }
+
     // Carica fonti CRM (per modale nuovo lead segreteria)
     if (viewMode === 'segreteria') {
       const { data: fonti } = await sb.from('crm_lead_sources')
@@ -905,6 +919,7 @@
     };
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'prenotazioni_corso' }, onChange);
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'prenotazioni_prima_lezione' }, onChange);
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'lista_manovra_sosta' }, onChange); // v3.102
     ch.subscribe();
     realtimeChannel = ch;
   }
@@ -1255,6 +1270,19 @@
     return data || [];
   }
 
+  // v3.102 — Corso Manovra in Sosta KataClimb: chi e' prenotato (o ha gia' fatto la lezione) negli slot della settimana.
+  // Stessa forma delle prenotazioni corso (profile_data per il nome) piu' l'esito. Solo staff: la RLS fa il resto.
+  async function caricaManovraSettimana(lun, dom) {
+    if (viewMode === 'allievo') return [];
+    const { data, error } = await sb.from('v_lista_manovra_sosta')
+      .select('id, slot_id, data_lezione, stato, esito, nome, cognome')
+      .in('stato', STATI_MANOVRA)
+      .gte('data_lezione', isoD(lun)).lte('data_lezione', isoD(dom));
+    if (error) { console.warn('[manovra]', error.message); return []; }
+    return (data || []).map(r => ({ id: r.id, slot_id: r.slot_id, data_lezione: r.data_lezione, stato: r.stato, esito: r.esito,
+      tipo_corso: 'manovra_sosta', profile_data: { nome: r.nome, cognome: r.cognome }, _manovra: true }));
+  }
+
   async function caricaPrenotSettimana(lun, dom) {
     // v3.59 — vista "Tutti": unisce prenotazioni_corso (tutti i tipi) + prenotazioni_prima_lezione
     if (currentTipo === 'tutti') {
@@ -1270,6 +1298,7 @@
       if (rp.error) throw rp.error;
       const corso = rc.data || [];
       const prima = (rp.data || []).map(p => ({ ...p, _prima: true }));
+      const manovra = await caricaManovraSettimana(lun, dom); // v3.102
       // Nomi per le prenotazioni corso (view profiles)
       const userIds = [...new Set(corso.map(p => p.user_id))];
       let byUserId = {};
@@ -1280,8 +1309,10 @@
         byUserId = Object.fromEntries((profili || []).map(p => [p.user_id, p]));
       }
       const corsoNorm = corso.map(p => ({ ...p, profile_data: byUserId[p.user_id] || null }));
-      return [...corsoNorm, ...prima];
+      return [...corsoNorm, ...prima, ...manovra];
     }
+
+    if (isManovra(currentTipo)) return caricaManovraSettimana(lun, dom); // v3.102
 
     if (isPrimaTipo(currentTipo) || currentTipo === 'scuole') { // v3.99 — anche il tab Scuole
       // Tabella diversa: prenotazioni_prima_lezione (FK su crm_leads) — copre tutta la famiglia via slot_id
@@ -1577,11 +1608,11 @@
           const tipo = s.tipo_corso;
           // Stessa logica di conteggio di renderSlot, così i numeri coincidono col drill-in.
           const cfg = tipiConfig[tipo] || { capienza_max: 8 };
-          const statiAttivi = usaTabellaPrima(tipo) ? ['prenotato','fatto','no_show'] : ['prenotato','presente','assente']; // v3.99 — anche Prima Lezione Scuola
+          const statiAttivi = usaTabellaPrima(tipo) ? ['prenotato','fatto','no_show'] : isManovra(tipo) ? STATI_MANOVRA : ['prenotato','presente','assente']; // v3.99 — anche Prima Lezione Scuola · v3.102 Manovra
           // v3.83 — iscritti fissi minori nel conteggio; capienza dello slot per Prima e minori (NULL = illimitata)
           const nIscr = MINORI_ISCRITTI_TIPI.includes(tipo) ? (iscrittiMinori[s.id] || []).length : 0;
           const occ = lez.prenotazioni.filter(p => statiAttivi.includes(p.stato)).length + nIscr;
-          const cap = (isPrimaTipo(tipo) || isScuolaTipo(tipo) || MINORI_ISCRITTI_TIPI.includes(tipo)) ? (s.capienza_max ?? null) : cfg.capienza_max;
+          const cap = (isPrimaTipo(tipo) || isScuolaTipo(tipo) || isManovra(tipo) || MINORI_ISCRITTI_TIPI.includes(tipo)) ? (s.capienza_max ?? null) : cfg.capienza_max;
           const oi = s.ora_inizio.slice(0,5);
           const of = s.ora_fine.slice(0,5);
           // v3.99 — il nome della scuola arriva dal modulo pubblico del sito: sempre con escape
@@ -1624,7 +1655,7 @@
     // Stati che contano come "occupato slot"
     const STATI_ATTIVI_CORSO = ['prenotato', 'presente', 'assente']; // DEBITO-178: l'assente occupava il posto (lo si scopre al momento) e resta visibile/correggibile
     const STATI_ATTIVI_PRIMA = ['prenotato', 'fatto', 'no_show'];
-    const statiAttivi = usaTabellaPrima(tipoEff) ? STATI_ATTIVI_PRIMA : STATI_ATTIVI_CORSO; // v3.99 — anche Prima Lezione Scuola
+    const statiAttivi = usaTabellaPrima(tipoEff) ? STATI_ATTIVI_PRIMA : isManovra(tipoEff) ? STATI_MANOVRA : STATI_ATTIVI_CORSO; // v3.99 — anche Prima Lezione Scuola · v3.102 Manovra
 
     const prenotAttive = prenotazioni.filter(p => statiAttivi.includes(p.stato));
     // v3.83 — slot minori: gli iscritti fissi occupano posti insieme alle prenotazioni del giorno
@@ -1635,7 +1666,7 @@
     // §v3.52 — Allievo vede /max reale (10), staff anche /max. Target resta solo per logica interna staff.
     // v3.83 — chiusa NOTA APERTA v3.75: famiglia Prima e corsi minori usano la capienza DELLO SLOT
     // (s.capienza_max, NULL = illimitata); corsi a credito restano su config (verità = RPC prenota_corso).
-    const usaCapSlot = isPrimaTipo(tipoEff) || isScuolaTipo(tipoEff) || MINORI_ISCRITTI_TIPI.includes(tipoEff);
+    const usaCapSlot = isPrimaTipo(tipoEff) || isScuolaTipo(tipoEff) || isManovra(tipoEff) || MINORI_ISCRITTI_TIPI.includes(tipoEff);
     const capienzaMaxReale = usaCapSlot ? (s.capienza_max ?? null) : cfg.capienza_max;
     const capienzaTarget = cfg.capienza_target ?? cfg.capienza_max;
     const capienza = capienzaMaxReale;
@@ -1697,6 +1728,12 @@
         colPrenot = `<div class="prenot"><ul>${itemsIscritti}</ul></div>`;
       } else {
         const items = prenotAttive.map(p => {
+          // v3.102 — Corso Manovra in Sosta KataClimb: solo nome ed esito, nessun bottone (si gestisce in Segreteria)
+          if (isManovra(tipoEff)) {
+            const nomeM = `${p.profile_data?.nome || ''} ${p.profile_data?.cognome || ''}`.trim() || '—';
+            const tag = p.esito === 'abile' ? 'Abile' : p.esito === 'non_abile' ? 'Non abile' : 'Prenotato';
+            return `<li><span class="nome">${escAttr(nomeM)} <span class="stage-tag">${tag}</span></span></li>`;
+          }
           let nome, stageTag = '', clickHandler = '';
           if (usaTabellaPrima(tipoEff)) { // v3.99 — anche Prima Lezione Scuola
             nome = `${p.crm_leads?.nome || ''} ${p.crm_leads?.cognome || ''}`.trim() || '—';
@@ -1774,6 +1811,9 @@
     let colAction;
     if (viewMode === 'allievo') {
       colAction = renderAllievoAction(lez, cfg, miaPrenot, pieno, now);
+    } else if (isManovra(tipoEff)) {
+      // v3.102 — Corso Manovra in Sosta KataClimb: le persone entrano dalla lista (Segreteria del portale), non da qui
+      colAction = `<div></div>`;
     } else if (isScuolaTipo(tipoEff)) {
       // v3.99 — Scuole F1: i ragazzi li inserisce la scuola (o la segreteria dalla scheda scuola), non si prenotano da qui
       colAction = `<div></div>`;

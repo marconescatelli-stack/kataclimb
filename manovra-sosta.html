@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<!-- KC-BUILD: manovra-sosta v1 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (decisioni Marco 25 ott 2026, DB manovra_sosta_2026-10-25): pagina per chi ha concluso il Corso Evo Corda KataClimb (puo_iscriversi_manovra). Parte indoor in Accademia, 1 lezione, 25 € pagati online -> si entra in lista_manovra_sosta (lo scrive il webhook di stripe-worker). Con almeno 2 persone Mello sceglie giorno e ora (massimo 4), dopo 2 settimane si fa anche con una persona. Poi abile / non abile; chi e' abile fa la parte su roccia con Marco (uscita normale, 75 €, serve il Livello 2: non si compra da qui). Stati: non loggato -> entra dal portale; loggato senza Evo Corda concluso -> spiegazione, nessun pagamento; riga piu' recente in lista -> In lista dal / Prenotato il ... alle ... con ... / Svolto + esito; altrimenti (o dopo non abile, annullato, rimborsato) Paga 25 €. Checkout: POST stripe-worker /create-checkout-session {prodotto:'manovra_sosta'} con Authorization Bearer (il Worker ricontrolla idoneita' e doppio acquisto). Ritorno ?pagato=1 (attende la riga dal webhook, 6 tentativi) e ?annullato=1. Noindex, mobile first, freccia indietro P-NAV-BACK. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Corso Manovra in Sosta KataClimb · Accademia RCC</title>
+<meta name="description" content="Corso Manovra in Sosta KataClimb: dopo il Corso Evo Corda KataClimb, la manovra in sosta in Accademia e poi su roccia.">
+<link rel="icon" href="/favicon-192x192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --bg2:#F4F4F5; --bg3:#0A0A0A;
+  --ink:#0A0A0A; --ink2:#404040; --ink3:#737373;
+  --ink-on-dark2:#D4D4D4;
+  --border:#E5E5E5; --border2:#D4D4D4;
+  --amber:#B45309; --amber-dark:#92400E; --yellow:#FACC15; --red:#B91C1C; --green:#166534;
+  --r:8px; --r-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.55}
+@keyframes spin{to{transform:rotate(360deg)}}
+.back{position:fixed;top:10px;left:10px;z-index:9999;width:38px;height:38px;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:rgba(127,127,127,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:inherit;font:20px/1 sans-serif;cursor:pointer}
+.header{display:flex;justify-content:flex-end;align-items:center;padding:14px 16px 14px 60px;border-bottom:1px solid var(--border);gap:12px}
+.header .logo{height:30px;width:auto;display:block}
+.header .logo-rcc{height:26px}
+.banner{display:none;margin:16px 16px 0;padding:12px 16px;border-radius:var(--r);font-size:15px}
+.banner.show{display:block}
+.banner.ok{background:#F0FDF4;border:1px solid #86EFAC;color:var(--green)}
+.banner.warn{background:#FEF3C7;border:1px solid #FCD34D;color:#78350F}
+.hero{background:#0A0A0A;color:#fff;text-align:center;padding:34px 20px 40px}
+.hero h1{font-size:clamp(27px,7vw,40px);font-weight:900;line-height:1.12;letter-spacing:-.025em;margin:0 auto 14px;max-width:680px}
+.hero h1 em{font-style:normal;color:var(--yellow)}
+.hero p{color:var(--ink-on-dark2);font-size:17px;max-width:560px;margin:0 auto}
+.card-prezzo{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.10);max-width:520px;margin:-22px 16px 0;text-align:center}
+@media(min-width:552px){.card-prezzo{margin:-22px auto 0}}
+.card-prezzo .riga{font-size:15px;color:var(--ink2)}
+.card-prezzo .prezzo{font-size:26px;font-weight:900;margin-top:4px}
+.section{max-width:720px;margin:0 auto;padding:30px 16px 6px}
+.section h2{font-size:clamp(21px,5vw,27px);font-weight:900;letter-spacing:-.02em;margin-bottom:10px}
+.info-list{display:flex;flex-direction:column;gap:12px}
+.info-item{display:flex;gap:12px;font-size:15.5px;color:var(--ink2)}
+.info-item .ic{flex-shrink:0;width:22px;text-align:center}
+.info-item b{color:var(--ink)}
+.box{border:1.5px solid var(--border);border-radius:14px;padding:18px 16px;background:var(--bg2)}
+.box h3{font-size:18px;font-weight:900;margin-bottom:6px}
+.box p{font-size:15.5px;color:var(--ink2)}
+.box p + p{margin-top:8px}
+.box.stato{background:#FFFBEB;border-color:#FCD34D}
+.box.ok{background:#F0FDF4;border-color:#86EFAC}
+.loading{display:flex;align-items:center;gap:10px;color:var(--ink2);font-size:15px}
+.loading .sp{width:18px;height:18px;border:2.5px solid var(--border2);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite}
+.btn{display:block;width:100%;text-align:center;text-decoration:none;background:var(--ink);color:#fff;border:none;border-radius:var(--r-pill);padding:16px;font-family:inherit;font-size:17px;font-weight:900;cursor:pointer;margin-top:16px}
+.btn:disabled{opacity:.6;cursor:default}
+.btn .sp{display:none;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:8px}
+.btn.loading .sp{display:inline-block}
+.err{display:none;color:var(--red);font-size:15px;margin-top:10px;text-align:center}
+.err a,.box a{color:inherit;font-weight:700}
+.footer{background:var(--bg3);color:var(--ink-on-dark2);text-align:center;padding:28px 20px;font-size:13px;margin-top:40px}
+.footer a{color:#fff}
+</style>
+</head>
+<body>
+
+<button class="back" aria-label="Indietro" onclick="if(history.length>1){history.back()}else{location.href='/oggi.html'}">←</button>
+
+<header class="header">
+  <img src="/logo-rcc.png" alt="Accademia RCC" class="logo logo-rcc">
+  <img src="/kataclimb-logo.svg" alt="KataClimb" class="logo">
+</header>
+
+<div class="banner ok" id="banner-pagato">Pagamento ricevuto. Ti stiamo mettendo in lista: tra poco trovi qui sotto il tuo stato e ti arriva la mail.</div>
+<div class="banner warn" id="banner-annullato">Pagamento annullato, nessun addebito. Quando vuoi, il pulsante è qui sotto.</div>
+
+<section class="hero">
+  <h1>Corso Manovra in Sosta <em>KataClimb</em></h1>
+  <p>Il passo dopo il Corso Evo Corda KataClimb: arrivi in sosta e sai cosa fare, con calma e in sicurezza.</p>
+</section>
+
+<div class="card-prezzo">
+  <div class="riga">Parte in Accademia · 1 lezione con Mello</div>
+  <div class="prezzo">25 €</div>
+</div>
+
+<section class="section" id="sez-stato">
+  <div class="box" id="stato"><div class="loading"><span class="sp"></span> Un attimo…</div></div>
+</section>
+
+<section class="section">
+  <h2>Cosa impari</h2>
+  <div class="info-list">
+    <div class="info-item"><span class="ic">🧗</span><span><b>In Accademia</b>: la manovra prima da sotto, poi in sosta. Una lezione.</span></div>
+    <div class="info-item"><span class="ic">✅</span><span><b>Alla fine</b> l'istruttore segna se sei abile o se serve ancora pratica.</span></div>
+    <div class="info-item"><span class="ic">⛰</span><span><b>Se sei abile</b> puoi fare la parte su roccia con Marco: è un'uscita normale (75 €) e serve il Livello 2 (pratica assistita, Corso Fly KataClimb, Corso Expert o altro).</span></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Come funziona la lista</h2>
+  <div class="info-list">
+    <div class="info-item"><span class="ic">1</span><span><b>Paghi 25 € qui</b> ed entri in lista.</span></div>
+    <div class="info-item"><span class="ic">2</span><span><b>Con almeno 2 persone in lista</b> Mello sceglie giorno e ora in Accademia e ti arriva la mail di conferma. Al massimo 4 persone per lezione.</span></div>
+    <div class="info-item"><span class="ic">3</span><span><b>Se dopo 2 settimane sei ancora da solo</b>, la lezione si fa lo stesso, anche solo con te.</span></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Chi insegna</h2>
+  <div class="info-list">
+    <div class="info-item"><span class="ic">👤</span><span><b>Mello</b> in Accademia, <b>Marco</b> su roccia.</span></div>
+    <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b>, Via Cassia 1634, La Storta, Roma.</span></div>
+    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivi alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
+  </div>
+</section>
+
+<footer class="footer">
+  Accademia ArrampiKata RCC · Via Cassia 1634, La Storta, Roma<br>
+  <a href="https://kataclimb.com">kataclimb.com</a>
+</footer>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL  = 'https://wbtougychlhnlcnonqge.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+  const WORKER_URL    = 'https://stripe-worker.marconescatelli.workers.dev';
+  const NOME          = 'Corso Manovra in Sosta KataClimb';
+  const WA            = '<a href="https://wa.me/393318743953">WhatsApp</a>';
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const GIORNI = ['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+  const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  const giorno = (iso) => { const d = new Date(String(iso).slice(0,10) + 'T12:00:00'); return `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`; };
+  const ora = (t) => String(t || '').slice(0,5);
+
+  const qp = new URLSearchParams(location.search);
+  if (qp.has('pagato')) $('banner-pagato').classList.add('show');
+  if (qp.has('annullato')) $('banner-annullato').classList.add('show');
+  if (qp.has('pagato') || qp.has('annullato')) history.replaceState(null, '', location.pathname);
+
+  const stato = (cls, html) => { const b = $('stato'); b.className = 'box' + (cls ? ' ' + cls : ''); b.innerHTML = html; };
+
+  function bottonePaga(titolo, testo) {
+    stato('', `<h3>${titolo}</h3><p>${testo}</p>
+      <button class="btn" id="paga-btn"><span class="sp"></span><span id="paga-label">Paga 25 € ed entra in lista</span></button>
+      <div class="err" id="paga-err"></div>`);
+    $('paga-btn').addEventListener('click', paga);
+  }
+
+  async function paga() {
+    const btn = $('paga-btn'), err = $('paga-err');
+    err.style.display = 'none';
+    btn.disabled = true; btn.classList.add('loading'); $('paga-label').textContent = 'Un attimo…';
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { location.reload(); return; }
+      const res = await fetch(`${WORKER_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+        body: JSON.stringify({ prodotto: 'manovra_sosta' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) { location.href = data.url; return; }
+      err.innerHTML = esc(data.message || data.error || 'Il pagamento non si è aperto.') + ` Se si ripete scrivi alla segreteria su ${WA}.`;
+    } catch (e) {
+      err.innerHTML = `Connessione instabile: riprova. Se si ripete scrivi alla segreteria su ${WA}.`;
+    }
+    err.style.display = 'block';
+    btn.disabled = false; btn.classList.remove('loading'); $('paga-label').textContent = 'Paga 25 € ed entra in lista';
+  }
+
+  async function mostraRiga(r) {
+    if (r.stato === 'in_lista') {
+      stato('stato', `<h3>Sei in lista dal ${giorno(r.created_at)}</h3>
+        <p>Appena ci sono almeno 2 persone Mello sceglie il giorno e ti arriva la mail di conferma. Al massimo entro 2 settimane la lezione si fa comunque.</p>`);
+      return;
+    }
+    if (r.stato === 'prenotato') {
+      let quando = r.data_lezione ? giorno(r.data_lezione) : '';
+      let chi = '';
+      if (r.slot_id) {
+        const { data: s } = await sb.from('corsi_attivi_settimanali').select('ora_inizio, istruttori(nome)').eq('id', r.slot_id).maybeSingle();
+        if (s && s.ora_inizio) quando += ' alle ' + ora(s.ora_inizio);
+        if (s && s.istruttori && s.istruttori.nome) chi = ' con ' + esc(s.istruttori.nome);
+      }
+      stato('ok', `<h3>Prenotato ${esc(quando)}${chi}</h3>
+        <p>Ti aspettiamo in Accademia 10 minuti prima.</p>
+        <p>Se non puoi venire scrivi subito alla segreteria su ${WA}.</p>`);
+      return;
+    }
+    if (r.stato === 'svolto' && r.esito === 'abile') {
+      stato('ok', `<h3>Svolto${r.data_lezione ? ' ' + esc(giorno(r.data_lezione)) : ''}: abile</h3>
+        <p>Il prossimo passo è la parte su roccia con Marco: un'uscita normale (75 €), serve il Livello 2.</p>
+        <p>Per organizzarla scrivi alla segreteria su ${WA}.</p>`);
+      return;
+    }
+    if (r.stato === 'svolto') {
+      bottonePaga(`Svolto${r.data_lezione ? ' ' + esc(giorno(r.data_lezione)) : ''}: non ancora abile`,
+        'Serve ancora pratica: ne parli con Mello. Quando sei pronto puoi rifare la lezione in Accademia.');
+      return;
+    }
+    // annullato o rimborsato: si puo' rientrare in lista
+    bottonePaga(NOME, 'La tua iscrizione precedente è stata annullata. Puoi rientrare in lista quando vuoi.');
+  }
+
+  async function carica(tentativi) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      stato('', `<h3>Entra con il tuo account</h3>
+        <p>Il ${NOME} è per chi ha concluso il Corso Evo Corda KataClimb. Entra nel portale e poi torna su questa pagina.</p>
+        <a class="btn" href="/portale.html">Entra</a>`);
+      return;
+    }
+    const uid = session.user.id;
+    const [rl, rp] = await Promise.all([
+      sb.from('lista_manovra_sosta').select('id, stato, slot_id, data_lezione, esito, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(1),
+      sb.rpc('puo_iscriversi_manovra', { p_user: uid }),
+    ]);
+    if (rl.error || rp.error) {
+      stato('', `<h3>Non riesco a leggere i tuoi dati</h3><p>Ricarica la pagina. Se si ripete scrivi alla segreteria su ${WA}.</p>`);
+      console.error('[manovra]', rl.error || rp.error);
+      return;
+    }
+    const riga = (rl.data || [])[0];
+    if (riga) { await mostraRiga(riga); return; }
+    // ritorno da Stripe: la riga la scrive il webhook, puo' arrivare con qualche secondo di ritardo
+    if (tentativi > 0) {
+      stato('', '<div class="loading"><span class="sp"></span> Sto registrando il pagamento…</div>');
+      setTimeout(() => carica(tentativi - 1), 2500);
+      return;
+    }
+    if (qp.has('pagato')) {
+      stato('stato', `<h3>Pagamento ricevuto</h3><p>Il tuo posto in lista non è ancora comparso qui. Ti arriva comunque la mail; se entro un'ora non vedi niente scrivi alla segreteria su ${WA}.</p>`);
+      return;
+    }
+    if (!rp.data) {
+      stato('', `<h3>Si apre dopo il Corso Evo Corda KataClimb</h3>
+        <p>Il ${NOME} si apre dopo aver concluso il Corso Evo Corda KataClimb. Quando l'avrai concluso trovi qui il pulsante per iscriverti.</p>
+        <p>Pensi di averlo già concluso? Scrivi alla segreteria su ${WA}.</p>`);
+      return;
+    }
+    bottonePaga('Entra in lista', 'Paghi la lezione in Accademia e sei in lista. La conferma con giorno e ora ti arriva per mail.');
+  }
+
+  carica(qp.has('pagato') ? 6 : 0).catch(e => {
+    console.error('[manovra]', e);
+    stato('', `<h3>Qualcosa non va</h3><p>Ricarica la pagina. Se si ripete scrivi alla segreteria su ${WA}.</p>`);
+  });
+</script>
+</body>
+</html>
