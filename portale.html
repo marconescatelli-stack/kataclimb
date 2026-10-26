@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.141 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): Segreteria → 🗓 Turni. (1) Nella settimana entrano da sole le lezioni dei corsi adulti e le Prime Lezioni (slot_copertura su tutti i corsi attivi): nomi completi in TU_NOME_CORSO (Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale, Prima Lezione Genitori, Corso Manovra in Sosta KataClimb, Lab); "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). (2) Nella voce di una lezione dei corsi, accanto a Togli / Segna assente / Segna presente / Riporta a previsto: SOSTITUISCI (segreteria) -> scelta dallo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore. (3) Nuova sezione COSTI STAFF DEL MESE da v_costi_staff_mese con selettore mese (default il mese corrente): Persona · Lezioni corsi (n · €) · Prime Lezioni (n · €) · Monitor (ore · €) · Totale · Sostituzioni · Assenze · Da confermare (in arancio se > 0, tocca = elenco delle lezioni passate senza presenza dello stesso mese in Compensi lezioni dei corsi); riga Totale staff; Esporta CSV; sotto, le Prime Lezioni pagate del mese da v_compenso_lezioni con il perche' della cifra ("con allievi" 15 €/h, "vuota" 5 €/h). (4) Profilo dello staff che non e' segreteria: "Il mio mese" con la propria riga ("Questo mese: X lezioni, Y prime, Z ore monitor = € totale") e le lezioni ancora da confermare. Solo letture e RPC esistenti, nessuna modifica a RPC, tabelle o viste. CUMULA v3.140 (sotto). -->
 <!-- KC-BUILD: portale v3.140 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): (1) Segreteria: quarto interruttore 🪢 Corso Manovra in Sosta KataClimb. Lista da v_lista_manovra_sosta (in lista da N giorni, rosso con due_settimane_scadute); ore libere di Mello in Accademia da proponi_slot_manovra(14), raggruppate per giorno; si tocca un orario e il bottone "Crea lo slot" e' attivo con almeno 2 in lista oppure almeno uno da 2 settimane -> conferma -> crea_slot_manovra (prenota i primi 4 in lista) -> stripe-worker POST /manovra-sosta/avvisi {tipo:'slot', slot_id} manda la mail di conferma a ogni prenotato. Prenotati e lezioni da segnare: Abile / Non abile + nota -> esito_manovra; al primo Abile -> /manovra-sosta/avvisi {tipo:'abile', lista_id}, mail con la proposta della parte su roccia con Marco. Il Worker tiene memoria degli invii (eventi_notifica): niente doppioni. Se la mail non parte lo dice in chiaro, lo slot e l'esito restano. (2) Home allievo: sotto il riquadro del prossimo passo, chi ha il Corso Evo Corda KataClimb concluso (puo_iscriversi_manovra) e nessuna riga in lista_manovra_sosta vede la carta "Prossimo passo: Corso Manovra in Sosta KataClimb" -> manovra-sosta.html. Mai allo staff. Scritture solo via RPC. CUMULA v3.139 (sotto). -->
 <!-- KC-BUILD: portale v3.139 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): Segreteria → 🗓 Turni. (1) Nella settimana a colonne entrano le lezioni dei corsi con piano di copertura (slot_copertura + corsi_attivi_settimanali ricorrenti, giorno_settimana): "Istruttori 1/1 · Assistenti 0/1" contati da impegni_staff come v_copertura_lezioni (compenso_tipo lezione = istruttore, ora = assistente; stato previsto o presente), verde se coperta e rossa se scoperta, anche nelle settimane passate; nome dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)); richiesta di supporto aperta (richieste_supporto) segnalata nella voce. Al click: chi c'e' con il ruolo e "dal piano", Togli, Segna presente (impegno_presenza 'inizio', da oggi indietro), Segna assente, Riporta a previsto, Annulla richiesta di supporto (annulla_supporto), Aggiungi persona con la scelta Istruttore / Assistente (impegno_mi_segno con p_slot_id, p_data, p_user_id e p_ruolo 'conduce' oppure 'assistente', che la RPC salva come supporto pagato a ore; gli staff_assistente sono sempre a ore e la scelta si imposta da sola quando li selezioni). (2) Compensi lezioni dei corsi del mese da v_compenso_lezioni: per persona lezioni pagate, ore, euro e da confermare; elenco "Da confermare" (giorni passati ancora previsti, valgono 0) con Era presente (impegno_presenza 'inizio') / Assente ('assente'); export CSV come per il monitor. Azioni e compensi solo per staff_creator e staff_segreteria. Nessuna modifica a RPC o tabelle. CUMULA v3.138 (sotto). -->
 <!-- KC-BUILD: portale v3.138 · 2026-10-23 · TURNI MONITOR SOLO 19-22 (decisione Marco 23 ott): tolta la fascia monitor 18-19 "da coprire" dalla settimana di Segreteria → Turni. Sala e monitor partono dalle 19; se un istruttore arriva prima per motivi suoi non e' un turno. L'unico impegno 18-19 gia' in DB (22 ott) e' gia' ritirato e resta come traccia. CUMULA v3.137 (sotto). -->
@@ -1547,6 +1548,8 @@ fill="#1d4ed8" stroke="none">
 
       <!-- v3.137 — Il mio diario didattico: le note che l'istruttore ha scelto di mostrare (v_mio_diario_didattico) -->
       <div id="my-diario-didattico"></div>
+      <!-- v3.141 — Il mio mese (staff che non e' segreteria, v_costi_staff_mese) -->
+      <div id="my-mese-staff"></div>
 
       <!-- ═══ Corso Open — counter + scadenza + freeze + prossime prenotazioni (v3.39) ═══ -->
 
@@ -1731,6 +1734,19 @@ fill="#1d4ed8" stroke="none">
           <h3 class="sc-h3" style="margin-top:16px">⏰ Da confermare <span id="tu-daconf-n" class="sc-conta"></span></h3>
           <p class="sc-nota" style="margin-top:0">Lezioni di giorni passati senza presenza: valgono 0 finché non confermi chi c'era.</p>
           <div id="tu-daconf"></div>
+        </div>
+        <!-- v3.141 — Costi staff del mese (v_costi_staff_mese) -->
+        <div class="sc-sez" id="tu-costi-wrap">
+          <div class="tu-nav">
+            <h3>💶 Costi staff del mese</h3>
+            <label class="sc-sub" for="tu-mese-costi">Mese</label>
+            <input id="tu-mese-costi" type="month" class="input sc-in" style="width:auto" onchange="tuCaricaCosti()">
+            <button class="btn sc-scuro sc-piccolo" onclick="tuEsportaCsvCosti()">Esporta CSV</button>
+          </div>
+          <p class="sc-nota" style="margin-top:0">Corsi 15 € a lezione · Prime Lezioni 15 € l'ora con almeno un allievo presente, 5 € l'ora se vuota · monitor come sopra. Si paga solo con la presenza segnata.</p>
+          <div id="tu-costi"></div>
+          <h3 class="sc-h3" style="margin-top:16px">Prime Lezioni del mese</h3>
+          <div id="tu-prime"></div>
         </div>
       </div>
 
@@ -5656,6 +5672,26 @@ async function renderQuestionariPersona(personaId,containerEl,opts){
   containerEl.innerHTML=html;
 }
 
+/* v3.141 — Il mio mese (staff che non e' segreteria): la propria riga di v_costi_staff_mese per il mese in corso. */
+async function renderMioMeseStaff(){
+  const el=document.getElementById('my-mese-staff');if(!el||!sb||!user)return;
+  if(!profile||!profile.staff_role||['staff_creator','staff_segreteria'].includes(profile.staff_role)){el.innerHTML='';return}
+  const o=new Date(),mese=o.getFullYear()+'-'+String(o.getMonth()+1).padStart(2,'0')+'-01';
+  let r=null;
+  try{
+    const{data,error}=await sb.from('v_costi_staff_mese').select('lezioni_corsi,prime_lezioni,ore_monitor,totale,da_confermare').eq('user_id',user.id).eq('mese',mese).maybeSingle();
+    if(error)throw error;
+    r=data||{lezioni_corsi:0,prime_lezioni:0,ore_monitor:0,totale:0,da_confermare:0};
+  }catch(e){console.warn('[mio mese]',e.message||e);el.innerHTML='';return}
+  const eur=Number(r.totale||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  const ore=Number(r.ore_monitor||0).toLocaleString('it-IT',{maximumFractionDigits:2});
+  const n=(x,uno,piu)=>Number(x||0)+' '+(Number(x)===1?uno:piu);
+  el.innerHTML='<div class="card fu" style="margin-bottom:22px;padding:16px">'
+    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 8px">Il mio <em>mese</em></h2>'
+    +'<p style="margin:0;font-size:15px">Questo mese: '+n(r.lezioni_corsi,'lezione','lezioni')+', '+n(r.prime_lezioni,'prima','prime')+', '+ore+' ore monitor = <b>'+eur+'</b></p>'
+    +(Number(r.da_confermare)>0?'<p style="margin:8px 0 0;font-size:14px;color:#B45309">'+n(r.da_confermare,'lezione','lezioni')+' ancora senza presenza: valgono 0 finché la segreteria non conferma.</p>':'')
+    +'</div>';
+}
 /* v3.137 — Il mio diario didattico. La vista restituisce solo le righe con visibile_allievo e solo
    temi affrontati, trasformazione e messaggio: mai criticita', da implementare, scale, note, Sala con Monitor.
    Solo nel proprio profilo: non in Comunita', non pubblico. */
@@ -8361,6 +8397,7 @@ function renderApp(){
   // v3.114 — Il tuo diario del percorso: solo le sue parole, sotto la Linea del Percorso
   renderQuestionariPersona(profile.persona_id,document.getElementById('my-questionari-diario'),{modo:'diario'});
   renderMioDiarioDidattico(); // v3.137
+  renderMioMeseStaff(); // v3.141
   // v3.56 Home Duolingo: streak + hero (async, non blocca render)
   refreshHomeDuolingo();
   // Avatar — v3.126: foto pubblica (foto_url), altrimenti foto di riconoscimento privata, altrimenti iniziali
@@ -10850,7 +10887,12 @@ const TU_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio',
 const TU_STATO={previsto:'previsto',presente:'presente ✓',assente:'assente'};
 let tuLunedi=null,tuDati=null,tuStaff=null,tuVoci=[],tuCompensi=[],tuDaChiudere=[];
 /* v3.139 lezioni dei corsi: nome completo, per i minori dalla fascia */
-const TU_NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb'};
+const TU_NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb',
+  /* v3.141 corsi adulti e Prime Lezioni */
+  open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb',fly:'Corso Fly KataClimb',
+  giovani:'Corso Giovani KataClimb (18–24)',senior:'Corso Senior KataClimb (over 60)',lab:'Lab',manovra_sosta:'Corso Manovra in Sosta KataClimb',
+  prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Prima Lezione Privata Speciale',prima_lezione_genitori:'Prima Lezione Genitori',
+  prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)'};
 function tuNomeCorso(tipo,fascia){if(tipo==='bambini')return fascia==='ragazzi'?TU_NOME_CORSO.ragazzi:TU_NOME_CORSO.bambini;return TU_NOME_CORSO[tipo]||String(tipo||'Lezione').replace(/_/g,' ')}
 /* stessa regola di v_copertura_lezioni: istruttore = compenso lezione, assistente = ora, contano previsto e presente */
 function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
@@ -10867,8 +10909,8 @@ function tuNum(n){return Number(n||0).toLocaleString('it-IT',{maximumFractionDig
 async function tuCaricaTutto(){
   if(!tuLunedi)tuLunedi=tuLun(new Date());
   const tasks=[tuCaricaSettimana(),tuCaricaDaChiudere()];
-  if(tuPuo())tasks.push(tuCaricaCompensi(),tuCaricaCompLez());
-  else{document.getElementById('tu-compensi-wrap').classList.add('hidden');document.getElementById('tu-complez-wrap').classList.add('hidden')}
+  if(tuPuo())tasks.push(tuCaricaCompensi(),tuCaricaCompLez(),tuCaricaCosti());
+  else{document.getElementById('tu-compensi-wrap').classList.add('hidden');document.getElementById('tu-complez-wrap').classList.add('hidden');document.getElementById('tu-costi-wrap').classList.add('hidden')}
   document.getElementById('tu-solo-lettura').classList.toggle('hidden',tuPuo());
   await Promise.all(tasks);
 }
@@ -10884,8 +10926,8 @@ async function tuCaricaSettimana(){
     const reqs=[
       sb.from('corsi_attivi_settimanali').select('id,tipo_corso,data_evento,ora_inizio,ora_fine,note,lead_scuola_id')
         .eq('status','attivo').not('lead_scuola_id','is',null).gte('data_evento',da).lte('data_evento',a).order('ora_inizio'),
-      sb.from('impegni_staff').select('id,user_id,tipo,slot_id,data,ora_inizio,ora_fine,ruolo,stato,presenza_inizio,presenza_fine,compenso_tipo,da_piano')
-        .neq('stato','ritirato').gte('data',da).lte('data',a),
+      sb.from('impegni_staff').select('id,user_id,tipo,slot_id,data,ora_inizio,ora_fine,ruolo,stato,presenza_inizio,presenza_fine,compenso_tipo,da_piano,note')
+        .gte('data',da).lte('data',a), // v3.141 anche le ritirate: servono a dire chi e' stato sostituito
       /* v3.139 lezioni dei corsi con piano di copertura e richieste di supporto aperte */
       sb.from('slot_copertura').select('slot_id,istruttori_min,assistenti_min'),
       sb.from('richieste_supporto').select('id,slot_id,data,chiesto_da,note').eq('stato','aperta').gte('data',da).lte('data',a)
@@ -10897,6 +10939,8 @@ async function tuCaricaSettimana(){
     if(res[2].error)console.warn('[turni] slot_copertura:',res[2].error.message);
     if(res[3].error)console.warn('[turni] richieste_supporto:',res[3].error.message);
     if(res[4]){if(res[4].error)console.warn('[turni] staff:',res[4].error.message);tuStaff=res[4].data||[]}
+    if(!tuPiano){const rp=await sb.from('slot_piano_staff').select('slot_id,user_id,sostituto_user_id').eq('attivo',true); // v3.141
+      if(rp.error)console.warn('[turni] piano:',rp.error.message);tuPiano=rp.data||[]}
     const cop=res[2].data||[];
     let corsi=[];
     if(cop.length){
@@ -10905,7 +10949,8 @@ async function tuCaricaSettimana(){
       if(r.error)console.warn('[turni] corsi:',r.error.message);
       corsi=(r.data||[]).map(c=>({...c,...cop.find(x=>x.slot_id===c.id)}));
     }
-    const slot=res[0].data||[],imp=res[1].data||[];
+    tuImpTutti=res[1].data||[];
+    const slot=res[0].data||[],imp=tuImpTutti.filter(i=>i.stato!=='ritirato');
     const leadIds=[...new Set(slot.map(s=>s.lead_scuola_id))];
     const enti={};
     if(leadIds.length){const{data:ll}=await sb.from('lead_data').select('id,ente').in('id',leadIds);(ll||[]).forEach(l=>{enti[l.id]=l.ente||''})}
@@ -10945,7 +10990,7 @@ function tuDisegnaSettimana(){
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
           const{ni,na}=tuConta(v.seg),ok=ni>=v.imin&&na>=v.amin;
-          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
+          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
           return `<button class="tu-voce ${ok?'verde':'rosso'}" onclick="tuApriVoce(${k})">
             <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${ok?'coperta':'scoperta'}</b></span>
             <span class="tu-t">${escHtml(v.titolo)}</span>
@@ -10974,10 +11019,12 @@ function tuApriVoce(k){
     if(puo&&i.stato==='previsto'&&!passato)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('togli','${i.id}',${k})">Togli</button>`);
     if(puo&&i.stato!=='assente')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('assente','${i.id}',${k})">Segna assente</button>`);
     if(puo&&v.tipo==='corso'&&i.stato!=='presente'&&!futuro)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('presente','${i.id}',${k})">Segna presente</button>`);
+    if(puo&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
     const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
-    return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>
+    const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
+    return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
       <div class="sc-sub">${escHtml(ruolo)} · ${escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
   }).join(''):'<p class="sc-vuoto">Nessuno segnato.</p>';
   const gia=v.seg.map(i=>i.user_id);
@@ -11149,6 +11196,90 @@ function tuEsportaCsvLez(){
   const blob=new Blob(['\ufeff'+righe.join('\r\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='compensi_lezioni_'+mese+'.csv';
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+
+
+/* ── v3.141 Costi staff del mese (creator e segreteria) da v_costi_staff_mese: corsi, Prime Lezioni, monitor,
+   sostituzioni, assenze, da confermare. Sotto, le Prime Lezioni del mese con il perche' della cifra
+   (v_compenso_lezioni: 15 €/h con almeno un allievo presente, 5 €/h se vuota). Solo letture. ── */
+let tuCosti=[],tuPrime=[],tuPiano=null,tuImpTutti=[];
+function tuMeseInput(id){const inp=document.getElementById(id);if(!inp.value){const o=new Date();inp.value=o.getFullYear()+'-'+String(o.getMonth()+1).padStart(2,'0')}return inp.value}
+async function tuCaricaCosti(){
+  const mese=tuMeseInput('tu-mese-costi');
+  const[y,m]=mese.split('-').map(Number);
+  const da=mese+'-01',a=tuIso(new Date(y,m,0));
+  const box=document.getElementById('tu-costi'),bp=document.getElementById('tu-prime');
+  box.innerHTML='<p class="sc-vuoto">Carico…</p>';bp.innerHTML='';
+  const[rc,rp]=await Promise.all([
+    sb.from('v_costi_staff_mese').select('*').eq('mese',da).order('persona'),
+    sb.from('v_compenso_lezioni').select('impegno_id,persona,data,ora_inizio,ora_fine,tipo_corso,fascia,stato,ore,euro')
+      .like('tipo_corso','prima_lezione%').eq('stato','presente').gte('data',da).lte('data',a).order('data').order('ora_inizio')
+  ]);
+  if(rc.error){box.innerHTML=`<p class="sc-vuoto ko">Costi non letti: ${escHtml(scErr(rc.error))}</p>`;return}
+  tuCosti=rc.data||[];
+  if(!tuCosti.length){box.innerHTML='<p class="sc-vuoto">Nessun costo dello staff in questo mese.</p>'}
+  else{
+    const t=tuCosti.reduce((s,r)=>({lc:s.lc+Number(r.lezioni_corsi||0),ec:s.ec+Number(r.euro_corsi||0),pl:s.pl+Number(r.prime_lezioni||0),ep:s.ep+Number(r.euro_prime||0),
+      om:s.om+Number(r.ore_monitor||0),em:s.em+Number(r.euro_monitor||0),tot:s.tot+Number(r.totale||0),so:s.so+Number(r.sostituzioni||0),as:s.as+Number(r.assenze||0),dc:s.dc+Number(r.da_confermare||0)}),
+      {lc:0,ec:0,pl:0,ep:0,om:0,em:0,tot:0,so:0,as:0,dc:0});
+    const dc=n=>Number(n)>0?`<a href="#tu-complez-wrap" class="sc-warn" onclick="tuVaiDaConfermare()">${n}</a>`:'0';
+    box.innerHTML=`<div style="overflow-x:auto"><table class="tu-tab"><thead><tr><th>Persona</th><th>Lezioni corsi</th><th>Prime Lezioni</th><th>Monitor</th><th>Totale</th><th>Sostituzioni</th><th>Assenze</th><th>Da confermare</th></tr></thead><tbody>
+      ${tuCosti.map(r=>`<tr><td>${escHtml(r.persona||'—')}</td><td>${r.lezioni_corsi} · ${tuEur(r.euro_corsi)}</td><td>${r.prime_lezioni} · ${tuEur(r.euro_prime)}</td><td>${tuNum(r.ore_monitor)} h · ${tuEur(r.euro_monitor)}</td><td><b>${tuEur(r.totale)}</b></td><td>${r.sostituzioni}</td><td>${r.assenze}</td><td>${dc(r.da_confermare)}</td></tr>`).join('')}
+      </tbody><tfoot><tr><td><b>Totale staff</b></td><td>${t.lc} · ${tuEur(t.ec)}</td><td>${t.pl} · ${tuEur(t.ep)}</td><td>${tuNum(t.om)} h · ${tuEur(t.em)}</td><td><b>${tuEur(t.tot)}</b></td><td>${t.so}</td><td>${t.as}</td><td>${dc(t.dc)}</td></tr></tfoot></table></div>
+      ${t.dc?'<p class="sc-nota sc-warn">Le lezioni da confermare valgono 0 finché non confermi chi c’era: tocca il numero per l’elenco.</p>':''}`;
+  }
+  if(rp.error){bp.innerHTML=`<p class="sc-vuoto ko">Prime Lezioni non lette: ${escHtml(scErr(rp.error))}</p>`;return}
+  tuPrime=rp.data||[];
+  bp.innerHTML=!tuPrime.length?'<p class="sc-vuoto">Nessuna Prima Lezione pagata in questo mese.</p>':tuPrime.map(r=>{
+    const piena=Number(r.ore)>0&&Number(r.euro)/Number(r.ore)>=15;
+    return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))}</div></div>
+      <span class="sc-stato ${piena?'verde':'grigio'}">${piena?'con allievi':'vuota'}</span><b>${tuEur(r.euro)}</b></div>`;
+  }).join('');
+}
+/* "Da confermare": porta all'elenco del mese delle lezioni passate senza presenza (Compensi lezioni dei corsi) */
+function tuVaiDaConfermare(){
+  document.getElementById('tu-mese-lez').value=document.getElementById('tu-mese-costi').value;
+  tuCaricaCompLez().then(()=>{const el=document.getElementById('tu-daconf');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'})});
+}
+function tuEsportaCsvCosti(){
+  if(!tuCosti.length){toast('Nessun costo da esportare');return}
+  const n=v=>String(Number(v||0)).replace('.',',');
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const mese=document.getElementById('tu-mese-costi').value;
+  const righe=[['Persona','Mese','Lezioni corsi','Euro corsi','Prime Lezioni','Euro Prime Lezioni','Ore monitor','Euro monitor','Totale euro','Sostituzioni','Assenze','Da confermare'].join(';')]
+    .concat(tuCosti.map(r=>[q(r.persona),q(mese),r.lezioni_corsi,n(r.euro_corsi),r.prime_lezioni,n(r.euro_prime),n(r.ore_monitor),n(r.euro_monitor),n(r.totale),r.sostituzioni,r.assenze,r.da_confermare].join(';')));
+  const blob=new Blob(['﻿'+righe.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='costi_staff_'+mese+'.csv';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+
+/* ── v3.141 SOSTITUISCI nella voce di una lezione dei corsi: per primo il sostituto automatico (slot_piano_staff),
+   poi tutto lo staff per nome → sostituisci_istruttore (lezione passata: il sostituto risulta gia' presente) ── */
+function tuSostituisceChi(i){
+  if(!/sostituzione|sostituto da piano/i.test(i.note||''))return null;
+  const via=tuImpTutti.find(x=>x.slot_id===i.slot_id&&x.data===i.data&&x.user_id!==i.user_id&&(x.stato==='assente'||x.stato==='ritirato')&&/sostituit/i.test(x.note||''));
+  return via?tuNome(via.user_id):null;
+}
+function tuApriSost(impId,k){
+  const v=tuVoci[k];if(!v)return;
+  const r=v.seg.find(i=>i.id===impId);if(!r)return;
+  const auto=((tuPiano||[]).find(p=>p.slot_id===v.slot.id&&p.user_id===r.user_id)||{}).sostituto_user_id||null;
+  const altri=(tuStaff||[]).filter(u=>u.user_id!==r.user_id);
+  const ord=auto&&altri.some(u=>u.user_id===auto)?[altri.find(u=>u.user_id===auto),...altri.filter(u=>u.user_id!==auto)]:altri;
+  const passata=v.data<tuIso(new Date());
+  scModal(`🔁 Sostituisci ${tuNome(r.user_id)}`,
+    `<p class="sc-sub" style="margin-bottom:8px">${escHtml(v.titolo)} · ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}</p>
+     <label class="sc-lbl" for="tu-sost-user">Al suo posto</label>
+     <select id="tu-sost-user" class="input sc-in">${ord.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}${u.user_id===auto?' (sostituto previsto)':''}</option>`).join('')}</select>
+     <p class="sc-nota">${passata?'Lezione passata: chi scegli risulta già presente.':'Chi scegli prende il suo posto sulla lezione.'}</p>`,
+    async()=>{
+      const{error}=await sb.rpc('sostituisci_istruttore',{p_impegno_id:impId,p_nuovo_user:scVal('tu-sost-user'),p_note:'sostituzione registrata dalla segreteria in Turni'});
+      if(error)throw error;
+      toast(`${tuNome(scVal('tu-sost-user'))} sostituisce ${tuNome(r.user_id)}`);
+      if(tuPuo()){tuCaricaCompLez();tuCaricaCosti()}
+      await tuRiapri(k);
+      return false; // tuRiapri ha gia' riaperto la voce aggiornata
+    },{ok:'Sostituisci'});
 }
 
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
