@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.147 · 2026-10-27 · CONSOLE SEGRETERIA: TUTTO LI', E "SISTEMA ADESSO" (consegna 27 ott, DB allineamento_sistema_ora_2026-10-27 gia' applicato: azioni pagato, correggi_importo, chiudi di allineamento_decidi e colonna azione_suggerita). oggi.html non cambia. (1) In cima alla Segreteria, sopra l'interruttore, "Da fare oggi" con tre tessere (solo creator e segreteria): 🔄 Allineamento con il tuo foglio (voci aperte dell'ultima notte -> tab Allineamento), ⚠ Da sistemare (righe di v_segreteria_da_sistemare_seg -> tab Da sistemare), 💶 Da pagare del mese (v_costi_staff_mese: totale, Corsi/Prime/Monitor, lezioni da confermare non contate -> Turni, Costi staff del mese); rosso/arancio se c'e' da fare, verde "Tutto a posto"; si aggiornano dopo ogni azione. (2) Nuovo tab "⚠ Da sistemare" (?nav=segreteria&tab=dasistemare): l'elenco di oggi.html v2.32 portato qui con prefisso ds (stessa vista, stessi gruppi, stesse RPC: impegno_presenza, sostituisci_istruttore, segreteria_chiudi_turno, impegno_mi_segno), ogni azione con kcGuida (presente con il compenso: 15 € a lezione o a ore da impegni_staff.compenso_tipo; monitor scelto = avviso arancio del caso estremo); sotto ogni bottone cosa fa; APRI IN AGENDA in una nuova scheda. (3) Allineamento: su Da registrare e Da chiarire il bottone principale e' SISTEMA ADESSO -> kcGuida "Com'è andata?" con cinque scelte (registra, pagato, correggi_importo, chiudi, rispondi), preselezionata azione_suggerita (Da registrare senza suggerimento: registra), campi della scelta, cosa succede con il pagamento che si tocca (letto da abbonamenti_pagamenti con la stessa regola dell'RPC), avvisi arancio (importo diverso dal foglio, al prima di dal, pagamento non trovato, chiudi su una voce pagata nel foglio); l'esito lo scrive il DB: "✓ <esito> · Il portale è già a posto.". NON È COSÌ resta solo su Da registrare. Voce senza persona: kcGuida -> Inserisci contatto precompilato -> appena salvata "Ora registro l'abbonamento?" (insertNewLead chiama alDopoInserisci; se la voce non ha ancora la persona l'RPC lo dice e si mostra). Da sistemare nel portale: APRI E SISTEMA porta al fascicolo della persona (Prima Lezione o voce senza data) o all'agenda della data in una nuova scheda, e al ritorno nella console chiede "L'hai sistemato?" -> fatto. "Cosa fare oggi": il passo delle domande ora dice che si sistemano subito. CUMULA v3.146 (sotto). -->
 <!-- KC-BUILD: portale v3.146 · 2026-10-27 · PRIMA LEZIONE GIA' FATTA (DATA PASSATA) (consegna 27 ott, caso Kami Cafaro; nessuna modifica al DB): nel fascicolo del lead, finestra "📅 Fissa prima lezione", sopra gli slot il bottone "✔ L'ha già fatta (data passata)", solo per creator e segreteria (isSegreteriaPiena). Apre kcGuida: data dagli ultimi 60 giorni a ieri, slot Prima Lezione attivi di quel giorno della settimana (tipo_corso prima_lezione%, nome completo e orario; se e' uno solo e' gia' scelto); cosa succede si aggiorna con le scelte; se il lead ha gia' una Prima Lezione fatta avvisa "Risulta già una Prima Lezione fatta il GG/MM: vuoi registrarne un'altra?". Conferma -> insert in prenotazioni_prima_lezione (lead_id, slot_id, data_lezione) come confermaFissaLezione, poi marca_presenza_prima_lezione(id,'fatto'); se la seconda chiamata fallisce lo dice in chiaro e riprovando non crea un doppione. Errori del DB (giorno chiuso, slot chiuso, slot pieno) mostrati come arrivano. Messaggio finale con il promemoria del pagamento (➕ Abbonamento o corso). Il messaggio breve (toast) resta a schermo piu' a lungo se il testo e' lungo (fino a 8 secondi). CUMULA v3.145 (sotto). -->
 <!-- KC-BUILD: portale v3.145 · 2026-10-27 · ALLINEAMENTO: L'INTERFACCIA CHE GUIDA E CONTROLLA (consegna 27 ott, nessuna modifica al DB). (1) Nuova funzione generica kcGuida() vicino a scModal, documentata in testa e pronta per le altre sezioni: modale con titolo, riquadro "Cosa succede se confermi" (si aggiorna mentre si compila), righe arancio di attenzione, campi, conferma scura a destra e annulla chiaro a sinistra; errore = messaggio rosso e la finestra resta aperta; riuscita = chiude, toast e lo stesso testo resta come esito. Mai perdere quello che si e' scritto: se la finestra e' stata toccata, uscire (annulla, ✕, clic fuori, Esc, cambio tab della Segreteria, cambio sezione) chiede "Non hai salvato" con Torna e completa / Esci senza salvare; ricaricare la pagina fa comparire l'avviso del browser; le caselle di testo restano come bozza nel browser (localStorage per voce, try/catch) e si ritrovano riaprendo la voce ("Avevi iniziato a scrivere"). (2) Allineamento: in cima "Cosa fare oggi" a passi dai numeri (entro fine mese solo negli ultimi 7 giorni), cliccabili verso il gruppo; sotto ogni bottone cosa fa; NON VA -> NON È COSÌ, CORRETTO -> HO CORRETTO IL FOGLIO; tutte le azioni passano da kcGuida (REGISTRA con frasi dal vivo e avviso se l'importo e' diverso dal foglio, NON È COSÌ, RISPONDI, FATTO, HO CORRETTO IL FOGLIO, INSERISCI PRIMA LA PERSONA); sulla riga "✎ bozza non inviata"; dopo l'azione la riga resta grigia con cosa e' successo e cosa succede stanotte; storico con etichette chiare (Registrato, Risposta inviata, Chiuso: non è così, Sistemato, Corretto nel foglio). Scritture solo con allineamento_decidi, stato 'scartata' invariato. (3) Il messaggio breve (toast) di tutto il portale passa da 12px a 13px (da 1024px resta 18px). CUMULA v3.144 (sotto). -->
 <!-- KC-BUILD: portale v3.144 · 2026-10-27 · ALLINEAMENTO PRIMA NOTA (consegna 27 ott, DB allineamento_console_2026-10-27): Segreteria -> nuovo tab "🔄 Allineamento" (solo creator e segreteria) con badge = voci aperte dell'ultima notte (arancio se ci sono abbonamenti da registrare), caricato all'apertura della Segreteria. ?nav=segreteria&tab=allineamento apre direttamente il tab. Righe aperte dell'ultima notte di allineamento_proposte (mai le 'superata') in quattro gruppi: Da registrare nel portale, Da chiarire, Da sistemare nel portale, Da correggere nel tuo foglio; "Nel tuo foglio" / "Nel portale" / proposta; bollino "ferma da X giorni" se notte - aperta_dal >= 3; nome -> scheda nel tab Persone (lead_data.persona_id). Azioni solo con allineamento_decidi: REGISTRA (modale con metodo contanti/bancomat/bonifico, importo e scadenza modificabili), INSERISCI PRIMA LA PERSONA (Inserisci contatto) se manca persona_id, NON VA (perche' facoltativo), RISPONDI, FATTO, CORRETTO; la riga resta grigia con l'esito, il badge scende, niente ricarica. In fondo, chiuso: "Chiuse negli ultimi 30 giorni". Solo nomi, mai email o telefoni. Nessuna modifica a DB. Su oggi.html non cambia niente. CUMULA v3.143 (sotto). -->
@@ -1666,12 +1667,41 @@ fill="#1d4ed8" stroke="none">
         </div>
       </div>
 
+      <!-- v3.147 — Da fare oggi (codice nel blocco DA FARE OGGI E DA SISTEMARE) -->
+      <div id="seg-oggi" style="display:none">
+        <style>
+        #seg-oggi{margin:0 0 16px}
+        .seg-oggi-t{font-size:16px;font-weight:800;margin:0 0 8px;color:var(--text)}
+        .seg-tess{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        @media(max-width:760px){.seg-tess{grid-template-columns:1fr}}
+        .seg-t{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid var(--border);border-left:5px solid var(--border);border-radius:14px;padding:12px 14px;background:var(--bg);color:var(--text);cursor:pointer;font-family:inherit}
+        .seg-t:hover{border-color:var(--text)}
+        .seg-t-et{font-size:13.5px;font-weight:700;color:var(--text2)}
+        .seg-t-n{font-size:26px;font-weight:800;line-height:1.15}
+        .seg-t-sub{font-size:13px;color:var(--text2);line-height:1.4}
+        .seg-t-conf{font-size:13px;font-weight:700;color:#B45309}
+        .seg-t-conf[hidden]{display:none}
+        .seg-t.rosso{border-left-color:#DC2626}.seg-t.rosso .seg-t-n{color:#DC2626}
+        .seg-t.arancio{border-left-color:#F59E0B}.seg-t.arancio .seg-t-n{color:#B45309}
+        .seg-t.verde{border-left-color:#16A34A}.seg-t.verde .seg-t-n{color:#15803D}
+        #seg-ds-badge{display:inline-block;min-width:20px;text-align:center;font-size:13px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:4px;background:#FEE2E2;color:#991B1B;vertical-align:1px}
+        #seg-ds-badge:empty{display:none}
+        </style>
+        <div class="seg-oggi-t">Da fare oggi</div>
+        <div class="seg-tess">
+          <button type="button" class="seg-t" id="seg-t-all" onclick="segMostra('allineamento')"><span class="seg-t-et">🔄 Allineamento con il tuo foglio</span><span class="seg-t-n">…</span><span class="seg-t-sub"></span></button>
+          <button type="button" class="seg-t" id="seg-t-ds" onclick="segMostra('dasistemare')"><span class="seg-t-et">⚠ Da sistemare</span><span class="seg-t-n">…</span><span class="seg-t-sub"></span></button>
+          <button type="button" class="seg-t" id="seg-t-paga" onclick="dsVaiCosti()"><span class="seg-t-et">💶 Da pagare</span><span class="seg-t-n">…</span><span class="seg-t-sub"></span><span class="seg-t-conf" id="seg-t-paga-conf" hidden></span></button>
+        </div>
+      </div>
+
       <!-- v3.134 — Scuole F1: interruttore Persone / Scuole -->
       <div class="seg-switch" role="tablist">
         <button id="seg-sw-persone" class="on" onclick="segMostra('persone')">👥 Persone</button>
         <button id="seg-sw-scuole" onclick="segMostra('scuole')">🏫 Scuole</button>
         <button id="seg-sw-turni" onclick="segMostra('turni')">🗓 Turni</button>
         <button id="seg-sw-manovra" onclick="segMostra('manovra')">🪢 Corso Manovra in Sosta KataClimb</button>
+        <button id="seg-sw-dasistemare" onclick="segMostra('dasistemare')" style="display:none">⚠ Da sistemare <span id="seg-ds-badge"></span></button>
         <button id="seg-sw-allineamento" onclick="segMostra('allineamento')" style="display:none">🔄 Allineamento <span id="seg-all-badge"></span></button>
       </div>
 
@@ -1794,6 +1824,16 @@ fill="#1d4ed8" stroke="none">
         </div>
       </div>
 
+      <!-- v3.147 — Da sistemare (codice nel blocco DA FARE OGGI E DA SISTEMARE) -->
+      <div id="seg-dasistemare-wrap" class="hidden">
+        <div class="sc-sez">
+          <h3 class="sc-h3">⚠ Da sistemare</h3>
+          <p class="al-guida" style="margin:0">Sistema queste voci e il conto dei compensi del mese è giusto. Ogni azione ti dice prima cosa succede.</p>
+        </div>
+        <div id="ds-msg"></div>
+        <div id="ds-lista"></div>
+      </div>
+
       <!-- v3.144 — Allineamento con il foglio della segreteria (codice nel blocco ALLINEAMENTO PRIMA NOTA) -->
       <div id="seg-allineamento-wrap" class="hidden">
         <style>
@@ -1832,6 +1872,12 @@ fill="#1d4ed8" stroke="none">
         .al-met{flex:1;min-width:90px;font-size:14.5px;font-weight:700;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit}
         .al-met.on{background:var(--text);border-color:var(--text);color:var(--bg)}
         .al-tutto{font-size:15px;font-weight:700;color:#166534;padding:4px 0}
+        .al-scelte{display:flex;flex-direction:column;gap:6px}
+        .al-scelta{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;cursor:pointer}
+        .al-scelta:has(input:checked){border-color:var(--text);background:rgba(0,0,0,.035)}
+        .al-scelta input{width:20px;height:20px;margin:2px 0 0;flex:0 0 auto;accent-color:#1A1A1A}
+        .al-scelta b{display:block;font-size:14.5px}
+        .al-scelta small{display:block;font-size:13px;color:var(--text2);margin-top:2px;line-height:1.4}
         #al-storico summary{cursor:pointer;font-size:16px;font-weight:800;list-style:none;display:flex;align-items:center;gap:8px}
         #al-storico summary::-webkit-details-marker{display:none}
         #al-storico summary::before{content:'▸';font-size:13px}
@@ -4772,6 +4818,7 @@ async function submitAddMinore(){
 }
 
 function openAddLeadModal(){
+  alInsDopo=null; // v3.147 ogni apertura riparte pulita; SISTEMA ADESSO la reimposta subito dopo
   // Reset campi
   ['add-lead-nome','add-lead-cognome','add-lead-telefono','add-lead-email','add-lead-note'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
@@ -5024,6 +5071,7 @@ async function insertNewLead(data){
   }
   closeModal('mo-add-lead');
   await loadCrmLeads();
+  if(inserted&&typeof alDopoInserisci==='function'&&alDopoInserisci())return; // v3.147 si riprende la voce dell'Allineamento
   if(inserted)showLeadDetail(inserted.id);
 }
 
@@ -9258,7 +9306,7 @@ function showNav(id){
   const kcC=document.getElementById('kcbar-comunita'),kcP=document.getElementById('kcbar-profilo'); // v3.108: la barra segue la vista
   if(kcC&&kcP){kcC.classList.toggle('kc-on',id==='comunita');kcP.classList.toggle('kc-on',id!=='comunita');}
   if(id==='agenda')loadAgenda();
-  if(id==='segreteria'&&typeof alCaricaBadge==='function')alCaricaBadge(); // v3.144 badge di Allineamento
+  if(id==='segreteria'&&typeof segOggiCarica==='function')segOggiCarica(); // v3.147 tessere Da fare oggi (con il badge di Allineamento)
 }
 
 /* ═══ COMMUNITY ═══ */
@@ -10303,6 +10351,7 @@ async function init(){
           }
           /* v3.144 dai messaggi a Roberta: Segreteria -> 🔄 Allineamento */
           if(navParam==='segreteria'&&params.get('tab')==='allineamento'&&typeof alPuo==='function'&&alPuo())segMostra('allineamento');
+          if(navParam==='segreteria'&&params.get('tab')==='dasistemare'&&typeof alPuo==='function'&&alPuo())segMostra('dasistemare'); // v3.147
           history.replaceState(null,'',window.location.pathname);
         }
       }
@@ -10372,12 +10421,13 @@ async function scApriDoc(docId,btn){
 /* ── Interruttore Persone / Scuole nella Segreteria ── */
 function segMostra(quale){
   if(kcG){kcGuidaEsci(()=>segMostra(quale));return;} // v3.145
-  const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',allin=quale==='allineamento',altro=scuole||turni||manovra||allin;
+  const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',allin=quale==='allineamento',dasis=quale==='dasistemare',altro=scuole||turni||manovra||allin||dasis;
   if(altro&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
   document.getElementById('seg-scuole-wrap').classList.toggle('hidden',!scuole);
   document.getElementById('seg-turni-wrap').classList.toggle('hidden',!turni); // v3.137
   document.getElementById('seg-manovra-wrap').classList.toggle('hidden',!manovra); // v3.140
   document.getElementById('seg-allineamento-wrap').classList.toggle('hidden',!allin); // v3.144
+  document.getElementById('seg-dasistemare-wrap').classList.toggle('hidden',!dasis); // v3.147
   document.getElementById('seg-lead-list-wrap').style.display=altro?'none':'';
   if(altro)document.getElementById('seg-lead-detail').classList.add('hidden');
   document.getElementById('seg-sw-persone').classList.toggle('on',!altro);
@@ -10385,8 +10435,10 @@ function segMostra(quale){
   document.getElementById('seg-sw-turni').classList.toggle('on',turni);
   document.getElementById('seg-sw-manovra').classList.toggle('on',manovra);
   document.getElementById('seg-sw-allineamento').classList.toggle('on',allin);
+  document.getElementById('seg-sw-dasistemare').classList.toggle('on',dasis);
   if(scuole){scChiudiScheda();scCaricaTutto();}
   if(allin)return alCaricaTutto(); // v3.144
+  if(dasis)return dsCarica(); // v3.147
   if(manovra)msCaricaTutto();
   if(turni)return tuCaricaTutto(); // v3.142 restituito: chi apre Turni da link puo' scorrere dopo il caricamento
 }
@@ -11711,6 +11763,7 @@ function alBadge(n,arancio){
   const b=document.getElementById('seg-all-badge');if(!b)return;
   b.textContent=n?String(n):'';
   b.classList.toggle('al-arancio',!!(n&&arancio));
+  dsTessera('seg-t-all',String(n||0),n?(arancio?'rosso':'arancio'):'verde',n?(arancio?'Ci sono pagamenti da registrare':'Voci del controllo di stanotte'):'Tutto a posto'); // v3.147
 }
 function alBadgeDaRighe(){
   const ap=alRighe.filter(r=>!alChiuse[r.id]);
@@ -11765,6 +11818,7 @@ async function alCaricaTutto(){
       (data||[]).forEach(l=>{if(!alLead[l.persona_id])alLead[l.persona_id]=l.id});
     }
     alDisegna();alDisegnaStorico();
+    alChiediSeSistemato(); // v3.147 tornati da APRI E SISTEMA
   }catch(e){lista.innerHTML='';scMsg('al-msg','Non riesco a leggere le proposte: '+scErr(e));}
 }
 
@@ -11774,7 +11828,7 @@ function alCosaFare(conta){
   const entro=fine.getDate()-oggi.getDate()<7?` — entro fine mese, il ${String(fine.getDate()).padStart(2,'0')}/${String(fine.getMonth()+1).padStart(2,'0')}.`:'.';
   const passi=[
     ['proposta',`<b>Registra i pagamenti</b> che sono nel tuo foglio ma non nel portale (${conta('proposta')})${entro}`],
-    ['da_chiarire',`<b>Rispondi alle domande</b> (${conta('da_chiarire')}): bastano due parole, il resto lo prepara il sistema stanotte.`],
+    ['da_chiarire',`<b>Chiarisci le voci in dubbio</b> (${conta('da_chiarire')}): con SISTEMA ADESSO il portale si mette a posto subito.`],
     ['da_sistemare_portale',`<b>Sistema il portale</b> (${conta('da_sistemare_portale')}): presenze ed esiti da segnare.`],
     ['errore_elenco',`<b>Correggi il tuo foglio</b> (${conta('errore_elenco')}): quando hai tempo.`]
   ].filter(([c])=>conta(c)>0);
@@ -11816,14 +11870,13 @@ function alRiga(r){
   const abb=r.categoria==='proposta'
     ?`<div class="al-abb">${escHtml(alTipi[r.tipo_abbonamento]||r.tipo_abbonamento||'')}${r.dal?' · '+alGM(r.dal)+'–'+alGM(r.al):''}${r.importo!=null?' · '+alEuro(r.importo):''}${r.metodo?' · '+alMetodo(r.metodo):''}</div>`:'';
   let az='';
-  if(r.categoria==='proposta')az=(r.persona_id
-      ?alAz(true,`alApriRegistra('${r.id}')`,'REGISTRA',"Crea l'abbonamento pagato nel portale")
-      :alAz(true,`alInserisci('${r.id}')`,'INSERISCI PRIMA LA PERSONA',"Apre Inserisci contatto con il nome già scritto. Stanotte l'abbonamento sarà pronto da registrare"))
-    +alAz(false,`alApriNonCosi('${r.id}')`,'NON È COSÌ','Il sistema ha capito male? Scrivi cosa è giusto');
-  else if(r.categoria==='da_chiarire')az=alAz(true,`alApriRispondi('${r.id}')`,'RISPONDI','Scrivi come stanno le cose: stanotte il sistema prepara la registrazione')
-    +alAz(false,`alApriNonCosi('${r.id}')`,'NON È COSÌ','La domanda non ha senso? Scrivi perché');
+  const sistema=r.persona_id?'Lo sistemi qui, il portale si mette a posto subito':'Prima inserisci la persona nel portale, poi registri subito';
+  if(r.categoria==='proposta')az=alAz(true,`alSistema('${r.id}')`,'SISTEMA ADESSO',sistema)
+    +alAz(false,`alApriNonCosi('${r.id}')`,'NON È COSÌ','La proposta è sbagliata e non va fatta: scrivi cosa è giusto');
+  else if(r.categoria==='da_chiarire')az=alAz(true,`alSistema('${r.id}')`,'SISTEMA ADESSO',sistema);
   else if(r.categoria==='errore_elenco')az=alAz(true,`alFatto('${r.id}')`,'HO CORRETTO IL FOGLIO','Premi dopo averlo corretto nel tuo Elenco: stanotte il sistema ricontrolla');
-  else az=alAz(true,`alFatto('${r.id}')`,'FATTO','Premi dopo averlo sistemato nel portale');
+  else az=alAz(true,`alApriESistema('${r.id}')`,'APRI E SISTEMA','Ti porta dove si sistema; quando torni qui ti chiedo se è fatto')
+    +alAz(false,`alFatto('${r.id}')`,'FATTO','Premi se l’hai già sistemato nel portale');
   return `<div class="al-riga${chiusa?' al-chiusa':''}" id="al-r-${r.id}">
     <div>${nomeH}${ferma}${bozza}</div>
     ${r.nel_foglio?`<div class="al-ctx"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
@@ -11875,93 +11928,235 @@ async function alApriPersona(pid){
   }catch(e){toast('Non riesco ad aprire la scheda: '+scErr(e));}
 }
 
-function alInserisci(id){
+/* ── v3.147 SISTEMA ADESSO: la voce si sistema subito dal portale, senza aspettare la notte ──
+   "Com'è andata?" con cinque scelte (preselezionata azione_suggerita, se c'e'); ognuna e' un'azione di
+   allineamento_decidi: registra, pagato, correggi_importo, chiudi, rispondi. L'esito lo scrive il DB. */
+const AL_SCELTE=[
+  ['registra',"Ha pagato: registro l'abbonamento",'Manca nel portale o è fermo a un mese prima'],
+  ['pagato',"Il pagamento c'è, segno come ha pagato",'Nel portale c’è un pagamento senza metodo, o l’iscrizione risulta non pagata'],
+  ['correggi_importo',"L'importo giusto è un altro",'L’importo nel portale non è quello del tuo foglio'],
+  ['chiudi','Non frequenta più: chiudo','È attivo nel portale ma non viene più'],
+  ['rispondi','Altro: lo scrivo','Non rientra nei casi sopra']
+];
+var alInsDopo=null; // voce da riprendere dopo Inserisci contatto (var: openAddLeadModal la azzera anche prima di questo blocco)
+function alScegliMet(v){
+  alMetScelto=alMetScelto===v&&alSceltaOra()==='correggi_importo'?null:v; // nel correggi il metodo e' facoltativo: ritoccarlo lo toglie
+  document.querySelectorAll('#kcg-corpo .al-met').forEach(b=>b.classList.toggle('on',b.dataset.met===alMetScelto));
+  kcGuidaAggiorna();
+}
+function alSceltaOra(){const e=document.querySelector('#kcg-corpo input[name="al-scelta"]:checked');return e?e.value:''}
+/* mostra solo i campi della scelta */
+function alSaVisibili(){
+  const s=alSceltaOra();
+  document.querySelectorAll('#kcg-corpo [data-per]').forEach(e=>{e.style.display=e.dataset.per.split(' ').includes(s)?'':'none'});
+  const li=document.getElementById('al-imp-lbl');
+  if(li)li.textContent=s==='pagato'?'Importo (lascialo com’è se è giusto)':s==='correggi_importo'?'Importo giusto €':'Importo €';
+  const lm=document.getElementById('al-met-lbl');
+  if(lm)lm.textContent=s==='correggi_importo'?'Come ha pagato (facoltativo)':'Come ha pagato';
+}
+
+function alSistema(id){
   const r=alTrova(id);if(!r)return;
+  if(!r.persona_id)return alSistemaSenzaPersona(r);
+  alApriSistema(id);
+}
+/* voce senza persona nel portale: prima Inserisci contatto, poi la registrazione nella stessa sequenza */
+function alSistemaSenzaPersona(r){
   const nome=r.persona_nome||'';
   kcGuida({
-    titolo:`Inserisci ${nome||'la persona'} nel portale`,
-    succede:['Si apre Inserisci contatto con nome e cognome già scritti','Dopo averla inserita, stanotte la registrazione è pronta qui'],
+    titolo:`${nome||'Questa persona'} non è ancora nel portale`,
+    succede:['Si apre Inserisci contatto con nome e cognome già scritti',"Appena l'hai salvata, ti propongo di registrare l'abbonamento"],
     ok:'Apri Inserisci contatto',annulla:'No, torna indietro',
     poi:()=>{
       openAddLeadModal();
+      alInsDopo=r.id;
       const p=String(nome).trim().split(/\s+/);
       if(p[0]){document.getElementById('add-lead-nome').value=p[0];document.getElementById('add-lead-cognome').value=p.slice(1).join(' ');}
     }
   });
 }
-
-function alScegliMet(v){
-  alMetScelto=v;
-  document.querySelectorAll('#kcg-corpo .al-met').forEach(b=>b.classList.toggle('on',b.dataset.met===v));
-  kcGuidaAggiorna();
-}
-function alApriRegistra(id){
-  const r=alTrova(id);if(!r)return;
-  alMetScelto=r.metodo?alMetodo(r.metodo):null;
-  const nome=r.persona_nome||'',tipo=alTipi[r.tipo_abbonamento]||r.tipo_abbonamento||'';
-  const met=AL_METODI.map(([v,l])=>`<button type="button" class="al-met${alMetScelto===v?' on':''}" data-met="${v}" onclick="alScegliMet('${v}')">${l}</button>`).join('');
-  let fatto={};
+/* chiamata da insertNewLead: la persona e' salvata, si riprende la voce */
+function alDopoInserisci(){
+  if(!alInsDopo)return false;
+  const id=alInsDopo;alInsDopo=null;
+  const r=alTrova(id);if(!r)return false;
   kcGuida({
-    titolo:`Registri l'abbonamento di ${nome}`,
-    corpo:`${r.nel_foglio?`<div class="al-ctx" style="margin-bottom:6px"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
-      <label class="sc-lbl">Come ha pagato</label>
-      <div class="al-mets">${met}</div>
-      <div class="sc-2">
-        <div><label class="sc-lbl" for="al-imp">Importo €</label><input id="al-imp" class="input sc-in" type="number" min="0" step="0.01" inputmode="decimal" value="${r.importo!=null?Number(r.importo):''}"></div>
-        <div><label class="sc-lbl" for="al-al">Scadenza</label><input id="al-al" class="input sc-in" type="date" value="${r.al||''}"></div>
+    titolo:`${r.persona_nome||'La persona'} è nel portale. Ora registro l'abbonamento?`,
+    succede:["Si apre la registrazione dell'abbonamento con i dati del tuo foglio"],
+    ok:"Sì, registro l'abbonamento",annulla:'Non ora',
+    poi:()=>alApriSistema(id,'registra')
+  });
+  return true;
+}
+
+async function alApriSistema(id,forza){
+  const r=alTrova(id);if(!r)return;
+  const nome=r.persona_nome||'';
+  /* pagamenti della persona: per dire prima quale pagamento si tocca (stessa scelta di allineamento_decidi) */
+  let pag=[];
+  if(r.persona_id){
+    const{data,error}=await sb.from('abbonamenti_pagamenti').select('id,tipo_abbonamento,dal,al,importo_eur,metodo,registrato_il').eq('persona_id',r.persona_id);
+    if(error)console.warn('[allineamento] pagamenti:',error.message);
+    pag=(data||[]).slice().sort((a,b)=>String(b.al).localeCompare(String(a.al))||String(b.registrato_il).localeCompare(String(a.registrato_il)));
+  }
+  const tipoR=r.tipo_abbonamento;
+  const inAttesa=pag.find(p=>!p.metodo&&(!tipoR||p.tipo_abbonamento===tipoR))||null;
+  const daCorr=pag.find(p=>(!tipoR||p.tipo_abbonamento===tipoR)&&(!r.dal||(p.dal<=r.dal&&p.al>=r.dal)))||null;
+  const lblTipo=t=>alTipi[t]||t||'';
+  const descPag=p=>`${escHtml(lblTipo(p.tipo_abbonamento))} ${alGM(p.dal)}–${alGM(p.al)}, ${alEuro(p.importo_eur)}`;
+  const pre=forza||(kcGuidaBozza(alBozzaChiave('risp',id))?'rispondi':'')||r.azione_suggerita||(r.categoria==='proposta'?'registra':''); // con una risposta iniziata si riparte da li'
+  alMetScelto=r.metodo?alMetodo(r.metodo):null;
+  const impIniz=r.importo!=null?Number(r.importo):(pre==='pagato'&&inAttesa&&inAttesa.importo_eur!=null?Number(inAttesa.importo_eur):'');
+  const tipi=Object.keys(alTipi).sort((a,b)=>alTipi[a].localeCompare(alTipi[b],'it'));
+  const met=AL_METODI.map(([v,l])=>`<button type="button" class="al-met${alMetScelto===v?' on':''}" data-met="${v}" onclick="alScegliMet('${v}')">${l}</button>`).join('');
+  let testo='',scelta='';
+  kcGuida({
+    titolo:`Sistema adesso · ${nome}`,
+    corpo:`${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
+      ${r.nel_foglio?`<div class="al-ctx"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
+      ${r.nel_portale?`<div class="al-ctx"><b>Nel portale:</b> ${escHtml(r.nel_portale)}</div>`:''}
+      <div class="sc-lbl" style="margin-top:14px">Com'è andata?</div>
+      <div class="al-scelte">${AL_SCELTE.map(([v,t,q])=>`<label class="al-scelta"><input type="radio" name="al-scelta" value="${v}"${pre===v?' checked':''} onchange="alSaVisibili()"><span><b>${t}</b><small>${q}</small></span></label>`).join('')}</div>
+      <div data-per="registra"><label class="sc-lbl" for="al-tipo">Abbonamento</label>
+        <select id="al-tipo" class="input sc-in"><option value="">Scegli…</option>${tipi.map(t=>`<option value="${escHtml(t)}"${t===tipoR?' selected':''}>${escHtml(alTipi[t])}</option>`).join('')}</select></div>
+      <div class="sc-2" data-per="registra">
+        <div><label class="sc-lbl" for="al-dal">Dal</label><input id="al-dal" class="input sc-in" type="date" value="${r.dal||''}"></div>
+        <div><label class="sc-lbl" for="al-al">Al</label><input id="al-al" class="input sc-in" type="date" value="${r.al||''}"></div>
       </div>
-      <p class="sc-nota">È un rinnovo con gli stessi giorni del corso. Se nel portale è già registrato, non si crea un doppione.</p>`,
+      <div data-per="registra pagato correggi_importo"><label class="sc-lbl" for="al-imp" id="al-imp-lbl">Importo €</label>
+        <input id="al-imp" class="input sc-in" type="number" min="0" step="0.01" inputmode="decimal" value="${impIniz}"></div>
+      <div data-per="registra pagato correggi_importo"><label class="sc-lbl" id="al-met-lbl">Come ha pagato</label><div class="al-mets">${met}</div></div>
+      <div data-per="chiudi"><label class="sc-lbl" for="al-motivo">Perché (facoltativo)</label>
+        <textarea id="al-motivo" class="input sc-in" maxlength="1000" placeholder="Es. Ha smesso a settembre"></textarea></div>
+      <div data-per="rispondi"><label class="sc-lbl" for="al-testo">Come stanno le cose</label>
+        <textarea id="al-testo" class="input sc-in" maxlength="1000" placeholder="Es. Sì, ha pagato 195 € il 7/10 per ott–dic, bonifico"></textarea></div>`,
     succede:()=>{
-      const imp=alVal('al-imp'),al=alVal('al-al');
-      return[
-        `Nel portale nasce l'abbonamento <b>${escHtml(tipo)} ${alGM(r.dal)}–${al?alGM(al):'…'}</b>, pagato <b>${imp!==''?alEuro(imp):'…'}${alMetScelto?' '+alMetScelto:''}</b>`,
-        `<b>${escHtml(nome)}</b> risulta in regola fino al <b>${al?alGM(al):'…'}</b>`,
-        "Questa voce sparisce dall'elenco e va nello storico"
-      ];
+      const s=alSceltaOra(),imp=alVal('al-imp'),eu=imp!==''?alEuro(imp):'…',m=alMetScelto||'…';
+      if(s==='registra'){
+        const t=alVal('al-tipo'),dal=alVal('al-dal'),al=alVal('al-al');
+        return[`Nel portale nasce <b>${escHtml(lblTipo(t)||'…')} ${dal?alGM(dal):'…'}–${al?alGM(al):'…'}</b>, pagato <b>${eu} ${m}</b>`,
+          `<b>${escHtml(nome)}</b> risulta in regola fino al <b>${al?alGM(al):'…'}</b>`];
+      }
+      if(s==='pagato')return[(inAttesa?`Il pagamento già registrato (${descPag(inAttesa)})`:'Il pagamento già registrato')+` diventa pagato in <b>${m}</b>`+(imp!==''&&inAttesa&&Number(imp)!==Number(inAttesa.importo_eur)?`, con importo <b>${eu}</b>`:''),
+        "L'iscrizione non risulta più da pagare"];
+      if(s==='correggi_importo')return[`Il pagamento passa da <b>${daCorr?alEuro(daCorr.importo_eur):'…'}</b> a <b>${eu}</b>`+(alMetScelto?`, pagato in <b>${alMetScelto}</b>`:''),
+        "Resta scritto nella nota che l'hai corretto tu"];
+      if(s==='chiudi')return[`L'abbonamento <b>${escHtml(lblTipo(tipoR)||'attivo')}</b> non è più attivo`,'Non comparirà più tra gli iscritti'];
+      if(s==='rispondi')return['Il sistema legge la tua risposta stanotte e ti prepara la soluzione'];
+      return["Scegli com'è andata: qui compare cosa succede"];
     },
     attenzione:()=>{
-      const imp=alVal('al-imp'),a=[];
-      if(r.importo!=null&&imp!==''&&Number(imp)!==Number(r.importo))a.push(`Nel tuo foglio c'è ${alEuro(r.importo)}, stai registrando ${alEuro(imp)}: è giusto?`);
-      a.push('Non si annulla da qui: se sbagli, avvisa Marco.');
+      const s=alSceltaOra(),imp=alVal('al-imp'),a=[];
+      if(['registra','pagato','correggi_importo'].includes(s)&&r.importo!=null&&imp!==''&&Number(imp)!==Number(r.importo))
+        a.push(`Nel tuo foglio c'è ${alEuro(r.importo)}, stai scrivendo ${alEuro(imp)}: è giusto?`);
+      if(s==='registra'&&alVal('al-dal')&&alVal('al-al')&&alVal('al-al')<alVal('al-dal'))a.push("La data “al” è prima di “dal”: controlla le date.");
+      if(s==='pagato'&&!inAttesa)a.push("Nel portale non trovo un pagamento in attesa: forse va scelto “Ha pagato: registro l'abbonamento”.");
+      if(s==='correggi_importo'&&!daCorr)a.push("Nel portale non trovo il pagamento da correggere: forse va scelto “Ha pagato: registro l'abbonamento”.");
+      if(s==='chiudi'&&/\bpagat[oa]\b/i.test(r.nel_foglio||''))a.push('Nel tuo foglio risulta pagato: controlla che non frequenti davvero più.');
+      if(s&&s!=='rispondi')a.push('Non si annulla da qui: se sbagli, avvisa Marco.');
       return a;
     },
     pronto:()=>{
-      if(!alMetScelto)return 'Scegli come ha pagato';
-      const imp=alVal('al-imp');
-      if(imp===''||isNaN(Number(imp)))return "Scrivi l'importo";
-      if(!alVal('al-al'))return 'Scrivi la scadenza';
+      const s=alSceltaOra(),imp=alVal('al-imp'),impOk=imp!==''&&!isNaN(Number(imp))&&Number(imp)>=0;
+      if(!s)return "Scegli com'è andata";
+      if(s==='registra'){
+        if(!alVal('al-tipo'))return "Scegli l'abbonamento";
+        if(!alVal('al-dal')||!alVal('al-al'))return 'Scrivi da quando a quando vale';
+        if(!impOk)return "Scrivi l'importo";
+        if(!alMetScelto)return 'Scegli come ha pagato';
+      }
+      if(s==='pagato'){if(!alMetScelto)return 'Scegli come ha pagato';if(imp!==''&&!impOk)return "L'importo non è un numero";}
+      if(s==='correggi_importo'&&!impOk)return "Scrivi l'importo giusto";
+      if(s==='rispondi'&&!alVal('al-testo'))return 'Scrivi come stanno le cose';
       return true;
     },
     stato:()=>alMetScelto,
-    cosa:"registrare l'abbonamento",chi:nome,
-    ok:'Sì, registra',annulla:'No, torna indietro',
-    azione:()=>{fatto={al:alVal('al-al')};return alDecidi(id,'registra',{p_metodo:alMetScelto,p_importo:Number(alVal('al-imp')),p_al:fatto.al});},
-    dopo:d=>d&&d.gia_registrato?'Era già registrato nel portale: nessun doppione creato.':`Fatto: ${nome} è registrato fino al ${alGM(fatto.al)}.`,
-    poi:(t,d)=>alChiudi(id,t,'registrata',null,d&&d.gia_registrato?'Era già registrato nel portale':'Registrato dalla segreteria'),
+    cosa:'sistemare la voce',chi:nome,
+    bozza:{chiave:alBozzaChiave('risp',id),campo:'al-testo'},
+    ok:'Sì, sistema adesso',annulla:'No, torna indietro',
+    azione:()=>{
+      scelta=alSceltaOra();
+      const imp=alVal('al-imp');
+      if(scelta==='registra')return alDecidi(id,'registra',{p_tipo:alVal('al-tipo'),p_dal:alVal('al-dal'),p_al:alVal('al-al'),p_importo:Number(imp),p_metodo:alMetScelto});
+      if(scelta==='pagato')return alDecidi(id,'pagato',{p_metodo:alMetScelto,p_importo:imp!==''?Number(imp):null});
+      if(scelta==='correggi_importo')return alDecidi(id,'correggi_importo',{p_importo:Number(imp),p_metodo:alMetScelto||null});
+      if(scelta==='chiudi'){testo=alVal('al-motivo');return alDecidi(id,'chiudi',{p_risposta:testo||null});}
+      testo=alVal('al-testo');return alDecidi(id,'rispondi',{p_risposta:testo});
+    },
+    dopo:d=>scelta==='rispondi'?'Risposta inviata: stanotte il sistema la legge e ti prepara la soluzione.':`Fatto: ${(d&&d.esito)||'sistemato'}. Il portale è già a posto.`,
+    poi:(t,d)=>{
+      const st=scelta==='rispondi'?'risposta':scelta==='chiudi'?'fatto':'registrata';
+      const riga=scelta==='rispondi'?t:`✓ ${(d&&d.esito)||'Sistemato'} · Il portale è già a posto.`;
+      alChiudi(id,riga,st,testo||null,(d&&d.esito)||null);
+    },
     chiusa:alDisegna
   });
+  alSaVisibili();
 }
 
-function alApriRispondi(id){
+/* ── APRI E SISTEMA (voci "Da sistemare nel portale"): porta dove si sistema, al ritorno chiede se e' fatto ── */
+function alLeadDiVoce(r){
+  if(r.persona_id&&alLead[r.persona_id])return alLead[r.persona_id];
+  const n=String(r.persona_nome||'').trim().toLowerCase();
+  const l=n&&(crmLeadsData||[]).find(x=>((x.nome||'')+' '+(x.cognome||'')).trim().toLowerCase()===n);
+  return l?l.id:null;
+}
+/* la prima data GG/MM nel testo della voce, nell'anno della notte (dicembre letto a gennaio = anno prima) */
+function alDataDiVoce(r){
+  const m=/(\d{1,2})\/(\d{1,2})(?!\/?\d)/.exec((r.proposta||'')+' '+(r.nel_foglio||''));
+  if(!m)return '';
+  const n=String(r.notte||'').split('-').map(Number),g=+m[1],me=+m[2];
+  if(!n[0]||g<1||g>31||me<1||me>12)return '';
+  const y=me>n[1]+1?n[0]-1:n[0];
+  return y+'-'+String(me).padStart(2,'0')+'-'+String(g).padStart(2,'0');
+}
+function alApriESistema(id){
   const r=alTrova(id);if(!r)return;
-  const nome=r.persona_nome||'';
-  let testo='';
+  const nome=r.persona_nome||'',lead=alLeadDiVoce(r),data=alDataDiVoce(r);
+  const testoV=(r.proposta||'')+' '+(r.nel_foglio||'')+' '+(r.nel_portale||'');
+  const fascicolo=!!lead&&(/prima lezione/i.test(testoV)||!data);
   kcGuida({
-    titolo:`Rispondi sulla voce di ${nome}`,
-    corpo:`${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
-      <label class="sc-lbl" for="al-risp">La tua risposta</label>
-      <textarea id="al-risp" class="input sc-in" maxlength="1000" placeholder="Es. Sì, ha pagato 195 € il 7/10 per ott–dic, bonifico"></textarea>`,
-    succede:['La tua risposta arriva al sistema','Stanotte, se bastano le cifre, ti prepara la registrazione da confermare con REGISTRA'],
-    pronto:()=>alVal('al-risp')?true:'Scrivi la risposta',
-    cosa:'rispondere',chi:nome,
-    bozza:{chiave:alBozzaChiave('risp',id),campo:'al-risp'},
-    ok:'Invia la risposta',annulla:'No, torna indietro',
-    azione:()=>{testo=alVal('al-risp');return alDecidi(id,'rispondi',{p_risposta:testo});},
-    dopo:'Risposta inviata. Stanotte, se bastano le cifre, la trovi pronta da registrare.',
-    poi:t=>alChiudi(id,t,'risposta',testo),
+    titolo:`Apri e sistema · ${nome}`,
+    corpo:r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:'',
+    succede:[fascicolo?`Si apre il fascicolo di <b>${escHtml(nome)}</b> nel tab Persone`
+        :`Si apre l'agenda${data?' sulla settimana del <b>'+alGM(data)+'</b>':''} in una nuova scheda: lì segni presenti e assenti`,
+      'Quando torni qui, ti chiedo se l’hai sistemato'],
+    ok:fascicolo?'Apri il fascicolo':"Apri l'agenda",annulla:'No, torna indietro',
+    azione:()=>{ // sincrona: la nuova scheda si apre dentro il clic
+      try{sessionStorage.setItem('kc_al_apri',id)}catch(_){}
+      if(!fascicolo)window.open('/agenda.html'+(data?'?data='+data:''),'_blank');
+      return null;
+    },
+    poi:()=>{
+      if(fascicolo){
+        segMostra('persone');
+        if(!crmLeadsData.find(l=>l.id===lead))loadCrmLeads().then(()=>showLeadDetail(lead));else showLeadDetail(lead);
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+    }
+  });
+}
+/* al ritorno nella console: "L'hai sistemato?" */
+function alChiediSeSistemato(){
+  let id=null;try{id=sessionStorage.getItem('kc_al_apri')}catch(_){}
+  if(!id||kcG)return;
+  const r=alTrova(id);
+  if(!r||alChiuse[id]){try{sessionStorage.removeItem('kc_al_apri')}catch(_){}return;}
+  const wrap=document.getElementById('seg-allineamento-wrap');
+  if(!wrap||wrap.classList.contains('hidden'))return;
+  try{sessionStorage.removeItem('kc_al_apri')}catch(_){}
+  kcGuida({
+    titolo:`L'hai sistemato? · ${r.persona_nome||''}`,
+    corpo:r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:'',
+    succede:['La voce si chiude','Stanotte il sistema ricontrolla: se non è sistemato, la voce torna'],
+    ok:"Sì, l'ho sistemato",annulla:'Non ancora',
+    azione:()=>alDecidi(id,'fatto'),
+    dopo:'Sistemato. Il portale è già a posto.',
+    poi:t=>alChiudi(id,'✓ '+t,'fatto'),
     chiusa:alDisegna
   });
 }
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&typeof alChiediSeSistemato==='function')alChiediSeSistemato();});
 
 function alApriNonCosi(id){
   const r=alTrova(id);if(!r)return;
@@ -11997,6 +12192,286 @@ function alFatto(id){
     dopo:corr?'Corretto nel foglio. Stanotte il sistema ricontrolla.':'Sistemato. Stanotte il sistema ricontrolla.',
     poi:t=>alChiudi(id,t,'fatto')
   });
+}
+
+/* ── DA FARE OGGI E DA SISTEMARE ── (consegna 27 ott 2026, portale v3.147) — Segreteria
+   La console di Roberta e' Portale → Segreteria (oggi.html non cambia). In cima, sopra l'interruttore, tre
+   tessere: Allineamento con il tuo foglio, Da sistemare, Da pagare del mese. Il tab "⚠ Da sistemare" e'
+   l'elenco di oggi.html v2.32 portato qui: stessa vista v_segreteria_da_sistemare_seg, stessi gruppi,
+   stesse RPC (impegno_presenza, sostituisci_istruttore, segreteria_chiudi_turno, impegno_mi_segno), con
+   ogni azione che passa da kcGuida. Solo creator e segreteria (alPuo). Solo nomi, mai email o telefoni. */
+const DS_GRUPPI=[['presenza_mancante','Presenze da confermare'],['turno_da_chiudere','Turni monitor da chiudere'],
+  ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stessa persona su due lezioni'],['lezione_scoperta','Lezioni senza staff (prossimi 7 giorni)']];
+const DS_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const DS_GIORNI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+let dsRighe=[],dsSlot={},dsAltre={},dsInizio={},dsComp={},dsStaff=null,dsPiano=[],dsIndisp=[];
+/* CASO ESTREMO, CONFERMA: la riga del monitor si nasconde solo per questa sessione (stessa chiave di oggi.html) */
+const dsNascoste=new Set((()=>{try{return JSON.parse(sessionStorage.getItem('kc_sist_nascoste')||'[]')}catch(e){return []}})());
+function dsSalvaNascoste(){try{sessionStorage.setItem('kc_sist_nascoste',JSON.stringify([...dsNascoste]))}catch(e){}}
+function dsIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function dsMin(t){const p=String(t||'0:0').split(':').map(Number);return p[0]*60+(p[1]||0)}
+function dsOra(t){return t?String(t).slice(0,5):''}
+function dsHHMM(ts){const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function dsEuro(n){return Number(n||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'})}
+
+/* ── tessere "Da fare oggi" ── */
+function dsTessera(id,n,classe,sub){
+  const t=document.getElementById(id);if(!t)return;
+  t.classList.remove('rosso','arancio','verde');if(classe)t.classList.add(classe);
+  const nn=t.querySelector('.seg-t-n');if(nn)nn.textContent=n;
+  const s=t.querySelector('.seg-t-sub');if(s&&sub!=null)s.textContent=sub;
+}
+async function segOggiCarica(){
+  const box=document.getElementById('seg-oggi');if(!box)return;
+  box.style.display=alPuo()?'':'none';
+  const sw=document.getElementById('seg-sw-dasistemare');if(sw)sw.style.display=alPuo()?'':'none';
+  if(!alPuo())return;
+  await Promise.all([alCaricaBadge(),dsCaricaConto(),dsCaricaPaga()]);
+}
+function dsConto(n){
+  const b=document.getElementById('seg-ds-badge');if(b)b.textContent=n?String(n):'';
+  if(n===null)dsTessera('seg-t-ds','—','', 'Non riesco a leggere ora');
+  else dsTessera('seg-t-ds',String(n),n?'rosso':'verde',n?'Presenze, turni e lezioni da sistemare':'Tutto a posto');
+}
+async function dsCaricaConto(){
+  try{
+    const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('tipo,impegno_id');
+    if(error)throw error;
+    dsConto((data||[]).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id))).length);
+  }catch(e){console.warn('[da sistemare] conto:',e.message||e);dsConto(null);}
+}
+async function dsCaricaPaga(){
+  const o=new Date(),mese=dsIso(new Date(o.getFullYear(),o.getMonth(),1));
+  const et=document.querySelector('#seg-t-paga .seg-t-et');if(et)et.textContent='💶 Da pagare · '+DS_MESI[o.getMonth()];
+  const conf=document.getElementById('seg-t-paga-conf');
+  try{
+    const{data,error}=await sb.from('v_costi_staff_mese').select('euro_corsi,euro_prime,euro_monitor,totale,da_confermare').eq('mese',mese);
+    if(error)throw error;
+    const s=k=>(data||[]).reduce((a,r)=>a+Number(r[k]||0),0),n=s('da_confermare');
+    dsTessera('seg-t-paga',dsEuro(s('totale')),n?'arancio':'verde',`Corsi ${dsEuro(s('euro_corsi'))} · Prime ${dsEuro(s('euro_prime'))} · Monitor ${dsEuro(s('euro_monitor'))}`);
+    if(conf){conf.hidden=!n;conf.textContent=n===1?'1 lezione da confermare non è contata':`${n} lezioni da confermare non sono contate`;}
+  }catch(e){
+    dsTessera('seg-t-paga','—','','Non riesco a leggere i costi ora');if(conf)conf.hidden=true;
+    console.warn('[da pagare]',e.message||e);
+  }
+}
+function dsVaiCosti(){
+  Promise.resolve(segMostra('turni')).then(()=>document.getElementById('tu-costi-wrap')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+
+/* ── tab "⚠ Da sistemare" ── */
+async function dsCarica(){
+  if(!alPuo())return;
+  const el=document.getElementById('ds-lista');
+  scMsg('ds-msg','');
+  el.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  try{
+    const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('*').order('ordine').order('data').order('ora_inizio');
+    if(error)throw error;
+    dsRighe=(data||[]).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id)));
+    await dsContorno();
+  }catch(e){dsRighe=null;el.innerHTML='';scMsg('ds-msg','Non riesco a leggere le voci da sistemare: '+scErr(e));dsConto(null);return;}
+  dsConto(dsRighe.length);
+  dsDisegna();
+}
+/* nomi delle lezioni (scuola compresa), l'altra lezione della sovrapposizione, l'inizio vero dei turni monitor
+   (l'ora della vista e' in UTC) e come si paga ogni presenza (a lezione o a ore) */
+async function dsContorno(){
+  const dop=dsRighe.filter(r=>r.tipo==='doppia_lezione'),tur=dsRighe.filter(r=>r.turno_id);
+  const pres=dsRighe.filter(r=>r.tipo==='presenza_mancante'&&r.impegno_id);
+  let imp=[];
+  if(dop.length){
+    const{data,error}=await sb.from('impegni_staff').select('id,user_id,data,ora_inizio,ora_fine,slot_id')
+      .eq('tipo','lezione').in('stato',['previsto','presente'])
+      .in('user_id',[...new Set(dop.map(r=>r.user_id))]).in('data',[...new Set(dop.map(r=>r.data))]);
+    if(error)console.warn('[da sistemare] sovrapposizioni:',error.message);
+    imp=data||[];
+  }
+  dsComp={};
+  if(pres.length){
+    const{data,error}=await sb.from('impegni_staff').select('id,ruolo,compenso_tipo').in('id',pres.map(r=>r.impegno_id));
+    if(error)console.warn('[da sistemare] compensi:',error.message);
+    (data||[]).forEach(i=>{dsComp[i.id]=i});
+  }
+  const ids=[...new Set([...dsRighe.map(r=>r.slot_id),...imp.map(i=>i.slot_id)].filter(Boolean))];
+  dsSlot={};
+  if(ids.length){
+    const{data:ss}=await sb.from('corsi_attivi_settimanali').select('id,tipo_corso,fascia,lead_scuola_id,ora_inizio,ora_fine').in('id',ids);
+    const leadIds=[...new Set((ss||[]).map(x=>x.lead_scuola_id).filter(Boolean))],ente={};
+    if(leadIds.length){const{data:ll}=await sb.from('lead_data').select('id,ente').in('id',leadIds);(ll||[]).forEach(l=>{ente[l.id]=l.ente});}
+    (ss||[]).forEach(x=>{dsSlot[x.id]={...x,ente:ente[x.lead_scuola_id]||''}});
+  }
+  const sovrapp=(a,b)=>Math.min(dsMin(a.ora_fine),dsMin(b.ora_fine))-Math.max(dsMin(a.ora_inizio),dsMin(b.ora_inizio))>30;
+  dsAltre={};
+  dop.forEach(r=>{
+    const mia=imp.find(i=>i.id===r.impegno_id);
+    dsAltre[r.impegno_id]=mia?imp.filter(i=>i.user_id===r.user_id&&i.data===r.data&&i.id!==mia.id&&sovrapp(mia,i)).map(i=>({...i,io:mia})):[];
+  });
+  dsInizio={};
+  if(tur.length){
+    const{data}=await sb.from('v_compenso_turni_monitor').select('turno_id,inizio').in('turno_id',tur.map(r=>r.turno_id));
+    (data||[]).forEach(t=>{dsInizio[t.turno_id]=t.inizio});
+  }
+}
+function dsNomeLez(slotId,tipo,fascia){
+  if(tipo==='monitor')return 'Sala con Monitor';
+  const sl=dsSlot[slotId]||{tipo_corso:tipo,fascia};
+  return tuNomeCorso(sl.tipo_corso,sl.fascia)+(sl.ente?' · '+sl.ente:'');
+}
+function dsQuando(r){
+  const d=new Date(r.data+'T12:00:00'),ora=r.turno_id&&dsInizio[r.turno_id]?dsHHMM(dsInizio[r.turno_id]):dsOra(r.ora_inizio);
+  return `${DS_GIORNI[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}${ora?' · '+ora:''}`;
+}
+function dsCosa(r){
+  if(r.tipo!=='doppia_lezione')return r.cosa||'';
+  const L=dsAltre[r.impegno_id]||[];
+  if(!L.length)return 'Segnata su due lezioni che si sovrappongono per più di 30 minuti: una delle due è sbagliata?';
+  const lez=x=>`${dsNomeLez(x.slot_id)} ${dsOra(x.ora_inizio)}–${dsOra(x.ora_fine)}`;
+  return `Segnata su ${lez(L[0].io)} e su ${L.map(lez).join(' e su ')}: si sovrappongono per più di 30 minuti. Una delle due è sbagliata?`;
+}
+function dsDisegna(){
+  const el=document.getElementById('ds-lista');
+  if(!dsRighe.length){el.innerHTML='<div class="sc-sez"><div class="al-tutto">✓ Tutto a posto: niente da sistemare.</div></div>';return;}
+  el.innerHTML=DS_GRUPPI.map(([tipo,tit])=>{
+    const L=dsRighe.map((r,i)=>[r,i]).filter(([r])=>r.tipo===tipo);
+    if(!L.length)return '';
+    return `<div class="sc-sez al-gruppo"><h3 class="sc-h3">${tit} <span class="sc-conta">${L.length}</span></h3>${L.map(([r,i])=>dsRiga(r,i)).join('')}</div>`;
+  }).join('');
+}
+function dsRiga(r,i){
+  const b=(az,txt,prim,spiega)=>alAz(prim,`dsAzione('${az}',${i})`,txt,spiega);
+  let az='';
+  if(r.tipo==='presenza_mancante')az=b('presente','PRESENTE',true,'Era alla lezione: viene contata nei compensi')
+    +b('assente','ASSENTE',false,'Non c’era: la lezione non gli viene pagata')+b('sostituisci','SOSTITUISCI',false,'C’era un’altra persona al suo posto');
+  else if(r.tipo==='turno_da_chiudere')az=b('chiudi','CHIUDI TURNO',true,'Scrivi a che ora è finito: le ore entrano nei compensi');
+  else if(r.tipo==='ruolo_da_verificare')az=b('togli','TOGLI',true,'Il monitor non conduce lezioni: lo togli da questa')
+    +b('estremo','CASO ESTREMO, CONFERMA',false,'Era davvero necessario: il compenso lo decide Marco');
+  else if(r.tipo==='doppia_lezione')az=`<div class="al-az"><a class="btn sc-scuro sc-piccolo" target="_blank" rel="noopener" href="/agenda.html?data=${encodeURIComponent(r.data)}&tipo=${encodeURIComponent(r.tipo_corso||'')}">APRI IN AGENDA</a><span class="al-spiega">Si apre l'agenda su quel giorno in una nuova scheda: togli la lezione sbagliata</span></div>`;
+  else if(r.tipo==='lezione_scoperta')az=b('aggiungi','AGGIUNGI STAFF',true,'Scegli chi fa la lezione');
+  return `<div class="al-riga">
+    <div class="al-ctx" style="margin-top:0"><b>${escHtml(dsQuando(r))}</b></div>
+    ${r.persona?`<div><span class="al-nome">${escHtml(r.persona)}</span></div>`:''}
+    <div class="al-abb">${escHtml(dsNomeLez(r.slot_id,r.tipo_corso,r.fascia))}</div>
+    <div class="al-ctx">${escHtml(dsCosa(r))}</div>
+    <div class="al-azioni">${az}</div>
+  </div>`;
+}
+
+/* staff per SOSTITUISCI e AGGIUNGI STAFF: sostituto da piano per primo, poi per nome, i monitor in fondo, i non disponibili spenti */
+async function dsCaricaStaff(){
+  if(dsStaff)return;
+  const[rn,rp,ri]=await Promise.all([
+    sb.from('profiles').select('user_id,nome,cognome,staff_role').not('staff_role','is',null),
+    sb.from('slot_piano_staff').select('slot_id,user_id,sostituto_user_id').eq('attivo',true),
+    sb.from('v_staff_indisponibilita').select('user_id,data,ora_inizio,ora_fine,motivo')
+  ]);
+  if(rn.error)throw rn.error;
+  if(ri.error)console.warn('[da sistemare] indisponibilita:',ri.error.message);
+  dsStaff=rn.data||[];dsPiano=rp.data||[];dsIndisp=ri.data||[];
+}
+function dsNonDisp(u,data,ini,fin){
+  const o=t=>t?String(t).slice(0,5):'';
+  return dsIndisp.find(x=>x.user_id===u&&x.data===data&&(!x.ora_inizio||!ini||!fin||(o(x.ora_inizio)<o(fin)&&o(x.ora_fine)>o(ini))))||null;
+}
+const dsNomeStaff=u=>{const p=(dsStaff||[]).find(x=>x.user_id===u);return p?(((p.nome||'')+' '+(p.cognome||'')).trim()||'Staff'):'Staff'};
+const dsMonitor=u=>!!(dsStaff||[]).find(x=>x.user_id===u&&x.staff_role==='staff_monitor');
+function dsOpzioniStaff(slotId,titolare,escludi,data,ini){
+  const auto=titolare?(dsPiano.find(p=>p.slot_id===slotId&&p.user_id===titolare)||{}).sostituto_user_id:null;
+  const fin=(dsSlot[slotId]||{}).ora_fine||null;
+  const nd=u=>dsNonDisp(u.user_id,data,ini,fin);
+  const T=(dsStaff||[]).filter(u=>!escludi.includes(u.user_id)).sort((a,b)=>dsNomeStaff(a.user_id).localeCompare(dsNomeStaff(b.user_id),'it'));
+  const L=T.filter(u=>!nd(u)),no=T.filter(nd);
+  const optNo=u=>{const r=nd(u);return `<option value="${escHtml(u.user_id)}" disabled>${escHtml(dsNomeStaff(u.user_id))} · non disponibile${r.motivo?' ('+escHtml(r.motivo)+')':''}</option>`};
+  const mon=L.filter(u=>u.staff_role==='staff_monitor'),altri=L.filter(u=>u.staff_role!=='staff_monitor');
+  const ord=auto&&altri.some(u=>u.user_id===auto)?[altri.find(u=>u.user_id===auto),...altri.filter(u=>u.user_id!==auto)]:altri;
+  const opt=u=>`<option value="${escHtml(u.user_id)}">${escHtml(dsNomeStaff(u.user_id))}${u.user_id===auto?' (sostituto previsto)':''}</option>`;
+  return '<option value="">Scegli…</option>'+ord.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'')
+    +(no.length?`<optgroup label="Non disponibili">${no.map(optNo).join('')}</optgroup>`:'');
+}
+function dsRuoloDaPersona(){
+  const u=alVal('ds-chi'),r=document.getElementById('ds-ruolo');
+  const p=(dsStaff||[]).find(x=>x.user_id===u);
+  if(r)r.value=p&&p.staff_role==='staff_assistente'?'assistente':'conduce';
+}
+/* dopo ogni azione: elenco, tessere e conto del mese di nuovo */
+function dsDopo(){return Promise.all([dsCarica(),dsCaricaPaga()]);}
+const DS_MON_ATT='È un monitor, non è istruttore né assistente: confermi solo se è davvero un caso estremo.';
+
+async function dsAzione(az,i){
+  const r=dsRighe&&dsRighe[i];if(!r)return;
+  const lez=dsNomeLez(r.slot_id,r.tipo_corso,r.fascia),quando=dsQuando(r),chi=r.persona||'';
+  const lq=`<b>${escHtml(lez)}</b> di ${escHtml(quando)}`;
+  if(az==='presente'){
+    const c=dsComp[r.impegno_id]||{};
+    kcGuida({titolo:`${chi} era presente?`,
+      succede:[`<b>${escHtml(chi)}</b> risulta presente alla lezione ${lq}`,
+        c.compenso_tipo==='lezione'?'Gli vengono contati 15 € nei compensi del mese':'Gli vengono contate le ore della lezione nei compensi del mese'],
+      ok:'Sì, era presente',annulla:'No, torna indietro',
+      azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'fine'});if(error)throw error;},
+      dopo:`Fatto: ${chi} risulta presente. Il portale è già a posto.`,poi:dsDopo});
+  }else if(az==='assente'){
+    kcGuida({titolo:`${chi} era assente?`,
+      succede:[`<b>${escHtml(chi)}</b> risulta assente alla lezione ${lq}`,'La lezione non gli viene pagata'],
+      ok:'Sì, era assente',annulla:'No, torna indietro',
+      azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'assente'});if(error)throw error;},
+      dopo:`Fatto: ${chi} risulta assente. Il portale è già a posto.`,poi:dsDopo});
+  }else if(az==='togli'){
+    kcGuida({titolo:`Togli ${chi} da questa lezione?`,
+      succede:[`<b>${escHtml(chi)}</b> non risulta più sulla lezione ${lq}`,'Il monitor non viene pagato per questa lezione'],
+      ok:'Sì, toglilo',annulla:'No, torna indietro',
+      azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'assente'});if(error)throw error;},
+      dopo:`Fatto: ${chi} tolto dalla lezione. Il portale è già a posto.`,poi:dsDopo});
+  }else if(az==='estremo'){
+    kcGuida({titolo:`È davvero un caso estremo?`,
+      succede:[`<b>${escHtml(chi)}</b> resta sulla lezione ${lq}`,'La voce sparisce da questo elenco finché non chiudi il portale','Il compenso di questo caso lo decide Marco'],
+      ok:'Sì, è un caso estremo',annulla:'No, torna indietro',
+      azione:()=>{dsNascoste.add(r.impegno_id);dsSalvaNascoste();},
+      dopo:`Fatto: caso estremo confermato per ${chi}. Il compenso lo decide Marco.`,
+      poi:()=>{dsRighe=dsRighe.filter(x=>x!==r);dsConto(dsRighe.length);dsDisegna();}});
+  }else if(az==='chiudi'){
+    kcGuida({titolo:`Chiudi il turno di ${chi}`,
+      corpo:`<p class="al-ctx" style="margin-top:0">${escHtml(quando)}: scrivi l'ora reale di fine.</p>
+        <label class="sc-lbl" for="ds-fine">Ora di fine</label><input id="ds-fine" class="input sc-in" type="time">
+        <label class="sc-lbl" for="ds-nota">Nota (facoltativa)</label><textarea id="ds-nota" class="input sc-in" maxlength="200"></textarea>`,
+      succede:()=>[`Il turno di <b>${escHtml(chi)}</b> di ${escHtml(quando)} si chiude alle <b>${alVal('ds-fine')||'…'}</b>`,'Le ore del turno entrano nei compensi del mese'],
+      pronto:()=>/^\d{2}:\d{2}$/.test(alVal('ds-fine'))?true:"Scrivi l'ora di fine",
+      cosa:'chiudere il turno',chi,
+      ok:'Sì, chiudi il turno',annulla:'No, torna indietro',
+      azione:async()=>{
+        const hm=alVal('ds-fine'),[y,m,d]=String(r.data).split('-').map(Number),[h,mi]=hm.split(':').map(Number);
+        const{error}=await sb.rpc('segreteria_chiudi_turno',{p_turno_id:r.turno_id,p_fine:new Date(y,m-1,d,h,mi).toISOString(),p_note:alVal('ds-nota')||null});
+        if(error)throw error;
+      },
+      dopo:()=>`Fatto: turno di ${chi} chiuso. Il portale è già a posto.`,poi:dsDopo});
+  }else if(az==='sostituisci'||az==='aggiungi'){
+    try{await dsCaricaStaff();}catch(e){scMsg('ds-msg','Non riesco a leggere lo staff: '+scErr(e));return;}
+    const sost=az==='sostituisci',passata=r.data<dsIso(new Date());
+    const opz=sost?dsOpzioniStaff(r.slot_id,r.user_id,[r.user_id],r.data,r.ora_inizio):dsOpzioniStaff(r.slot_id,null,[],r.data,r.ora_inizio);
+    kcGuida({titolo:sost?`Sostituisci ${chi}`:'Aggiungi staff alla lezione',
+      corpo:`<p class="al-ctx" style="margin-top:0">${escHtml(lez)} · ${escHtml(quando)}</p>
+        <label class="sc-lbl" for="ds-chi">${sost?'Al suo posto':'Chi'}</label><select id="ds-chi" class="input sc-in"${sost?'':' onchange="dsRuoloDaPersona()"'}>${opz}</select>
+        ${sost?'':`<label class="sc-lbl" for="ds-ruolo">Come</label><select id="ds-ruolo" class="input sc-in"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>`}`,
+      succede:()=>{
+        const u=alVal('ds-chi'),nu=u?escHtml(dsNomeStaff(u)):'…';
+        if(sost)return[`<b>${nu}</b> prende il posto di <b>${escHtml(chi)}</b> sulla lezione ${lq}`,
+          passata?'Lezione passata: risulta già presente, e la lezione la paghi a lui':'Sulla lezione compare lui al posto di '+escHtml(chi)];
+        return[`<b>${nu}</b> viene segnato sulla lezione ${lq}`,alVal('ds-ruolo')==='assistente'?'Come assistente: pagato a ore':'Come istruttore: 15 € a lezione'];
+      },
+      attenzione:()=>dsMonitor(alVal('ds-chi'))?DS_MON_ATT:'',
+      pronto:()=>alVal('ds-chi')?true:'Scegli chi',
+      cosa:sost?'sostituire':'aggiungere staff',chi,
+      ok:sost?'Sì, sostituisci':'Sì, aggiungi',annulla:'No, torna indietro',
+      azione:async()=>{
+        const u=alVal('ds-chi');
+        const{error}=sost
+          ?await sb.rpc('sostituisci_istruttore',{p_impegno_id:r.impegno_id,p_nuovo_user:u,p_note:'sostituzione registrata dalla segreteria nella console'})
+          :await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:r.slot_id,p_data:r.data,p_ruolo:alVal('ds-ruolo')||'conduce',p_user_id:u});
+        if(error)throw error;
+      },
+      dopo:()=>sost?`Fatto: ${dsNomeStaff(alVal('ds-chi'))} sostituisce ${chi}. Il portale è già a posto.`:`Fatto: ${dsNomeStaff(alVal('ds-chi'))} è segnato sulla lezione. Il portale è già a posto.`,
+      poi:dsDopo});
+    if(!sost)dsRuoloDaPersona();
+  }
 }
 
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
