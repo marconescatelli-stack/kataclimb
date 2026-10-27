@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.146 · 2026-10-27 · PRIMA LEZIONE GIA' FATTA (DATA PASSATA) (consegna 27 ott, caso Kami Cafaro; nessuna modifica al DB): nel fascicolo del lead, finestra "📅 Fissa prima lezione", sopra gli slot il bottone "✔ L'ha già fatta (data passata)", solo per creator e segreteria (isSegreteriaPiena). Apre kcGuida: data dagli ultimi 60 giorni a ieri, slot Prima Lezione attivi di quel giorno della settimana (tipo_corso prima_lezione%, nome completo e orario; se e' uno solo e' gia' scelto); cosa succede si aggiorna con le scelte; se il lead ha gia' una Prima Lezione fatta avvisa "Risulta già una Prima Lezione fatta il GG/MM: vuoi registrarne un'altra?". Conferma -> insert in prenotazioni_prima_lezione (lead_id, slot_id, data_lezione) come confermaFissaLezione, poi marca_presenza_prima_lezione(id,'fatto'); se la seconda chiamata fallisce lo dice in chiaro e riprovando non crea un doppione. Errori del DB (giorno chiuso, slot chiuso, slot pieno) mostrati come arrivano. Messaggio finale con il promemoria del pagamento (➕ Abbonamento o corso). Il messaggio breve (toast) resta a schermo piu' a lungo se il testo e' lungo (fino a 8 secondi). CUMULA v3.145 (sotto). -->
 <!-- KC-BUILD: portale v3.145 · 2026-10-27 · ALLINEAMENTO: L'INTERFACCIA CHE GUIDA E CONTROLLA (consegna 27 ott, nessuna modifica al DB). (1) Nuova funzione generica kcGuida() vicino a scModal, documentata in testa e pronta per le altre sezioni: modale con titolo, riquadro "Cosa succede se confermi" (si aggiorna mentre si compila), righe arancio di attenzione, campi, conferma scura a destra e annulla chiaro a sinistra; errore = messaggio rosso e la finestra resta aperta; riuscita = chiude, toast e lo stesso testo resta come esito. Mai perdere quello che si e' scritto: se la finestra e' stata toccata, uscire (annulla, ✕, clic fuori, Esc, cambio tab della Segreteria, cambio sezione) chiede "Non hai salvato" con Torna e completa / Esci senza salvare; ricaricare la pagina fa comparire l'avviso del browser; le caselle di testo restano come bozza nel browser (localStorage per voce, try/catch) e si ritrovano riaprendo la voce ("Avevi iniziato a scrivere"). (2) Allineamento: in cima "Cosa fare oggi" a passi dai numeri (entro fine mese solo negli ultimi 7 giorni), cliccabili verso il gruppo; sotto ogni bottone cosa fa; NON VA -> NON È COSÌ, CORRETTO -> HO CORRETTO IL FOGLIO; tutte le azioni passano da kcGuida (REGISTRA con frasi dal vivo e avviso se l'importo e' diverso dal foglio, NON È COSÌ, RISPONDI, FATTO, HO CORRETTO IL FOGLIO, INSERISCI PRIMA LA PERSONA); sulla riga "✎ bozza non inviata"; dopo l'azione la riga resta grigia con cosa e' successo e cosa succede stanotte; storico con etichette chiare (Registrato, Risposta inviata, Chiuso: non è così, Sistemato, Corretto nel foglio). Scritture solo con allineamento_decidi, stato 'scartata' invariato. (3) Il messaggio breve (toast) di tutto il portale passa da 12px a 13px (da 1024px resta 18px). CUMULA v3.144 (sotto). -->
 <!-- KC-BUILD: portale v3.144 · 2026-10-27 · ALLINEAMENTO PRIMA NOTA (consegna 27 ott, DB allineamento_console_2026-10-27): Segreteria -> nuovo tab "🔄 Allineamento" (solo creator e segreteria) con badge = voci aperte dell'ultima notte (arancio se ci sono abbonamenti da registrare), caricato all'apertura della Segreteria. ?nav=segreteria&tab=allineamento apre direttamente il tab. Righe aperte dell'ultima notte di allineamento_proposte (mai le 'superata') in quattro gruppi: Da registrare nel portale, Da chiarire, Da sistemare nel portale, Da correggere nel tuo foglio; "Nel tuo foglio" / "Nel portale" / proposta; bollino "ferma da X giorni" se notte - aperta_dal >= 3; nome -> scheda nel tab Persone (lead_data.persona_id). Azioni solo con allineamento_decidi: REGISTRA (modale con metodo contanti/bancomat/bonifico, importo e scadenza modificabili), INSERISCI PRIMA LA PERSONA (Inserisci contatto) se manca persona_id, NON VA (perche' facoltativo), RISPONDI, FATTO, CORRETTO; la riga resta grigia con l'esito, il badge scende, niente ricarica. In fondo, chiuso: "Chiuse negli ultimi 30 giorni". Solo nomi, mai email o telefoni. Nessuna modifica a DB. Su oggi.html non cambia niente. CUMULA v3.143 (sotto). -->
 <!-- KC-BUILD: portale v3.143 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): Segreteria -> 🗓 Turni. (1) Nella griglia della settimana, sotto il nome di ogni giorno, "Non ci sono: Nome (tutto il giorno), Nome (20–21)" da v_staff_indisponibilita, con TOGLI su ogni riga per creator e segreteria (togli_indisponibile, con conferma). (2) Bottone + NON DISPONIBILE accanto alle settimane (solo creator e segreteria): chi, data (da oggi), tutto il giorno o dalle … alle …, motivo -> segna_indisponibile con p_user_id; dopo, quante lezioni sono state tolte e quali, con il nome completo. (3) Nelle liste per scegliere lo staff (Aggiungi una persona, Sostituisci, anche sui turni monitor) chi non c'e' in quella data e ora resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi, non sui turni monitor), non disponibili. Errori delle RPC mostrati come arrivano. Nessuna modifica a DB. CUMULA v3.142 (sotto). -->
@@ -2655,6 +2656,7 @@ fill="#1d4ed8" stroke="none">
   <div class="mo-box">
     <h3>Fissa prima lezione</h3>
     <p id="fissa-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
+    <div id="fissa-passata"></div>
     <div id="fissa-slots" style="max-height:400px;overflow-y:auto;margin-bottom:10px"></div>
     <div id="fissa-msg" style="margin-bottom:10px"></div>
     <div style="display:flex;gap:7px">
@@ -7369,6 +7371,9 @@ async function openFissaLezioneModal(tipoCorso){
   const cfg=LBL[tipoCorso]||LBL.prima_lezione;
   document.getElementById('fissa-info').textContent=cfg.titolo+((l.nome||'')+' '+(l.cognome||'')).trim();
   document.getElementById('fissa-msg').innerHTML='';
+  /* v3.146 Prima Lezione gia' fatta in una data passata: solo creator e segreteria */
+  document.getElementById('fissa-passata').innerHTML=tipoCorso==='prima_lezione'&&isSegreteriaPiena()
+    ?`<button type="button" class="btn" style="width:100%;margin-bottom:12px;padding:12px 14px;font-size:14.5px;background:var(--text);color:var(--bg);border:none" onclick="plpApri()">✔ L'ha già fatta (data passata)</button>`:'';
   document.getElementById('fissa-slots').innerHTML='<div style="text-align:center;padding:20px;color:var(--text2)">Caricamento slot...</div>';
   openModal('mo-fissa');
 
@@ -7467,6 +7472,109 @@ async function confermaFissaLezione(slotId,dataIso,oraInizio,funnelStage,okMsg){
     document.getElementById('fissa-msg').innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px;font-weight:600">'+e.message+'</div>';
     console.error('[conferma fissa]',e);
   }
+}
+
+/* ── PRIMA LEZIONE GIA' FATTA (data passata) — portale v3.146, consegna 27 ott (caso Kami Cafaro) ──
+   Chi ha fatto la Prima Lezione senza prenotarla: la segreteria la registra a posteriori.
+   Due chiamate: insert in prenotazioni_prima_lezione (come confermaFissaLezione), poi
+   marca_presenza_prima_lezione(id,'fatto'), che segna presente e aggiorna profilo e funnel.
+   Giorni chiusi, slot chiusi e slot pieni li rifiuta il DB: l'errore si mostra com'e'. */
+let plpSlot=[],plpCreata=null; // plpCreata: {chiave, id} della prenotazione gia' creata se la seconda chiamata e' fallita
+function plpIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function plpGM(iso){const p=String(iso||'').split('-');return p[2]+'/'+p[1]}
+function plpNomeSlot(s){return(typeof tuNomeCorso==='function'?tuNomeCorso(s.tipo_corso,s.fascia):s.tipo_corso)+' · '+String(s.ora_inizio).slice(0,5)+'–'+String(s.ora_fine).slice(0,5)}
+function plpDelGiorno(iso){
+  if(!iso)return [];
+  const d=new Date(iso+'T12:00:00'),dow=((d.getDay()+6)%7)+1;
+  return plpSlot.filter(s=>s.giorno_settimana===dow);
+}
+/* data cambiata: si ridisegnano gli slot di quel giorno della settimana */
+function plpDisegnaSlot(){
+  const iso=(document.getElementById('plp-data')||{}).value||'',box=document.getElementById('plp-slot');if(!box)return;
+  const lista=plpDelGiorno(iso);
+  if(!iso){box.innerHTML='';return;}
+  if(!lista.length){box.innerHTML='<p class="sc-nota" style="margin:0">Quel giorno non c\'è uno slot Prima Lezione attivo.</p>';return;}
+  box.innerHTML=lista.map(s=>`<label style="display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px;font-size:14.5px;cursor:pointer">
+    <input type="radio" name="plp-slot" value="${s.id}"${lista.length===1?' checked':''}> ${escHtml(plpNomeSlot(s))}</label>`).join('');
+}
+function plpScelto(){
+  const iso=(document.getElementById('plp-data')||{}).value||'';
+  const r=document.querySelector('#kcg-corpo input[name="plp-slot"]:checked');
+  return{iso,slot:r?plpSlot.find(s=>s.id===r.value):null};
+}
+async function plpApri(){
+  if(!isSegreteriaPiena()||!currentLeadDetail)return;
+  const l=currentLeadDetail,nome=((l.nome||'')+' '+(l.cognome||'')).trim();
+  const msg=document.getElementById('fissa-msg');msg.innerHTML='';
+  let fatte=[];
+  try{
+    const[rs,rf]=await Promise.all([
+      sb.from('corsi_attivi_settimanali').select('id,tipo_corso,fascia,giorno_settimana,ora_inizio,ora_fine').like('tipo_corso','prima_lezione%').eq('status','attivo').order('ora_inizio'),
+      sb.from('prenotazioni_prima_lezione').select('data_lezione').eq('lead_id',l.id).eq('stato','fatto').order('data_lezione',{ascending:false})
+    ]);
+    if(rs.error)throw rs.error;
+    if(rf.error)throw rf.error;
+    plpSlot=rs.data||[];fatte=rf.data||[];
+  }catch(e){msg.innerHTML='<div style="color:#dc2626;padding:8px;font-size:13px;font-weight:600">'+escHtml(scErr(e))+'</div>';return;}
+  const oggi=new Date();oggi.setHours(0,0,0,0);
+  const ieri=new Date(oggi);ieri.setDate(ieri.getDate()-1);
+  const min=new Date(oggi);min.setDate(min.getDate()-60);
+  closeModal('mo-fissa');
+  let fatto=null;
+  kcGuida({
+    titolo:`Registri la Prima Lezione già fatta da ${nome}`,
+    corpo:`<label class="sc-lbl" for="plp-data">Quando l'ha fatta</label>
+      <input id="plp-data" class="input sc-in" type="date" min="${plpIso(min)}" max="${plpIso(ieri)}" onchange="plpDisegnaSlot()">
+      <label class="sc-lbl">Quale lezione</label>
+      <div id="plp-slot"><p class="sc-nota" style="margin:0">Scegli prima la data.</p></div>`,
+    succede:()=>{
+      const{iso,slot}=plpScelto();
+      return[
+        `Nel portale nasce la <b>${slot?escHtml(plpNomeSlot(slot)):'Prima Lezione'}</b> del <b>${iso?plpGM(iso):'…'}</b>, già segnata come fatta`,
+        `<b>${escHtml(nome)}</b> risulta presente: il profilo e il percorso si aggiornano (prima lezione fatta)`,
+        'Il pagamento non si registra da qui: lo fai con ➕ Abbonamento o corso'
+      ];
+    },
+    attenzione:()=>{
+      const a=[];
+      if(fatte.length)a.push(`Risulta già una Prima Lezione fatta il ${plpGM(fatte[0].data_lezione)}: vuoi registrarne un'altra?`);
+      a.push('Non si annulla da qui: se sbagli, avvisa Marco.');
+      return a;
+    },
+    pronto:()=>{
+      const{iso,slot}=plpScelto();
+      if(!iso)return 'Scegli la data';
+      if(iso<plpIso(min)||iso>plpIso(ieri))return 'La data va dagli ultimi 60 giorni fino a ieri';
+      if(!plpDelGiorno(iso).length)return "Quel giorno non c'è uno slot Prima Lezione attivo: scegli un'altra data";
+      if(!slot)return 'Scegli la lezione';
+      return true;
+    },
+    cosa:'registrare la Prima Lezione già fatta',chi:nome,
+    ok:'Sì, registra come fatta',annulla:'No, torna indietro',
+    azione:async()=>{
+      const{iso,slot}=plpScelto();
+      const chiave=l.id+'|'+slot.id+'|'+iso;
+      let id=plpCreata&&plpCreata.chiave===chiave?plpCreata.id:null;
+      if(!id){
+        const{data,error}=await sb.from('prenotazioni_prima_lezione').insert({lead_id:l.id,slot_id:slot.id,data_lezione:iso}).select('id').single();
+        if(error)throw error;
+        id=data.id;plpCreata={chiave,id};
+      }
+      const{data:r,error:e2}=await sb.rpc('marca_presenza_prima_lezione',{p_prenotazione_id:id,p_nuovo_stato:'fatto'});
+      if(e2)throw new Error(`La prenotazione del ${plpGM(iso)} è stata creata, ma non è segnata come fatta: ${scErr(e2)}. Riprova con "Sì, registra come fatta": non si crea un doppione.`);
+      plpCreata=null;fatto={iso,r};
+      return r;
+    },
+    dopo:()=>`Prima Lezione del ${plpGM(fatto.iso)} registrata come fatta ✓. Il pagamento in Accademia registralo con ➕ Abbonamento o corso, se non l'hai già fatto.`,
+    poi:(t,r)=>{
+      if(r&&r.funnel_nuovo&&currentLeadDetail&&currentLeadDetail.id===l.id){
+        currentLeadDetail.funnel_stage=r.funnel_nuovo;
+        const i=crmLeadsData.findIndex(x=>x.id===l.id);if(i>=0)crmLeadsData[i].funnel_stage=r.funnel_nuovo;
+        renderCorsieFilters();renderCrmLeads();
+      }
+      if(currentLeadDetail&&currentLeadDetail.id===l.id){loadLeadPrenotazioni(l.id);renderLeadDetail();}
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -10038,7 +10146,7 @@ async function handlePhotoUpload(e){
 }
 
 /* ═══ UTILS ═══ */
-function toast(m){const e=document.getElementById('toast-el');e.textContent=m;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)}
+function toast(m){const e=document.getElementById('toast-el');e.textContent=m;e.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.add('hidden'),Math.min(8000,Math.max(2500,String(m).length*60)))} // v3.146 i testi lunghi restano di piu'
 
 /* ═══ §B-feedback-visibile v3.26 — Standard UX feedback al centro ═══ */
 /* feedbackOk(msg)  → modale ok ✓ bloccante (richiede tap)                 */
