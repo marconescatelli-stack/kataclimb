@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.4 · 2026-10-27 · NON CI SONO: INDISPONIBILITA' DELLO STAFF (consegna 27 ott, DB staff_indisponibilita): (1) sezione nuova "🚫 Quando non ci sono" in alto: + SEGNA CHE NON CI SONO apre un calendario a selezione multipla (pulsanti da 44px, mese per mese, da oggi in poi; pallino arancio = hai gia' un impegno, righe = gia' segnato), "Tutto il giorno" (default) o "Solo dalle … alle …", motivo facoltativo; prima di confermare, se nelle date hai impegni previsti, "Hai già N lezioni in queste date: verranno tolte e il portale cerca il sostituto. Confermi?"; poi una segna_indisponibile per data e il riepilogo: per ogni lezione tolta chi c'e' adesso (letto da impegni_staff) oppure "nessun sostituto disponibile, la segreteria lo vede"; errori per data cosi' come arrivano. Elenco "Le mie date" (v_staff_indisponibilita, da oggi) con TOGLI -> togli_indisponibile. (2) Sulle card delle lezioni dei corsi, delle scuole e dei turni monitor la riga grigia "Non disponibili: Nome" per quella data e ora. (3) MI SOSTITUISCE…: il sostituto previsto per primo se disponibile, poi gli altri disponibili, poi i monitor (solo casi estremi), in fondo i non disponibili, grigi e non selezionabili, con il motivo. Scritture solo via RPC. Nessuna modifica a DB. CUMULA v1.3 (sotto). -->
 <!-- KC-BUILD: turni v1.3 · 2026-10-27 · MONITOR IN FONDO (consegna 27 ott, DB segreteria_da_sistemare): in MI SOSTITUISCE… chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi" (il sostituto previsto resta primo se non e' un monitor); sceglierlo chiede prima "È un monitor, non è istruttore né assistente. È davvero un caso estremo?". Per saperlo i nomi dello staff si leggono con staff_role. Nessuna modifica a RPC. CUMULA v1.2 (sotto). -->
 <!-- KC-BUILD: turni v1.2 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) LEZIONI DEI CORSI mostra tutto v_copertura_lezioni, corsi adulti e Prime Lezioni compresi (nessun filtro sui minori in pagina): nomi completi per Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale (minori dalla fascia come prima). (2) Sulle proprie lezioni ancora previste, accanto a NON CI SONO: MI SOSTITUISCE… -> scelta dallo staff (per primo il sostituto automatico della lezione da slot_piano_staff, poi tutti per nome) -> conferma "La lezione passa a NOME. Tu non risulti più in questa lezione." -> sostituisci_istruttore. (3) Chip "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). Nessuna modifica a RPC o tabelle. CUMULA v1.1 (sotto). -->
 <!-- KC-BUILD: turni v1.1 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): nuova sezione LEZIONI DEI CORSI sopra le scuole, settimana per settimana, da v_copertura_lezioni (prossimi 28 giorni) con chi e' segnato da impegni_staff (istruttore = compenso_tipo lezione, assistente = ora) e il contatore "Istruttori 1/1 · Assistenti 0/1"; verde se coperta, rossa se scoperta; nome del corso dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)). Richiesta di supporto aperta (richieste_supporto) = banner giallo con chi l'ha chiesta e la nota, ACCETTO IO -> accetta_supporto, ANNULLA RICHIESTA per chi l'ha aperta -> annulla_supporto. Sulle proprie lezioni future: NON CI SONO -> impegno_mi_tolgo dopo la conferma "Se non ci sei, il portale chiama il tuo sostituto (se previsto) e la segreteria vede la lezione scoperta." (il sostituto lo crea il trigger a DB) e CHIEDI SUPPORTO con nota facoltativa -> chiedi_supporto. Lezioni scoperte o con supporto richiesto: MI SEGNO -> impegno_mi_segno('lezione', slot, data) o accetta_supporto se la richiesta e' aperta. In I MIEI IMPEGNI i corsi hanno il nome completo e NON CI SONO. TURNI MONITOR SOLO 19-22 (decisione Marco 23 ott, come portale v3.138): tolta la fascia 18-19 "da coprire". Nessuna modifica a RPC o tabelle. CUMULA v1.0 (sotto). -->
@@ -89,6 +90,32 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 .frm-supp select{flex:1; min-width:180px; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
 .frm-supp input{flex:1; min-width:180px; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
 .btn.rosso{background:#A51515; border-color:#A51515; color:#fff}
+/* v1.4 quando non ci sono */
+.nondisp{font-size:14px; color:#B8B8B8; margin-top:8px}
+.fascia .nondisp{margin-top:4px}
+.nonci-frm{margin-top:12px}
+.nonci-frm .lbl{display:block; font-size:14px; color:var(--etichetta); font-weight:700; margin:14px 0 6px}
+.cal-nav{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:4px}
+.cal-nav b{font-size:16px; text-transform:capitalize}
+.cal-nav .btn{min-width:48px; font-size:16px; padding:10px 14px}
+.cal{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-top:8px}
+.cal .gs{font-size:13px; color:var(--grigio); text-align:center; font-weight:700}
+.cal button{min-height:46px; border-radius:10px; border:1px solid var(--velo); background:#2A2A30; color:#fff; font:inherit; font-size:16px; font-weight:700; position:relative; cursor:pointer; padding:0}
+.cal button.sel{background:var(--fiducia); border-color:var(--fiducia); color:#000}
+.cal button:disabled{opacity:.35; cursor:not-allowed}
+.cal button.imp::after{content:''; position:absolute; bottom:5px; left:50%; width:6px; height:6px; margin-left:-3px; border-radius:50%; background:var(--arancio)}
+.cal button.gia{background:repeating-linear-gradient(45deg,#4A2323,#4A2323 6px,#2A2A30 6px,#2A2A30 12px); opacity:1}
+.cal-leg{font-size:13px; color:#C9C9CE; margin-top:8px}
+.cal-sel{font-size:15px; color:var(--fiducia); font-weight:700; margin-top:8px}
+.nonci-frm .scelta{display:flex; align-items:center; gap:10px; font-size:16px; padding:8px 0; cursor:pointer}
+.nonci-frm .scelta input{width:22px; height:22px; accent-color:var(--fiducia)}
+.nonci-frm .ore{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:4px 0 0 32px; font-size:15px}
+.nonci-frm input[type=time],.nonci-frm input[type=text]{font:inherit; font-size:16px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
+.nonci-frm input[type=text]{width:100%}
+.nonci-frm .az .btn{flex:1}
+.esito{margin-top:12px; padding:12px; border-radius:12px; background:rgba(48,209,88,.08); border:1px solid rgba(48,209,88,.45); font-size:15px}
+.esito p+p{margin-top:6px}
+.esito .ko{color:var(--rosso)}
 </style>
 </head>
 <body>
@@ -108,6 +135,16 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 <div id="app" class="hidden">
   <h1>Turni</h1>
   <p class="sotto">Ti segni qui, poi il giorno stesso segni la presenza su Oggi.</p>
+
+  <div class="zona">🚫 Quando non ci sono</div>
+  <p class="nota-zona">Segna prima i giorni o le ore in cui non puoi esserci: nessuno ti segna per sbaglio e il piano mette il sostituto.</p>
+  <div class="box" id="nonci">
+    <button class="btn prim" id="nonci-apri" onclick="apriNonCi()">+ SEGNA CHE NON CI SONO</button>
+    <div id="nonci-frm" class="nonci-frm hidden"></div>
+    <div id="nonci-esito"></div>
+    <div class="sett">Le mie date</div>
+    <div id="nonci-mie"><p class="vuota">…</p></div>
+  </div>
 
   <div class="zona">Lezioni dei corsi</div>
   <p class="nota-zona">Prossime 4 settimane. Gli impegni del piano fisso sono già segnati: se non ci sei, premi NON CI SONO e il portale chiama il sostituto. Il giorno stesso segna la presenza su Oggi.</p>
@@ -153,6 +190,7 @@ const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','ag
 let sb, uid, staffRole=null, nomi={}, lezioni=[], impLez=[], impMon=[], miei=[], enti={};
 let copertura=[], richieste=[], slotCorsi={}, corsiVoci=[], _suppAperto=null; // v1.1 lezioni dei corsi
 let impLezTutti=[], piano=[], _sostAperto=null; // v1.2 sostituzioni (righe ritirate solo per i nomi) e piano fisso
+let indisp=[], nonciSel=new Set(), nonciMese=null; // v1.4 quando non ci sono
 /* v1.1 nome completo: per i minori conta la fascia (le lezioni delle 18 di lun e gio hanno tipo bambini e fascia ragazzi) */
 const NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb',
   /* v1.2 corsi adulti e Prime Lezioni */
@@ -203,7 +241,7 @@ async function carica(){
   const lunedi=piuGiorni(oggi,-((oggi.getDay()+6)%7));
   const fineMon=isoLocal(piuGiorni(lunedi,13));
   try{
-    const[rs,rl,rm,rmiei,rn]=await Promise.all([
+    const[rs,rl,rm,rmiei,rn,rv]=await Promise.all([
       sb.from('corsi_attivi_settimanali').select('id, tipo_corso, data_evento, ora_inizio, ora_fine, note, lead_scuola_id')
         .eq('status','attivo').not('lead_scuola_id','is',null).gte('data_evento',oggiIso).lte('data_evento',fineLez)
         .order('data_evento').order('ora_inizio'),
@@ -213,9 +251,11 @@ async function carica(){
         .gte('data',isoLocal(lunedi)).lte('data',fineMon),
       sb.from('impegni_staff').select('id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, presenza_inizio, presenza_fine')
         .eq('user_id',uid).neq('stato','ritirato').gte('data',oggiIso).order('data').order('ora_inizio'),
-      sb.from('profiles').select('user_id, nome, cognome, staff_role').not('staff_role','is',null) // v1.3 staff_role: i monitor in fondo
+      sb.from('profiles').select('user_id, nome, cognome, staff_role').not('staff_role','is',null), // v1.3 staff_role: i monitor in fondo
+      sb.from('v_staff_indisponibilita').select('id, user_id, persona, staff_role, data, ora_inizio, ora_fine, motivo').gte('data',oggiIso).order('data').order('ora_inizio') // v1.4
     ]);
     for(const r of [rs,rl,rm,rmiei]) if(r.error) throw r.error;
+    if(rv.error)console.warn('[turni] indisponibilita:',rv.error.message); indisp=rv.data||[]; // v1.4
     lezioni=rs.data||[]; impLezTutti=rl.data||[]; impLez=impLezTutti.filter(x=>x.stato!=='ritirato'); impMon=rm.data||[]; miei=rmiei.data||[];
     const rp=await sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo',true); // v1.2
     if(rp.error)console.warn('[turni] piano:',rp.error.message); piano=rp.data||[];
@@ -238,7 +278,135 @@ async function carica(){
     ['corsi','lezioni','monitor','miei'].forEach(id=>{ $(id).innerHTML=`<p class="vuota">Non riesco a leggere i turni ora: ${esc(errTesto(e))}</p>`; });
     return;
   }
-  disegnaCorsi(); disegnaLezioni(); disegnaMonitor(lunedi); disegnaMiei();
+  disegnaCorsi(); disegnaLezioni(); disegnaMonitor(lunedi); disegnaMiei(); disegnaNonCi();
+}
+
+/* ── v1.4 QUANDO NON CI SONO: segna_indisponibile / togli_indisponibile, v_staff_indisponibilita ── */
+/* l'indisponibilita' di u che tocca quella data e ora (ore nulle = tutto il giorno) */
+function nonDispDi(u,data,ini,fin){
+  return indisp.find(x=>x.user_id===u&&x.data===data&&(!x.ora_inizio||!ini||!fin||(ora(x.ora_inizio)<ora(fin)&&ora(x.ora_fine)>ora(ini))))||null;
+}
+const quandoND=x=>x.ora_inizio?`${ora(x.ora_inizio)}–${ora(x.ora_fine)}`:'tutto il giorno';
+function rigaNonDisp(data,ini,fin){
+  const L=indisp.filter(x=>x.data===data&&(!x.ora_inizio||!ini||!fin||(ora(x.ora_inizio)<ora(fin)&&ora(x.ora_fine)>ora(ini))));
+  if(!L.length)return '';
+  return `<div class="nondisp">Non disponibili: ${L.map(x=>esc(nome(x.user_id)!=='—'?nome(x.user_id):x.persona)+(x.ora_inizio?' ('+esc(quandoND(x))+')':'')).join(', ')}</div>`;
+}
+const maiusc=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function titoloImpegno(x){
+  if(x.tipo==='monitor')return 'Sala con Monitor';
+  const s=x.slot_id?lezioni.find(l=>l.id===x.slot_id):null;
+  return s?titoloLezione(s):'Lezione';
+}
+function descriviImpegni(L){
+  const nl=L.filter(x=>x.tipo==='lezione').length, nm=L.length-nl, p=[];
+  if(nl)p.push(nl===1?'1 lezione':nl+' lezioni');
+  if(nm)p.push(nm===1?'1 turno monitor':nm+' turni monitor');
+  return p.join(' e ');
+}
+function apriNonCi(){
+  if(!nonciMese){ const o=new Date(); nonciMese=new Date(o.getFullYear(),o.getMonth(),1); }
+  $('nonci-frm').classList.remove('hidden'); $('nonci-apri').classList.add('hidden'); $('nonci-esito').innerHTML='';
+  $('nonci-frm').innerHTML=`<span class="lbl">Quali giorni? Tocca tutte le date in cui non ci sei</span>
+    <div id="nonci-cal"></div>
+    <span class="lbl">Quando</span>
+    <label class="scelta"><input type="radio" name="nonci-modo" id="nonci-tutto" checked onchange="nonciModo()"> Tutto il giorno</label>
+    <label class="scelta"><input type="radio" name="nonci-modo" id="nonci-ore" onchange="nonciModo()"> Solo in alcune ore</label>
+    <div class="ore hidden" id="nonci-ore-box">dalle <input type="time" id="nonci-ini" value="17:00" aria-label="Dalle"> alle <input type="time" id="nonci-fin" value="22:00" aria-label="Alle"></div>
+    <label class="lbl" for="nonci-motivo">Motivo (facoltativo)</label>
+    <input type="text" id="nonci-motivo" maxlength="120" placeholder="es. esame, lavoro">
+    <div class="az"><button class="btn prim" id="nonci-ok" onclick="confermaNonCi(this)">SEGNA</button><button class="btn" onclick="chiudiNonCi()">ANNULLA</button></div>`;
+  disegnaCal();
+}
+function chiudiNonCi(){ nonciSel.clear(); $('nonci-frm').classList.add('hidden'); $('nonci-frm').innerHTML=''; $('nonci-apri').classList.remove('hidden'); }
+function nonciModo(){ $('nonci-ore-box').classList.toggle('hidden',$('nonci-tutto').checked); }
+function nonciMeseSposta(n){ nonciMese=new Date(nonciMese.getFullYear(),nonciMese.getMonth()+n,1); disegnaCal(); }
+function nonciToggle(iso){ nonciSel.has(iso)?nonciSel.delete(iso):nonciSel.add(iso); disegnaCal(); }
+function disegnaCal(){
+  const box=$('nonci-cal'); if(!box)return;
+  const oggiIso=isoLocal(new Date()), o=new Date(), primo=nonciMese;
+  const mieiGiorni=new Set(miei.filter(x=>x.stato==='previsto').map(x=>x.data));
+  const giaTutto=new Set(indisp.filter(x=>x.user_id===uid&&!x.ora_inizio).map(x=>x.data));
+  const nGiorni=new Date(primo.getFullYear(),primo.getMonth()+1,0).getDate(), vuoti=(primo.getDay()+6)%7;
+  let celle=['L','M','M','G','V','S','D'].map(g=>`<span class="gs">${g}</span>`).join('')+'<span></span>'.repeat(vuoti);
+  for(let g=1;g<=nGiorni;g++){
+    const iso=isoLocal(new Date(primo.getFullYear(),primo.getMonth(),g));
+    const passato=iso<oggiIso, gia=giaTutto.has(iso);
+    const cls=[nonciSel.has(iso)?'sel':'',mieiGiorni.has(iso)?'imp':'',gia?'gia':''].filter(Boolean).join(' ');
+    celle+=`<button type="button" class="${cls}"${passato||gia?' disabled':''} onclick="nonciToggle('${iso}')" aria-pressed="${nonciSel.has(iso)}"
+      aria-label="${esc(giornoLungo(iso))}${mieiGiorni.has(iso)?', hai un impegno':''}${gia?', già segnato':''}">${g}</button>`;
+  }
+  const primoMese=primo.getFullYear()===o.getFullYear()&&primo.getMonth()===o.getMonth();
+  const sel=[...nonciSel].sort();
+  box.innerHTML=`<div class="cal-nav"><button class="btn" onclick="nonciMeseSposta(-1)"${primoMese?' disabled':''} aria-label="Mese prima">‹</button>
+      <b>${MESI[primo.getMonth()]} ${primo.getFullYear()}</b>
+      <button class="btn" onclick="nonciMeseSposta(1)" aria-label="Mese dopo">›</button></div>
+    <div class="cal">${celle}</div>
+    <p class="cal-leg">Pallino arancio: hai già un impegno · a righe: già segnato che non ci sei</p>
+    <p class="cal-sel">${sel.length?(sel.length===1?'1 data scelta: ':sel.length+' date scelte: ')+sel.map(d=>{const x=dLoc(d);return x.getDate()+'/'+(x.getMonth()+1)}).join(', '):'Nessuna data scelta'}</p>`;
+  const ok=$('nonci-ok'); if(ok)ok.textContent=sel.length>1?`SEGNA ${sel.length} DATE`:'SEGNA';
+}
+async function confermaNonCi(btn){
+  const date=[...nonciSel].sort();
+  if(!date.length){ toast('Tocca almeno una data nel calendario.'); return; }
+  const tutto=$('nonci-tutto').checked;
+  let ini=null, fin=null;
+  if(!tutto){
+    ini=$('nonci-ini').value; fin=$('nonci-fin').value;
+    if(!ini||!fin||fin<=ini){ toast('Scrivi dalle … alle …, con la fine dopo l’inizio.'); return; }
+  }
+  const motivo=($('nonci-motivo').value||'').trim()||null;
+  const tocca=miei.filter(x=>x.stato==='previsto'&&date.includes(x.data)&&(tutto||(ora(x.ora_inizio)<fin&&ora(x.ora_fine)>ini)));
+  let msg=(date.length===1?`Segni che non ci sei ${giornoLungo(date[0])}`:`Segni che non ci sei in ${date.length} date`)+(tutto?'':` dalle ${ini} alle ${fin}`)+'.';
+  if(tocca.length)msg+=`\n\nHai già ${descriviImpegni(tocca)} in queste date: ${tocca.length===1?'verrà tolto':'verranno tolte'} e il portale cerca il sostituto.`;
+  if(!confirm(msg+'\n\nConfermi?'))return;
+  btn.disabled=true;
+  const fatte=[], errori=[];
+  for(const d of date){
+    const{error}=await sb.rpc('segna_indisponibile',{p_data:d,p_ora_inizio:ini,p_ora_fine:fin,p_motivo:motivo});
+    if(error)errori.push(`${maiusc(giornoLungo(d))}: ${errTesto(error)}`); else fatte.push(d);
+  }
+  /* chi c'e' adesso sulle lezioni tolte */
+  const tolte=tocca.filter(x=>fatte.includes(x.data));
+  const lez=tolte.filter(x=>x.tipo==='lezione'&&x.slot_id);
+  let dopo=[];
+  if(lez.length){
+    const{data}=await sb.from('impegni_staff').select('user_id, slot_id, data').eq('tipo','lezione').in('stato',['previsto','presente'])
+      .in('slot_id',[...new Set(lez.map(x=>x.slot_id))]).in('data',[...new Set(lez.map(x=>x.data))]);
+    dopo=data||[];
+  }
+  const righe=tolte.map(x=>{
+    const q=`${maiusc(giornoLungo(x.data))} · ${ora(x.ora_inizio)} · ${titoloImpegno(x)}`;
+    if(x.tipo!=='lezione')return `${q}: turno tolto.`;
+    const chi=dopo.filter(y=>y.slot_id===x.slot_id&&y.data===x.data&&y.user_id!==uid).map(y=>nome(y.user_id));
+    return chi.length?`${q}: adesso c’è ${chi.join(', ')}.`:`${q}: nessun sostituto disponibile, la segreteria lo vede.`;
+  });
+  btn.disabled=false;
+  chiudiNonCi();
+  $('nonci-esito').innerHTML=`<div class="esito">
+    ${fatte.length?`<p><b>Fatto: ${fatte.length===1?'1 data segnata':fatte.length+' date segnate'}.</b></p>`:''}
+    ${righe.map(r=>`<p>${esc(r)}</p>`).join('')}
+    ${errori.map(e=>`<p class="ko">Non segnata ${esc(e)}</p>`).join('')}
+  </div>`;
+  toast(fatte.length?'Fatto.':'Nessuna data segnata.');
+  carica();
+}
+function disegnaNonCi(){
+  const oggiIso=isoLocal(new Date());
+  const mie=indisp.filter(x=>x.user_id===uid&&x.data>=oggiIso);
+  $('nonci-mie').innerHTML=mie.length?mie.map(x=>`<div class="imp"><div><div class="q">${esc(maiusc(giornoLungo(x.data)))}</div>
+      <div class="s">${esc(quandoND(x))}${x.motivo?' · '+esc(x.motivo):''}</div></div>
+      <button class="btn" onclick="togliNonCi('${esc(x.id)}',this)">TOGLI</button></div>`).join('')
+    :'<p class="vuota">Nessuna data segnata.</p>';
+  if(!$('nonci-frm').classList.contains('hidden'))disegnaCal();
+}
+async function togliNonCi(id,btn){
+  if(!confirm('Togli questa data? Torni disponibile.\n\nGli impegni tolti non tornano da soli: se vuoi, risegnati con MI SEGNO.'))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('togli_indisponibile',{p_id:id});
+  if(error){ btn.disabled=false; toast('Non tolta: '+errTesto(error)); return; }
+  toast('Fatto: sei di nuovo disponibile in quella data.');
+  carica();
 }
 
 /* ── v1.1 Lezioni dei corsi: v_copertura_lezioni (prossimi 28 giorni) + chi e' segnato + richieste di supporto ── */
@@ -288,7 +456,7 @@ function htmlCorso(c,i){
   if(mio && mio.stato==='previsto'){
     az=`<button class="btn rosso" onclick="nonCiSono('${esc(mio.id)}',this)">NON CI SONO</button>`
       +`<button class="btn" onclick="apriSostituto(${i})">MI SOSTITUISCE…</button>`
-      +(_sostAperto===chiaveCorso(c)?`<div class="frm-supp"><select id="sost-chi" aria-label="Chi ti sostituisce">${opzioniSostituto(c.slot_id)}</select>
+      +(_sostAperto===chiaveCorso(c)?`<div class="frm-supp"><select id="sost-chi" aria-label="Chi ti sostituisce">${opzioniSostituto(c)}</select>
           <button class="btn prim" onclick="confermaSostituto('${esc(mio.id)}',this)">CONFERMA</button><button class="btn" onclick="_sostAperto=null;disegnaCorsi()">ANNULLA</button></div>`:'')
       +(req?'':`<button class="btn" onclick="apriSupporto(${i})">CHIEDI SUPPORTO</button>`)
       +(_suppAperto===chiaveCorso(c)?`<div class="frm-supp"><input id="supp-nota" maxlength="200" placeholder="Nota facoltativa, es. 3 prime lezioni" aria-label="Nota per la richiesta di supporto">
@@ -302,7 +470,7 @@ function htmlCorso(c,i){
     <div class="r1"><span class="tit">${esc(giornoLungo(c.data))} · ${esc(ora(c.ora_inizio))}–${esc(ora(c.ora_fine))}</span>
       <span class="conta ${c.coperta?'ok':'zero'}">${conta}</span></div>
     <div class="det">${esc(nomeCorsoLez(c.tipo_corso,c.fascia))}${c.coperta?'':' · <span class="stato-ko">scoperta</span>'}</div>
-    <div class="chips">${chips}</div>${supp}
+    <div class="chips">${chips}</div>${rigaNonDisp(c.data,c.ora_inizio,c.ora_fine)}${supp}
     ${az?`<div class="az">${az}</div>`:''}
   </div>`;
 }
@@ -315,13 +483,17 @@ async function nonCiSono(id,btn){
   carica();
 }
 /* v1.2 MI SOSTITUISCE…: per primo il sostituto automatico della lezione, poi tutto lo staff per nome */
-function opzioniSostituto(slotId){
-  const auto=(piano.find(p=>p.slot_id===slotId&&p.user_id===uid)||{}).sostituto_user_id||null;
+function opzioniSostituto(c){
+  const auto=(piano.find(p=>p.slot_id===c.slot_id&&p.user_id===uid)||{}).sostituto_user_id||null;
   const tutti=Object.keys(nomi).filter(u=>u!==uid).sort((a,b)=>nome(a).localeCompare(nome(b),'it'));
-  const altri=tutti.filter(u=>!eMonitor(u)), mon=tutti.filter(eMonitor); // v1.3 i monitor in fondo, solo casi estremi
+  const nd=u=>nonDispDi(u,c.data,c.ora_inizio,c.ora_fine); // v1.4 i non disponibili in fondo, grigi e non selezionabili
+  const liberi=tutti.filter(u=>!nd(u)), no=tutti.filter(nd);
+  const altri=liberi.filter(u=>!eMonitor(u)), mon=liberi.filter(eMonitor); // v1.3 i monitor in fondo, solo casi estremi
   const ord=auto&&altri.includes(auto)?[auto,...altri.filter(u=>u!==auto)]:altri;
   const opt=u=>`<option value="${esc(u)}">${esc(nome(u))}${u===auto?' (sostituto previsto)':''}</option>`;
-  return ord.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'');
+  const optNo=u=>{ const r=nd(u); return `<option value="${esc(u)}" disabled>${esc(nome(u))} · non disponibile${r.motivo?' ('+esc(r.motivo)+')':''}</option>`; };
+  return ord.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'')
+    +(no.length?`<optgroup label="Non disponibili">${no.map(optNo).join('')}</optgroup>`:'');
 }
 const eMonitor=u=>!!(nomi[u]&&nomi[u].staff_role==='staff_monitor');
 function apriSostituto(i){ const c=corsiVoci[i]; if(!c)return; _sostAperto=chiaveCorso(c); _suppAperto=null; disegnaCorsi(); }
@@ -405,7 +577,7 @@ function disegnaLezioni(){
       <div class="r1"><span class="tit">${esc(giornoLungo(s.data_evento))} · ${esc(ora(s.ora_inizio))}–${esc(ora(s.ora_fine))}</span>
         <span class="conta ${ccls}">${n}/${RICHIESTI_LEZIONE}</span></div>
       <div class="det">${esc(titoloLezione(s))}${s.note?' · '+esc(s.note):''}</div>
-      <div class="chips">${chips}</div>
+      <div class="chips">${chips}</div>${rigaNonDisp(s.data_evento,s.ora_inizio,s.ora_fine)}
       <div class="az">${az}</div>
     </div>`;
   }).join('');
@@ -431,7 +603,7 @@ function disegnaMonitor(lunedi){
         }
         html+=`<div class="fascia${f.dacoprire?' dacoprire':''}">
           <div class="fh">${f.ini}–${f.fin}${f.dacoprire?'<span class="bdg">da coprire</span>':''}</div>
-          <div class="chi${seg.length?'':' nessuno'}">${chi}</div>${btn}</div>`;
+          <div class="chi${seg.length?'':' nessuno'}">${chi}</div>${rigaNonDisp(di,f.ini,f.fin)}${btn}</div>`;
       });
       html+='</div>';
     }
