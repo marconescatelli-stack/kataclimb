@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.104 · 2026-10-27 · MONITOR IN FONDO + APRI SU UNA DATA (consegna 27 ott, DB segreteria_da_sistemare): (1) Nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi" (il sostituto previsto resta primo se non e' un monitor); sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?" prima della RPC. (2) agenda.html?data=AAAA-MM-GG&tipo=<tipo_corso> apre la settimana di quella data e, se il corso e' nel menu, quel corso (scuole -> Scuole, Prime Bambini e Ragazzi -> Bambini e Ragazzi, altre Prime -> Prima Lezione): serve ad APRI IN AGENDA di oggi v2.31. Parametri non validi: agenda come prima. Nessuna modifica a RPC. CUMULA v3.103 (sotto). -->
 <!-- KC-BUILD: agenda v3.103 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) sotto ogni lezione (solo staff, non scuole ne' Sala con Monitor) la riga Staff da impegni_staff per slot + data: nome, istruttore/assistente, stato a colori (previsto grigio, presente verde ✓, assente rosso), "Nome (sostituisce Nome)" dalle note di sostituzione; nessuno = "Nessun istruttore segnato" in rosso. (2) Segreteria (creator e segreteria, stesso cancello di is_segreteria): PRESENTE (solo fino a oggi) -> impegno_presenza 'fine'; ASSENTE con conferma "Se è assente, il portale chiama il suo sostituto (se previsto)." -> 'assente'; SOSTITUISCI -> modale con lo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore; ANNULLA -> 'annulla'; + AGGIUNGI STAFF -> persona e ruolo (istruttore/assistente, gli staff_assistente passano ad assistente da soli) -> impegno_mi_segno con p_user_id e, se la data e' passata, impegno_presenza 'fine' sul nuovo impegno. (3) Istruttore che fa l'appello: dopo la prima presenza segnata si rilegge la lezione (il trigger lo ha segnato presente) e compare l'avviso "Presenza registrata: la lezione è a tuo nome." oppure "Hai sostituito NOME: la lezione è a tuo nome e la segreteria lo vede."; la segreteria non viene segnata e non vede l'avviso. Scritture solo via RPC, nessuna modifica a RPC o tabelle. CUMULA v3.102 (sotto). -->
 <!-- KC-BUILD: agenda v3.102 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): nuovo tipo_corso 'manovra_sosta', slot singolo datato (data_evento) creato dalla Segreteria del portale con crea_slot_manovra. In agenda: voce nel menu, colore --manovra, etichetta 'Corso Manovra in Sosta KataClimb' in TIPO_LABELS/labelSlot/fallback. Partecipanti da v_lista_manovra_sosta (stato prenotato/svolto, data_lezione del giorno, slot_id), anche nella vista Tutti; capienza dello slot (max 4). Accanto al nome l'esito (Abile / Non abile) se gia' segnato. Sola lettura: niente P/A, niente Sposta/Annulla, niente + Prenota (la lista si gestisce in Segreteria → Manovra in Sosta, l'esito con esito_manovra). Realtime anche su lista_manovra_sosta. CUMULA v3.101 (sotto). -->
 <!-- KC-BUILD: agenda v3.101 · 2026-10-22 · PRIMA LEZIONE PRIVATA SPECIALE (decisione Marco 22 ott): nuovo tipo_corso 'prima_lezione_privata' (martedi' 18-19 con Claudia, capienza 1, fascia bambini, link riservato prima-lezione-privata.html) entra nella famiglia Prima Lezione: stessa tabella prenotazioni_prima_lezione, stessa logica di prenota/sposta/presenza, colore Prima, compare anche nel tab Bambini e Ragazzi. Etichetta 'Prima Lezione Privata Speciale' in griglia, legenda e fallback. NIENT'ALTRO toccato. -->
@@ -807,6 +808,26 @@
      HELPER DATE
      ═══════════════════════════════════════════════════════════════════ */
 
+  /* v3.104 ?data=AAAA-MM-GG&tipo=<tipo_corso>: si apre sulla settimana di quella data e, se c'e' nel menu, su quel corso */
+  function apriDaParametri() {
+    const q = new URLSearchParams(window.location.search);
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(q.get('data') || '');
+    if (m) {
+      const d = new Date(+m[1], +m[2] - 1, +m[3]);
+      if (!isNaN(d)) {
+        const lun = new Date(d); lun.setDate(lun.getDate() - (lun.getDay() + 6) % 7);
+        weekOffset = Math.round((lun - lunSett(0)) / (7 * 86400000));
+      }
+    }
+    const t = q.get('tipo');
+    if (!t) return;
+    const tab = isScuolaTipo(t) ? 'scuole'
+      : (t === 'prima_lezione_bambini' || t === 'prima_lezione_ragazzi') ? 'bambini'
+      : isPrimaTipo(t) ? 'prima_lezione' : t;
+    const sel = document.getElementById('tipo-select');
+    if (sel && sel.style.display !== 'none' && sel.querySelector(`option[value="${CSS.escape(tab)}"]`)) { currentTipo = tab; sel.value = tab; }
+  }
+
   function lunSett(offset) {
     const d = new Date(); d.setHours(0,0,0,0);
     const dow = (d.getDay() + 6) % 7;
@@ -932,6 +953,7 @@
     }
 
     setupUI();
+    apriDaParametri(); // v3.104
     bindEvents();
     await render();
     subscribeRealtime(); // v3.44 Sessione 8a — auto-refresh quando portale segreteria cambia prenotazioni
@@ -2044,12 +2066,16 @@
   }
 
   /* lista per Sostituisci / Aggiungi: per primo il sostituto automatico della lezione, poi tutto lo staff per nome */
+  /* v3.104 i monitor in fondo, separati: non sono istruttori ne' assistenti, solo casi estremi */
+  const staffMonitor = (u) => !!(staffNomi && staffNomi[u] && staffNomi[u].staff_role === 'staff_monitor');
   function opzioniStaff(slotId, titolare, escludi) {
     const auto = titolare && staffPiano ? (staffPiano.find(p => p.slot_id === slotId && p.user_id === titolare) || {}).sostituto_user_id : null;
     const tutti = Object.keys(staffNomi || {}).filter(u => !escludi.includes(u))
       .sort((a, b) => staffNome(a).localeCompare(staffNome(b), 'it'));
-    const ord = auto && tutti.includes(auto) ? [auto, ...tutti.filter(u => u !== auto)] : tutti;
-    return ord.map(u => `<option value="${u}">${escAttr(staffNome(u))}${u === auto ? ' (sostituto previsto)' : ''}</option>`).join('');
+    const altri = tutti.filter(u => !staffMonitor(u)), mon = tutti.filter(staffMonitor);
+    const ord = auto && altri.includes(auto) ? [auto, ...altri.filter(u => u !== auto)] : altri;
+    const opt = u => `<option value="${u}">${escAttr(staffNome(u))}${u === auto ? ' (sostituto previsto)' : ''}</option>`;
+    return ord.map(opt).join('') + (mon.length ? `<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>` : '');
   }
 
   function bindStaff() {
@@ -2104,6 +2130,7 @@
     const c = staffCtx, nuovo = document.getElementById('stf-persona').value;
     const btn = document.getElementById('stf-conferma'), msg = document.getElementById('stf-msg');
     if (!nuovo) return;
+    if (staffMonitor(nuovo) && !confirm('È un monitor, non è istruttore né assistente. È davvero un caso estremo?')) return; // v3.104
     btn.disabled = true;
     let error = null;
     if (c.az === 'sostituisci') {

@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.142 · 2026-10-27 · DA PAGARE PORTA AI COSTI + MONITOR IN FONDO (consegna 27 ott, DB segreteria_da_sistemare): (1) ?nav=segreteria&tab=turni&box=costi apre Segreteria -> 🗓 Turni e scorre al riquadro Costi staff del mese (link della tessera Da pagare di oggi v2.31); solo per creator e segreteria, gli altri restano sulla Segreteria com'era. segMostra restituisce il caricamento di Turni per poter scorrere dopo. (2) In Turni, nelle liste per scegliere lo staff sulle lezioni (Aggiungi una persona, Sostituisci) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi"; sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?". Nei turni monitor la lista resta com'era. Nessuna modifica a RPC. CUMULA v3.141 (sotto). -->
 <!-- KC-BUILD: portale v3.141 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): Segreteria → 🗓 Turni. (1) Nella settimana entrano da sole le lezioni dei corsi adulti e le Prime Lezioni (slot_copertura su tutti i corsi attivi): nomi completi in TU_NOME_CORSO (Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale, Prima Lezione Genitori, Corso Manovra in Sosta KataClimb, Lab); "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). (2) Nella voce di una lezione dei corsi, accanto a Togli / Segna assente / Segna presente / Riporta a previsto: SOSTITUISCI (segreteria) -> scelta dallo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore. (3) Nuova sezione COSTI STAFF DEL MESE da v_costi_staff_mese con selettore mese (default il mese corrente): Persona · Lezioni corsi (n · €) · Prime Lezioni (n · €) · Monitor (ore · €) · Totale · Sostituzioni · Assenze · Da confermare (in arancio se > 0, tocca = elenco delle lezioni passate senza presenza dello stesso mese in Compensi lezioni dei corsi); riga Totale staff; Esporta CSV; sotto, le Prime Lezioni pagate del mese da v_compenso_lezioni con il perche' della cifra ("con allievi" 15 €/h, "vuota" 5 €/h). (4) Profilo dello staff che non e' segreteria: "Il mio mese" con la propria riga ("Questo mese: X lezioni, Y prime, Z ore monitor = € totale") e le lezioni ancora da confermare. Solo letture e RPC esistenti, nessuna modifica a RPC, tabelle o viste. CUMULA v3.140 (sotto). -->
 <!-- KC-BUILD: portale v3.140 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): (1) Segreteria: quarto interruttore 🪢 Corso Manovra in Sosta KataClimb. Lista da v_lista_manovra_sosta (in lista da N giorni, rosso con due_settimane_scadute); ore libere di Mello in Accademia da proponi_slot_manovra(14), raggruppate per giorno; si tocca un orario e il bottone "Crea lo slot" e' attivo con almeno 2 in lista oppure almeno uno da 2 settimane -> conferma -> crea_slot_manovra (prenota i primi 4 in lista) -> stripe-worker POST /manovra-sosta/avvisi {tipo:'slot', slot_id} manda la mail di conferma a ogni prenotato. Prenotati e lezioni da segnare: Abile / Non abile + nota -> esito_manovra; al primo Abile -> /manovra-sosta/avvisi {tipo:'abile', lista_id}, mail con la proposta della parte su roccia con Marco. Il Worker tiene memoria degli invii (eventi_notifica): niente doppioni. Se la mail non parte lo dice in chiaro, lo slot e l'esito restano. (2) Home allievo: sotto il riquadro del prossimo passo, chi ha il Corso Evo Corda KataClimb concluso (puo_iscriversi_manovra) e nessuna riga in lista_manovra_sosta vede la carta "Prossimo passo: Corso Manovra in Sosta KataClimb" -> manovra-sosta.html. Mai allo staff. Scritture solo via RPC. CUMULA v3.139 (sotto). -->
 <!-- KC-BUILD: portale v3.139 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): Segreteria → 🗓 Turni. (1) Nella settimana a colonne entrano le lezioni dei corsi con piano di copertura (slot_copertura + corsi_attivi_settimanali ricorrenti, giorno_settimana): "Istruttori 1/1 · Assistenti 0/1" contati da impegni_staff come v_copertura_lezioni (compenso_tipo lezione = istruttore, ora = assistente; stato previsto o presente), verde se coperta e rossa se scoperta, anche nelle settimane passate; nome dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)); richiesta di supporto aperta (richieste_supporto) segnalata nella voce. Al click: chi c'e' con il ruolo e "dal piano", Togli, Segna presente (impegno_presenza 'inizio', da oggi indietro), Segna assente, Riporta a previsto, Annulla richiesta di supporto (annulla_supporto), Aggiungi persona con la scelta Istruttore / Assistente (impegno_mi_segno con p_slot_id, p_data, p_user_id e p_ruolo 'conduce' oppure 'assistente', che la RPC salva come supporto pagato a ore; gli staff_assistente sono sempre a ore e la scelta si imposta da sola quando li selezioni). (2) Compensi lezioni dei corsi del mese da v_compenso_lezioni: per persona lezioni pagate, ore, euro e da confermare; elenco "Da confermare" (giorni passati ancora previsti, valgono 0) con Era presente (impegno_presenza 'inizio') / Assente ('assente'); export CSV come per il monitor. Azioni e compensi solo per staff_creator e staff_segreteria. Nessuna modifica a RPC o tabelle. CUMULA v3.138 (sotto). -->
@@ -10081,6 +10082,12 @@ async function init(){
         const navParam=params.get('nav');
         if(navParam && ['profilo','comunita','segreteria'].includes(navParam)){
           showNav(navParam);
+          /* v3.142 dalla tessera Da pagare di oggi: Turni, riquadro Costi staff del mese */
+          if(navParam==='segreteria'&&params.get('tab')==='turni'&&typeof tuPuo==='function'&&tuPuo()){
+            Promise.resolve(segMostra('turni')).then(()=>{
+              if(params.get('box')==='costi')document.getElementById('tu-costi-wrap')?.scrollIntoView({behavior:'smooth',block:'start'});
+            });
+          }
           history.replaceState(null,'',window.location.pathname);
         }
       }
@@ -10161,8 +10168,8 @@ function segMostra(quale){
   document.getElementById('seg-sw-turni').classList.toggle('on',turni);
   document.getElementById('seg-sw-manovra').classList.toggle('on',manovra);
   if(scuole){scChiudiScheda();scCaricaTutto();}
-  if(turni)tuCaricaTutto();
   if(manovra)msCaricaTutto();
+  if(turni)return tuCaricaTutto(); // v3.142 restituito: chi apre Turni da link puo' scorrere dopo il caricamento
 }
 
 /* ── Modale unica del tab Scuole ── */
@@ -10899,6 +10906,14 @@ function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='pre
 let tuCompLez=[];
 
 const tuPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
+/* v3.142 liste staff sulle lezioni: i monitor in fondo, solo casi estremi */
+const TU_MON_CONF='È un monitor, non è istruttore né assistente. È davvero un caso estremo?';
+const tuEMonitor=u=>!!(tuStaff||[]).find(x=>x.user_id===u&&x.staff_role==='staff_monitor');
+function tuOpzioniStaff(lista,auto){
+  const opt=u=>`<option value="${u.user_id}">${escHtml(scNome(u))}${u.user_id===auto?' (sostituto previsto)':''}</option>`;
+  const mon=lista.filter(u=>u.staff_role==='staff_monitor'),altri=lista.filter(u=>u.staff_role!=='staff_monitor');
+  return altri.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'');
+}
 function tuIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function tuPiu(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function tuLun(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());return tuPiu(x,-((x.getDay()+6)%7))}
@@ -11031,7 +11046,7 @@ function tuApriVoce(k){
   const liberi=(tuStaff||[]).filter(u=>!gia.includes(u.user_id));
   const aggiungi=(puo&&!passato&&liberi.length)?`
     <label class="sc-lbl" for="tu-add-user">Aggiungi una persona</label>
-    <select id="tu-add-user" class="input sc-in"${v.tipo==='corso'?' onchange="tuRuoloDaUtente()"':''}>${liberi.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join('')}</select>
+    <select id="tu-add-user" class="input sc-in"${v.tipo==='corso'?' onchange="tuRuoloDaUtente()"':''}>${v.tipo==='monitor'?liberi.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join(''):tuOpzioniStaff(liberi,null)}</select>
     ${v.tipo==='corso'?`<label class="sc-lbl" for="tu-add-ruolo">Come</label>
     <select id="tu-add-ruolo" class="input sc-in"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>`
     :v.tipo==='lezione'?`<label class="sc-lbl" for="tu-add-ruolo">Ruolo</label>
@@ -11045,6 +11060,7 @@ function tuApriVoce(k){
     `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}${conta}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
      ${supp}${righe}${aggiungi}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
     aggiungi?async()=>{
+      if(v.tipo!=='monitor'&&tuEMonitor(scVal('tu-add-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
       const args=v.tipo==='corso'
         ?{p_tipo:'lezione',p_slot_id:v.slot.id,p_data:v.data,p_ruolo:scVal('tu-add-ruolo')||'conduce',p_user_id:scVal('tu-add-user')}
         :v.tipo==='lezione'
@@ -11265,14 +11281,15 @@ function tuApriSost(impId,k){
   const r=v.seg.find(i=>i.id===impId);if(!r)return;
   const auto=((tuPiano||[]).find(p=>p.slot_id===v.slot.id&&p.user_id===r.user_id)||{}).sostituto_user_id||null;
   const altri=(tuStaff||[]).filter(u=>u.user_id!==r.user_id);
-  const ord=auto&&altri.some(u=>u.user_id===auto)?[altri.find(u=>u.user_id===auto),...altri.filter(u=>u.user_id!==auto)]:altri;
+  const ord=auto&&altri.some(u=>u.user_id===auto&&u.staff_role!=='staff_monitor')?[altri.find(u=>u.user_id===auto),...altri.filter(u=>u.user_id!==auto)]:altri;
   const passata=v.data<tuIso(new Date());
   scModal(`🔁 Sostituisci ${tuNome(r.user_id)}`,
     `<p class="sc-sub" style="margin-bottom:8px">${escHtml(v.titolo)} · ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}</p>
      <label class="sc-lbl" for="tu-sost-user">Al suo posto</label>
-     <select id="tu-sost-user" class="input sc-in">${ord.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}${u.user_id===auto?' (sostituto previsto)':''}</option>`).join('')}</select>
+     <select id="tu-sost-user" class="input sc-in">${tuOpzioniStaff(ord,auto)}</select>
      <p class="sc-nota">${passata?'Lezione passata: chi scegli risulta già presente.':'Chi scegli prende il suo posto sulla lezione.'}</p>`,
     async()=>{
+      if(tuEMonitor(scVal('tu-sost-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
       const{error}=await sb.rpc('sostituisci_istruttore',{p_impegno_id:impId,p_nuovo_user:scVal('tu-sost-user'),p_note:'sostituzione registrata dalla segreteria in Turni'});
       if(error)throw error;
       toast(`${tuNome(scVal('tu-sost-user'))} sostituisce ${tuNome(r.user_id)}`);
