@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.105 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita letta con le lezioni della settimana, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. Gli errori delle RPC (impegno_mi_segno e sostituisci_istruttore rifiutano chi e' indisponibile) si mostrano come arrivano. Solo letture. CUMULA v3.104 (sotto). -->
 <!-- KC-BUILD: agenda v3.104 · 2026-10-27 · MONITOR IN FONDO + APRI SU UNA DATA (consegna 27 ott, DB segreteria_da_sistemare): (1) Nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi" (il sostituto previsto resta primo se non e' un monitor); sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?" prima della RPC. (2) agenda.html?data=AAAA-MM-GG&tipo=<tipo_corso> apre la settimana di quella data e, se il corso e' nel menu, quel corso (scuole -> Scuole, Prime Bambini e Ragazzi -> Bambini e Ragazzi, altre Prime -> Prima Lezione): serve ad APRI IN AGENDA di oggi v2.31. Parametri non validi: agenda come prima. Nessuna modifica a RPC. CUMULA v3.103 (sotto). -->
 <!-- KC-BUILD: agenda v3.103 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) sotto ogni lezione (solo staff, non scuole ne' Sala con Monitor) la riga Staff da impegni_staff per slot + data: nome, istruttore/assistente, stato a colori (previsto grigio, presente verde ✓, assente rosso), "Nome (sostituisce Nome)" dalle note di sostituzione; nessuno = "Nessun istruttore segnato" in rosso. (2) Segreteria (creator e segreteria, stesso cancello di is_segreteria): PRESENTE (solo fino a oggi) -> impegno_presenza 'fine'; ASSENTE con conferma "Se è assente, il portale chiama il suo sostituto (se previsto)." -> 'assente'; SOSTITUISCI -> modale con lo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore; ANNULLA -> 'annulla'; + AGGIUNGI STAFF -> persona e ruolo (istruttore/assistente, gli staff_assistente passano ad assistente da soli) -> impegno_mi_segno con p_user_id e, se la data e' passata, impegno_presenza 'fine' sul nuovo impegno. (3) Istruttore che fa l'appello: dopo la prima presenza segnata si rilegge la lezione (il trigger lo ha segnato presente) e compare l'avviso "Presenza registrata: la lezione è a tuo nome." oppure "Hai sostituito NOME: la lezione è a tuo nome e la segreteria lo vede."; la segreteria non viene segnata e non vede l'avviso. Scritture solo via RPC, nessuna modifica a RPC o tabelle. CUMULA v3.102 (sotto). -->
 <!-- KC-BUILD: agenda v3.102 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): nuovo tipo_corso 'manovra_sosta', slot singolo datato (data_evento) creato dalla Segreteria del portale con crea_slot_manovra. In agenda: voce nel menu, colore --manovra, etichetta 'Corso Manovra in Sosta KataClimb' in TIPO_LABELS/labelSlot/fallback. Partecipanti da v_lista_manovra_sosta (stato prenotato/svolto, data_lezione del giorno, slot_id), anche nella vista Tutti; capienza dello slot (max 4). Accanto al nome l'esito (Abile / Non abile) se gia' segnato. Sola lettura: niente P/A, niente Sposta/Annulla, niente + Prenota (la lista si gestisce in Segreteria → Manovra in Sosta, l'esito con esito_manovra). Realtime anche su lista_manovra_sosta. CUMULA v3.101 (sotto). -->
@@ -2006,6 +2007,8 @@
   let staffPiano = null;   // righe slot_piano_staff attive
   let staffErr = null;
   let staffCtx = null;     // {az, slotId, dataIso, impId, userId}
+  let staffIndisp = [];    // v3.105 v_staff_indisponibilita della settimana
+  let staffOre = {};       // v3.105 slot_id -> {ini, fin}
   const avvisiAppello = new Set();
   const isSegreteriaAg = () => STAFF_COMPLETO.includes(userStaffRole);
   const haRigaStaff = (s) => !haTurni(s) && s.tipo_corso !== 'monitor'; // scuole: riga Istruttori di sempre · Sala con Monitor: turni a parte
@@ -2018,12 +2021,16 @@
     if (!conStaff.length) return;
     const slotIds = [...new Set(conStaff.map(l => l.slot.id))];
     const date = conStaff.map(l => l.dataIso).sort();
-    const [rImp, rNomi, rPiano] = await Promise.all([
+    staffOre = {}; conStaff.forEach(l => { staffOre[l.slot.id] = { ini: l.slot.ora_inizio, fin: l.slot.ora_fine }; });
+    const [rImp, rNomi, rPiano, rInd] = await Promise.all([
       sb.from('impegni_staff').select('id, slot_id, data, user_id, ruolo, stato, compenso_tipo, da_piano, note, presenza_inizio')
         .eq('tipo', 'lezione').in('slot_id', slotIds).gte('data', date[0]).lte('data', date[date.length - 1]),
       staffNomi ? { data: null } : sb.from('profiles').select('user_id, nome, cognome, staff_role').not('staff_role', 'is', null),
-      staffPiano ? { data: null } : sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo', true)
+      staffPiano ? { data: null } : sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo', true),
+      sb.from('v_staff_indisponibilita').select('user_id, data, ora_inizio, ora_fine, motivo').gte('data', date[0]).lte('data', date[date.length - 1]) // v3.105
     ]);
+    if (rInd.error) console.warn('[staff] indisponibilita:', rInd.error.message);
+    staffIndisp = rInd.data || [];
     if (rImp.error) { staffErr = rImp.error; console.warn('[staff] impegni_staff:', rImp.error.message); return; }
     if (rNomi.data) { staffNomi = {}; rNomi.data.forEach(p => { staffNomi[p.user_id] = { nome: ((p.nome || '') + ' ' + (p.cognome || '')).trim() || 'Staff', staff_role: p.staff_role }; }); }
     if (rPiano && rPiano.error) console.warn('[staff] slot_piano_staff:', rPiano.error.message);
@@ -2068,14 +2075,24 @@
   /* lista per Sostituisci / Aggiungi: per primo il sostituto automatico della lezione, poi tutto lo staff per nome */
   /* v3.104 i monitor in fondo, separati: non sono istruttori ne' assistenti, solo casi estremi */
   const staffMonitor = (u) => !!(staffNomi && staffNomi[u] && staffNomi[u].staff_role === 'staff_monitor');
-  function opzioniStaff(slotId, titolare, escludi) {
+  /* v3.105 chi ha segnato che non c'e' in quella data e ora (ore nulle = tutto il giorno) */
+  function staffNonDisp(u, dataIso, slotId) {
+    const o = (t) => t ? String(t).slice(0, 5) : '', ore = staffOre[slotId] || {};
+    return staffIndisp.find(x => x.user_id === u && x.data === dataIso &&
+      (!x.ora_inizio || !ore.ini || (o(x.ora_inizio) < o(ore.fin) && o(x.ora_fine) > o(ore.ini)))) || null;
+  }
+  function opzioniStaff(slotId, titolare, escludi, dataIso) {
     const auto = titolare && staffPiano ? (staffPiano.find(p => p.slot_id === slotId && p.user_id === titolare) || {}).sostituto_user_id : null;
-    const tutti = Object.keys(staffNomi || {}).filter(u => !escludi.includes(u))
+    const T = Object.keys(staffNomi || {}).filter(u => !escludi.includes(u))
       .sort((a, b) => staffNome(a).localeCompare(staffNome(b), 'it'));
+    const nd = (u) => staffNonDisp(u, dataIso, slotId);
+    const tutti = T.filter(u => !nd(u)), no = T.filter(nd);
+    const optNo = u => { const r = nd(u); return `<option value="${u}" disabled>${escAttr(staffNome(u))} · non disponibile${r.motivo ? ' (' + escAttr(r.motivo) + ')' : ''}</option>`; };
     const altri = tutti.filter(u => !staffMonitor(u)), mon = tutti.filter(staffMonitor);
     const ord = auto && altri.includes(auto) ? [auto, ...altri.filter(u => u !== auto)] : altri;
     const opt = u => `<option value="${u}">${escAttr(staffNome(u))}${u === auto ? ' (sostituto previsto)' : ''}</option>`;
-    return ord.map(opt).join('') + (mon.length ? `<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>` : '');
+    return ord.map(opt).join('') + (mon.length ? `<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>` : '')
+      + (no.length ? `<optgroup label="Non disponibili">${no.map(optNo).join('')}</optgroup>` : '');
   }
 
   function bindStaff() {
@@ -2109,8 +2126,8 @@
       ? (d.data < isoD(new Date()) ? 'Lezione passata: la persona risulta subito presente.' : 'La persona viene segnata sulla lezione.')
       : (d.data < isoD(new Date()) ? 'Lezione passata: chi scegli risulta presente al posto suo.' : 'Chi scegli prende il suo posto sulla lezione.');
     document.getElementById('stf-persona').innerHTML = az === 'aggiungi'
-      ? opzioniStaff(d.slot, null, vis)
-      : opzioniStaff(d.slot, d.user, [d.user]);
+      ? opzioniStaff(d.slot, null, vis, d.data)
+      : opzioniStaff(d.slot, d.user, [d.user], d.data);
     document.getElementById('stf-ruolo-box').style.display = az === 'aggiungi' ? '' : 'none';
     staffRuoloDaPersona();
     const msg = document.getElementById('stf-msg'); msg.className = 'modal-msg'; msg.textContent = '';

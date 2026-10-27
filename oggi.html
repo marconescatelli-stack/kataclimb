@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.32 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): (1) nelle liste per scegliere lo staff di Da sistemare (SOSTITUISCI, AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo, con "non disponibile" e il motivo. Ordine: sostituto da piano se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. L'ora di fine della lezione si legge dallo slot. (2) Tessera Turni (tutte le viste staff): sotto MI SEGNO la riga "Hai segnato che non ci sei: N date" se ne hai da oggi in poi. Solo letture. CUMULA v2.31 (sotto). -->
 <!-- KC-BUILD: oggi v2.31 · 2026-10-27 · CONSOLE SEGRETERIA: DA PAGARE E DA SISTEMARE (consegna 27 ott, DB segreteria_da_sistemare): solo per creator e segreteria (profile_data.staff_role staff_creator/staff_segreteria), nella zona Il tempo dopo Oggi in sala. (1) Tessera 💶 DA PAGARE · <mese>: somma di totale di v_costi_staff_mese del mese in corso, sotto "Corsi · Prime · Monitor", riga arancio "N lezioni da confermare non sono contate" se da_confermare > 0; tocco -> portale.html?nav=segreteria&tab=turni&box=costi (riquadro Costi staff del mese). (2) Tessera ⚠ DA SISTEMARE: numero = righe di v_segreteria_da_sistemare_seg, rossa se > 0, verde "Tutto a posto" se 0; tocco -> elenco raggruppato per tipo (Presenze da confermare, Turni monitor da chiudere, Ruolo da verificare, Stessa persona su due lezioni, Lezioni senza staff (prossimi 7 giorni)) con data e ora, persona, nome completo del corso (minori dalla fascia, scuole con il nome della scuola) e il testo cosa. Azioni solo via RPC esistenti: PRESENTE impegno_presenza 'fine' · ASSENTE 'assente' · SOSTITUISCI sostituisci_istruttore (sostituto da piano per primo) · CHIUDI TURNO segreteria_chiudi_turno con l'ora reale di fine (inizio letto da v_compenso_turni_monitor, non dall'ora della vista) · TOGLI 'assente' con conferma sul monitor · CASO ESTREMO, CONFERMA nasconde la riga per questa sessione · APRI IN AGENDA agenda.html?data=&tipo= · AGGIUNGI STAFF impegno_mi_segno con p_user_id e ruolo. Stessa persona su due lezioni: il testo dice le due lezioni con nome completo e orario (letti da impegni_staff), mai la chiave tecnica. Dopo ogni azione si ricaricano elenco e Da pagare, con "Fatto: …". Nelle liste per scegliere lo staff i monitor stanno in fondo, "solo casi estremi", con conferma. Nessuna modifica a RPC, tabelle o viste. CUMULA v2.30 (sotto). -->
 <!-- KC-BUILD: oggi v2.30 · 2026-10-26 · PRIME LEZIONI TRA GLI IMPEGNI DEL GIORNO (consegna 26 ott, DB staff_lezioni_tutti): le Prime Lezioni arrivano gia' in "I tuoi impegni · oggi" con la riga "Ricordati SONO QUI: senza presenza la lezione non viene pagata." come i corsi (nessun filtro per tipo). Mancava il nome completo di due tipi, che uscivano con la chiave tecnica: IMP_LEZ + prima_lezione_privata 'Prima Lezione Privata Speciale' e manovra_sosta 'Corso Manovra in Sosta KataClimb' (Prima Lezione Adulti, Genitori, Bambini e Ragazzi gia' da NOME_CORSO). Solo nomi. CUMULA v2.29 (sotto). -->
 <!-- KC-BUILD: oggi v2.29 · 2026-10-26 · PROSSIMO PASSO: CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): nella console ALLIEVO, dopo la tessera Lezioni, tessera a tutta larghezza "Prossimo passo · Corso Manovra in Sosta KataClimb" -> manovra-sosta.html, nascosta finche' loadManovra non verifica che la persona ha concluso il Corso Evo Corda KataClimb (RPC puo_iscriversi_manovra) e non ha righe in lista_manovra_sosta. Mai allo staff. Solo letture. CUMULA v2.28 (sotto). -->
@@ -410,6 +411,8 @@ body{font-size:17px}
 .t-paga .paga-conf[hidden]{display:none}
 .t-paga .cmd{color:var(--fiducia)}
 .t-sist .et{color:var(--grigio)}
+.t-nonci{font-size:13px; color:#FFB340; font-weight:700; margin-top:4px}
+.t-nonci[hidden]{display:none}
 .t-sist.rosso{border-color:rgba(255,59,48,.6)}
 .t-sist.rosso .big,.t-sist.rosso .cmd{color:#FF6B61}
 .t-sist.verde .big,.t-sist.verde .cmd{color:var(--cordata)}
@@ -675,6 +678,7 @@ async function init(){
 
   document.getElementById('app').style.display='block';
   if(pdata.staff_role) setTimeout(loadImpegniOggi,0); // v2.23: dopo il render della vista
+  if(pdata.staff_role) setTimeout(loadNonCiMie,0); // v2.32
 
   if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); }
@@ -1220,7 +1224,7 @@ async function loadSegCode(){
 const segPuoConti=()=>['staff_creator','staff_segreteria'].includes(pdata.staff_role);
 const SIST_GRUPPI=[['presenza_mancante','Presenze da confermare'],['turno_da_chiudere','Turni monitor da chiudere'],
   ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stessa persona su due lezioni'],['lezione_scoperta','Lezioni senza staff (prossimi 7 giorni)']];
-let sistRighe=[], sistSlot={}, sistAltre={}, sistInizio={}, sistStaff=null, sistPiano=[];
+let sistRighe=[], sistSlot={}, sistAltre={}, sistInizio={}, sistStaff=null, sistPiano=[], sistIndisp=[];
 /* CASO ESTREMO, CONFERMA: la riga del monitor si nasconde solo per questa sessione */
 const sistNascoste=new Set((()=>{ try{ return JSON.parse(sessionStorage.getItem('kc_sist_nascoste')||'[]'); }catch(e){ return []; } })());
 function sistSalvaNascoste(){ try{ sessionStorage.setItem('kc_sist_nascoste',JSON.stringify([...sistNascoste])); }catch(e){} }
@@ -1290,7 +1294,7 @@ async function sistCaricaContorno(){
   const ids=[...new Set([...sistRighe.map(r=>r.slot_id),...imp.map(i=>i.slot_id)].filter(Boolean))];
   sistSlot={};
   if(ids.length){
-    const{data:ss}=await sb.from('corsi_attivi_settimanali').select('id, tipo_corso, fascia, lead_scuola_id').in('id',ids);
+    const{data:ss}=await sb.from('corsi_attivi_settimanali').select('id, tipo_corso, fascia, lead_scuola_id, ora_inizio, ora_fine').in('id',ids);
     const leadIds=[...new Set((ss||[]).map(x=>x.lead_scuola_id).filter(Boolean))], ente={};
     if(leadIds.length){ const{data:ll}=await sb.from('lead_data').select('id, ente').in('id',leadIds); (ll||[]).forEach(l=>{ente[l.id]=l.ente;}); }
     (ss||[]).forEach(x=>{ sistSlot[x.id]={...x,ente:ente[x.lead_scuola_id]||''}; });
@@ -1382,23 +1386,35 @@ async function sistEsegui(btn,chiamata,fatto){
 /* staff per SOSTITUISCI e AGGIUNGI STAFF: sostituto da piano per primo, poi per nome, i monitor in fondo */
 async function sistCaricaStaff(){
   if(sistStaff)return;
-  const[rn,rp]=await Promise.all([
+  const[rn,rp,ri]=await Promise.all([
     sb.from('profiles').select('user_id, nome, cognome, staff_role').not('staff_role','is',null),
-    sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo',true)
+    sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo',true),
+    sb.from('v_staff_indisponibilita').select('user_id, data, ora_inizio, ora_fine, motivo') // v2.32
   ]);
   if(rn.error)throw rn.error;
-  sistStaff=rn.data||[]; sistPiano=rp.data||[];
+  if(ri.error)console.warn('[seg-sistema] indisponibilita:',ri.error.message);
+  sistStaff=rn.data||[]; sistPiano=rp.data||[]; sistIndisp=ri.data||[];
+}
+/* v2.32 chi ha segnato che non c'e' in quella data e ora (ore nulle = tutto il giorno) */
+function sistNonDisp(u,data,ini,fin){
+  const o=t=>t?String(t).slice(0,5):'';
+  return sistIndisp.find(x=>x.user_id===u&&x.data===data&&(!x.ora_inizio||!ini||!fin||(o(x.ora_inizio)<o(fin)&&o(x.ora_fine)>o(ini))))||null;
 }
 const sistNomeStaff=u=>{ const p=(sistStaff||[]).find(x=>x.user_id===u); return p?(((p.nome||'')+' '+(p.cognome||'')).trim()||'Staff'):'Staff'; };
 const sistMonitor=u=>!!(sistStaff||[]).find(x=>x.user_id===u&&x.staff_role==='staff_monitor');
-function opzioniStaffSist(slotId,titolare,escludi){
+function opzioniStaffSist(slotId,titolare,escludi,data,ini){
   const auto=titolare?(sistPiano.find(p=>p.slot_id===slotId&&p.user_id===titolare)||{}).sostituto_user_id:null;
-  const L=(sistStaff||[]).filter(u=>!escludi.includes(u.user_id))
+  const fin=(sistSlot[slotId]||{}).ora_fine||null;
+  const nd=u=>sistNonDisp(u.user_id,data,ini,fin); // v2.32 i non disponibili in fondo, grigi e non selezionabili
+  const T=(sistStaff||[]).filter(u=>!escludi.includes(u.user_id))
     .sort((a,b)=>sistNomeStaff(a.user_id).localeCompare(sistNomeStaff(b.user_id),'it'));
+  const L=T.filter(u=>!nd(u)), no=T.filter(nd);
+  const optNo=u=>{ const r=nd(u); return `<option value="${esc(u.user_id)}" disabled>${esc(sistNomeStaff(u.user_id))} · non disponibile${r.motivo?' ('+esc(r.motivo)+')':''}</option>`; };
   const mon=L.filter(u=>u.staff_role==='staff_monitor'), altri=L.filter(u=>u.staff_role!=='staff_monitor');
   const ord=auto&&altri.some(u=>u.user_id===auto)?[altri.find(u=>u.user_id===auto),...altri.filter(u=>u.user_id!==auto)]:altri;
   const opt=u=>`<option value="${esc(u.user_id)}">${esc(sistNomeStaff(u.user_id))}${u.user_id===auto?' (sostituto previsto)':''}</option>`;
-  return ord.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'');
+  return ord.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'')
+    +(no.length?`<optgroup label="Non disponibili">${no.map(optNo).join('')}</optgroup>`:'');
 }
 /* scelto un monitor: prima la domanda del caso estremo */
 function sistSeMonitor(u,vai){
@@ -1441,7 +1457,7 @@ async function sistAzione(az,i,btn){
   }else if(az==='sostituisci'||az==='aggiungi'){
     try{ await sistCaricaStaff(); }catch(e){ sistMsg('Non riesco a leggere lo staff: '+(e.message||e),false); return; }
     const sost=az==='sostituisci';
-    const opz=sost?opzioniStaffSist(r.slot_id,r.user_id,[r.user_id]):opzioniStaffSist(r.slot_id,null,[]);
+    const opz=sost?opzioniStaffSist(r.slot_id,r.user_id,[r.user_id],r.data,r.ora_inizio):opzioniStaffSist(r.slot_id,null,[],r.data,r.ora_inizio);
     const passata=r.data<isoLocal(new Date());
     dialogo(`<p><b>${sost?'Sostituisci '+esc(r.persona):'Aggiungi staff'}</b></p><p>${esc(lez)} · ${esc(quando)}</p>
       <div class="frm"><label for="sist-chi">${sost?'Al suo posto':'Chi'}</label><select id="sist-chi"${sost?'':' onchange="sistRuoloDaPersona()"'}>${opz}</select>
@@ -2699,7 +2715,17 @@ function htmlTesseraTurni(){
     <span class="et mono">Turni</span>
     <div class="big">📌</div>
     <span class="cmd mono">MI SEGNO ›</span>
+    <span class="t-nonci" id="turni-nonci" hidden></span>
   </a>`;
+}
+/* v2.32 le mie date in cui ho segnato che non ci sono (da oggi in poi) */
+async function loadNonCiMie(){
+  const el=document.getElementById('turni-nonci'); if(!el)return;
+  const{count,error}=await sb.from('v_staff_indisponibilita').select('id',{count:'exact',head:true})
+    .eq('user_id',uid).gte('data',isoLocal(new Date()));
+  if(error){ console.warn('[non ci sono]',error.message); return; }
+  el.hidden=!count;
+  el.textContent=count===1?'Hai segnato che non ci sei: 1 data':`Hai segnato che non ci sei: ${count} date`;
 }
 async function loadImpegniOggi(){
   const box=document.getElementById('t-imp'); if(!box)return;

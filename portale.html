@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.143 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): Segreteria -> 🗓 Turni. (1) Nella griglia della settimana, sotto il nome di ogni giorno, "Non ci sono: Nome (tutto il giorno), Nome (20–21)" da v_staff_indisponibilita, con TOGLI su ogni riga per creator e segreteria (togli_indisponibile, con conferma). (2) Bottone + NON DISPONIBILE accanto alle settimane (solo creator e segreteria): chi, data (da oggi), tutto il giorno o dalle … alle …, motivo -> segna_indisponibile con p_user_id; dopo, quante lezioni sono state tolte e quali, con il nome completo. (3) Nelle liste per scegliere lo staff (Aggiungi una persona, Sostituisci, anche sui turni monitor) chi non c'e' in quella data e ora resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi, non sui turni monitor), non disponibili. Errori delle RPC mostrati come arrivano. Nessuna modifica a DB. CUMULA v3.142 (sotto). -->
 <!-- KC-BUILD: portale v3.142 · 2026-10-27 · DA PAGARE PORTA AI COSTI + MONITOR IN FONDO (consegna 27 ott, DB segreteria_da_sistemare): (1) ?nav=segreteria&tab=turni&box=costi apre Segreteria -> 🗓 Turni e scorre al riquadro Costi staff del mese (link della tessera Da pagare di oggi v2.31); solo per creator e segreteria, gli altri restano sulla Segreteria com'era. segMostra restituisce il caricamento di Turni per poter scorrere dopo. (2) In Turni, nelle liste per scegliere lo staff sulle lezioni (Aggiungi una persona, Sostituisci) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi"; sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?". Nei turni monitor la lista resta com'era. Nessuna modifica a RPC. CUMULA v3.141 (sotto). -->
 <!-- KC-BUILD: portale v3.141 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): Segreteria → 🗓 Turni. (1) Nella settimana entrano da sole le lezioni dei corsi adulti e le Prime Lezioni (slot_copertura su tutti i corsi attivi): nomi completi in TU_NOME_CORSO (Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale, Prima Lezione Genitori, Corso Manovra in Sosta KataClimb, Lab); "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). (2) Nella voce di una lezione dei corsi, accanto a Togli / Segna assente / Segna presente / Riporta a previsto: SOSTITUISCI (segreteria) -> scelta dallo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore. (3) Nuova sezione COSTI STAFF DEL MESE da v_costi_staff_mese con selettore mese (default il mese corrente): Persona · Lezioni corsi (n · €) · Prime Lezioni (n · €) · Monitor (ore · €) · Totale · Sostituzioni · Assenze · Da confermare (in arancio se > 0, tocca = elenco delle lezioni passate senza presenza dello stesso mese in Compensi lezioni dei corsi); riga Totale staff; Esporta CSV; sotto, le Prime Lezioni pagate del mese da v_compenso_lezioni con il perche' della cifra ("con allievi" 15 €/h, "vuota" 5 €/h). (4) Profilo dello staff che non e' segreteria: "Il mio mese" con la propria riga ("Questo mese: X lezioni, Y prime, Z ore monitor = € totale") e le lezioni ancora da confermare. Solo letture e RPC esistenti, nessuna modifica a RPC, tabelle o viste. CUMULA v3.140 (sotto). -->
 <!-- KC-BUILD: portale v3.140 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (consegna Claude 25 ott, DB manovra_sosta_2026-10-25): (1) Segreteria: quarto interruttore 🪢 Corso Manovra in Sosta KataClimb. Lista da v_lista_manovra_sosta (in lista da N giorni, rosso con due_settimane_scadute); ore libere di Mello in Accademia da proponi_slot_manovra(14), raggruppate per giorno; si tocca un orario e il bottone "Crea lo slot" e' attivo con almeno 2 in lista oppure almeno uno da 2 settimane -> conferma -> crea_slot_manovra (prenota i primi 4 in lista) -> stripe-worker POST /manovra-sosta/avvisi {tipo:'slot', slot_id} manda la mail di conferma a ogni prenotato. Prenotati e lezioni da segnare: Abile / Non abile + nota -> esito_manovra; al primo Abile -> /manovra-sosta/avvisi {tipo:'abile', lista_id}, mail con la proposta della parte su roccia con Marco. Il Worker tiene memoria degli invii (eventi_notifica): niente doppioni. Se la mail non parte lo dice in chiaro, lo slot e l'esito restano. (2) Home allievo: sotto il riquadro del prossimo passo, chi ha il Corso Evo Corda KataClimb concluso (puo_iscriversi_manovra) e nessuna riga in lista_manovra_sosta vede la carta "Prossimo passo: Corso Manovra in Sosta KataClimb" -> manovra-sosta.html. Mai allo staff. Scritture solo via RPC. CUMULA v3.139 (sotto). -->
@@ -1695,6 +1696,10 @@ fill="#1d4ed8" stroke="none">
         .tu-tab td{padding:8px 8px 8px 0;border-bottom:1px solid var(--border)}
         .tu-tab tfoot td{border-bottom:none;font-weight:700}
         .tu-voce .tu-supp{display:block;font-size:13px;font-weight:700;color:#92400E;margin-top:3px}
+        .tu-nonci{font-size:13px;color:var(--text2);margin:0 0 6px;line-height:1.4}
+        .tu-nonci b{color:var(--text)}
+        .tu-nonci .tu-nonci-r{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:3px}
+        .tu-nonci button{font:inherit;font-size:13px;font-weight:700;padding:3px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
         .tu-supp-box{border:1px solid #D97706;background:#FFFBEB;color:#92400E;border-radius:10px;padding:9px 12px;margin:0 0 10px;font-size:14px}
         </style>
         <p id="tu-solo-lettura" class="sc-nota hidden" style="margin:0 0 12px">Vedi la copertura. Aggiungere, togliere, segnare assenze e chiudere i turni tocca alla segreteria.</p>
@@ -1704,6 +1709,7 @@ fill="#1d4ed8" stroke="none">
             <button class="btn btn-g sc-piccolo" onclick="tuSettimana(-1)">← Precedente</button>
             <button class="btn btn-g sc-piccolo" onclick="tuSettimana(0)">Questa settimana</button>
             <button class="btn btn-g sc-piccolo" onclick="tuSettimana(1)">Successiva →</button>
+            <button id="tu-nonci-btn" class="btn sc-scuro sc-piccolo hidden" onclick="tuApriNonCi()">+ NON DISPONIBILE</button>
           </div>
           <div id="tu-griglia" class="tu-griglia"></div>
           <div class="tu-leg"><span><i style="background:#16A34A"></i>coperto</span><span><i style="background:#D97706"></i>parziale</span><span><i style="background:#DC2626"></i>scoperto</span><span>Lezioni delle scuole: 3 istruttori · Sala con Monitor: 1 · Lezioni dei corsi: istruttori e assistenti come da piano, verde coperta, rossa scoperta</span></div>
@@ -10893,6 +10899,7 @@ const TU_RUOLO={conduce:'Conduce',supporto:'Supporto',monitor:'Monitor'};
 const TU_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 const TU_STATO={previsto:'previsto',presente:'presente ✓',assente:'assente'};
 let tuLunedi=null,tuDati=null,tuStaff=null,tuVoci=[],tuCompensi=[],tuDaChiudere=[];
+let tuIndisp=[]; // v3.143 v_staff_indisponibilita della settimana
 /* v3.139 lezioni dei corsi: nome completo, per i minori dalla fascia */
 const TU_NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb',
   /* v3.141 corsi adulti e Prime Lezioni */
@@ -10906,13 +10913,64 @@ function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='pre
 let tuCompLez=[];
 
 const tuPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
-/* v3.142 liste staff sulle lezioni: i monitor in fondo, solo casi estremi */
+/* v3.142 liste staff sulle lezioni: i monitor in fondo, solo casi estremi
+   v3.143 + i non disponibili in quella data e ora, in fondo, grigi e non selezionabili (v nullo = nessun controllo) */
 const TU_MON_CONF='È un monitor, non è istruttore né assistente. È davvero un caso estremo?';
 const tuEMonitor=u=>!!(tuStaff||[]).find(x=>x.user_id===u&&x.staff_role==='staff_monitor');
-function tuOpzioniStaff(lista,auto){
+function tuNonDisp(u,data,ini,fin){
+  return tuIndisp.find(x=>x.user_id===u&&x.data===data&&(!x.ora_inizio||!ini||!fin||(scOra(x.ora_inizio)<fin&&scOra(x.ora_fine)>ini)))||null;
+}
+function tuOpzioniStaff(lista,auto,v,separaMonitor){
+  const nd=u=>v?tuNonDisp(u.user_id,v.data,v.ini,v.fin):null;
+  const liberi=lista.filter(u=>!nd(u)),no=lista.filter(nd);
   const opt=u=>`<option value="${u.user_id}">${escHtml(scNome(u))}${u.user_id===auto?' (sostituto previsto)':''}</option>`;
-  const mon=lista.filter(u=>u.staff_role==='staff_monitor'),altri=lista.filter(u=>u.staff_role!=='staff_monitor');
-  return altri.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'');
+  const optNo=u=>{const r=nd(u);return `<option value="${u.user_id}" disabled>${escHtml(scNome(u))} · non disponibile${r.motivo?' ('+escHtml(r.motivo)+')':''}</option>`};
+  const sep=separaMonitor!==false;
+  const mon=sep?liberi.filter(u=>u.staff_role==='staff_monitor'):[],altri=sep?liberi.filter(u=>u.staff_role!=='staff_monitor'):liberi;
+  return altri.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'')
+    +(no.length?`<optgroup label="Non disponibili">${no.map(optNo).join('')}</optgroup>`:'');
+}
+/* v3.143 "Non ci sono" sotto il giorno della settimana, con TOGLI per la segreteria */
+function tuRigaNonCi(di){
+  const L=tuIndisp.filter(x=>x.data===di);
+  if(!L.length)return '';
+  const quando=x=>x.ora_inizio?`${scOra(x.ora_inizio)}–${scOra(x.ora_fine)}`:'tutto il giorno';
+  return `<div class="tu-nonci"><b>Non ci sono:</b>${L.map(x=>`<div class="tu-nonci-r"><span>${escHtml(tuNome(x.user_id)!=='—'?tuNome(x.user_id):x.persona)} (${escHtml(quando(x))})${x.motivo?' · '+escHtml(x.motivo):''}</span>${tuPuo()?`<button onclick="tuTogliNonCi('${x.id}',this)">TOGLI</button>`:''}</div>`).join('')}</div>`;
+}
+async function tuTogliNonCi(id,btn){
+  if(!confirm('Togliere questa indisponibilità? La persona torna disponibile.\n\nGli impegni tolti non tornano da soli: si risegna con MI SEGNO o la segni tu.'))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('togli_indisponibile',{p_id:id});
+  if(error){btn.disabled=false;toast('Non tolta: '+scErr(error));return}
+  toast('Fatto: di nuovo disponibile');
+  await tuCaricaSettimana();
+}
+function tuApriNonCi(){
+  const oggi=tuIso(new Date());
+  const L=(tuStaff||[]).slice().sort((a,b)=>scNome(a).localeCompare(scNome(b),'it'));
+  scModal('🚫 Segna chi non c’è',`
+    <label class="sc-lbl" for="tu-nd-user">Chi</label>
+    <select id="tu-nd-user" class="input sc-in">${L.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join('')}</select>
+    <label class="sc-lbl" for="tu-nd-data">Quando</label>
+    <input id="tu-nd-data" type="date" class="input sc-in" min="${oggi}" value="${oggi}">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:10px"><input type="radio" name="tu-nd-modo" id="tu-nd-tutto" checked onchange="document.getElementById('tu-nd-ore').classList.toggle('hidden',this.checked)"> Tutto il giorno</label>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:6px"><input type="radio" name="tu-nd-modo" onchange="document.getElementById('tu-nd-ore').classList.toggle('hidden',!this.checked)"> Solo in alcune ore</label>
+    <div id="tu-nd-ore" class="hidden" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">dalle <input id="tu-nd-ini" type="time" class="input sc-in" style="width:auto" value="17:00"> alle <input id="tu-nd-fin" type="time" class="input sc-in" style="width:auto" value="22:00"></div>
+    <label class="sc-lbl" for="tu-nd-motivo">Motivo (facoltativo)</label>
+    <input id="tu-nd-motivo" class="input sc-in" maxlength="120" placeholder="es. esame, lavoro">
+    <p class="sc-nota">Se la persona ha già impegni previsti in quell'orario, vengono tolti e il portale mette il sostituto da piano, se è disponibile.</p>`,
+  async()=>{
+    const u=scVal('tu-nd-user'),data=scVal('tu-nd-data'),tutto=document.getElementById('tu-nd-tutto').checked;
+    const ini=tutto?null:scVal('tu-nd-ini'),fin=tutto?null:scVal('tu-nd-fin');
+    if(!u||!data){scMsg('mo-scuole-msg','Servono la persona e la data.');return false}
+    if(!tutto&&(!ini||!fin||fin<=ini)){scMsg('mo-scuole-msg','Scrivi dalle … alle …, con la fine dopo l\'inizio.');return false}
+    const{data:r,error}=await sb.rpc('segna_indisponibile',{p_data:data,p_ora_inizio:ini,p_ora_fine:fin,p_motivo:scVal('tu-nd-motivo')||null,p_user_id:u});
+    if(error)throw error;
+    const lez=(r&&r.lezioni)||[];
+    toast(lez.length?`Segnato. Tolt${lez.length===1?'a 1 lezione':'e '+lez.length+' lezioni'}: ${lez.map(l=>tuNomeCorso(l.tipo_corso,l.fascia)+' '+scOra(l.ora)).join(', ')}. Il portale cerca il sostituto.`:`Segnato: ${tuNome(u)} non c'è il ${scD(data)}.`);
+    await tuCaricaSettimana();
+    if(tuPuo()){tuCaricaCompLez();tuCaricaCosti()}
+  },{ok:'Segna'});
 }
 function tuIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function tuPiu(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
@@ -10927,6 +10985,7 @@ async function tuCaricaTutto(){
   if(tuPuo())tasks.push(tuCaricaCompensi(),tuCaricaCompLez(),tuCaricaCosti());
   else{document.getElementById('tu-compensi-wrap').classList.add('hidden');document.getElementById('tu-complez-wrap').classList.add('hidden');document.getElementById('tu-costi-wrap').classList.add('hidden')}
   document.getElementById('tu-solo-lettura').classList.toggle('hidden',tuPuo());
+  document.getElementById('tu-nonci-btn').classList.toggle('hidden',!tuPuo()); // v3.143
   await Promise.all(tasks);
 }
 function tuSettimana(delta){tuLunedi=delta===0?tuLun(new Date()):tuPiu(tuLunedi,7*delta);tuCaricaSettimana()}
@@ -10954,6 +11013,9 @@ async function tuCaricaSettimana(){
     if(res[2].error)console.warn('[turni] slot_copertura:',res[2].error.message);
     if(res[3].error)console.warn('[turni] richieste_supporto:',res[3].error.message);
     if(res[4]){if(res[4].error)console.warn('[turni] staff:',res[4].error.message);tuStaff=res[4].data||[]}
+    const ri=await sb.from('v_staff_indisponibilita').select('id,user_id,persona,data,ora_inizio,ora_fine,motivo').gte('data',da).lte('data',a).order('ora_inizio'); // v3.143
+    if(ri.error)console.warn('[turni] indisponibilita:',ri.error.message);
+    tuIndisp=ri.data||[];
     if(!tuPiano){const rp=await sb.from('slot_piano_staff').select('slot_id,user_id,sostituto_user_id').eq('attivo',true); // v3.141
       if(rp.error)console.warn('[turni] piano:',rp.error.message);tuPiano=rp.data||[]}
     const cop=res[2].data||[];
@@ -11000,7 +11062,7 @@ function tuDisegnaSettimana(){
     });
     voci.sort((x,y)=>x.ini.localeCompare(y.ini));
     const oggi=di===tuIso(new Date());
-    html+=`<div class="tu-col${oggi?' oggi':''}"><div class="tu-g">${SC_GIORNI[d.getDay()]} ${d.getDate()}</div>`
+    html+=`<div class="tu-col${oggi?' oggi':''}"><div class="tu-g">${SC_GIORNI[d.getDay()]} ${d.getDate()}</div>${tuRigaNonCi(di)}`
       +(voci.length?voci.map(v=>{
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
@@ -11046,7 +11108,7 @@ function tuApriVoce(k){
   const liberi=(tuStaff||[]).filter(u=>!gia.includes(u.user_id));
   const aggiungi=(puo&&!passato&&liberi.length)?`
     <label class="sc-lbl" for="tu-add-user">Aggiungi una persona</label>
-    <select id="tu-add-user" class="input sc-in"${v.tipo==='corso'?' onchange="tuRuoloDaUtente()"':''}>${v.tipo==='monitor'?liberi.map(u=>`<option value="${u.user_id}">${escHtml(scNome(u))}</option>`).join(''):tuOpzioniStaff(liberi,null)}</select>
+    <select id="tu-add-user" class="input sc-in"${v.tipo==='corso'?' onchange="tuRuoloDaUtente()"':''}>${tuOpzioniStaff(liberi,null,v,v.tipo!=='monitor')}</select>
     ${v.tipo==='corso'?`<label class="sc-lbl" for="tu-add-ruolo">Come</label>
     <select id="tu-add-ruolo" class="input sc-in"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>`
     :v.tipo==='lezione'?`<label class="sc-lbl" for="tu-add-ruolo">Ruolo</label>
@@ -11281,12 +11343,12 @@ function tuApriSost(impId,k){
   const r=v.seg.find(i=>i.id===impId);if(!r)return;
   const auto=((tuPiano||[]).find(p=>p.slot_id===v.slot.id&&p.user_id===r.user_id)||{}).sostituto_user_id||null;
   const altri=(tuStaff||[]).filter(u=>u.user_id!==r.user_id);
-  const ord=auto&&altri.some(u=>u.user_id===auto&&u.staff_role!=='staff_monitor')?[altri.find(u=>u.user_id===auto),...altri.filter(u=>u.user_id!==auto)]:altri;
+  const ord=auto&&altri.some(u=>u.user_id===auto&&u.staff_role!=='staff_monitor'&&!tuNonDisp(auto,v.data,v.ini,v.fin))?[altri.find(u=>u.user_id===auto),...altri.filter(u=>u.user_id!==auto)]:altri;
   const passata=v.data<tuIso(new Date());
   scModal(`🔁 Sostituisci ${tuNome(r.user_id)}`,
     `<p class="sc-sub" style="margin-bottom:8px">${escHtml(v.titolo)} · ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}</p>
      <label class="sc-lbl" for="tu-sost-user">Al suo posto</label>
-     <select id="tu-sost-user" class="input sc-in">${tuOpzioniStaff(ord,auto)}</select>
+     <select id="tu-sost-user" class="input sc-in">${tuOpzioniStaff(ord,auto,v)}</select>
      <p class="sc-nota">${passata?'Lezione passata: chi scegli risulta già presente.':'Chi scegli prende il suo posto sulla lezione.'}</p>`,
     async()=>{
       if(tuEMonitor(scVal('tu-sost-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
