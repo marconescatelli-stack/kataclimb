@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.3 · 2026-10-27 · MONITOR IN FONDO (consegna 27 ott, DB segreteria_da_sistemare): in MI SOSTITUISCE… chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi" (il sostituto previsto resta primo se non e' un monitor); sceglierlo chiede prima "È un monitor, non è istruttore né assistente. È davvero un caso estremo?". Per saperlo i nomi dello staff si leggono con staff_role. Nessuna modifica a RPC. CUMULA v1.2 (sotto). -->
 <!-- KC-BUILD: turni v1.2 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) LEZIONI DEI CORSI mostra tutto v_copertura_lezioni, corsi adulti e Prime Lezioni compresi (nessun filtro sui minori in pagina): nomi completi per Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale (minori dalla fascia come prima). (2) Sulle proprie lezioni ancora previste, accanto a NON CI SONO: MI SOSTITUISCE… -> scelta dallo staff (per primo il sostituto automatico della lezione da slot_piano_staff, poi tutti per nome) -> conferma "La lezione passa a NOME. Tu non risulti più in questa lezione." -> sostituisci_istruttore. (3) Chip "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). Nessuna modifica a RPC o tabelle. CUMULA v1.1 (sotto). -->
 <!-- KC-BUILD: turni v1.1 · 2026-10-24 · COPERTURA E PRESENZE NELLE LEZIONI DEI CORSI (consegna Claude 24 ott, DB piano_staff_lezioni_minori): nuova sezione LEZIONI DEI CORSI sopra le scuole, settimana per settimana, da v_copertura_lezioni (prossimi 28 giorni) con chi e' segnato da impegni_staff (istruttore = compenso_tipo lezione, assistente = ora) e il contatore "Istruttori 1/1 · Assistenti 0/1"; verde se coperta, rossa se scoperta; nome del corso dalla fascia per i minori (tipo bambini con fascia ragazzi = Corso Ragazzi (12–17)). Richiesta di supporto aperta (richieste_supporto) = banner giallo con chi l'ha chiesta e la nota, ACCETTO IO -> accetta_supporto, ANNULLA RICHIESTA per chi l'ha aperta -> annulla_supporto. Sulle proprie lezioni future: NON CI SONO -> impegno_mi_tolgo dopo la conferma "Se non ci sei, il portale chiama il tuo sostituto (se previsto) e la segreteria vede la lezione scoperta." (il sostituto lo crea il trigger a DB) e CHIEDI SUPPORTO con nota facoltativa -> chiedi_supporto. Lezioni scoperte o con supporto richiesto: MI SEGNO -> impegno_mi_segno('lezione', slot, data) o accetta_supporto se la richiesta e' aperta. In I MIEI IMPEGNI i corsi hanno il nome completo e NON CI SONO. TURNI MONITOR SOLO 19-22 (decisione Marco 23 ott, come portale v3.138): tolta la fascia 18-19 "da coprire". Nessuna modifica a RPC o tabelle. CUMULA v1.0 (sotto). -->
 <!-- KC-BUILD: turni v1.0 · 2026-10-21 · TURNI E PRESENZE STAFF, METÀ C (consegna Claude 21 ott): PAGINA NUOVA per tutto lo staff (profile_data.staff_role non nullo), stile della console Oggi. (1) LEZIONI CHE CERCANO ISTRUTTORI: slot corsi_attivi_settimanali attivi con data_evento nelle prossime 4 settimane e lead_scuola_id valorizzato (per ora solo scuole, richiesti fissi 3); chip dei segnati con ruolo da impegni_staff (stato diverso da ritirato), contatore N/3, "Mi segno" con ruolo (conduce di default per istruttore senior, tutor e creator; supporto per gli altri; modificabile) -> impegno_mi_segno('lezione', slot, ruolo), "Mi tolgo" -> impegno_mi_tolgo. (2) TURNI MONITOR: griglia lun-ven per 2 settimane con le fasce 19-22 e 18-19 (la 18-19 evidenziata "da coprire": debito aperto del 2 ott, decisione Marco pendente) -> impegno_mi_segno('monitor', null, data, ora_inizio, ora_fine). (3) I MIEI IMPEGNI da oggi in poi, "Mi tolgo" finche' sono previsti. La presenza si segna su Oggi. Solo RPC per le scritture. -->
@@ -212,7 +213,7 @@ async function carica(){
         .gte('data',isoLocal(lunedi)).lte('data',fineMon),
       sb.from('impegni_staff').select('id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, presenza_inizio, presenza_fine')
         .eq('user_id',uid).neq('stato','ritirato').gte('data',oggiIso).order('data').order('ora_inizio'),
-      sb.from('profiles').select('user_id, nome, cognome').not('staff_role','is',null)
+      sb.from('profiles').select('user_id, nome, cognome, staff_role').not('staff_role','is',null) // v1.3 staff_role: i monitor in fondo
     ]);
     for(const r of [rs,rl,rm,rmiei]) if(r.error) throw r.error;
     lezioni=rs.data||[]; impLezTutti=rl.data||[]; impLez=impLezTutti.filter(x=>x.stato!=='ritirato'); impMon=rm.data||[]; miei=rmiei.data||[];
@@ -317,12 +318,16 @@ async function nonCiSono(id,btn){
 function opzioniSostituto(slotId){
   const auto=(piano.find(p=>p.slot_id===slotId&&p.user_id===uid)||{}).sostituto_user_id||null;
   const tutti=Object.keys(nomi).filter(u=>u!==uid).sort((a,b)=>nome(a).localeCompare(nome(b),'it'));
-  const ord=auto&&tutti.includes(auto)?[auto,...tutti.filter(u=>u!==auto)]:tutti;
-  return ord.map(u=>`<option value="${esc(u)}">${esc(nome(u))}${u===auto?' (sostituto previsto)':''}</option>`).join('');
+  const altri=tutti.filter(u=>!eMonitor(u)), mon=tutti.filter(eMonitor); // v1.3 i monitor in fondo, solo casi estremi
+  const ord=auto&&altri.includes(auto)?[auto,...altri.filter(u=>u!==auto)]:altri;
+  const opt=u=>`<option value="${esc(u)}">${esc(nome(u))}${u===auto?' (sostituto previsto)':''}</option>`;
+  return ord.map(opt).join('')+(mon.length?`<optgroup label="Monitor · solo casi estremi">${mon.map(opt).join('')}</optgroup>`:'');
 }
+const eMonitor=u=>!!(nomi[u]&&nomi[u].staff_role==='staff_monitor');
 function apriSostituto(i){ const c=corsiVoci[i]; if(!c)return; _sostAperto=chiaveCorso(c); _suppAperto=null; disegnaCorsi(); }
 async function confermaSostituto(impId,btn){
   const u=($('sost-chi')||{}).value; if(!u)return;
+  if(eMonitor(u)&&!confirm('È un monitor, non è istruttore né assistente. È davvero un caso estremo?'))return; // v1.3
   if(!confirm(`La lezione passa a ${nome(u)}. Tu non risulti più in questa lezione.\n\nConfermi?`))return;
   btn.disabled=true;
   const{error}=await sb.rpc('sostituisci_istruttore',{p_impegno_id:impId,p_nuovo_user:u,p_note:'sostituzione chiesta dal titolare in Turni'});
