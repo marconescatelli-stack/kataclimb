@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.145 · 2026-10-27 · ALLINEAMENTO: L'INTERFACCIA CHE GUIDA E CONTROLLA (consegna 27 ott, nessuna modifica al DB). (1) Nuova funzione generica kcGuida() vicino a scModal, documentata in testa e pronta per le altre sezioni: modale con titolo, riquadro "Cosa succede se confermi" (si aggiorna mentre si compila), righe arancio di attenzione, campi, conferma scura a destra e annulla chiaro a sinistra; errore = messaggio rosso e la finestra resta aperta; riuscita = chiude, toast e lo stesso testo resta come esito. Mai perdere quello che si e' scritto: se la finestra e' stata toccata, uscire (annulla, ✕, clic fuori, Esc, cambio tab della Segreteria, cambio sezione) chiede "Non hai salvato" con Torna e completa / Esci senza salvare; ricaricare la pagina fa comparire l'avviso del browser; le caselle di testo restano come bozza nel browser (localStorage per voce, try/catch) e si ritrovano riaprendo la voce ("Avevi iniziato a scrivere"). (2) Allineamento: in cima "Cosa fare oggi" a passi dai numeri (entro fine mese solo negli ultimi 7 giorni), cliccabili verso il gruppo; sotto ogni bottone cosa fa; NON VA -> NON È COSÌ, CORRETTO -> HO CORRETTO IL FOGLIO; tutte le azioni passano da kcGuida (REGISTRA con frasi dal vivo e avviso se l'importo e' diverso dal foglio, NON È COSÌ, RISPONDI, FATTO, HO CORRETTO IL FOGLIO, INSERISCI PRIMA LA PERSONA); sulla riga "✎ bozza non inviata"; dopo l'azione la riga resta grigia con cosa e' successo e cosa succede stanotte; storico con etichette chiare (Registrato, Risposta inviata, Chiuso: non è così, Sistemato, Corretto nel foglio). Scritture solo con allineamento_decidi, stato 'scartata' invariato. (3) Il messaggio breve (toast) di tutto il portale passa da 12px a 13px (da 1024px resta 18px). CUMULA v3.144 (sotto). -->
 <!-- KC-BUILD: portale v3.144 · 2026-10-27 · ALLINEAMENTO PRIMA NOTA (consegna 27 ott, DB allineamento_console_2026-10-27): Segreteria -> nuovo tab "🔄 Allineamento" (solo creator e segreteria) con badge = voci aperte dell'ultima notte (arancio se ci sono abbonamenti da registrare), caricato all'apertura della Segreteria. ?nav=segreteria&tab=allineamento apre direttamente il tab. Righe aperte dell'ultima notte di allineamento_proposte (mai le 'superata') in quattro gruppi: Da registrare nel portale, Da chiarire, Da sistemare nel portale, Da correggere nel tuo foglio; "Nel tuo foglio" / "Nel portale" / proposta; bollino "ferma da X giorni" se notte - aperta_dal >= 3; nome -> scheda nel tab Persone (lead_data.persona_id). Azioni solo con allineamento_decidi: REGISTRA (modale con metodo contanti/bancomat/bonifico, importo e scadenza modificabili), INSERISCI PRIMA LA PERSONA (Inserisci contatto) se manca persona_id, NON VA (perche' facoltativo), RISPONDI, FATTO, CORRETTO; la riga resta grigia con l'esito, il badge scende, niente ricarica. In fondo, chiuso: "Chiuse negli ultimi 30 giorni". Solo nomi, mai email o telefoni. Nessuna modifica a DB. Su oggi.html non cambia niente. CUMULA v3.143 (sotto). -->
 <!-- KC-BUILD: portale v3.143 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): Segreteria -> 🗓 Turni. (1) Nella griglia della settimana, sotto il nome di ogni giorno, "Non ci sono: Nome (tutto il giorno), Nome (20–21)" da v_staff_indisponibilita, con TOGLI su ogni riga per creator e segreteria (togli_indisponibile, con conferma). (2) Bottone + NON DISPONIBILE accanto alle settimane (solo creator e segreteria): chi, data (da oggi), tutto il giorno o dalle … alle …, motivo -> segna_indisponibile con p_user_id; dopo, quante lezioni sono state tolte e quali, con il nome completo. (3) Nelle liste per scegliere lo staff (Aggiungi una persona, Sostituisci, anche sui turni monitor) chi non c'e' in quella data e ora resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi, non sui turni monitor), non disponibili. Errori delle RPC mostrati come arrivano. Nessuna modifica a DB. CUMULA v3.142 (sotto). -->
 <!-- KC-BUILD: portale v3.142 · 2026-10-27 · DA PAGARE PORTA AI COSTI + MONITOR IN FONDO (consegna 27 ott, DB segreteria_da_sistemare): (1) ?nav=segreteria&tab=turni&box=costi apre Segreteria -> 🗓 Turni e scorre al riquadro Costi staff del mese (link della tessera Da pagare di oggi v2.31); solo per creator e segreteria, gli altri restano sulla Segreteria com'era. segMostra restituisce il caricamento di Turni per poter scorrere dopo. (2) In Turni, nelle liste per scegliere lo staff sulle lezioni (Aggiungi una persona, Sostituisci) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi"; sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?". Nei turni monitor la lista resta com'era. Nessuna modifica a RPC. CUMULA v3.141 (sotto). -->
@@ -136,7 +137,7 @@ textarea.input{min-height:60px;resize:vertical}
 .hidden{display:none!important}
 
 /* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:12px;z-index:200;pointer-events:none;animation:fadeUp .3s ease}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;z-index:200;pointer-events:none;animation:fadeUp .3s ease}
 
 /* B2 — CELEBRAZIONE CERTIFICAZIONE KATA: full-screen overlay, oro evidente */
 .celebrate-overlay{
@@ -1799,7 +1800,20 @@ fill="#1d4ed8" stroke="none">
         #seg-all-badge:empty{display:none}
         #seg-all-badge.al-arancio{background:#FFB340;color:#1A1A1A}
         #seg-allineamento-wrap{font-size:14.5px;color:var(--text)}
-        .al-guida{font-size:13.5px;color:var(--text2);margin:0;line-height:1.5}
+        .al-guida{font-size:13.5px;color:var(--text2);margin:10px 0 0;line-height:1.5}
+        .al-oggi{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:rgba(0,0,0,.02)}
+        .al-oggi-t{font-size:15.5px;font-weight:800}
+        .al-oggi-t span{font-size:13px;font-weight:600;color:var(--text2)}
+        .al-passi{margin:8px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+        .al-passi li{font-size:14.5px;line-height:1.45}
+        .al-passo{background:none;border:none;padding:2px 0;font:inherit;color:var(--text);text-align:left;cursor:pointer}
+        .al-passo:hover{text-decoration:underline}
+        .al-bozza{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;background:#E0E7FF;color:#3730A3;margin-left:6px;vertical-align:1px}
+        .al-azioni{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+        .al-az{display:flex;align-items:center;gap:10px}
+        .al-az .btn{flex:0 0 auto}
+        .al-spiega{font-size:13px;color:var(--text2);line-height:1.4}
+        @media(max-width:600px){.al-az{flex-direction:column;align-items:flex-start;gap:4px}}
         .al-conti{font-size:14px;font-weight:700;margin:0 0 6px;line-height:1.5}
         .al-riga{padding:12px 0;border-top:1px solid var(--border)}
         .al-gruppo .al-riga:first-of-type{border-top:none}
@@ -1811,7 +1825,7 @@ fill="#1d4ed8" stroke="none">
         .al-abb{font-size:13.5px;margin-top:4px;color:var(--text)}
         .al-ferma{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;background:#FEF3C7;color:#92400E;margin-left:6px;vertical-align:1px}
         .al-chiusa{opacity:.55}
-        .al-esito{font-size:13.5px;font-weight:700;color:#166534;margin-top:8px}
+        .al-esito{font-size:13.5px;font-weight:600;color:var(--text2);margin-top:8px;line-height:1.45}
         .al-sec{background:transparent;border:1px solid var(--text);color:var(--text)}
         .al-mets{display:flex;gap:6px;flex-wrap:wrap}
         .al-met{flex:1;min-width:90px;font-size:14.5px;font-weight:700;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit}
@@ -2381,6 +2395,51 @@ fill="#1d4ed8" stroke="none">
     <div style="display:flex;gap:7px;margin-top:14px">
       <button class="btn btn-dark" id="cambia-giorni-conferma" style="flex:1;background:var(--text);color:#F5F1EB" onclick="confermaCambiaGiorni()" disabled>Conferma</button>
       <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-cambia-giorni')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- v3.145 — Modale di kcGuida (spiega → conferma → esito) e domanda "Non hai salvato" -->
+<style>
+#mo-kcg .mo-box,#mo-kcg-esci .mo-box{max-width:520px;position:relative}
+#mo-kcg h3{padding-right:34px}
+.kcg-x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text);font-size:16px;cursor:pointer}
+.kcg-succ{border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin:0 0 10px;background:rgba(0,0,0,.025)}
+.kcg-succ-t{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:4px}
+#kcg-succ{margin:0;padding-left:20px;font-size:14.5px;line-height:1.5;color:var(--text)}
+.kcg-att{font-size:14px;font-weight:700;color:#B45309;background:#FEF3C7;border-radius:10px;padding:8px 12px;margin:0 0 8px;line-height:1.45}
+.kcg-bozza{font-size:13.5px;font-weight:700;color:#3730A3;margin:4px 0}
+.kcg-pronto{font-size:14px;font-weight:700;color:#B45309;margin-top:12px}
+.kcg-err{font-size:14px;color:#B91C1C;background:#FEF2F2;border-radius:10px;padding:9px 12px;margin-top:10px}
+.kcg-bott{display:flex;gap:8px;margin-top:16px}
+.kcg-bott .btn{flex:1;font-size:15px;padding:13px 14px}
+.kcg-ok{background:var(--text);color:var(--bg);border:none}
+.kcg-ok:disabled{opacity:.45;cursor:not-allowed}
+.kcg-annulla{background:transparent;color:var(--text);border:1px solid var(--border)}
+#kcg-esci-txt{font-size:15px;line-height:1.5;margin:0}
+</style>
+<div id="mo-kcg" class="mo hidden" onclick="if(event.target===this)kcGuidaEsci()">
+  <div class="mo-box">
+    <button type="button" class="kcg-x" aria-label="Chiudi" onclick="kcGuidaEsci()">✕</button>
+    <h3 id="kcg-tit"></h3>
+    <div class="kcg-succ"><div class="kcg-succ-t">Cosa succede se confermi</div><ul id="kcg-succ"></ul></div>
+    <div id="kcg-att"></div>
+    <div id="kcg-corpo"></div>
+    <div id="kcg-pronto"></div>
+    <div id="kcg-msg"></div>
+    <div class="kcg-bott">
+      <button type="button" class="btn kcg-annulla" id="kcg-annulla" onclick="kcGuidaEsci()">No, torna indietro</button>
+      <button type="button" class="btn kcg-ok" id="kcg-ok" onclick="kcGuidaConferma()">Conferma</button>
+    </div>
+  </div>
+</div>
+<div id="mo-kcg-esci" class="mo hidden" style="z-index:960" onclick="if(event.target===this)kcGuidaTorna()">
+  <div class="mo-box">
+    <h3>Non hai salvato.</h3>
+    <p id="kcg-esci-txt"></p>
+    <div class="kcg-bott">
+      <button type="button" class="btn kcg-annulla" onclick="kcGuidaEsciDavvero()">Esci senza salvare</button>
+      <button type="button" class="btn kcg-ok" id="kcg-torna" onclick="kcGuidaTorna()">Torna e completa</button>
     </div>
   </div>
 </div>
@@ -9080,6 +9139,7 @@ function fmtDataBreve(d){
 function escHtml(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 function showNav(id){
+  if(kcG){kcGuidaEsci(()=>showNav(id));return;} // v3.145 una finestra kcGuida aperta: prima si chiude (o si chiede)
   if(id==='segreteria'&&!isSegreteria())return;
   if(id==='agenda'&&!isAdmin())return;
   ['profilo','comunita','segreteria','agenda'].forEach(s=>{
@@ -10203,6 +10263,7 @@ async function scApriDoc(docId,btn){
 
 /* ── Interruttore Persone / Scuole nella Segreteria ── */
 function segMostra(quale){
+  if(kcG){kcGuidaEsci(()=>segMostra(quale));return;} // v3.145
   const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',allin=quale==='allineamento',altro=scuole||turni||manovra||allin;
   if(altro&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
   document.getElementById('seg-scuole-wrap').classList.toggle('hidden',!scuole);
@@ -10221,6 +10282,110 @@ function segMostra(quale){
   if(manovra)msCaricaTutto();
   if(turni)return tuCaricaTutto(); // v3.142 restituito: chi apre Turni da link puo' scorrere dopo il caricamento
 }
+
+/* ── kcGuida: spiega → conferma → esito (portale v3.145, principio di Marco del 27 ott, vale per tutto il portale) ──
+   Ogni azione dice PRIMA cosa fara', chiede conferma con le parole di chi la usa, DOPO dice cosa e' successo
+   e cosa succede adesso. Da usare al posto di confirm() e delle modali senza spiegazione, in qualsiasi sezione.
+   kcGuida({
+     titolo: 'Registri l\'abbonamento di …',   // testo semplice
+     succede: [html,…] | (corpo)=>[html,…],     // riquadro "Cosa succede se confermi"; la funzione si ricalcola a ogni modifica
+     attenzione: html | [html,…] | fn,          // riga/e arancio, facoltativo
+     corpo: 'html',                             // campi del modulo, facoltativo
+     pronto: (corpo)=>true | 'testo',           // facoltativo: con un testo la conferma resta spenta e il testo sta sopra i bottoni
+     stato: ()=>valore,                         // facoltativo: scelte che non sono nei campi (es. metodo) per capire se si e' toccato qualcosa
+     cosa: 'registrare l\'abbonamento', chi: 'Nome',  // per "Hai iniziato a <cosa> per <chi>"
+     bozza: {chiave, campo},                    // facoltativo: la casella <campo> resta nel browser finche' non si conferma o si esce senza salvare
+     ok: 'Sì, registra', annulla: 'No, torna indietro',
+     azione: async (corpo)=>risultato,          // errore -> messaggio rosso, la finestra resta aperta
+     dopo: 'testo' | (risultato)=>'testo',      // toast dopo la chiusura riuscita, passato anche a poi()
+     poi: (testo, risultato)=>{},               // dopo la chiusura riuscita (es. la riga mostra l'esito)
+     chiusa: ()=>{}                             // a ogni chiusura, riuscita o no
+   })
+   Uscire senza confermare (annulla, ✕, clic fuori, Esc, cambio tab della Segreteria o di sezione) chiude subito
+   se non si e' toccato niente; altrimenti chiede "Non hai salvato". Ricaricare la pagina con la finestra toccata
+   fa comparire l'avviso del browser. kcGuidaBozza(chiave) dice alle liste se c'e' una bozza non inviata. */
+var kcG=null; // finestra aperta: {opz, iniziale, poiUscita}; var e non let: showNav e segMostra la leggono anche prima che questa riga giri
+function kcGLeggi(k){try{return localStorage.getItem(k)||''}catch(_){return ''}}
+function kcGScrivi(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(_){}}
+function kcGuidaBozza(k){return kcGLeggi(k)}
+function kcGFoto(){
+  const c=document.getElementById('kcg-corpo');
+  return JSON.stringify([[...c.querySelectorAll('input,textarea,select')].map(e=>e.type==='checkbox'||e.type==='radio'?e.checked:e.value),kcG&&kcG.opz.stato?kcG.opz.stato():null]);
+}
+function kcGuidaToccata(){return !!kcG&&kcGFoto()!==kcG.iniziale}
+function kcGuida(opz){
+  if(kcG)kcGChiudi();
+  kcG={opz};
+  document.getElementById('kcg-tit').textContent=opz.titolo||'';
+  const c=document.getElementById('kcg-corpo');
+  c.innerHTML=opz.corpo||'';
+  c.oninput=c.onchange=kcGuidaAggiorna;
+  if(opz.bozza){
+    const campo=document.getElementById(opz.bozza.campo),b=kcGLeggi(opz.bozza.chiave);
+    if(campo&&b){campo.value=b;campo.insertAdjacentHTML('beforebegin','<div class="kcg-bozza">✎ Avevi iniziato a scrivere:</div>');}
+  }
+  document.getElementById('kcg-msg').innerHTML='';
+  document.getElementById('kcg-ok').textContent=opz.ok||'Conferma';
+  document.getElementById('kcg-annulla').textContent=opz.annulla||'No, torna indietro';
+  kcG.iniziale=kcGFoto();
+  kcGuidaAggiorna();
+  openModal('mo-kcg');
+}
+/* ricalcola riquadro, avvisi e conferma; chiamala anche quando cambia una scelta fuori dai campi (es. un bottone metodo) */
+function kcGuidaAggiorna(){
+  if(!kcG)return;
+  const o=kcG.opz,c=document.getElementById('kcg-corpo');
+  const val=v=>typeof v==='function'?v(c):v;
+  const succ=[].concat(val(o.succede)||[]),att=[].concat(val(o.attenzione)||[]).filter(Boolean);
+  document.getElementById('kcg-succ').innerHTML=succ.map(s=>'<li>'+s+'</li>').join('');
+  document.getElementById('kcg-att').innerHTML=att.map(s=>'<div class="kcg-att">⚠️ '+s+'</div>').join('');
+  const p=o.pronto?o.pronto(c):true;
+  document.getElementById('kcg-pronto').innerHTML=p===true?'':'<div class="kcg-pronto">'+escHtml(p)+'</div>';
+  document.getElementById('kcg-ok').disabled=p!==true;
+  if(o.bozza&&kcGuidaToccata()){const campo=document.getElementById(o.bozza.campo);if(campo)kcGScrivi(o.bozza.chiave,campo.value.trim()?campo.value:'');}
+}
+function kcGChiudi(){
+  const o=kcG&&kcG.opz;kcG=null;
+  closeModal('mo-kcg');closeModal('mo-kcg-esci');
+  if(o&&o.chiusa)o.chiusa();
+}
+/* uscita senza confermare; poi = cosa fare dopo essere usciti (es. cambiare tab). true se e' uscita subito */
+function kcGuidaEsci(poi){
+  if(!kcG){if(poi)poi();return true;}
+  if(!kcGuidaToccata()){kcGChiudi();if(poi)poi();return true;}
+  kcG.poiUscita=poi||null;
+  const o=kcG.opz;
+  document.getElementById('kcg-esci-txt').innerHTML=`Hai iniziato a ${escHtml(o.cosa||'compilare questa finestra')}${o.chi?' per <b>'+escHtml(o.chi)+'</b>':''}. Se esci adesso, quello che hai scritto non viene salvato.`;
+  openModal('mo-kcg-esci');
+  document.getElementById('kcg-torna').focus();
+  return false;
+}
+function kcGuidaTorna(){closeModal('mo-kcg-esci');}
+function kcGuidaEsciDavvero(){
+  const o=kcG&&kcG.opz,poi=kcG&&kcG.poiUscita;
+  if(o&&o.bozza)kcGScrivi(o.bozza.chiave,'');
+  kcGChiudi();
+  if(poi)poi();
+}
+async function kcGuidaConferma(){
+  if(!kcG)return;
+  const o=kcG.opz,c=document.getElementById('kcg-corpo'),ok=document.getElementById('kcg-ok');
+  if(o.pronto&&o.pronto(c)!==true)return;
+  ok.disabled=true;document.getElementById('kcg-msg').innerHTML='';
+  let res;
+  try{res=o.azione?await o.azione(c):null;}
+  catch(e){document.getElementById('kcg-msg').innerHTML='<div class="kcg-err">'+escHtml(scErr(e))+'</div>';ok.disabled=false;return;}
+  const testo=typeof o.dopo==='function'?o.dopo(res):(o.dopo||'');
+  if(o.bozza)kcGScrivi(o.bozza.chiave,'');
+  kcGChiudi();
+  if(testo)toast(testo);
+  if(o.poi)o.poi(testo,res);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||!kcG)return;
+  if(!document.getElementById('mo-kcg-esci').classList.contains('hidden'))kcGuidaTorna();else kcGuidaEsci();
+});
+window.addEventListener('beforeunload',e=>{if(kcGuidaToccata()){e.preventDefault();e.returnValue='';}});
 
 /* ── Modale unica del tab Scuole ── */
 function scModal(titolo,html,onOk,opz){
@@ -11405,11 +11570,13 @@ function tuApriSost(impId,k){
     },{ok:'Sostituisci'});
 }
 
-/* ── ALLINEAMENTO PRIMA NOTA ── (consegna 27 ott 2026, portale v3.144) — Segreteria → 🔄 Allineamento
+/* ── ALLINEAMENTO PRIMA NOTA ── (consegna 27 ott 2026, portale v3.144; v3.145 l'interfaccia che guida e controlla) — Segreteria → 🔄 Allineamento
    Ogni notte un agente confronta Elenco scadenze e Contabilita' della segreteria con il portale e scrive le
    proposte in allineamento_proposte (la leggono solo creator e segreteria). Qui si chiudono, solo con
    allineamento_decidi: gli errori arrivano gia' in italiano e si mostrano cosi'. Le righe 'superata'
-   (copie delle notti prima) non si mostrano mai. Solo nomi: mai email o telefoni. */
+   (copie delle notti prima) non si mostrano mai. Solo nomi: mai email o telefoni.
+   v3.145: in cima "Cosa fare oggi"; ogni bottone ha sotto cosa fa; ogni azione passa da kcGuida
+   (cosa succede → conferma → esito), con bozze delle caselle tenute nel browser. */
 const alPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
 const AL_GRUPPI=[
   {cat:'proposta',tit:'Da registrare nel portale'},
@@ -11418,16 +11585,18 @@ const AL_GRUPPI=[
   {cat:'errore_elenco',tit:'Da correggere nel tuo foglio'}
 ];
 const AL_METODI=[['contanti','Contanti'],['bancomat','Bancomat'],['bonifico','Bonifico']];
-const AL_STATO={registrata:'Registrata',fatto:'Fatto',risposta:'Risposta inviata',scartata:'Scartata'};
 const AL_COLONNE='id,notte,n,aperta_dal,categoria,persona_id,persona_nome,nel_foglio,nel_portale,proposta,tipo_abbonamento,dal,al,importo,metodo,stato,risposta,deciso_il,esito';
-let alRighe=[],alStorico=[],alNotte=null,alTipi={},alLead={},alChiuse={},alMetScelto=null; // alChiuse: id -> esito, chiuse in questa visita (restano grigie)
+let alRighe=[],alStorico=[],alNotte=null,alTipi={},alLead={},alChiuse={},alMetScelto=null; // alChiuse: id -> testo dell'esito, chiuse in questa visita (restano grigie)
 
 function alGM(d){if(!d)return '';const p=String(d).slice(0,10).split('-');return p[2]+'/'+p[1]}
 function alGMA(d){if(!d)return '';const p=String(d).slice(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0]}
-function alEuro(v){if(v==null||v==='')return '';const n=Number(v);return(Number.isInteger(n)?String(n):n.toFixed(2).replace('.',','))+' €'}
+function alEuro(v){if(v==null||v==='')return '';const n=Number(v);if(isNaN(n))return escHtml(v)+' €';return(Number.isInteger(n)?String(n):n.toFixed(2).replace('.',','))+' €'}
 function alMetodo(m){return m==='pos'?'bancomat':(m||'')}
 function alGiorni(a,b){return Math.round((new Date(a+'T12:00:00')-new Date(b+'T12:00:00'))/864e5)}
 function alTrova(id){return alRighe.find(r=>r.id===id)}
+function alVal(id){const e=document.getElementById(id);return e?String(e.value||'').trim():''}
+function alBozzaChiave(tipo,id){return 'kc_bozza_al_'+tipo+'_'+id}
+function alHaBozza(id){return !!(kcGuidaBozza(alBozzaChiave('risp',id))||kcGuidaBozza(alBozzaChiave('no',id)))}
 
 /* badge sul bottone: voci aperte dell'ultima notte, arancio se ci sono abbonamenti da registrare */
 function alBadge(n,arancio){
@@ -11491,22 +11660,42 @@ async function alCaricaTutto(){
   }catch(e){lista.innerHTML='';scMsg('al-msg','Non riesco a leggere le proposte: '+scErr(e));}
 }
 
+/* "Cosa fare oggi": i passi con le voci ancora aperte, ognuno porta al suo gruppo */
+function alCosaFare(conta){
+  const oggi=new Date(),fine=new Date(oggi.getFullYear(),oggi.getMonth()+1,0);
+  const entro=fine.getDate()-oggi.getDate()<7?` — entro fine mese, il ${String(fine.getDate()).padStart(2,'0')}/${String(fine.getMonth()+1).padStart(2,'0')}.`:'.';
+  const passi=[
+    ['proposta',`<b>Registra i pagamenti</b> che sono nel tuo foglio ma non nel portale (${conta('proposta')})${entro}`],
+    ['da_chiarire',`<b>Rispondi alle domande</b> (${conta('da_chiarire')}): bastano due parole, il resto lo prepara il sistema stanotte.`],
+    ['da_sistemare_portale',`<b>Sistema il portale</b> (${conta('da_sistemare_portale')}): presenze ed esiti da segnare.`],
+    ['errore_elenco',`<b>Correggi il tuo foglio</b> (${conta('errore_elenco')}): quando hai tempo.`]
+  ].filter(([c])=>conta(c)>0);
+  return `<div class="al-oggi">
+    <div class="al-oggi-t">Cosa fare oggi <span>(ogni mattina, ci vogliono pochi minuti)</span></div>
+    ${passi.length?`<ol class="al-passi">${passi.map(([c,t])=>`<li><button type="button" class="al-passo" onclick="alVaiGruppo('${c}')">${t}</button></li>`).join('')}</ol>`
+      :'<div class="al-tutto">✓ Tutto allineato. Stanotte il sistema ricontrolla.</div>'}
+    <p class="al-guida"><i>Il tuo foglio comanda: il portale si allinea a te. Ogni notte il sistema rilegge il tuo Elenco e la Contabilità e aggiorna questa lista.</i></p>
+  </div>`;
+}
+function alVaiGruppo(cat){document.getElementById('al-g-'+cat)?.scrollIntoView({behavior:'smooth',block:'start'});}
+
 function alDisegna(){
   const ap=alRighe.filter(r=>!alChiuse[r.id]);
   const conta=c=>ap.filter(r=>r.categoria===c).length;
   document.getElementById('al-testa').innerHTML=`
     <h3 class="sc-h3">🔄 Controllo di stanotte${alNotte?' · '+alGM(alNotte):''}</h3>
-    <p class="al-conti">${conta('proposta')} da registrare · ${conta('da_chiarire')} da chiarire · ${conta('da_sistemare_portale')} da sistemare · ${conta('errore_elenco')} da correggere nel tuo foglio</p>
-    <p class="al-guida">Ogni notte il sistema confronta il tuo Elenco scadenze e la Contabilità con il portale. Il tuo foglio comanda: qui sistemi il portale.</p>`;
-  const lista=document.getElementById('al-lista');
-  const gruppi=AL_GRUPPI.map(g=>{
+    ${alCosaFare(conta)}`;
+  document.getElementById('al-lista').innerHTML=AL_GRUPPI.map(g=>{
     const righe=alRighe.filter(r=>r.categoria===g.cat);
     if(!righe.length)return '';
-    return `<div class="sc-sez al-gruppo"><h3 class="sc-h3">${g.tit} <span class="sc-conta">${righe.filter(r=>!alChiuse[r.id]).length}</span></h3>${righe.map(alRiga).join('')}</div>`;
+    return `<div class="sc-sez al-gruppo" id="al-g-${g.cat}"><h3 class="sc-h3">${g.tit} <span class="sc-conta">${righe.filter(r=>!alChiuse[r.id]).length}</span></h3>${righe.map(alRiga).join('')}</div>`;
   }).join('');
-  lista.innerHTML=(ap.length?'':'<div class="sc-sez"><div class="al-tutto">✓ Tutto allineato con il tuo foglio</div></div>')+gruppi;
 }
 
+/* un bottone e, accanto (sotto su telefono), cosa fa */
+function alAz(primario,click,lbl,spiega){
+  return `<div class="al-az"><button class="btn ${primario?'sc-scuro':'al-sec'} sc-piccolo" onclick="${click}">${lbl}</button><span class="al-spiega">${spiega}</span></div>`;
+}
 function alRiga(r){
   const chiusa=alChiuse[r.id];
   const nome=escHtml(r.persona_nome||'—');
@@ -11515,35 +11704,43 @@ function alRiga(r){
     :`<span class="al-nome">${nome}</span>`;
   const gg=r.notte&&r.aperta_dal?alGiorni(r.notte,r.aperta_dal):0;
   const ferma=!chiusa&&gg>=3?`<span class="al-ferma">ferma da ${gg} giorni</span>`:'';
+  const bozza=!chiusa&&alHaBozza(r.id)?'<span class="al-bozza">✎ bozza non inviata</span>':'';
   const abb=r.categoria==='proposta'
     ?`<div class="al-abb">${escHtml(alTipi[r.tipo_abbonamento]||r.tipo_abbonamento||'')}${r.dal?' · '+alGM(r.dal)+'–'+alGM(r.al):''}${r.importo!=null?' · '+alEuro(r.importo):''}${r.metodo?' · '+alMetodo(r.metodo):''}</div>`:'';
   let az='';
-  if(chiusa)az=`<div class="al-esito">✓ ${escHtml(chiusa)}</div>`;
-  else if(r.categoria==='proposta')az=(r.persona_id
-      ?`<button class="btn sc-scuro sc-piccolo" onclick="alApriRegistra('${r.id}')">REGISTRA</button>`
-      :`<button class="btn sc-scuro sc-piccolo" onclick="alInserisci('${r.id}')">INSERISCI PRIMA LA PERSONA</button>`)
-    +`<button class="btn al-sec sc-piccolo" onclick="alApriScarta('${r.id}')">NON VA</button>`;
-  else if(r.categoria==='da_chiarire')az=`<button class="btn sc-scuro sc-piccolo" onclick="alApriRispondi('${r.id}')">RISPONDI</button><button class="btn al-sec sc-piccolo" onclick="alApriScarta('${r.id}')">NON VA</button>`;
-  else az=`<button class="btn sc-scuro sc-piccolo" onclick="alFatto('${r.id}',this)">${r.categoria==='errore_elenco'?'CORRETTO':'FATTO'}</button>`;
+  if(r.categoria==='proposta')az=(r.persona_id
+      ?alAz(true,`alApriRegistra('${r.id}')`,'REGISTRA',"Crea l'abbonamento pagato nel portale")
+      :alAz(true,`alInserisci('${r.id}')`,'INSERISCI PRIMA LA PERSONA',"Apre Inserisci contatto con il nome già scritto. Stanotte l'abbonamento sarà pronto da registrare"))
+    +alAz(false,`alApriNonCosi('${r.id}')`,'NON È COSÌ','Il sistema ha capito male? Scrivi cosa è giusto');
+  else if(r.categoria==='da_chiarire')az=alAz(true,`alApriRispondi('${r.id}')`,'RISPONDI','Scrivi come stanno le cose: stanotte il sistema prepara la registrazione')
+    +alAz(false,`alApriNonCosi('${r.id}')`,'NON È COSÌ','La domanda non ha senso? Scrivi perché');
+  else if(r.categoria==='errore_elenco')az=alAz(true,`alFatto('${r.id}')`,'HO CORRETTO IL FOGLIO','Premi dopo averlo corretto nel tuo Elenco: stanotte il sistema ricontrolla');
+  else az=alAz(true,`alFatto('${r.id}')`,'FATTO','Premi dopo averlo sistemato nel portale');
   return `<div class="al-riga${chiusa?' al-chiusa':''}" id="al-r-${r.id}">
-    <div>${nomeH}${ferma}</div>
+    <div>${nomeH}${ferma}${bozza}</div>
     ${r.nel_foglio?`<div class="al-ctx"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
     ${r.nel_portale?`<div class="al-ctx"><b>Nel portale:</b> ${escHtml(r.nel_portale)}</div>`:''}
     ${r.proposta?`<div class="al-prop">${escHtml(r.proposta)}</div>`:''}
     ${abb}
-    ${chiusa?az:`<div class="sc-azioni sc-azioni-riga">${az}</div>`}
-    <div id="al-e-${r.id}"></div>
+    ${chiusa?`<div class="al-esito">${escHtml(chiusa)}</div>`:`<div class="al-azioni">${az}</div>`}
   </div>`;
 }
 
+function alEtichetta(r){
+  if(r.stato==='registrata')return 'Registrato';
+  if(r.stato==='risposta')return 'Risposta inviata';
+  if(r.stato==='scartata')return 'Chiuso: non è così';
+  if(r.stato==='fatto')return r.categoria==='errore_elenco'?'Corretto nel foglio':'Sistemato';
+  return escHtml(r.stato);
+}
 function alDisegnaStorico(){
   document.getElementById('al-storico-n').textContent=alStorico.length||'';
   const gm=t=>new Date(t).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
   document.getElementById('al-storico-lista').innerHTML=alStorico.length?alStorico.map(r=>`<div class="al-riga">
-    <div><b>${gm(r.deciso_il)}</b> · <span class="al-nome">${escHtml(r.persona_nome||'—')}</span> · ${AL_STATO[r.stato]||escHtml(r.stato)}</div>
+    <div><b>${gm(r.deciso_il)}</b> · <span class="al-nome">${escHtml(r.persona_nome||'—')}</span> · ${alEtichetta(r)}</div>
     ${r.proposta?`<div class="al-ctx">${escHtml(r.proposta)}</div>`:''}
-    ${r.esito?`<div class="al-ctx"><b>Esito:</b> ${escHtml(r.esito)}</div>`:''}
-    ${r.risposta?`<div class="al-ctx"><b>Risposta:</b> ${escHtml(r.risposta)}</div>`:''}
+    ${r.esito&&r.esito!=='Registrato dalla segreteria'?`<div class="al-ctx"><b>Esito:</b> ${escHtml(r.esito)}</div>`:''}
+    ${r.risposta?`<div class="al-ctx"><b>La tua risposta:</b> ${escHtml(r.risposta)}</div>`:''}
   </div>`).join(''):'<p class="sc-vuoto">Nessuna voce chiusa negli ultimi 30 giorni.</p>';
 }
 
@@ -11552,13 +11749,12 @@ async function alDecidi(id,azione,extra){
   if(error)throw error;
   return data;
 }
-/* dopo ogni azione: la riga resta grigia con l'esito, il badge scende, la voce passa nello storico */
-function alChiudi(id,esito,stato,risposta){
+/* dopo ogni azione: la riga resta grigia con il testo dell'esito, "Cosa fare oggi" e il badge scendono, la voce passa nello storico */
+function alChiudi(id,testo,stato,risposta,esitoDb){
   const r=alTrova(id);
-  alChiuse[id]=esito;
-  if(r)alStorico.unshift(Object.assign({},r,{stato,esito,risposta:risposta||r.risposta,deciso_il:new Date().toISOString()}));
+  alChiuse[id]=testo;
+  if(r)alStorico.unshift(Object.assign({},r,{stato,esito:esitoDb||null,risposta:risposta||r.risposta,deciso_il:new Date().toISOString()}));
   alDisegna();alDisegnaStorico();alBadgeDaRighe();
-  toast(esito);
 }
 
 async function alApriPersona(pid){
@@ -11572,79 +11768,127 @@ async function alApriPersona(pid){
 }
 
 function alInserisci(id){
-  const r=alTrova(id);
-  openAddLeadModal();
-  const p=String((r&&r.persona_nome)||'').trim().split(/\s+/);
-  if(p[0]){document.getElementById('add-lead-nome').value=p[0];document.getElementById('add-lead-cognome').value=p.slice(1).join(' ');}
+  const r=alTrova(id);if(!r)return;
+  const nome=r.persona_nome||'';
+  kcGuida({
+    titolo:`Inserisci ${nome||'la persona'} nel portale`,
+    succede:['Si apre Inserisci contatto con nome e cognome già scritti','Dopo averla inserita, stanotte la registrazione è pronta qui'],
+    ok:'Apri Inserisci contatto',annulla:'No, torna indietro',
+    poi:()=>{
+      openAddLeadModal();
+      const p=String(nome).trim().split(/\s+/);
+      if(p[0]){document.getElementById('add-lead-nome').value=p[0];document.getElementById('add-lead-cognome').value=p.slice(1).join(' ');}
+    }
+  });
 }
 
 function alScegliMet(v){
   alMetScelto=v;
-  document.querySelectorAll('#mo-scuole .al-met').forEach(b=>b.classList.toggle('on',b.dataset.met===v));
+  document.querySelectorAll('#kcg-corpo .al-met').forEach(b=>b.classList.toggle('on',b.dataset.met===v));
+  kcGuidaAggiorna();
 }
 function alApriRegistra(id){
   const r=alTrova(id);if(!r)return;
   alMetScelto=r.metodo?alMetodo(r.metodo):null;
+  const nome=r.persona_nome||'',tipo=alTipi[r.tipo_abbonamento]||r.tipo_abbonamento||'';
   const met=AL_METODI.map(([v,l])=>`<button type="button" class="al-met${alMetScelto===v?' on':''}" data-met="${v}" onclick="alScegliMet('${v}')">${l}</button>`).join('');
-  scModal(`💳 Registra · ${r.persona_nome||''}`,`
-    <div class="sc-righe">
-      <div><b>Abbonamento:</b> ${escHtml(alTipi[r.tipo_abbonamento]||r.tipo_abbonamento||'')}</div>
-      <div><b>Dal:</b> ${alGMA(r.dal)}</div>
-      ${r.nel_foglio?`<div class="al-ctx"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
-    </div>
-    <label class="sc-lbl">Metodo</label>
-    <div class="al-mets">${met}</div>
-    <div class="sc-2">
-      <div><label class="sc-lbl" for="al-imp">Importo €</label><input id="al-imp" class="input sc-in" type="number" min="0" step="0.01" inputmode="decimal" value="${r.importo!=null?Number(r.importo):''}"></div>
-      <div><label class="sc-lbl" for="al-al">Scadenza</label><input id="al-al" class="input sc-in" type="date" value="${r.al||''}"></div>
-    </div>
-    <p class="sc-nota">È un rinnovo con gli stessi giorni del corso. Se nel portale è già registrato, non si crea un doppione.</p>`,
-    async()=>{
-      if(!alMetScelto)throw new Error('Scegli il metodo: contanti, bancomat o bonifico');
-      const imp=document.getElementById('al-imp').value.trim(),al=document.getElementById('al-al').value;
-      if(imp===''||isNaN(Number(imp)))throw new Error("Scrivi l'importo");
-      if(!al)throw new Error('Scrivi la data di scadenza');
-      const met=alMetScelto;
-      const d=await alDecidi(id,'registra',{p_metodo:met,p_importo:Number(imp),p_al:al});
-      alChiudi(id,d&&d.gia_registrato?'Era già registrato nel portale':`Registrato · ${alEuro(imp)} ${met}`,'registrata');
-    },{ok:'Conferma'});
+  let fatto={};
+  kcGuida({
+    titolo:`Registri l'abbonamento di ${nome}`,
+    corpo:`${r.nel_foglio?`<div class="al-ctx" style="margin-bottom:6px"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
+      <label class="sc-lbl">Come ha pagato</label>
+      <div class="al-mets">${met}</div>
+      <div class="sc-2">
+        <div><label class="sc-lbl" for="al-imp">Importo €</label><input id="al-imp" class="input sc-in" type="number" min="0" step="0.01" inputmode="decimal" value="${r.importo!=null?Number(r.importo):''}"></div>
+        <div><label class="sc-lbl" for="al-al">Scadenza</label><input id="al-al" class="input sc-in" type="date" value="${r.al||''}"></div>
+      </div>
+      <p class="sc-nota">È un rinnovo con gli stessi giorni del corso. Se nel portale è già registrato, non si crea un doppione.</p>`,
+    succede:()=>{
+      const imp=alVal('al-imp'),al=alVal('al-al');
+      return[
+        `Nel portale nasce l'abbonamento <b>${escHtml(tipo)} ${alGM(r.dal)}–${al?alGM(al):'…'}</b>, pagato <b>${imp!==''?alEuro(imp):'…'}${alMetScelto?' '+alMetScelto:''}</b>`,
+        `<b>${escHtml(nome)}</b> risulta in regola fino al <b>${al?alGM(al):'…'}</b>`,
+        "Questa voce sparisce dall'elenco e va nello storico"
+      ];
+    },
+    attenzione:()=>{
+      const imp=alVal('al-imp'),a=[];
+      if(r.importo!=null&&imp!==''&&Number(imp)!==Number(r.importo))a.push(`Nel tuo foglio c'è ${alEuro(r.importo)}, stai registrando ${alEuro(imp)}: è giusto?`);
+      a.push('Non si annulla da qui: se sbagli, avvisa Marco.');
+      return a;
+    },
+    pronto:()=>{
+      if(!alMetScelto)return 'Scegli come ha pagato';
+      const imp=alVal('al-imp');
+      if(imp===''||isNaN(Number(imp)))return "Scrivi l'importo";
+      if(!alVal('al-al'))return 'Scrivi la scadenza';
+      return true;
+    },
+    stato:()=>alMetScelto,
+    cosa:"registrare l'abbonamento",chi:nome,
+    ok:'Sì, registra',annulla:'No, torna indietro',
+    azione:()=>{fatto={al:alVal('al-al')};return alDecidi(id,'registra',{p_metodo:alMetScelto,p_importo:Number(alVal('al-imp')),p_al:fatto.al});},
+    dopo:d=>d&&d.gia_registrato?'Era già registrato nel portale: nessun doppione creato.':`Fatto: ${nome} è registrato fino al ${alGM(fatto.al)}.`,
+    poi:(t,d)=>alChiudi(id,t,'registrata',null,d&&d.gia_registrato?'Era già registrato nel portale':'Registrato dalla segreteria'),
+    chiusa:alDisegna
+  });
 }
 
 function alApriRispondi(id){
   const r=alTrova(id);if(!r)return;
-  scModal(`✍️ Rispondi · ${r.persona_nome||''}`,`
-    ${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
-    <label class="sc-lbl" for="al-risp">La tua risposta</label>
-    <textarea id="al-risp" class="input sc-in" maxlength="1000" placeholder="Es. Sì, ha pagato 195 € il 7/10 per ott–dic, bonifico"></textarea>
-    <p class="sc-nota">Stanotte il sistema prepara la registrazione con le tue cifre.</p>`,
-    async()=>{
-      const t=document.getElementById('al-risp').value.trim();
-      if(!t)throw new Error('Scrivi la risposta');
-      await alDecidi(id,'rispondi',{p_risposta:t});
-      alChiudi(id,'Risposta inviata','risposta',t);
-    },{ok:'Invia'});
+  const nome=r.persona_nome||'';
+  let testo='';
+  kcGuida({
+    titolo:`Rispondi sulla voce di ${nome}`,
+    corpo:`${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
+      <label class="sc-lbl" for="al-risp">La tua risposta</label>
+      <textarea id="al-risp" class="input sc-in" maxlength="1000" placeholder="Es. Sì, ha pagato 195 € il 7/10 per ott–dic, bonifico"></textarea>`,
+    succede:['La tua risposta arriva al sistema','Stanotte, se bastano le cifre, ti prepara la registrazione da confermare con REGISTRA'],
+    pronto:()=>alVal('al-risp')?true:'Scrivi la risposta',
+    cosa:'rispondere',chi:nome,
+    bozza:{chiave:alBozzaChiave('risp',id),campo:'al-risp'},
+    ok:'Invia la risposta',annulla:'No, torna indietro',
+    azione:()=>{testo=alVal('al-risp');return alDecidi(id,'rispondi',{p_risposta:testo});},
+    dopo:'Risposta inviata. Stanotte, se bastano le cifre, la trovi pronta da registrare.',
+    poi:t=>alChiudi(id,t,'risposta',testo),
+    chiusa:alDisegna
+  });
 }
 
-function alApriScarta(id){
+function alApriNonCosi(id){
   const r=alTrova(id);if(!r)return;
-  scModal(`Non va · ${r.persona_nome||''}`,`
-    ${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
-    <label class="sc-lbl" for="al-perche">Perché (facoltativo)</label>
-    <textarea id="al-perche" class="input sc-in" maxlength="1000" placeholder="Es. È sala + corda, non solo sala"></textarea>`,
-    async()=>{
-      const t=document.getElementById('al-perche').value.trim();
-      await alDecidi(id,'scarta',t?{p_risposta:t}:{});
-      alChiudi(id,'Scartato','scartata',t);
-    },{ok:'Non va'});
+  const nome=r.persona_nome||'';
+  let testo='';
+  kcGuida({
+    titolo:`Non è così: chiudi la voce di ${nome}`,
+    corpo:`${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
+      <label class="sc-lbl" for="al-perche">Cosa è giusto?</label>
+      <textarea id="al-perche" class="input sc-in" maxlength="1000" placeholder="${r.categoria==='proposta'?'Es. È sala + corda, 90 € in contanti':'Es. Non frequenta più da settembre'}"></textarea>`,
+    succede:()=>alVal('al-perche')
+      ?['La voce si chiude','<b>Stanotte il sistema legge quello che hai scritto e, se basta, ti ripropone la registrazione corretta</b>']
+      :['La voce si chiude e non viene più proposta','Marco lo vede nel suo registro'],
+    cosa:'scrivere cosa è giusto',chi:nome,
+    bozza:{chiave:alBozzaChiave('no',id),campo:'al-perche'},
+    ok:'Sì, chiudi questa voce',annulla:'No, torna indietro',
+    azione:()=>{testo=alVal('al-perche');return alDecidi(id,'scarta',testo?{p_risposta:testo}:{});},
+    dopo:()=>'Chiusa. '+(testo?'Stanotte ti ripropongo la versione corretta.':'Non la vedrai più.'),
+    poi:t=>alChiudi(id,t,'scartata',testo),
+    chiusa:alDisegna
+  });
 }
 
-async function alFatto(id,btn){
+function alFatto(id){
   const r=alTrova(id);if(!r)return;
-  const corr=r.categoria==='errore_elenco';
-  if(!confirm(corr?`Hai corretto il tuo foglio (${r.persona_nome||'questa voce'})?`:`Hai sistemato il portale (${r.persona_nome||'questa voce'})?`))return;
-  btn.disabled=true;scMsg('al-e-'+id,'');
-  try{await alDecidi(id,'fatto');alChiudi(id,corr?'Corretto nel foglio':'Fatto','fatto');}
-  catch(e){btn.disabled=false;scMsg('al-e-'+id,scErr(e));}
+  const corr=r.categoria==='errore_elenco',nome=r.persona_nome||'questa voce';
+  kcGuida({
+    titolo:corr?`Hai corretto ${nome} nel tuo Elenco?`:`Hai sistemato ${nome} nel portale?`,
+    corpo:r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:'',
+    succede:['La voce si chiude','Stanotte il sistema ricontrolla: se non è sistemato, la voce torna'],
+    ok:corr?"Sì, l'ho corretto":'Sì, fatto',annulla:'No, torna indietro',
+    azione:()=>alDecidi(id,'fatto'),
+    dopo:corr?'Corretto nel foglio. Stanotte il sistema ricontrolla.':'Sistemato. Stanotte il sistema ricontrolla.',
+    poi:t=>alChiudi(id,t,'fatto')
+  });
 }
 
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
