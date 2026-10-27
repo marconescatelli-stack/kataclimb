@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.144 · 2026-10-27 · ALLINEAMENTO PRIMA NOTA (consegna 27 ott, DB allineamento_console_2026-10-27): Segreteria -> nuovo tab "🔄 Allineamento" (solo creator e segreteria) con badge = voci aperte dell'ultima notte (arancio se ci sono abbonamenti da registrare), caricato all'apertura della Segreteria. ?nav=segreteria&tab=allineamento apre direttamente il tab. Righe aperte dell'ultima notte di allineamento_proposte (mai le 'superata') in quattro gruppi: Da registrare nel portale, Da chiarire, Da sistemare nel portale, Da correggere nel tuo foglio; "Nel tuo foglio" / "Nel portale" / proposta; bollino "ferma da X giorni" se notte - aperta_dal >= 3; nome -> scheda nel tab Persone (lead_data.persona_id). Azioni solo con allineamento_decidi: REGISTRA (modale con metodo contanti/bancomat/bonifico, importo e scadenza modificabili), INSERISCI PRIMA LA PERSONA (Inserisci contatto) se manca persona_id, NON VA (perche' facoltativo), RISPONDI, FATTO, CORRETTO; la riga resta grigia con l'esito, il badge scende, niente ricarica. In fondo, chiuso: "Chiuse negli ultimi 30 giorni". Solo nomi, mai email o telefoni. Nessuna modifica a DB. Su oggi.html non cambia niente. CUMULA v3.143 (sotto). -->
 <!-- KC-BUILD: portale v3.143 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): Segreteria -> 🗓 Turni. (1) Nella griglia della settimana, sotto il nome di ogni giorno, "Non ci sono: Nome (tutto il giorno), Nome (20–21)" da v_staff_indisponibilita, con TOGLI su ogni riga per creator e segreteria (togli_indisponibile, con conferma). (2) Bottone + NON DISPONIBILE accanto alle settimane (solo creator e segreteria): chi, data (da oggi), tutto il giorno o dalle … alle …, motivo -> segna_indisponibile con p_user_id; dopo, quante lezioni sono state tolte e quali, con il nome completo. (3) Nelle liste per scegliere lo staff (Aggiungi una persona, Sostituisci, anche sui turni monitor) chi non c'e' in quella data e ora resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi, non sui turni monitor), non disponibili. Errori delle RPC mostrati come arrivano. Nessuna modifica a DB. CUMULA v3.142 (sotto). -->
 <!-- KC-BUILD: portale v3.142 · 2026-10-27 · DA PAGARE PORTA AI COSTI + MONITOR IN FONDO (consegna 27 ott, DB segreteria_da_sistemare): (1) ?nav=segreteria&tab=turni&box=costi apre Segreteria -> 🗓 Turni e scorre al riquadro Costi staff del mese (link della tessera Da pagare di oggi v2.31); solo per creator e segreteria, gli altri restano sulla Segreteria com'era. segMostra restituisce il caricamento di Turni per poter scorrere dopo. (2) In Turni, nelle liste per scegliere lo staff sulle lezioni (Aggiungi una persona, Sostituisci) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi"; sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?". Nei turni monitor la lista resta com'era. Nessuna modifica a RPC. CUMULA v3.141 (sotto). -->
 <!-- KC-BUILD: portale v3.141 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): Segreteria → 🗓 Turni. (1) Nella settimana entrano da sole le lezioni dei corsi adulti e le Prime Lezioni (slot_copertura su tutti i corsi attivi): nomi completi in TU_NOME_CORSO (Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale, Prima Lezione Genitori, Corso Manovra in Sosta KataClimb, Lab); "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). (2) Nella voce di una lezione dei corsi, accanto a Togli / Segna assente / Segna presente / Riporta a previsto: SOSTITUISCI (segreteria) -> scelta dallo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore. (3) Nuova sezione COSTI STAFF DEL MESE da v_costi_staff_mese con selettore mese (default il mese corrente): Persona · Lezioni corsi (n · €) · Prime Lezioni (n · €) · Monitor (ore · €) · Totale · Sostituzioni · Assenze · Da confermare (in arancio se > 0, tocca = elenco delle lezioni passate senza presenza dello stesso mese in Compensi lezioni dei corsi); riga Totale staff; Esporta CSV; sotto, le Prime Lezioni pagate del mese da v_compenso_lezioni con il perche' della cifra ("con allievi" 15 €/h, "vuota" 5 €/h). (4) Profilo dello staff che non e' segreteria: "Il mio mese" con la propria riga ("Questo mese: X lezioni, Y prime, Z ore monitor = € totale") e le lezioni ancora da confermare. Solo letture e RPC esistenti, nessuna modifica a RPC, tabelle o viste. CUMULA v3.140 (sotto). -->
@@ -1669,6 +1670,7 @@ fill="#1d4ed8" stroke="none">
         <button id="seg-sw-scuole" onclick="segMostra('scuole')">🏫 Scuole</button>
         <button id="seg-sw-turni" onclick="segMostra('turni')">🗓 Turni</button>
         <button id="seg-sw-manovra" onclick="segMostra('manovra')">🪢 Corso Manovra in Sosta KataClimb</button>
+        <button id="seg-sw-allineamento" onclick="segMostra('allineamento')" style="display:none">🔄 Allineamento <span id="seg-all-badge"></span></button>
       </div>
 
       <!-- v3.137 — Turni e presenze staff, Metà C (codice nel blocco TURNI E PRESENZE STAFF) -->
@@ -1788,6 +1790,42 @@ fill="#1d4ed8" stroke="none">
           <p class="sc-nota" style="margin-top:0">Dopo la lezione segna Abile o Non abile. Chi è abile riceve la mail con la proposta della parte su roccia con Marco.</p>
           <div id="ms-prenotati"></div>
         </div>
+      </div>
+
+      <!-- v3.144 — Allineamento con il foglio della segreteria (codice nel blocco ALLINEAMENTO PRIMA NOTA) -->
+      <div id="seg-allineamento-wrap" class="hidden">
+        <style>
+        #seg-all-badge{display:inline-block;min-width:20px;text-align:center;font-size:13px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:4px;background:#E5E7EB;color:#374151;vertical-align:1px}
+        #seg-all-badge:empty{display:none}
+        #seg-all-badge.al-arancio{background:#FFB340;color:#1A1A1A}
+        #seg-allineamento-wrap{font-size:14.5px;color:var(--text)}
+        .al-guida{font-size:13.5px;color:var(--text2);margin:0;line-height:1.5}
+        .al-conti{font-size:14px;font-weight:700;margin:0 0 6px;line-height:1.5}
+        .al-riga{padding:12px 0;border-top:1px solid var(--border)}
+        .al-gruppo .al-riga:first-of-type{border-top:none}
+        .al-nome{font-size:15.5px;font-weight:800;color:var(--text);font-family:inherit;text-align:left}
+        button.al-nome{background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+        .al-ctx{font-size:13px;color:var(--text2);margin-top:3px;line-height:1.45}
+        .al-ctx b{color:var(--text);font-weight:700}
+        .al-prop{font-size:14.5px;font-weight:700;margin-top:6px;line-height:1.45}
+        .al-abb{font-size:13.5px;margin-top:4px;color:var(--text)}
+        .al-ferma{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;background:#FEF3C7;color:#92400E;margin-left:6px;vertical-align:1px}
+        .al-chiusa{opacity:.55}
+        .al-esito{font-size:13.5px;font-weight:700;color:#166534;margin-top:8px}
+        .al-sec{background:transparent;border:1px solid var(--text);color:var(--text)}
+        .al-mets{display:flex;gap:6px;flex-wrap:wrap}
+        .al-met{flex:1;min-width:90px;font-size:14.5px;font-weight:700;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit}
+        .al-met.on{background:var(--text);border-color:var(--text);color:var(--bg)}
+        .al-tutto{font-size:15px;font-weight:700;color:#166534;padding:4px 0}
+        #al-storico summary{cursor:pointer;font-size:16px;font-weight:800;list-style:none;display:flex;align-items:center;gap:8px}
+        #al-storico summary::-webkit-details-marker{display:none}
+        #al-storico summary::before{content:'▸';font-size:13px}
+        #al-storico[open] summary::before{content:'▾'}
+        </style>
+        <div id="al-msg"></div>
+        <div class="sc-sez" id="al-testa"></div>
+        <div id="al-lista"></div>
+        <details id="al-storico" class="sc-sez"><summary>Chiuse negli ultimi 30 giorni <span id="al-storico-n" class="sc-conta"></span></summary><div id="al-storico-lista"></div></details>
       </div>
 
       <!-- v3.134 — Scuole F1: tab Scuole (codice nel blocco SCUOLE F1 METÀ B) -->
@@ -9052,6 +9090,7 @@ function showNav(id){
   const kcC=document.getElementById('kcbar-comunita'),kcP=document.getElementById('kcbar-profilo'); // v3.108: la barra segue la vista
   if(kcC&&kcP){kcC.classList.toggle('kc-on',id==='comunita');kcP.classList.toggle('kc-on',id!=='comunita');}
   if(id==='agenda')loadAgenda();
+  if(id==='segreteria'&&typeof alCaricaBadge==='function')alCaricaBadge(); // v3.144 badge di Allineamento
 }
 
 /* ═══ COMMUNITY ═══ */
@@ -10094,6 +10133,8 @@ async function init(){
               if(params.get('box')==='costi')document.getElementById('tu-costi-wrap')?.scrollIntoView({behavior:'smooth',block:'start'});
             });
           }
+          /* v3.144 dai messaggi a Roberta: Segreteria -> 🔄 Allineamento */
+          if(navParam==='segreteria'&&params.get('tab')==='allineamento'&&typeof alPuo==='function'&&alPuo())segMostra('allineamento');
           history.replaceState(null,'',window.location.pathname);
         }
       }
@@ -10162,18 +10203,21 @@ async function scApriDoc(docId,btn){
 
 /* ── Interruttore Persone / Scuole nella Segreteria ── */
 function segMostra(quale){
-  const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',altro=scuole||turni||manovra;
+  const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',allin=quale==='allineamento',altro=scuole||turni||manovra||allin;
   if(altro&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
   document.getElementById('seg-scuole-wrap').classList.toggle('hidden',!scuole);
   document.getElementById('seg-turni-wrap').classList.toggle('hidden',!turni); // v3.137
   document.getElementById('seg-manovra-wrap').classList.toggle('hidden',!manovra); // v3.140
+  document.getElementById('seg-allineamento-wrap').classList.toggle('hidden',!allin); // v3.144
   document.getElementById('seg-lead-list-wrap').style.display=altro?'none':'';
   if(altro)document.getElementById('seg-lead-detail').classList.add('hidden');
   document.getElementById('seg-sw-persone').classList.toggle('on',!altro);
   document.getElementById('seg-sw-scuole').classList.toggle('on',scuole);
   document.getElementById('seg-sw-turni').classList.toggle('on',turni);
   document.getElementById('seg-sw-manovra').classList.toggle('on',manovra);
+  document.getElementById('seg-sw-allineamento').classList.toggle('on',allin);
   if(scuole){scChiudiScheda();scCaricaTutto();}
+  if(allin)return alCaricaTutto(); // v3.144
   if(manovra)msCaricaTutto();
   if(turni)return tuCaricaTutto(); // v3.142 restituito: chi apre Turni da link puo' scorrere dopo il caricamento
 }
@@ -11359,6 +11403,248 @@ function tuApriSost(impId,k){
       await tuRiapri(k);
       return false; // tuRiapri ha gia' riaperto la voce aggiornata
     },{ok:'Sostituisci'});
+}
+
+/* ── ALLINEAMENTO PRIMA NOTA ── (consegna 27 ott 2026, portale v3.144) — Segreteria → 🔄 Allineamento
+   Ogni notte un agente confronta Elenco scadenze e Contabilita' della segreteria con il portale e scrive le
+   proposte in allineamento_proposte (la leggono solo creator e segreteria). Qui si chiudono, solo con
+   allineamento_decidi: gli errori arrivano gia' in italiano e si mostrano cosi'. Le righe 'superata'
+   (copie delle notti prima) non si mostrano mai. Solo nomi: mai email o telefoni. */
+const alPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
+const AL_GRUPPI=[
+  {cat:'proposta',tit:'Da registrare nel portale'},
+  {cat:'da_chiarire',tit:'Da chiarire'},
+  {cat:'da_sistemare_portale',tit:'Da sistemare nel portale'},
+  {cat:'errore_elenco',tit:'Da correggere nel tuo foglio'}
+];
+const AL_METODI=[['contanti','Contanti'],['bancomat','Bancomat'],['bonifico','Bonifico']];
+const AL_STATO={registrata:'Registrata',fatto:'Fatto',risposta:'Risposta inviata',scartata:'Scartata'};
+const AL_COLONNE='id,notte,n,aperta_dal,categoria,persona_id,persona_nome,nel_foglio,nel_portale,proposta,tipo_abbonamento,dal,al,importo,metodo,stato,risposta,deciso_il,esito';
+let alRighe=[],alStorico=[],alNotte=null,alTipi={},alLead={},alChiuse={},alMetScelto=null; // alChiuse: id -> esito, chiuse in questa visita (restano grigie)
+
+function alGM(d){if(!d)return '';const p=String(d).slice(0,10).split('-');return p[2]+'/'+p[1]}
+function alGMA(d){if(!d)return '';const p=String(d).slice(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+function alEuro(v){if(v==null||v==='')return '';const n=Number(v);return(Number.isInteger(n)?String(n):n.toFixed(2).replace('.',','))+' €'}
+function alMetodo(m){return m==='pos'?'bancomat':(m||'')}
+function alGiorni(a,b){return Math.round((new Date(a+'T12:00:00')-new Date(b+'T12:00:00'))/864e5)}
+function alTrova(id){return alRighe.find(r=>r.id===id)}
+
+/* badge sul bottone: voci aperte dell'ultima notte, arancio se ci sono abbonamenti da registrare */
+function alBadge(n,arancio){
+  const b=document.getElementById('seg-all-badge');if(!b)return;
+  b.textContent=n?String(n):'';
+  b.classList.toggle('al-arancio',!!(n&&arancio));
+}
+function alBadgeDaRighe(){
+  const ap=alRighe.filter(r=>!alChiuse[r.id]);
+  alBadge(ap.length,ap.some(r=>r.categoria==='proposta'));
+}
+async function alUltimaNotte(){
+  const{data,error}=await sb.from('allineamento_proposte').select('notte').neq('stato','superata').order('notte',{ascending:false}).limit(1);
+  if(error)throw error;
+  return data&&data[0]?data[0].notte:null;
+}
+async function alCaricaBadge(){
+  const btn=document.getElementById('seg-sw-allineamento');if(!btn)return;
+  btn.style.display=alPuo()?'':'none';
+  if(!alPuo())return;
+  try{
+    const notte=await alUltimaNotte();
+    if(!notte){alBadge(0,false);return;}
+    const{data,error}=await sb.from('allineamento_proposte').select('categoria').eq('notte',notte).eq('stato','aperta');
+    if(error)throw error;
+    alBadge((data||[]).length,(data||[]).some(r=>r.categoria==='proposta'));
+  }catch(e){console.warn('[allineamento] badge:',e.message||e);}
+}
+
+async function alCaricaTutto(){
+  if(!alPuo())return;
+  const lista=document.getElementById('al-lista');
+  scMsg('al-msg','');
+  lista.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  try{
+    const da30=new Date(Date.now()-30*864e5).toISOString();
+    const[notte,rS,rT]=await Promise.all([
+      alUltimaNotte(),
+      sb.from('allineamento_proposte').select(AL_COLONNE).not('stato','in','(aperta,superata)').gte('deciso_il',da30).order('deciso_il',{ascending:false}),
+      sb.from('abbonamenti_tipi').select('tipo,label')
+    ]);
+    if(rS.error)throw rS.error;
+    if(rT.error)console.warn('[allineamento] tipi:',rT.error.message);
+    alTipi={};(rT.data||[]).forEach(t=>{alTipi[t.tipo]=t.label});
+    alNotte=notte;alRighe=[];alChiuse={};
+    if(notte){
+      const{data,error}=await sb.from('allineamento_proposte').select(AL_COLONNE).eq('notte',notte).eq('stato','aperta').order('n');
+      if(error)throw error;
+      alRighe=data||[];
+    }
+    alStorico=rS.data||[];
+    /* scheda persona: il lead della persona (lead_data.persona_id), come la lista Persone */
+    alLead={};
+    const pids=[...new Set(alRighe.map(r=>r.persona_id).filter(Boolean))];
+    if(pids.length){
+      const{data,error}=await sb.from('lead_data').select('id,persona_id').in('persona_id',pids);
+      if(error)console.warn('[allineamento] schede:',error.message);
+      (data||[]).forEach(l=>{if(!alLead[l.persona_id])alLead[l.persona_id]=l.id});
+    }
+    alDisegna();alDisegnaStorico();
+  }catch(e){lista.innerHTML='';scMsg('al-msg','Non riesco a leggere le proposte: '+scErr(e));}
+}
+
+function alDisegna(){
+  const ap=alRighe.filter(r=>!alChiuse[r.id]);
+  const conta=c=>ap.filter(r=>r.categoria===c).length;
+  document.getElementById('al-testa').innerHTML=`
+    <h3 class="sc-h3">🔄 Controllo di stanotte${alNotte?' · '+alGM(alNotte):''}</h3>
+    <p class="al-conti">${conta('proposta')} da registrare · ${conta('da_chiarire')} da chiarire · ${conta('da_sistemare_portale')} da sistemare · ${conta('errore_elenco')} da correggere nel tuo foglio</p>
+    <p class="al-guida">Ogni notte il sistema confronta il tuo Elenco scadenze e la Contabilità con il portale. Il tuo foglio comanda: qui sistemi il portale.</p>`;
+  const lista=document.getElementById('al-lista');
+  const gruppi=AL_GRUPPI.map(g=>{
+    const righe=alRighe.filter(r=>r.categoria===g.cat);
+    if(!righe.length)return '';
+    return `<div class="sc-sez al-gruppo"><h3 class="sc-h3">${g.tit} <span class="sc-conta">${righe.filter(r=>!alChiuse[r.id]).length}</span></h3>${righe.map(alRiga).join('')}</div>`;
+  }).join('');
+  lista.innerHTML=(ap.length?'':'<div class="sc-sez"><div class="al-tutto">✓ Tutto allineato con il tuo foglio</div></div>')+gruppi;
+}
+
+function alRiga(r){
+  const chiusa=alChiuse[r.id];
+  const nome=escHtml(r.persona_nome||'—');
+  const nomeH=r.persona_id&&alLead[r.persona_id]
+    ?`<button type="button" class="al-nome" onclick="alApriPersona('${r.persona_id}')">${nome}</button>`
+    :`<span class="al-nome">${nome}</span>`;
+  const gg=r.notte&&r.aperta_dal?alGiorni(r.notte,r.aperta_dal):0;
+  const ferma=!chiusa&&gg>=3?`<span class="al-ferma">ferma da ${gg} giorni</span>`:'';
+  const abb=r.categoria==='proposta'
+    ?`<div class="al-abb">${escHtml(alTipi[r.tipo_abbonamento]||r.tipo_abbonamento||'')}${r.dal?' · '+alGM(r.dal)+'–'+alGM(r.al):''}${r.importo!=null?' · '+alEuro(r.importo):''}${r.metodo?' · '+alMetodo(r.metodo):''}</div>`:'';
+  let az='';
+  if(chiusa)az=`<div class="al-esito">✓ ${escHtml(chiusa)}</div>`;
+  else if(r.categoria==='proposta')az=(r.persona_id
+      ?`<button class="btn sc-scuro sc-piccolo" onclick="alApriRegistra('${r.id}')">REGISTRA</button>`
+      :`<button class="btn sc-scuro sc-piccolo" onclick="alInserisci('${r.id}')">INSERISCI PRIMA LA PERSONA</button>`)
+    +`<button class="btn al-sec sc-piccolo" onclick="alApriScarta('${r.id}')">NON VA</button>`;
+  else if(r.categoria==='da_chiarire')az=`<button class="btn sc-scuro sc-piccolo" onclick="alApriRispondi('${r.id}')">RISPONDI</button><button class="btn al-sec sc-piccolo" onclick="alApriScarta('${r.id}')">NON VA</button>`;
+  else az=`<button class="btn sc-scuro sc-piccolo" onclick="alFatto('${r.id}',this)">${r.categoria==='errore_elenco'?'CORRETTO':'FATTO'}</button>`;
+  return `<div class="al-riga${chiusa?' al-chiusa':''}" id="al-r-${r.id}">
+    <div>${nomeH}${ferma}</div>
+    ${r.nel_foglio?`<div class="al-ctx"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
+    ${r.nel_portale?`<div class="al-ctx"><b>Nel portale:</b> ${escHtml(r.nel_portale)}</div>`:''}
+    ${r.proposta?`<div class="al-prop">${escHtml(r.proposta)}</div>`:''}
+    ${abb}
+    ${chiusa?az:`<div class="sc-azioni sc-azioni-riga">${az}</div>`}
+    <div id="al-e-${r.id}"></div>
+  </div>`;
+}
+
+function alDisegnaStorico(){
+  document.getElementById('al-storico-n').textContent=alStorico.length||'';
+  const gm=t=>new Date(t).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+  document.getElementById('al-storico-lista').innerHTML=alStorico.length?alStorico.map(r=>`<div class="al-riga">
+    <div><b>${gm(r.deciso_il)}</b> · <span class="al-nome">${escHtml(r.persona_nome||'—')}</span> · ${AL_STATO[r.stato]||escHtml(r.stato)}</div>
+    ${r.proposta?`<div class="al-ctx">${escHtml(r.proposta)}</div>`:''}
+    ${r.esito?`<div class="al-ctx"><b>Esito:</b> ${escHtml(r.esito)}</div>`:''}
+    ${r.risposta?`<div class="al-ctx"><b>Risposta:</b> ${escHtml(r.risposta)}</div>`:''}
+  </div>`).join(''):'<p class="sc-vuoto">Nessuna voce chiusa negli ultimi 30 giorni.</p>';
+}
+
+async function alDecidi(id,azione,extra){
+  const{data,error}=await sb.rpc('allineamento_decidi',Object.assign({p_id:id,p_azione:azione},extra||{}));
+  if(error)throw error;
+  return data;
+}
+/* dopo ogni azione: la riga resta grigia con l'esito, il badge scende, la voce passa nello storico */
+function alChiudi(id,esito,stato,risposta){
+  const r=alTrova(id);
+  alChiuse[id]=esito;
+  if(r)alStorico.unshift(Object.assign({},r,{stato,esito,risposta:risposta||r.risposta,deciso_il:new Date().toISOString()}));
+  alDisegna();alDisegnaStorico();alBadgeDaRighe();
+  toast(esito);
+}
+
+async function alApriPersona(pid){
+  const leadId=alLead[pid];if(!leadId)return;
+  try{
+    if(!crmLeadsData.find(l=>l.id===leadId))await loadCrmLeads();
+    segMostra('persone');
+    showLeadDetail(leadId);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){toast('Non riesco ad aprire la scheda: '+scErr(e));}
+}
+
+function alInserisci(id){
+  const r=alTrova(id);
+  openAddLeadModal();
+  const p=String((r&&r.persona_nome)||'').trim().split(/\s+/);
+  if(p[0]){document.getElementById('add-lead-nome').value=p[0];document.getElementById('add-lead-cognome').value=p.slice(1).join(' ');}
+}
+
+function alScegliMet(v){
+  alMetScelto=v;
+  document.querySelectorAll('#mo-scuole .al-met').forEach(b=>b.classList.toggle('on',b.dataset.met===v));
+}
+function alApriRegistra(id){
+  const r=alTrova(id);if(!r)return;
+  alMetScelto=r.metodo?alMetodo(r.metodo):null;
+  const met=AL_METODI.map(([v,l])=>`<button type="button" class="al-met${alMetScelto===v?' on':''}" data-met="${v}" onclick="alScegliMet('${v}')">${l}</button>`).join('');
+  scModal(`💳 Registra · ${r.persona_nome||''}`,`
+    <div class="sc-righe">
+      <div><b>Abbonamento:</b> ${escHtml(alTipi[r.tipo_abbonamento]||r.tipo_abbonamento||'')}</div>
+      <div><b>Dal:</b> ${alGMA(r.dal)}</div>
+      ${r.nel_foglio?`<div class="al-ctx"><b>Nel tuo foglio:</b> ${escHtml(r.nel_foglio)}</div>`:''}
+    </div>
+    <label class="sc-lbl">Metodo</label>
+    <div class="al-mets">${met}</div>
+    <div class="sc-2">
+      <div><label class="sc-lbl" for="al-imp">Importo €</label><input id="al-imp" class="input sc-in" type="number" min="0" step="0.01" inputmode="decimal" value="${r.importo!=null?Number(r.importo):''}"></div>
+      <div><label class="sc-lbl" for="al-al">Scadenza</label><input id="al-al" class="input sc-in" type="date" value="${r.al||''}"></div>
+    </div>
+    <p class="sc-nota">È un rinnovo con gli stessi giorni del corso. Se nel portale è già registrato, non si crea un doppione.</p>`,
+    async()=>{
+      if(!alMetScelto)throw new Error('Scegli il metodo: contanti, bancomat o bonifico');
+      const imp=document.getElementById('al-imp').value.trim(),al=document.getElementById('al-al').value;
+      if(imp===''||isNaN(Number(imp)))throw new Error("Scrivi l'importo");
+      if(!al)throw new Error('Scrivi la data di scadenza');
+      const met=alMetScelto;
+      const d=await alDecidi(id,'registra',{p_metodo:met,p_importo:Number(imp),p_al:al});
+      alChiudi(id,d&&d.gia_registrato?'Era già registrato nel portale':`Registrato · ${alEuro(imp)} ${met}`,'registrata');
+    },{ok:'Conferma'});
+}
+
+function alApriRispondi(id){
+  const r=alTrova(id);if(!r)return;
+  scModal(`✍️ Rispondi · ${r.persona_nome||''}`,`
+    ${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
+    <label class="sc-lbl" for="al-risp">La tua risposta</label>
+    <textarea id="al-risp" class="input sc-in" maxlength="1000" placeholder="Es. Sì, ha pagato 195 € il 7/10 per ott–dic, bonifico"></textarea>
+    <p class="sc-nota">Stanotte il sistema prepara la registrazione con le tue cifre.</p>`,
+    async()=>{
+      const t=document.getElementById('al-risp').value.trim();
+      if(!t)throw new Error('Scrivi la risposta');
+      await alDecidi(id,'rispondi',{p_risposta:t});
+      alChiudi(id,'Risposta inviata','risposta',t);
+    },{ok:'Invia'});
+}
+
+function alApriScarta(id){
+  const r=alTrova(id);if(!r)return;
+  scModal(`Non va · ${r.persona_nome||''}`,`
+    ${r.proposta?`<p class="al-prop" style="margin-top:0">${escHtml(r.proposta)}</p>`:''}
+    <label class="sc-lbl" for="al-perche">Perché (facoltativo)</label>
+    <textarea id="al-perche" class="input sc-in" maxlength="1000" placeholder="Es. È sala + corda, non solo sala"></textarea>`,
+    async()=>{
+      const t=document.getElementById('al-perche').value.trim();
+      await alDecidi(id,'scarta',t?{p_risposta:t}:{});
+      alChiudi(id,'Scartato','scartata',t);
+    },{ok:'Non va'});
+}
+
+async function alFatto(id,btn){
+  const r=alTrova(id);if(!r)return;
+  const corr=r.categoria==='errore_elenco';
+  if(!confirm(corr?`Hai corretto il tuo foglio (${r.persona_nome||'questa voce'})?`:`Hai sistemato il portale (${r.persona_nome||'questa voce'})?`))return;
+  btn.disabled=true;scMsg('al-e-'+id,'');
+  try{await alDecidi(id,'fatto');alChiudi(id,corr?'Corretto nel foglio':'Fatto','fatto');}
+  catch(e){btn.disabled=false;scMsg('al-e-'+id,scErr(e));}
 }
 
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
