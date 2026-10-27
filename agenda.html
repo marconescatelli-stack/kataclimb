@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.106 · 2026-10-27 · CERCA NELL'AGENDA (consegna 27 ott, nessuna modifica al DB): campo "🔎 Cerca nell'agenda" sopra i bottoni settimana (segnaposto "scuola, Open, Manovra, un nome…"), da 2 caratteri, 300 ms dopo l'ultima lettera, senza maiuscole ne' accenti, ✕ per svuotare. STAFF: cerca nel nome completo del corso (mappa con i nomi completi, minori dalla fascia, scuole con "scuola" e il nome della scuola da lead_scuola_id), negli eventi di get_eventi_calendario, nei nomi dello staff segnato (impegni_staff previsto/presente), negli allievi prenotati (prenotazioni_corso, prenotazioni_prima_lezione, v_lista_manovra_sosta) e negli iscritti fissi (get_iscritti_minori). ALLIEVO: solo le sue lezioni prenotate (prenotazioni_corso del suo user_id), mai nomi di altri. Periodo da oggi a 6 mesi, "Anche passate" aggiunge gli ultimi 3 mesi (date passate in grigio); tutte le letture filtrate per intervallo di date, a pagine da 1000. Ricorrenti: solo le date con almeno un prenotato o un iscritto; cercando un corso, le prossime 8 settimane; giorni chiusi e chiusure dello slot fuori. Risultati per data ("Mar 12 gen 2027"), riga con ora, nome e "N prenotati"/"N iscritti" (e lo staff), contatore in alto ("Institut International Saint-Dominique · 8 date"), "Nessuna data trovata per «…»". Tocco su una lezione: settimana e corso giusti, scorre alla lezione e la evidenzia 2 secondi; "← Torna ai risultati" riapre l'elenco. Le card portano data-slot-id e data-data. Solo letture. CUMULA v3.105 (sotto). -->
 <!-- KC-BUILD: agenda v3.105 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita letta con le lezioni della settimana, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. Gli errori delle RPC (impegno_mi_segno e sostituisci_istruttore rifiutano chi e' indisponibile) si mostrano come arrivano. Solo letture. CUMULA v3.104 (sotto). -->
 <!-- KC-BUILD: agenda v3.104 · 2026-10-27 · MONITOR IN FONDO + APRI SU UNA DATA (consegna 27 ott, DB segreteria_da_sistemare): (1) Nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi" (il sostituto previsto resta primo se non e' un monitor); sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?" prima della RPC. (2) agenda.html?data=AAAA-MM-GG&tipo=<tipo_corso> apre la settimana di quella data e, se il corso e' nel menu, quel corso (scuole -> Scuole, Prime Bambini e Ragazzi -> Bambini e Ragazzi, altre Prime -> Prima Lezione): serve ad APRI IN AGENDA di oggi v2.31. Parametri non validi: agenda come prima. Nessuna modifica a RPC. CUMULA v3.103 (sotto). -->
 <!-- KC-BUILD: agenda v3.103 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) sotto ogni lezione (solo staff, non scuole ne' Sala con Monitor) la riga Staff da impegni_staff per slot + data: nome, istruttore/assistente, stato a colori (previsto grigio, presente verde ✓, assente rosso), "Nome (sostituisce Nome)" dalle note di sostituzione; nessuno = "Nessun istruttore segnato" in rosso. (2) Segreteria (creator e segreteria, stesso cancello di is_segreteria): PRESENTE (solo fino a oggi) -> impegno_presenza 'fine'; ASSENTE con conferma "Se è assente, il portale chiama il suo sostituto (se previsto)." -> 'assente'; SOSTITUISCI -> modale con lo staff, per primo il sostituto automatico (slot_piano_staff) -> sostituisci_istruttore; ANNULLA -> 'annulla'; + AGGIUNGI STAFF -> persona e ruolo (istruttore/assistente, gli staff_assistente passano ad assistente da soli) -> impegno_mi_segno con p_user_id e, se la data e' passata, impegno_presenza 'fine' sul nuovo impegno. (3) Istruttore che fa l'appello: dopo la prima presenza segnata si rilegge la lezione (il trigger lo ha segnato presente) e compare l'avviso "Presenza registrata: la lezione è a tuo nome." oppure "Hai sostituito NOME: la lezione è a tuo nome e la segreteria lo vede."; la segreteria non viene segnata e non vede l'avviso. Scritture solo via RPC, nessuna modifica a RPC o tabelle. CUMULA v3.102 (sotto). -->
@@ -83,6 +84,29 @@
   .bar button:hover { background:var(--gold); color:#fff; }
   .bar button:disabled { opacity:.4; cursor:not-allowed; }
   .range { font-weight:700; font-size:16px; color:var(--ink); }
+  /* v3.106 cerca nell'agenda */
+  .cerca { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:.7rem .9rem; margin-bottom:.6rem; }
+  .cerca label.cerca-lbl { display:block; font-size:14px; font-weight:700; color:var(--muted); margin-bottom:.35rem; }
+  .cerca-riga { display:flex; gap:.4rem; align-items:center; }
+  .cerca-riga input { flex:1; min-width:0; font:inherit; font-size:16px; padding:.6rem .8rem; border:1px solid var(--gold); border-radius:10px; background:#fff; color:var(--ink); }
+  .cerca-x { font:inherit; font-size:16px; font-weight:700; width:44px; height:44px; border:1px solid var(--border); border-radius:10px; background:#fff; color:var(--ink); cursor:pointer; }
+  .cerca-x[hidden], .cerca-torna[hidden], .cerca-ris[hidden] { display:none; }
+  .cerca-opz { display:flex; align-items:center; justify-content:space-between; gap:.6rem; flex-wrap:wrap; margin-top:.45rem; }
+  .cerca-pass { display:flex; align-items:center; gap:.4rem; font-size:14px; color:var(--muted); cursor:pointer; }
+  .cerca-pass input { width:20px; height:20px; accent-color:var(--gold); }
+  .cerca-torna { font:inherit; font-size:14px; font-weight:700; padding:.45rem .8rem; border:1px solid var(--gold); border-radius:8px; background:#fff; color:var(--gold); cursor:pointer; }
+  .cerca-ris { margin-top:.6rem; max-height:60vh; overflow-y:auto; }
+  .cerca-tit { font-size:15px; font-weight:700; margin-bottom:.3rem; }
+  .cerca-vuoto { font-size:15px; color:var(--muted); }
+  .cerca-g { margin-top:.6rem; }
+  .cerca-g.passata { opacity:.55; }
+  .cerca-d { font-size:14px; font-weight:700; color:var(--gold); text-transform:capitalize; margin-bottom:.2rem; }
+  .cerca-r { display:grid; grid-template-columns:auto 1fr; gap:.1rem .7rem; width:100%; text-align:left; font:inherit; padding:.55rem .6rem; border:1px solid var(--border); border-radius:10px; background:#fff; color:var(--ink); cursor:pointer; margin-bottom:.3rem; text-decoration:none; }
+  .cerca-r:hover { border-color:var(--gold); }
+  .cerca-r .o { font-weight:700; font-size:15px; grid-row:span 2; }
+  .cerca-r .n { font-size:15px; font-weight:600; }
+  .cerca-r .c { font-size:14px; color:var(--muted); }
+  .slot.evid { outline:3px solid var(--gold); outline-offset:2px; transition:outline-color .3s; }
   .tipo-select { padding:.55rem .85rem; border:1px solid var(--gold); border-radius:8px;
                  background:#fff; color:var(--ink); font-weight:700; font-size:14.5px; cursor:pointer; font-family:inherit; }
 
@@ -366,6 +390,18 @@
 
   <div id="login-container"></div>
   <div id="app-container" style="display:none">
+    <div class="cerca" id="cerca-box">
+      <label class="cerca-lbl" for="cerca-q">🔎 Cerca nell'agenda</label>
+      <div class="cerca-riga">
+        <input id="cerca-q" type="search" placeholder="scuola, Open, Manovra, un nome…" autocomplete="off" enterkeyhint="search">
+        <button id="cerca-x" class="cerca-x" type="button" aria-label="Svuota la ricerca" hidden>✕</button>
+      </div>
+      <div class="cerca-opz">
+        <label class="cerca-pass"><input type="checkbox" id="cerca-passate"> Anche passate</label>
+        <button id="cerca-torna" class="cerca-torna" type="button" hidden>← Torna ai risultati</button>
+      </div>
+      <div id="cerca-ris" class="cerca-ris" hidden></div>
+    </div>
     <div class="bar">
       <div class="bar-left">
         <select id="tipo-select" class="tipo-select" style="display:none">
@@ -821,12 +857,215 @@
       }
     }
     const t = q.get('tipo');
-    if (!t) return;
+    if (t) scegliTabDiTipo(t);
+  }
+  /* il corso dello slot nel menu: scuole -> Scuole, Prime Bambini e Ragazzi -> Bambini e Ragazzi, altre Prime -> Prima Lezione */
+  function scegliTabDiTipo(t) {
     const tab = isScuolaTipo(t) ? 'scuole'
       : (t === 'prima_lezione_bambini' || t === 'prima_lezione_ragazzi') ? 'bambini'
       : isPrimaTipo(t) ? 'prima_lezione' : t;
     const sel = document.getElementById('tipo-select');
     if (sel && sel.style.display !== 'none' && sel.querySelector(`option[value="${CSS.escape(tab)}"]`)) { currentTipo = tab; sel.value = tab; }
+  }
+  /* settimana di una data AAAA-MM-GG, come offset da quella corrente */
+  function offsetDiData(iso) {
+    const [y, m, g] = String(iso).split('-').map(Number);
+    const lun = new Date(y, m - 1, g); lun.setDate(lun.getDate() - (lun.getDay() + 6) % 7);
+    return Math.round((lun - lunSett(0)) / (7 * 86400000));
+  }
+
+  /* ═══ v3.106 CERCA NELL'AGENDA — solo letture, sempre per intervallo di date ═══ */
+  const CERCA_NOME = {
+    prima_lezione: 'Prima Lezione Adulti', prima_lezione_bambini: 'Prima Lezione Bambini (6–11)', prima_lezione_ragazzi: 'Prima Lezione Ragazzi (12–17)',
+    prima_lezione_genitori: 'Prima Lezione Genitori', prima_lezione_privata: 'Prima Lezione Privata Speciale',
+    prima_lezione_scuola: 'Prima Lezione · Scuole', scuola_mini: 'Mini percorso · Scuole',
+    open: 'Corso Open KataClimb', advance: 'Corso Advance KataClimb', intro_corda: 'Corso Intro Corda KataClimb', evo_corda: 'Corso Evo Corda KataClimb',
+    fly: 'Corso Fly KataClimb', evo_ragazzi: 'Corso Evo Ragazzi', expert: 'Corso Expert', giovani: 'Corso Giovani KataClimb (18–24)',
+    senior: 'Corso Senior KataClimb (over 60)', genitori: 'Corso Genitori KataClimb', lab: 'Lab', monitor: 'Sala con Monitor',
+    manovra_sosta: 'Corso Manovra in Sosta KataClimb'
+  };
+  const GIORNI_CERCA = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
+  const cercaNorm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  function cercaNomeSlot(s) {
+    if (s.tipo_corso === 'bambini') return s.fascia === 'ragazzi' ? 'Corso Ragazzi (12–17)' : s.fascia === 'bambini' ? 'Corso Bambini (6–11)' : 'Corso Bambini e Ragazzi';
+    const n = CERCA_NOME[s.tipo_corso] || labelSlot(s.tipo_corso, s.fascia);
+    return n + (s.lead_scuola_id && enteScuola[s.lead_scuola_id] ? ' · ' + enteScuola[s.lead_scuola_id] : '');
+  }
+  const cercaTestoSlot = (s) => cercaNorm([cercaNomeSlot(s), labelSlot(s.tipo_corso, s.fascia), isScuolaTipo(s.tipo_corso) ? 'scuola scuole' : ''].join(' '));
+  let cercaDati = null, cercaTimer = null, cercaVoci = [], cercaN = 0;
+
+  /* tutte le righe di una lettura, a pagine da 1000 */
+  async function cercaTutte(fq) {
+    let out = [];
+    for (let p = 0; p < 10; p++) {
+      const { data, error } = await fq().range(p * 1000, p * 1000 + 999);
+      if (error) throw error;
+      out = out.concat(data || []);
+      if (!data || data.length < 1000) break;
+    }
+    return out;
+  }
+  async function cercaCarica(passate) {
+    if (cercaDati && cercaDati.passate === passate) return cercaDati;
+    const oggi = new Date(); oggi.setHours(0, 0, 0, 0);
+    const da = isoD(addG(oggi, passate ? -92 : 0)), a = isoD(addG(oggi, 183));
+    const staff = viewMode !== 'allievo';
+    const D = { passate, da, a, oggi: isoD(oggi), staff, slot: [], pren: [], imp: [], iscritti: {}, chiuse: new Set() };
+    const [rs, rc] = await Promise.all([
+      sb.from('corsi_attivi_settimanali').select('id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, fascia, data_evento, lead_scuola_id').eq('status', 'attivo'),
+      sb.from('slot_chiusure').select('slot_id, data').gte('data', da).lte('data', a)
+    ]);
+    if (rs.error) throw rs.error;
+    D.slot = rs.data || [];
+    (rc.data || []).forEach(r => D.chiuse.add(r.slot_id + '|' + r.data));
+    const leadIds = [...new Set(D.slot.map(s => s.lead_scuola_id).filter(Boolean))].filter(id => !(id in enteScuola));
+    if (staff && leadIds.length) {
+      const { data: ll } = await sb.from('lead_data').select('id, ente').in('id', leadIds);
+      (ll || []).forEach(r => { enteScuola[r.id] = r.ente || ''; });
+    }
+    if (!staff) {
+      /* allievo: solo le sue lezioni prenotate, nessun nome */
+      const pc = await cercaTutte(() => sb.from('prenotazioni_corso').select('slot_id, data_lezione, stato')
+        .eq('user_id', userId).in('stato', ['prenotato', 'presente', 'assente']).gte('data_lezione', da).lte('data_lezione', a));
+      D.pren = pc.map(p => ({ slot_id: p.slot_id, data: p.data_lezione, nome: '' }));
+      cercaDati = D; return D;
+    }
+    const [pc, ppl, man, imp, isc] = await Promise.all([
+      cercaTutte(() => sb.from('prenotazioni_corso').select('slot_id, user_id, data_lezione, stato')
+        .in('stato', ['prenotato', 'presente', 'assente']).gte('data_lezione', da).lte('data_lezione', a)),
+      cercaTutte(() => sb.from('prenotazioni_prima_lezione').select('slot_id, data_lezione, stato, crm_leads(nome, cognome)')
+        .in('stato', ['prenotato', 'fatto', 'no_show']).gte('data_lezione', da).lte('data_lezione', a)),
+      cercaTutte(() => sb.from('v_lista_manovra_sosta').select('slot_id, data_lezione, nome, cognome')
+        .in('stato', STATI_MANOVRA).gte('data_lezione', da).lte('data_lezione', a)),
+      cercaTutte(() => sb.from('impegni_staff').select('slot_id, data, user_id')
+        .eq('tipo', 'lezione').in('stato', ['previsto', 'presente']).gte('data', da).lte('data', a)),
+      sb.rpc('get_iscritti_minori')
+    ]);
+    const uids = [...new Set([...pc.map(p => p.user_id), ...imp.map(i => i.user_id)].filter(Boolean))], nomi = {};
+    for (let i = 0; i < uids.length; i += 200) {
+      const { data } = await sb.from('profiles').select('user_id, nome, cognome').in('user_id', uids.slice(i, i + 200));
+      (data || []).forEach(p => { nomi[p.user_id] = ((p.nome || '') + ' ' + (p.cognome || '')).trim(); });
+    }
+    const nc = (x) => ((x && x.nome || '') + ' ' + (x && x.cognome || '')).trim();
+    D.pren = [
+      ...pc.map(p => ({ slot_id: p.slot_id, data: p.data_lezione, nome: nomi[p.user_id] || '' })),
+      ...ppl.map(p => ({ slot_id: p.slot_id, data: p.data_lezione, nome: nc(p.crm_leads) })),
+      ...man.map(p => ({ slot_id: p.slot_id, data: p.data_lezione, nome: nc(p) }))
+    ];
+    D.imp = imp.map(i => ({ slot_id: i.slot_id, data: i.data, nome: nomi[i.user_id] || '' }));
+    if (isc.error) console.warn('[cerca] iscritti:', isc.error.message);
+    (isc.data || []).forEach(r => { (D.iscritti[r.slot_id] = D.iscritti[r.slot_id] || []).push({ nome: nc(r), data_fine: r.data_fine }); });
+    if (!EVCAL) { const { data } = await sb.rpc('get_eventi_calendario'); EVCAL = data || []; }
+    cercaDati = D; return D;
+  }
+
+  async function cercaEsegui() {
+    const q = document.getElementById('cerca-q').value.trim(), box = document.getElementById('cerca-ris');
+    document.getElementById('cerca-x').hidden = !q;
+    if (q.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
+    const n = ++cercaN;
+    box.hidden = false; box.innerHTML = '<p class="cerca-vuoto">Cerco…</p>';
+    document.getElementById('cerca-torna').hidden = true;
+    let D;
+    try { D = await cercaCarica(document.getElementById('cerca-passate').checked); }
+    catch (e) { if (n === cercaN) box.innerHTML = `<p class="cerca-vuoto">Non riesco a cercare ora: ${escAttr(e.message || e)}</p>`; return; }
+    if (n !== cercaN) return; // nel frattempo e' arrivata un'altra ricerca
+    const qn = cercaNorm(q), slotById = Object.fromEntries(D.slot.map(s => [s.id, s]));
+    const fine8 = isoD(addG(new Date(D.oggi + 'T00:00:00'), 56));
+    const occ = new Map();
+    const voce = (s, d) => { const k = s.id + '|' + d; if (!occ.has(k)) occ.set(k, { slot: s, data: d, pren: [], staff: [], tieni: false }); return occ.get(k); };
+    const chiusa = (s, d) => (window.GIORNI_CHIUSI && window.GIORNI_CHIUSI.has(d)) || D.chiuse.has(s.id + '|' + d);
+    const iscrittiDi = (s, d) => s.data_evento ? [] : (D.iscritti[s.id] || []).filter(x => !x.data_fine || x.data_fine >= d);
+    D.pren.forEach(p => { const s = slotById[p.slot_id]; if (s) voce(s, p.data).pren.push(p.nome); });
+    D.imp.forEach(p => { const s = slotById[p.slot_id]; if (s) voce(s, p.data).staff.push(p.nome); });
+    /* le date in cui un corso ricorrente ha iscritti fissi (fino a 8 settimane) */
+    D.slot.filter(s => !s.data_evento && (D.iscritti[s.id] || []).length).forEach(s => {
+      for (let d = new Date(D.da + 'T00:00:00'); isoD(d) <= fine8; d = addG(d, 1)) {
+        const iso = isoD(d);
+        if (((d.getDay() + 6) % 7) + 1 === Number(s.giorno_settimana) && iscrittiDi(s, iso).length) voce(s, iso);
+      }
+    });
+    /* le lezioni datate (scuole, Manovra) del periodo, anche senza prenotati */
+    D.slot.filter(s => s.data_evento && s.data_evento >= D.da && s.data_evento <= D.a).forEach(s => voce(s, s.data_evento));
+    const ris = [];
+    for (const o of occ.values()) {
+      if (o.data < D.da || o.data > D.a || chiusa(o.slot, o.data)) continue;
+      const isc = iscrittiDi(o.slot, o.data);
+      const corso = cercaTestoSlot(o.slot).includes(qn);
+      const persona = D.staff && [...o.pren, ...o.staff, ...isc.map(x => x.nome)].some(nm => cercaNorm(nm).includes(qn));
+      const conQualcuno = o.pren.length || isc.length;
+      let ok;
+      if (!D.staff) ok = o.pren.length && corso;                      // allievo: solo le sue prenotate
+      else if (persona) ok = !isc.some(x => cercaNorm(x.nome).includes(qn)) || o.data <= fine8 || o.pren.length;
+      else if (corso) ok = o.slot.data_evento ? true : (conQualcuno && o.data <= fine8);
+      if (!ok) continue;
+      const conta = [o.pren.length ? `${o.pren.length} ${o.pren.length === 1 ? 'prenotato' : 'prenotati'}` : '',
+        isc.length ? `${isc.length} ${isc.length === 1 ? 'iscritto' : 'iscritti'}` : ''].filter(Boolean).join(' · ') || 'Nessun prenotato';
+      const staff = D.staff && o.staff.length ? ' · Staff: ' + o.staff.filter(Boolean).join(', ') : '';
+      ris.push({ data: o.data, ora: String(o.slot.ora_inizio || '').slice(0, 5), titolo: cercaNomeSlot(o.slot), conta: conta + staff, slot: o.slot, ente: enteScuola[o.slot.lead_scuola_id] || '' });
+    }
+    /* eventi dell'Accademia (solo staff) */
+    if (D.staff) (EVCAL || []).forEach(e => {
+      const d = String(e.data_inizio || '').slice(0, 10);
+      if (d < D.da || d > D.a) return;
+      const t = (EVTIPO[e.tipo] || EVTIPO.evento);
+      if (!cercaNorm([e.nome, t.lab, e.luogo].join(' ')).includes(qn)) return;
+      ris.push({ data: d, ora: e.ora_partenza ? String(e.ora_partenza).slice(0, 5) : '', titolo: e.nome, conta: t.lab + (e.n_iscritti > 0 ? ` · ${e.n_iscritti} in cordata` : ''),
+        href: '/evento.html?slug=' + encodeURIComponent(e.slug) });
+    });
+    ris.sort((x, y) => (x.data + x.ora).localeCompare(y.data + y.ora));
+    cercaVoci = ris;
+    if (!ris.length) { box.innerHTML = `<p class="cerca-vuoto">Nessuna data trovata per «${escAttr(q)}».</p>`; return; }
+    const date = [...new Set(ris.map(r => r.data))];
+    const enti = [...new Set(ris.map(r => r.ente))], titoli = [...new Set(ris.map(r => r.titolo))];
+    const etich = enti.length === 1 && enti[0] ? enti[0] : titoli.length === 1 ? titoli[0] : `«${q}»`;
+    let html = `<div class="cerca-tit">${escAttr(etich)} · ${date.length} ${date.length === 1 ? 'data' : 'date'}</div>`;
+    date.forEach(d => {
+      const x = new Date(d + 'T00:00:00');
+      html += `<div class="cerca-g${d < D.oggi ? ' passata' : ''}"><div class="cerca-d">${GIORNI_CERCA[x.getDay()]} ${x.getDate()} ${MESI_BR[x.getMonth()]} ${x.getFullYear()}</div>`
+        + ris.map((r, i) => [r, i]).filter(([r]) => r.data === d).map(([r, i]) => r.href
+          ? `<a class="cerca-r" href="${escAttr(r.href)}" target="_top"><span class="o">${escAttr(r.ora || '—')}</span><span class="n">${escAttr(r.titolo)}</span><span class="c">${escAttr(r.conta)}</span></a>`
+          : `<button type="button" class="cerca-r" data-cerca="${i}"><span class="o">${escAttr(r.ora)}</span><span class="n">${escAttr(r.titolo)}</span><span class="c">${escAttr(r.conta)}</span></button>`).join('')
+        + '</div>';
+    });
+    box.innerHTML = html;
+    box.querySelectorAll('[data-cerca]').forEach(b => { b.onclick = () => cercaVai(cercaVoci[+b.dataset.cerca]); });
+  }
+
+  /* tocco su un risultato: settimana e corso giusti, poi la card evidenziata per 2 secondi */
+  async function cercaVai(r) {
+    if (!r || !r.slot) return;
+    weekOffset = offsetDiData(r.data);
+    if (viewMode !== 'allievo') scegliTabDiTipo(r.slot.tipo_corso);
+    document.getElementById('cerca-ris').hidden = true;
+    document.getElementById('cerca-torna').hidden = false;
+    await render();
+    const card = document.querySelector(`.slot[data-slot-id="${CSS.escape(r.slot.id)}"][data-data="${CSS.escape(r.data)}"]`);
+    if (!card) { toast('Lezione non trovata in questa settimana'); return; }
+    card.classList.add('expanded', 'evid');
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => card.classList.remove('evid'), 2000);
+  }
+
+  function setupCerca() {
+    const inp = document.getElementById('cerca-q');
+    if (!inp || inp.dataset.pronto) return;
+    inp.dataset.pronto = '1';
+    inp.addEventListener('input', () => { clearTimeout(cercaTimer); cercaTimer = setTimeout(cercaEsegui, 300); });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { clearTimeout(cercaTimer); cercaEsegui(); } });
+    document.getElementById('cerca-x').onclick = () => {
+      inp.value = ''; cercaN++; cercaVoci = [];
+      document.getElementById('cerca-x').hidden = true;
+      document.getElementById('cerca-torna').hidden = true;
+      const box = document.getElementById('cerca-ris'); box.hidden = true; box.innerHTML = '';
+      inp.focus();
+    };
+    document.getElementById('cerca-passate').onchange = () => { if (inp.value.trim().length >= 2) cercaEsegui(); };
+    document.getElementById('cerca-torna').onclick = () => {
+      document.getElementById('cerca-ris').hidden = false;
+      document.getElementById('cerca-torna').hidden = true;
+      document.getElementById('cerca-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
   }
 
   function lunSett(offset) {
@@ -1213,6 +1452,7 @@
   }
 
   function bindEvents() {
+    setupCerca(); // v3.106
     document.getElementById('prev').onclick = () => { weekOffset--; render(); };
     document.getElementById('next').onclick = () => { weekOffset++; render(); };
     document.getElementById('tipo-select').onchange = (e) => {
@@ -1710,6 +1950,7 @@
 
     const card = document.createElement('div');
     card.className = 'slot ' + tipoEff + (passato ? ' passato' : '');
+    card.dataset.slotId = s.id; card.dataset.data = dataIso; // v3.106 cerca: tocco su un risultato -> questa card
 
     // Stati che contano come "occupato slot"
     const STATI_ATTIVI_CORSO = ['prenotato', 'presente', 'assente']; // DEBITO-178: l'assente occupava il posto (lo si scopre al momento) e resta visibile/correggibile
