@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.148 · 2026-10-29 · SEGRETERIA E COMPENSI STAFF (consegna 29 ott, DB sql/segreteria_compensi_2026-10-29.sql da lanciare PRIMA del push): (1) Da sistemare → Sistema adesso → "registra": caselle dei giorni del corso (solo slot attivi del tipo), validazione "Scegli il giorno del corso", p_slot_ids ad allineamento_decidi (caso Arianna Calcaterra). (2) Cambia giorni: si cambia anche quanti giorni, niente scritta rossa, contatore informativo (caso Marina Ungari). (3) Mellozzini su Expert e Giovani a percentuale (30%, slot_piano_staff.percentuale): restano nelle presenze, 0 € a lezione, contati come istruttore nella copertura, blocco Compensi a percentuale in Costi staff del mese (fatte, sostituite chi/quanto, da scalare; incassi del mese non calcolati: manca la data d'incasso). (4) Prima Lezione nella stessa ora di un corso dello stesso istruttore: 0 €, fuori da Presenze da confermare, "dentro il corso — non si paga a parte" in Turni e Prime Lezioni del mese. CUMULA v3.147 (sotto). -->
 <!-- KC-BUILD: portale v3.147 · 2026-10-27 · CONSOLE SEGRETERIA: TUTTO LI', E "SISTEMA ADESSO" (consegna 27 ott, DB allineamento_sistema_ora_2026-10-27 gia' applicato: azioni pagato, correggi_importo, chiudi di allineamento_decidi e colonna azione_suggerita). oggi.html non cambia. (1) In cima alla Segreteria, sopra l'interruttore, "Da fare oggi" con tre tessere (solo creator e segreteria): 🔄 Allineamento con il tuo foglio (voci aperte dell'ultima notte -> tab Allineamento), ⚠ Da sistemare (righe di v_segreteria_da_sistemare_seg -> tab Da sistemare), 💶 Da pagare del mese (v_costi_staff_mese: totale, Corsi/Prime/Monitor, lezioni da confermare non contate -> Turni, Costi staff del mese); rosso/arancio se c'e' da fare, verde "Tutto a posto"; si aggiornano dopo ogni azione. (2) Nuovo tab "⚠ Da sistemare" (?nav=segreteria&tab=dasistemare): l'elenco di oggi.html v2.32 portato qui con prefisso ds (stessa vista, stessi gruppi, stesse RPC: impegno_presenza, sostituisci_istruttore, segreteria_chiudi_turno, impegno_mi_segno), ogni azione con kcGuida (presente con il compenso: 15 € a lezione o a ore da impegni_staff.compenso_tipo; monitor scelto = avviso arancio del caso estremo); sotto ogni bottone cosa fa; APRI IN AGENDA in una nuova scheda. (3) Allineamento: su Da registrare e Da chiarire il bottone principale e' SISTEMA ADESSO -> kcGuida "Com'è andata?" con cinque scelte (registra, pagato, correggi_importo, chiudi, rispondi), preselezionata azione_suggerita (Da registrare senza suggerimento: registra), campi della scelta, cosa succede con il pagamento che si tocca (letto da abbonamenti_pagamenti con la stessa regola dell'RPC), avvisi arancio (importo diverso dal foglio, al prima di dal, pagamento non trovato, chiudi su una voce pagata nel foglio); l'esito lo scrive il DB: "✓ <esito> · Il portale è già a posto.". NON È COSÌ resta solo su Da registrare. Voce senza persona: kcGuida -> Inserisci contatto precompilato -> appena salvata "Ora registro l'abbonamento?" (insertNewLead chiama alDopoInserisci; se la voce non ha ancora la persona l'RPC lo dice e si mostra). Da sistemare nel portale: APRI E SISTEMA porta al fascicolo della persona (Prima Lezione o voce senza data) o all'agenda della data in una nuova scheda, e al ritorno nella console chiede "L'hai sistemato?" -> fatto. "Cosa fare oggi": il passo delle domande ora dice che si sistemano subito. CUMULA v3.146 (sotto). -->
 <!-- KC-BUILD: portale v3.146 · 2026-10-27 · PRIMA LEZIONE GIA' FATTA (DATA PASSATA) (consegna 27 ott, caso Kami Cafaro; nessuna modifica al DB): nel fascicolo del lead, finestra "📅 Fissa prima lezione", sopra gli slot il bottone "✔ L'ha già fatta (data passata)", solo per creator e segreteria (isSegreteriaPiena). Apre kcGuida: data dagli ultimi 60 giorni a ieri, slot Prima Lezione attivi di quel giorno della settimana (tipo_corso prima_lezione%, nome completo e orario; se e' uno solo e' gia' scelto); cosa succede si aggiorna con le scelte; se il lead ha gia' una Prima Lezione fatta avvisa "Risulta già una Prima Lezione fatta il GG/MM: vuoi registrarne un'altra?". Conferma -> insert in prenotazioni_prima_lezione (lead_id, slot_id, data_lezione) come confermaFissaLezione, poi marca_presenza_prima_lezione(id,'fatto'); se la seconda chiamata fallisce lo dice in chiaro e riprovando non crea un doppione. Errori del DB (giorno chiuso, slot chiuso, slot pieno) mostrati come arrivano. Messaggio finale con il promemoria del pagamento (➕ Abbonamento o corso). Il messaggio breve (toast) resta a schermo piu' a lungo se il testo e' lungo (fino a 8 secondi). CUMULA v3.145 (sotto). -->
 <!-- KC-BUILD: portale v3.145 · 2026-10-27 · ALLINEAMENTO: L'INTERFACCIA CHE GUIDA E CONTROLLA (consegna 27 ott, nessuna modifica al DB). (1) Nuova funzione generica kcGuida() vicino a scModal, documentata in testa e pronta per le altre sezioni: modale con titolo, riquadro "Cosa succede se confermi" (si aggiorna mentre si compila), righe arancio di attenzione, campi, conferma scura a destra e annulla chiaro a sinistra; errore = messaggio rosso e la finestra resta aperta; riuscita = chiude, toast e lo stesso testo resta come esito. Mai perdere quello che si e' scritto: se la finestra e' stata toccata, uscire (annulla, ✕, clic fuori, Esc, cambio tab della Segreteria, cambio sezione) chiede "Non hai salvato" con Torna e completa / Esci senza salvare; ricaricare la pagina fa comparire l'avviso del browser; le caselle di testo restano come bozza nel browser (localStorage per voce, try/catch) e si ritrovano riaprendo la voce ("Avevi iniziato a scrivere"). (2) Allineamento: in cima "Cosa fare oggi" a passi dai numeri (entro fine mese solo negli ultimi 7 giorni), cliccabili verso il gruppo; sotto ogni bottone cosa fa; NON VA -> NON È COSÌ, CORRETTO -> HO CORRETTO IL FOGLIO; tutte le azioni passano da kcGuida (REGISTRA con frasi dal vivo e avviso se l'importo e' diverso dal foglio, NON È COSÌ, RISPONDI, FATTO, HO CORRETTO IL FOGLIO, INSERISCI PRIMA LA PERSONA); sulla riga "✎ bozza non inviata"; dopo l'azione la riga resta grigia con cosa e' successo e cosa succede stanotte; storico con etichette chiare (Registrato, Risposta inviata, Chiuso: non è così, Sistemato, Corretto nel foglio). Scritture solo con allineamento_decidi, stato 'scartata' invariato. (3) Il messaggio breve (toast) di tutto il portale passa da 12px a 13px (da 1024px resta 18px). CUMULA v3.144 (sotto). -->
@@ -1784,7 +1785,7 @@ fill="#1d4ed8" stroke="none">
             <input id="tu-mese-costi" type="month" class="input sc-in" style="width:auto" onchange="tuCaricaCosti()">
             <button class="btn sc-scuro sc-piccolo" onclick="tuEsportaCsvCosti()">Esporta CSV</button>
           </div>
-          <p class="sc-nota" style="margin-top:0">Corsi 15 € a lezione · Prime Lezioni 15 € l'ora con almeno un allievo presente, 5 € l'ora se vuota · monitor come sopra. Si paga solo con la presenza segnata.</p>
+          <p class="sc-nota" style="margin-top:0">Corsi 15 € a lezione · Prime Lezioni 15 € l'ora con almeno un allievo presente, 5 € l'ora se vuota, 0 se l'istruttore è già sul corso nella stessa ora · monitor come sopra · Expert e Giovani di Mellozzini a percentuale (sotto). Si paga solo con la presenza segnata.</p>
           <div id="tu-costi"></div>
           <h3 class="sc-h3" style="margin-top:16px">Prime Lezioni del mese</h3>
           <div id="tu-prime"></div>
@@ -11280,6 +11281,15 @@ function tuNomeCorso(tipo,fascia){if(tipo==='bambini')return fascia==='ragazzi'?
 /* stessa regola di v_copertura_lezioni: istruttore = compenso lezione o percentuale (v3.148), assistente = ora, contano previsto e presente */
 function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
 let tuCompLez=[];
+/* v3.148 — stessa regola di _prima_dentro_corso (DB): una Prima Lezione con lo stesso istruttore gia' su un corso
+   (previsto o presente) nella stessa ora non si paga a parte */
+function tuTipoSlot(id){const c=tuDati&&((tuDati.corsi||[]).find(x=>x.id===id)||(tuDati.slot||[]).find(x=>x.id===id));return c?String(c.tipo_corso||''):''}
+function tuDentroCorso(i){
+  if(!tuDati||i.tipo!=='lezione'||!tuTipoSlot(i.slot_id).startsWith('prima_lezione'))return false;
+  return (tuDati.imp||[]).some(o=>o.id!==i.id&&o.user_id===i.user_id&&o.data===i.data&&o.tipo==='lezione'&&(o.stato==='previsto'||o.stato==='presente')
+    &&!tuTipoSlot(o.slot_id).startsWith('prima_lezione')&&o.ora_inizio<i.ora_fine&&o.ora_fine>i.ora_inizio);
+}
+const TU_DENTRO='dentro il corso — non si paga a parte';
 
 const tuPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
 /* v3.142 liste staff sulle lezioni: i monitor in fondo, solo casi estremi
@@ -11436,7 +11446,7 @@ function tuDisegnaSettimana(){
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
           const{ni,na}=tuConta(v.seg),ok=ni>=v.imin&&na>=v.amin;
-          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
+          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(tuDentroCorso(i)?' <span style="font-size:13px;color:var(--text2)">'+TU_DENTRO+'</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
           return `<button class="tu-voce ${ok?'verde':'rosso'}" onclick="tuApriVoce(${k})">
             <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${ok?'coperta':'scoperta'}</b></span>
             <span class="tu-t">${escHtml(v.titolo)}</span>
@@ -11468,7 +11478,7 @@ function tuApriVoce(k){
     if(puo&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
-    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
+    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
     const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
       <div class="sc-sub">${escHtml(ruolo)} · ${escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
@@ -11662,7 +11672,7 @@ async function tuCaricaCosti(){
   box.innerHTML='<p class="sc-vuoto">Carico…</p>';bp.innerHTML='';
   const[rc,rp]=await Promise.all([
     sb.from('v_costi_staff_mese').select('*').eq('mese',da).order('persona'),
-    sb.from('v_compenso_lezioni').select('impegno_id,persona,data,ora_inizio,ora_fine,tipo_corso,fascia,stato,ore,euro')
+    sb.from('v_compenso_lezioni').select('impegno_id,persona,data,ora_inizio,ora_fine,tipo_corso,fascia,stato,ore,euro,dentro_corso')
       .like('tipo_corso','prima_lezione%').eq('stato','presente').gte('data',da).lte('data',a).order('data').order('ora_inizio')
   ]);
   if(rc.error){box.innerHTML=`<p class="sc-vuoto ko">Costi non letti: ${escHtml(scErr(rc.error))}</p>`;return}
@@ -11683,8 +11693,9 @@ async function tuCaricaCosti(){
   tuPrime=rp.data||[];
   bp.innerHTML=!tuPrime.length?'<p class="sc-vuoto">Nessuna Prima Lezione pagata in questo mese.</p>':tuPrime.map(r=>{
     const piena=Number(r.ore)>0&&Number(r.euro)/Number(r.ore)>=15;
+    const stato=r.dentro_corso?`<span class="sc-stato grigio">${TU_DENTRO}</span>`:`<span class="sc-stato ${piena?'verde':'grigio'}">${piena?'con allievi':'vuota'}</span>`; // v3.148
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))}</div></div>
-      <span class="sc-stato ${piena?'verde':'grigio'}">${piena?'con allievi':'vuota'}</span><b>${tuEur(r.euro)}</b></div>`;
+      ${stato}<b>${tuEur(r.euro)}</b></div>`;
   }).join('');
 }
 /* ── v3.148 Compensi a percentuale (v_compenso_percentuale): Mellozzini su Expert e Giovani, 30% (slot_piano_staff.percentuale).

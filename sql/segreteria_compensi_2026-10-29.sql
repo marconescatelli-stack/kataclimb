@@ -35,7 +35,14 @@ SELECT 'PRIMA', '3b. lezioni di Mellozzini su Expert/Giovani pagate a lezione, e
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'PRIMA', '3c. lezioni di Mellozzini su Expert/Giovani da confermare (restano uguali: servono per le sostituzioni)', count(*)::text
   FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND da_confermare;
---@@CONTROLLI_PRIMA@@
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'PRIMA', '4. Prime Lezioni nella stessa ora di un corso dello stesso istruttore pagate, euro > 0 (dopo: 0)', count(*)::text
+  FROM public.v_compenso_lezioni v
+ WHERE v.tipo_corso LIKE 'prima_lezione%' AND v.euro > 0
+   AND EXISTS (SELECT 1 FROM public.impegni_staff o JOIN public.corsi_attivi_settimanali oc ON oc.id = o.slot_id
+                WHERE o.user_id = v.user_id AND o.data = v.data AND o.id <> v.impegno_id AND o.tipo = 'lezione'
+                  AND o.stato IN ('previsto','presente') AND oc.tipo_corso NOT LIKE 'prima_lezione%'
+                  AND o.ora_inizio < v.ora_fine AND o.ora_fine > v.ora_inizio);
 
 -- ═══════════════════════════════════════════════════════════════════════════════════════════
 -- 1. "Da sistemare" → registra abbonamento: i giorni del corso
@@ -535,9 +542,35 @@ begin
   end if;
 end $function$;
 
--- 3d. viste
+-- 4. (qui perché le viste sotto la usano) Prima Lezione dentro un corso dello stesso istruttore
+--    Decisione Marco: se un istruttore è in agenda su un corso e nella stessa fascia gli si mette una
+--    Prima Lezione (Adulti, Bambini, Ragazzi, Genitori: tutte), la Prima Lezione NON si paga: è già
+--    pagato dal corso. Il corso conta anche se è a percentuale (l'istruttore è comunque già lì).
+--    Il corso deve essere previsto o presente: se sul corso è ASSENTE, il corso non lo paga e la
+--    Prima Lezione si paga come sempre (la consegna diceva solo "non ritirato": scelta più prudente).
+CREATE OR REPLACE FUNCTION public._prima_dentro_corso(p_impegno uuid, p_user uuid, p_data date, p_ini time without time zone, p_fin time without time zone)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  select exists (
+    select 1
+      from public.impegni_staff o
+      join public.corsi_attivi_settimanali oc on oc.id = o.slot_id
+     where o.user_id = p_user and o.data = p_data and o.id <> p_impegno
+       and o.tipo = 'lezione' and o.stato in ('previsto','presente')
+       and oc.tipo_corso not like 'prima_lezione%'
+       and o.ora_inizio < p_fin and o.ora_fine > p_ini);
+$function$;
+-- anche anon: la usa v_compenso_lezioni, che anon può leggere (righe filtrate a zero); dice solo vero/falso
+REVOKE ALL ON FUNCTION public._prima_dentro_corso(uuid, uuid, date, time without time zone, time without time zone) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public._prima_dentro_corso(uuid, uuid, date, time without time zone, time without time zone) TO anon, authenticated, service_role;
+
+-- 3d. viste (con il punto 4 dentro)
 -- v_compenso_lezioni: a percentuale = 0 € a lezione; da_confermare resta com'è (serve per le sostituzioni).
--- In fondo la colonna nuova percentuale (la quota del piano, solo sulle righe a percentuale).
+-- Punto 4: Prima Lezione dentro un corso dello stesso istruttore = 0 € e niente da confermare.
+-- In fondo le colonne nuove percentuale (la quota del piano, solo sulle righe a percentuale) e dentro_corso.
 CREATE OR REPLACE VIEW public.v_compenso_lezioni AS
  SELECT i.id AS impegno_id,
     i.user_id,
@@ -553,6 +586,7 @@ CREATE OR REPLACE VIEW public.v_compenso_lezioni AS
     i.stato,
     round(EXTRACT(epoch FROM i.ora_fine - i.ora_inizio) / 3600.0, 2) AS ore,
         CASE
+            WHEN dc.dentro_corso THEN 0::numeric
             WHEN i.stato = 'presente'::text THEN
             CASE
                 WHEN c.tipo_corso ~~ 'prima_lezione%'::text THEN round(EXTRACT(epoch FROM i.ora_fine - i.ora_inizio) / 3600.0 *
@@ -568,10 +602,12 @@ CREATE OR REPLACE VIEW public.v_compenso_lezioni AS
             END
             ELSE 0::numeric
         END AS euro,
-    i.stato = 'previsto'::text AND i.data < CURRENT_DATE AS da_confermare,
-    sp.percentuale
+    i.stato = 'previsto'::text AND i.data < CURRENT_DATE AND NOT dc.dentro_corso AS da_confermare,
+    sp.percentuale,
+    dc.dentro_corso
    FROM impegni_staff i
      JOIN corsi_attivi_settimanali c ON c.id = i.slot_id
+     CROSS JOIN LATERAL ( SELECT c.tipo_corso ~~ 'prima_lezione%'::text AND _prima_dentro_corso(i.id, i.user_id, i.data, i.ora_inizio, i.ora_fine) AS dentro_corso) dc
      LEFT JOIN tariffe_staff t ON t.user_id = i.user_id
      LEFT JOIN profile_data pd ON pd.user_id = i.user_id
      LEFT JOIN persone pe ON pe.id = pd.persona_id
@@ -579,7 +615,8 @@ CREATE OR REPLACE VIEW public.v_compenso_lezioni AS
   WHERE i.tipo = 'lezione'::text AND i.stato <> 'ritirato'::text AND (i.user_id = auth.uid() OR is_segreteria());
 
 -- v_costi_staff_mese: le lezioni a percentuale non contano tra le "lezioni corsi" pagate a lezione;
--- in fondo la colonna nuova lezioni_percentuale (fatte, presenti)
+-- in fondo la colonna nuova lezioni_percentuale (fatte, presenti). Punto 4: la Prima Lezione dentro
+-- un corso non conta tra le Prime Lezioni pagate.
 CREATE OR REPLACE VIEW public.v_costi_staff_mese AS
  WITH l AS (
          SELECT x.user_id,
@@ -587,7 +624,7 @@ CREATE OR REPLACE VIEW public.v_costi_staff_mese AS
             date_trunc('month'::text, x.data::timestamp with time zone)::date AS mese,
             count(*) FILTER (WHERE x.stato = 'presente'::text AND x.tipo_corso !~~ 'prima_lezione%'::text AND x.compenso_tipo <> 'percentuale'::text) AS lezioni_corsi,
             COALESCE(sum(x.euro) FILTER (WHERE x.tipo_corso !~~ 'prima_lezione%'::text), 0::numeric) AS euro_corsi,
-            count(*) FILTER (WHERE x.stato = 'presente'::text AND x.tipo_corso ~~ 'prima_lezione%'::text) AS prime_lezioni,
+            count(*) FILTER (WHERE x.stato = 'presente'::text AND x.tipo_corso ~~ 'prima_lezione%'::text AND NOT x.dentro_corso) AS prime_lezioni,
             COALESCE(sum(x.euro) FILTER (WHERE x.tipo_corso ~~ 'prima_lezione%'::text), 0::numeric) AS euro_prime,
             count(*) FILTER (WHERE x.da_confermare) AS da_confermare,
             count(*) FILTER (WHERE x.stato = 'assente'::text) AS assenze,
@@ -608,6 +645,7 @@ CREATE OR REPLACE VIEW public.v_costi_staff_mese AS
                     v.ore,
                     v.euro,
                     v.da_confermare,
+                    v.dentro_corso,
                     s.note ~~* '%sostitu%'::text AND s.user_id = v.user_id AND s.stato = 'presente'::text AS note_sost
                    FROM v_compenso_lezioni v
                      JOIN impegni_staff s ON s.id = v.impegno_id) x
@@ -663,6 +701,8 @@ CREATE OR REPLACE VIEW public.v_copertura_lezioni AS
   GROUP BY c.id, d.d, c.tipo_corso, c.fascia, c.ora_inizio, c.ora_fine, sc.istruttori_min, sc.assistenti_min;
 -- v_segreteria_da_sistemare: "lezione senza istruttore" conta anche chi conduce a percentuale.
 -- Le lezioni a percentuale RESTANO in "Presenze da confermare" (aggiornamento Marco 29 ott).
+-- Punto 4: la Prima Lezione dentro un corso dello stesso istruttore esce da "Presenze da confermare"
+-- e non è più una "doppia lezione" (Prima Lezione + corso nella stessa ora è voluto, non un errore).
 CREATE OR REPLACE VIEW public.v_segreteria_da_sistemare AS
  WITH imp AS (
          SELECT i.id,
@@ -708,6 +748,7 @@ CREATE OR REPLACE VIEW public.v_segreteria_da_sistemare AS
     'PRESENTE · ASSENTE · SOSTITUISCI'::text AS azioni
    FROM imp i
   WHERE i.stato = 'previsto'::text AND i.data < CURRENT_DATE AND i.data >= (CURRENT_DATE - 60)
+    AND NOT (i.tipo_corso ~~ 'prima_lezione%'::text AND _prima_dentro_corso(i.id, i.user_id, i.data, i.ora_inizio, i.ora_fine))
 UNION ALL
  SELECT 2 AS ordine,
     'turno_da_chiudere'::text AS tipo,
@@ -757,6 +798,7 @@ UNION ALL
    FROM imp a
      JOIN imp b ON b.user_id = a.user_id AND b.data = a.data AND b.id <> a.id AND (LEAST(a.ora_fine, b.ora_fine) - GREATEST(a.ora_inizio, b.ora_inizio)) > '00:30:00'::interval AND (b.stato = ANY (ARRAY['previsto'::text, 'presente'::text])) AND a.id < b.id
   WHERE (a.stato = ANY (ARRAY['previsto'::text, 'presente'::text])) AND a.data >= (CURRENT_DATE - 60)
+    AND (a.tipo_corso ~~ 'prima_lezione%'::text) = (b.tipo_corso ~~ 'prima_lezione%'::text)
 UNION ALL
  SELECT 5 AS ordine,
     'lezione_scoperta'::text AS tipo,
@@ -855,7 +897,6 @@ COMMENT ON VIEW public.v_compenso_percentuale IS
   'Lezioni dei titolari a percentuale (slot_piano_staff.compenso_tipo = percentuale): fatte, sostituite e quanto si scala dalla quota. Gli incassi del corso NON sono qui: manca una data di incasso affidabile (consegna 29 ott 2026).';
 REVOKE ALL ON public.v_compenso_percentuale FROM PUBLIC, anon;
 GRANT SELECT ON public.v_compenso_percentuale TO authenticated, service_role;
---@@CORPO@@
 
 -- ───────────────────────────── CONTROLLI DOPO ─────────────────────────────
 INSERT INTO _controllo_291026 (momento, controllo, valore)
@@ -880,7 +921,14 @@ SELECT 'DOPO', '3d. quota nel piano (deve essere 30 su expert e giovani)', strin
  WHERE sp.user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND sp.slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c');
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'DOPO', '3e. v_compenso_percentuale: lezioni lette (Marco come utente)', count(*)::text FROM public.v_compenso_percentuale;
---@@CONTROLLI_DOPO@@
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'DOPO', '4. Prime Lezioni nella stessa ora di un corso dello stesso istruttore pagate, euro > 0 (dopo: 0)', count(*)::text
+  FROM public.v_compenso_lezioni v
+ WHERE v.tipo_corso LIKE 'prima_lezione%' AND v.euro > 0
+   AND EXISTS (SELECT 1 FROM public.impegni_staff o JOIN public.corsi_attivi_settimanali oc ON oc.id = o.slot_id
+                WHERE o.user_id = v.user_id AND o.data = v.data AND o.id <> v.impegno_id AND o.tipo = 'lezione'
+                  AND o.stato IN ('previsto','presente') AND oc.tipo_corso NOT LIKE 'prima_lezione%'
+                  AND o.ora_inizio < v.ora_fine AND o.ora_fine > v.ora_inizio);
 
 COMMIT;
 
