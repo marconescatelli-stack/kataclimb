@@ -1788,6 +1788,8 @@ fill="#1d4ed8" stroke="none">
           <div id="tu-costi"></div>
           <h3 class="sc-h3" style="margin-top:16px">Prime Lezioni del mese</h3>
           <div id="tu-prime"></div>
+          <h3 class="sc-h3" style="margin-top:16px">Compensi a percentuale</h3>
+          <div id="tu-perc"></div>
         </div>
       </div>
 
@@ -11275,8 +11277,8 @@ const TU_NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12
   prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Prima Lezione Privata Speciale',prima_lezione_genitori:'Prima Lezione Genitori',
   prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)'};
 function tuNomeCorso(tipo,fascia){if(tipo==='bambini')return fascia==='ragazzi'?TU_NOME_CORSO.ragazzi:TU_NOME_CORSO.bambini;return TU_NOME_CORSO[tipo]||String(tipo||'Lezione').replace(/_/g,' ')}
-/* stessa regola di v_copertura_lezioni: istruttore = compenso lezione, assistente = ora, contano previsto e presente */
-function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
+/* stessa regola di v_copertura_lezioni: istruttore = compenso lezione o percentuale (v3.148), assistente = ora, contano previsto e presente */
+function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
 let tuCompLez=[];
 
 const tuPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
@@ -11434,7 +11436,7 @@ function tuDisegnaSettimana(){
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
           const{ni,na}=tuConta(v.seg),ok=ni>=v.imin&&na>=v.amin;
-          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
+          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
           return `<button class="tu-voce ${ok?'verde':'rosso'}" onclick="tuApriVoce(${k})">
             <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${ok?'coperta':'scoperta'}</b></span>
             <span class="tu-t">${escHtml(v.titolo)}</span>
@@ -11466,7 +11468,7 @@ function tuApriVoce(k){
     if(puo&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
-    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
+    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
     const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
       <div class="sc-sub">${escHtml(ruolo)} · ${escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
@@ -11592,11 +11594,14 @@ function tuEsportaCsv(){
 }
 
 /* ── v3.139 Compensi lezioni dei corsi (creator e segreteria) da v_compenso_lezioni: si paga solo con stato presente;
-   i giorni passati ancora previsti sono da_confermare e valgono 0 finche' la segreteria non decide. ── */
+   i giorni passati ancora previsti sono da_confermare e valgono 0 finche' la segreteria non decide.
+   v3.148 — le lezioni a percentuale (Mellozzini su Expert e Giovani) valgono 0 € a lezione: contate a parte (perc),
+   ma restano da confermare come le altre, servono per le sostituzioni. ── */
 function tuTotLez(){
   const m=new Map();
-  tuCompLez.forEach(r=>{const x=m.get(r.user_id)||{persona:r.persona,lezioni:0,ore:0,euro:0,daConf:0};
-    if(r.stato==='presente'){x.lezioni++;x.ore+=Number(r.ore||0);x.euro+=Number(r.euro||0)}
+  tuCompLez.forEach(r=>{const x=m.get(r.user_id)||{persona:r.persona,lezioni:0,ore:0,euro:0,daConf:0,perc:0};
+    if(r.stato==='presente'&&r.compenso_tipo==='percentuale')x.perc++;
+    else if(r.stato==='presente'){x.lezioni++;x.ore+=Number(r.ore||0);x.euro+=Number(r.euro||0)}
     if(r.da_confermare)x.daConf++;
     m.set(r.user_id,x)});
   return [...m.values()].sort((a,b)=>String(a.persona).localeCompare(String(b.persona),'it'));
@@ -11614,12 +11619,12 @@ async function tuCaricaCompLez(){
   const tot=tuTotLez();
   box.innerHTML=!tot.length?'<p class="sc-vuoto">Nessuna lezione dei corsi in questo mese.</p>'
     :`<div style="overflow-x:auto"><table class="tu-tab"><thead><tr><th>Persona</th><th>Lezioni pagate</th><th>Ore</th><th>Compenso</th><th>Da confermare</th></tr></thead><tbody>
-    ${tot.map(x=>`<tr><td>${escHtml(x.persona)}</td><td>${x.lezioni}</td><td>${tuNum(x.ore)}</td><td><b>${tuEur(x.euro)}</b></td><td>${x.daConf?`<span class="sc-warn">${x.daConf}</span>`:'0'}</td></tr>`).join('')}
+    ${tot.map(x=>`<tr><td>${escHtml(x.persona)}</td><td>${x.lezioni}${x.perc?`<div style="font-size:13px;color:var(--text2)">+ ${x.perc} a percentuale</div>`:''}</td><td>${tuNum(x.ore)}</td><td><b>${tuEur(x.euro)}</b></td><td>${x.daConf?`<span class="sc-warn">${x.daConf}</span>`:'0'}</td></tr>`).join('')}
     </tbody><tfoot><tr><td><b>Totale</b></td><td>${tot.reduce((s,x)=>s+x.lezioni,0)}</td><td>${tuNum(tot.reduce((s,x)=>s+x.ore,0))}</td><td><b>${tuEur(tot.reduce((s,x)=>s+x.euro,0))}</b></td><td>${tot.reduce((s,x)=>s+x.daConf,0)}</td></tr></tfoot></table></div>`;
   const L=tuCompLez.filter(r=>r.da_confermare);
   document.getElementById('tu-daconf-n').textContent=L.length?String(L.length):'';
   dc.innerHTML=!L.length?'<p class="sc-vuoto">Nessuna presenza da confermare.</p>':L.map(r=>`<div class="sc-riga">
-    <div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))} · ${r.compenso_tipo==='ora'?'assistente':'istruttore'}</div></div>
+    <div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))} · ${r.compenso_tipo==='ora'?'assistente':r.compenso_tipo==='percentuale'?'istruttore · a percentuale':'istruttore'}</div></div>
     <button class="btn sc-scuro sc-piccolo" onclick="tuConferma('${r.impegno_id}','inizio',this)">Era presente</button>
     <button class="btn btn-g sc-piccolo" onclick="tuConferma('${r.impegno_id}','assente',this)">Assente</button></div>`).join('');
 }
@@ -11669,16 +11674,56 @@ async function tuCaricaCosti(){
       {lc:0,ec:0,pl:0,ep:0,om:0,em:0,tot:0,so:0,as:0,dc:0});
     const dc=n=>Number(n)>0?`<a href="#tu-complez-wrap" class="sc-warn" onclick="tuVaiDaConfermare()">${n}</a>`:'0';
     box.innerHTML=`<div style="overflow-x:auto"><table class="tu-tab"><thead><tr><th>Persona</th><th>Lezioni corsi</th><th>Prime Lezioni</th><th>Monitor</th><th>Totale</th><th>Sostituzioni</th><th>Assenze</th><th>Da confermare</th></tr></thead><tbody>
-      ${tuCosti.map(r=>`<tr><td>${escHtml(r.persona||'—')}</td><td>${r.lezioni_corsi} · ${tuEur(r.euro_corsi)}</td><td>${r.prime_lezioni} · ${tuEur(r.euro_prime)}</td><td>${tuNum(r.ore_monitor)} h · ${tuEur(r.euro_monitor)}</td><td><b>${tuEur(r.totale)}</b></td><td>${r.sostituzioni}</td><td>${r.assenze}</td><td>${dc(r.da_confermare)}</td></tr>`).join('')}
+      ${tuCosti.map(r=>`<tr><td>${escHtml(r.persona||'—')}</td><td>${r.lezioni_corsi} · ${tuEur(r.euro_corsi)}${Number(r.lezioni_percentuale)>0?`<div style="font-size:13px;color:var(--text2)">+ ${r.lezioni_percentuale} a percentuale (sotto)</div>`:''}</td><td>${r.prime_lezioni} · ${tuEur(r.euro_prime)}</td><td>${tuNum(r.ore_monitor)} h · ${tuEur(r.euro_monitor)}</td><td><b>${tuEur(r.totale)}</b></td><td>${r.sostituzioni}</td><td>${r.assenze}</td><td>${dc(r.da_confermare)}</td></tr>`).join('')}
       </tbody><tfoot><tr><td><b>Totale staff</b></td><td>${t.lc} · ${tuEur(t.ec)}</td><td>${t.pl} · ${tuEur(t.ep)}</td><td>${tuNum(t.om)} h · ${tuEur(t.em)}</td><td><b>${tuEur(t.tot)}</b></td><td>${t.so}</td><td>${t.as}</td><td>${dc(t.dc)}</td></tr></tfoot></table></div>
       ${t.dc?'<p class="sc-nota sc-warn">Le lezioni da confermare valgono 0 finché non confermi chi c’era: tocca il numero per l’elenco.</p>':''}`;
   }
+  tuCaricaPerc(da);
   if(rp.error){bp.innerHTML=`<p class="sc-vuoto ko">Prime Lezioni non lette: ${escHtml(scErr(rp.error))}</p>`;return}
   tuPrime=rp.data||[];
   bp.innerHTML=!tuPrime.length?'<p class="sc-vuoto">Nessuna Prima Lezione pagata in questo mese.</p>':tuPrime.map(r=>{
     const piena=Number(r.ore)>0&&Number(r.euro)/Number(r.ore)>=15;
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))}</div></div>
       <span class="sc-stato ${piena?'verde':'grigio'}">${piena?'con allievi':'vuota'}</span><b>${tuEur(r.euro)}</b></div>`;
+  }).join('');
+}
+/* ── v3.148 Compensi a percentuale (v_compenso_percentuale): Mellozzini su Expert e Giovani, 30% (slot_piano_staff.percentuale).
+   Conto = 30% × (incassi del mese degli allievi del corso − iscrizioni annuali da 40 €) − pagato ai sostituti.
+   Qui: lezioni fatte, sostituite (chi e quanto), totale da scalare. Gli incassi del mese NON sono calcolati:
+   nel DB manca una data di incasso affidabile (abbonamenti_pagamenti ha solo registrato_il e il periodo dal/al),
+   quindi il netto resta da fare a mano finche' Marco non decide la regola. Solo letture. ── */
+async function tuCaricaPerc(da){
+  const box=document.getElementById('tu-perc');if(!box)return;
+  box.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  const{data,error}=await sb.from('v_compenso_percentuale').select('*').eq('mese',da).order('data');
+  if(error){box.innerHTML=`<p class="sc-vuoto ko">Compensi a percentuale non letti: ${escHtml(scErr(error))}</p>`;return}
+  const R=data||[];
+  if(!R.length){box.innerHTML='<p class="sc-vuoto">Nessuna lezione a percentuale in questo mese.</p>';return}
+  const per=new Map(); // titolare -> corso -> righe
+  R.forEach(r=>{const k=r.user_id+'|'+r.tipo_corso+'|'+r.fascia;if(!per.has(k))per.set(k,{r,righe:[]});per.get(k).righe.push(r)});
+  const byTit=new Map();
+  [...per.values()].forEach(g=>{if(!byTit.has(g.r.user_id))byTit.set(g.r.user_id,[]);byTit.get(g.r.user_id).push(g)});
+  const ESITO={fatta:'fatta',sostituita:'sostituita',da_confermare:'da confermare',prevista:'prevista',non_fatta:'non fatta'};
+  box.innerHTML=[...byTit.values()].map(gs=>{
+    const nome=gs[0].r.persona;
+    let scalaTot=0;
+    const corsi=gs.map(g=>{
+      const lez=new Map(); // una lezione = slot+data (piu' righe se piu' sostituti)
+      g.righe.forEach(x=>{const k=x.slot_id+'|'+x.data;if(!lez.has(k))lez.set(k,[]);lez.get(k).push(x)});
+      const L=[...lez.values()];
+      const esito=a=>a.some(x=>x.esito==='fatta')?'fatta':a.some(x=>x.esito==='sostituita')?'sostituita':a[0].esito;
+      const n=e=>L.filter(a=>esito(a)===e).length;
+      const sost=g.righe.filter(x=>Number(x.euro_da_scalare)>0);
+      const scala=sost.reduce((s,x)=>s+Number(x.euro_da_scalare||0),0);scalaTot+=scala;
+      return `<div style="margin:6px 0 10px"><b>${escHtml(tuNomeCorso(g.r.tipo_corso,g.r.fascia))}</b> · ${tuNum(g.r.percentuale)}% degli incassi del corso
+        <div class="sc-sub">Lezioni fatte: ${n('fatta')} · sostituite: ${n('sostituita')}${n('da_confermare')?` · <span class="sc-warn">da confermare: ${n('da_confermare')}</span>`:''}${n('non_fatta')?` · non fatte: ${n('non_fatta')}`:''}${n('prevista')?` · ancora da fare: ${n('prevista')}`:''}</div>
+        ${sost.map(x=>`<div class="sc-sub">${escHtml(scDataLunga(x.data))}: lo sostituisce ${escHtml(x.sostituto||'—')} · ${tuEur(x.euro_da_scalare)}</div>`).join('')}
+      </div>`;
+    }).join('');
+    return `<div class="sc-riga" style="display:block"><b>${escHtml(nome)}</b>${corsi}
+      <div style="font-size:14px">Da scalare (pagato ai sostituti): <b>${tuEur(scalaTot)}</b></div>
+      <div style="font-size:14px;margin-top:4px">Netto = ${tuNum(gs[0].r.percentuale)}% × (incassi del mese degli allievi − iscrizioni annuali da 40 €) − ${tuEur(scalaTot)}</div>
+      <p class="sc-nota" style="margin:4px 0 0">Gli incassi del mese non sono ancora calcolati dal portale: fai il conto con la contabilità. Se il netto viene sotto zero, non si registra un negativo: avvisa Marco.</p></div>`;
   }).join('');
 }
 /* "Da confermare": porta all'elenco del mese delle lezioni passate senza presenza (Compensi lezioni dei corsi) */
@@ -12442,13 +12487,14 @@ async function dsAzione(az,i){
     const c=dsComp[r.impegno_id]||{};
     kcGuida({titolo:`${chi} era presente?`,
       succede:[`<b>${escHtml(chi)}</b> risulta presente alla lezione ${lq}`,
-        c.compenso_tipo==='lezione'?'Gli vengono contati 15 € nei compensi del mese':'Gli vengono contate le ore della lezione nei compensi del mese'],
+        c.compenso_tipo==='percentuale'?'È pagato a percentuale sugli incassi del corso: la lezione non vale euro a parte' // v3.148
+        :c.compenso_tipo==='lezione'?'Gli vengono contati 15 € nei compensi del mese':'Gli vengono contate le ore della lezione nei compensi del mese'],
       ok:'Sì, era presente',annulla:'No, torna indietro',
       azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'fine'});if(error)throw error;},
       dopo:`Fatto: ${chi} risulta presente. Il portale è già a posto.`,poi:dsDopo});
   }else if(az==='assente'){
     kcGuida({titolo:`${chi} era assente?`,
-      succede:[`<b>${escHtml(chi)}</b> risulta assente alla lezione ${lq}`,'La lezione non gli viene pagata'],
+      succede:[`<b>${escHtml(chi)}</b> risulta assente alla lezione ${lq}`,(dsComp[r.impegno_id]||{}).compenso_tipo==='percentuale'?'Se lo ha sostituito qualcuno, quello che si paga al sostituto si scala dalla sua percentuale':'La lezione non gli viene pagata'],
       ok:'Sì, era assente',annulla:'No, torna indietro',
       azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'assente'});if(error)throw error;},
       dopo:`Fatto: ${chi} risulta assente. Il portale è già a posto.`,poi:dsDopo});

@@ -26,6 +26,15 @@ SELECT 'PRIMA', '1. firma allineamento_decidi', string_agg(pg_get_function_ident
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'PRIMA', '2. cambia_giorni_abbonamento blocca il cambio di numero di giorni', (prosrc LIKE '%cambia il prezzo%')::text
   FROM pg_proc WHERE oid = 'public.cambia_giorni_abbonamento(uuid,uuid[],text)'::regprocedure;
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'PRIMA', '3a. lezioni di Mellozzini su Expert/Giovani NON a percentuale (dopo: 0)', count(*)::text
+  FROM public.impegni_staff WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'PRIMA', '3b. lezioni di Mellozzini su Expert/Giovani pagate a lezione, euro > 0 (dopo: 0)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND euro > 0;
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'PRIMA', '3c. lezioni di Mellozzini su Expert/Giovani da confermare (restano uguali: servono per le sostituzioni)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND da_confermare;
 --@@CONTROLLI_PRIMA@@
 
 -- ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -251,6 +260,601 @@ BEGIN
   RETURN jsonb_build_object('success', true, 'iscrizione_id', p_iscrizione_id, 'tipo', t.tipo, 'label', t.label,
     'prima', v_txt_vecchi, 'dopo', v_txt_nuovi, 'scadenza', v_isc.data_fine);
 END $function$;
+-- ═══════════════════════════════════════════════════════════════════════════════════════════
+-- 3. Compenso a percentuale: Marco Mellozzini su Corso Expert Ragazzi e Corso Giovani KataClimb (18–24)
+--    Decisione Marco 29 ott (con l'aggiornamento della stessa sera):
+--    - quelle lezioni restano in agenda E nelle presenze (PRESENTE / ASSENTE / SOSTITUISCI, da confermare):
+--      servono per le sostituzioni. Cambia solo il compenso: per Mello valgono 0 € a lezione.
+--    - quota: 30% a Mellozzini, 70% all'Accademia, salvata come dato (slot_piano_staff.percentuale).
+--    - se Mello è ASSENTE e lo sostituisce qualcuno, il sostituto è pagato con la sua tariffa normale
+--      (compenso_tipo 'lezione', NON eredita la percentuale) e quella cifra si scala dal 30% di Mello.
+--    Conto di Mello = 30% × (incassi del mese degli allievi di Expert e Giovani − iscrizioni annuali da 40 €)
+--                     − pagato ai sostituti sulle sue lezioni a percentuale.
+--
+--    Perché la quota sta su slot_piano_staff e non su tariffe_staff: tariffe_staff ha una riga per
+--    persona (chiave user_id) e vale per tutte le sue lezioni; la percentuale invece vale per persona
+--    E corso, che è esattamente la riga del piano (slot + persona, unica), dove sta già compenso_tipo.
+-- ═══════════════════════════════════════════════════════════════════════════════════════════
+
+-- 3a. 'percentuale' ammesso in compenso_tipo; colonna della quota (obbligatoria se e solo se a percentuale)
+ALTER TABLE public.slot_piano_staff DROP CONSTRAINT slot_piano_staff_compenso_tipo_check;
+ALTER TABLE public.slot_piano_staff ADD CONSTRAINT slot_piano_staff_compenso_tipo_check
+  CHECK (compenso_tipo = ANY (ARRAY['lezione'::text, 'ora'::text, 'percentuale'::text]));
+ALTER TABLE public.impegni_staff DROP CONSTRAINT impegni_staff_compenso_tipo_chk;
+ALTER TABLE public.impegni_staff ADD CONSTRAINT impegni_staff_compenso_tipo_chk
+  CHECK (compenso_tipo = ANY (ARRAY['lezione'::text, 'ora'::text, 'percentuale'::text]));
+
+ALTER TABLE public.slot_piano_staff ADD COLUMN percentuale numeric;
+COMMENT ON COLUMN public.slot_piano_staff.percentuale IS
+  'Solo con compenso_tipo = percentuale: quota (in %) degli incassi del corso che va a questa persona (29 ott 2026: Mellozzini 30 su Expert e Giovani, 70 all''Accademia).';
+ALTER TABLE public.slot_piano_staff ADD CONSTRAINT slot_piano_staff_percentuale_check
+  CHECK ((compenso_tipo = 'percentuale') = (percentuale IS NOT NULL) AND (percentuale IS NULL OR (percentuale > 0 AND percentuale <= 100)));
+
+-- 3b. i due posti di Mello nel piano e tutte le sue lezioni su quei due slot (passate e future)
+UPDATE public.slot_piano_staff
+   SET compenso_tipo = 'percentuale', percentuale = 30,
+       note = concat_ws(' · ', note, 'a percentuale 30% dal 29/10/2026 (Marco)')
+ WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b'   -- Marco Mellozzini
+   AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e',  -- Corso Expert Ragazzi, mercoledì 18:00
+                   '895b3610-a95c-4167-8eca-ed7cd704e92c')  -- Corso Giovani KataClimb (18–24), giovedì 21:00
+   AND ruolo = 'conduce';
+
+UPDATE public.impegni_staff
+   SET compenso_tipo = 'percentuale', updated_at = now()
+ WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b'
+   AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e', '895b3610-a95c-4167-8eca-ed7cd704e92c')
+   AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
+
+-- 3c. una regola sola per chi entra su una lezione: la percentuale resta a chi ce l'ha nel piano per
+--     quello slot; chi sostituisce un titolare a percentuale è pagato a lezione (non eredita la quota).
+CREATE OR REPLACE FUNCTION public._compenso_tipo_staff(p_user uuid, p_slot uuid, p_base text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  select case
+           when exists (select 1 from public.slot_piano_staff
+                         where slot_id = p_slot and user_id = p_user and compenso_tipo = 'percentuale') then 'percentuale'
+           when p_base = 'percentuale' then 'lezione'
+           else p_base
+         end;
+$function$;
+REVOKE ALL ON FUNCTION public._compenso_tipo_staff(uuid, uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public._compenso_tipo_staff(uuid, uuid, text) TO authenticated, service_role;
+
+-- genera_impegni_lezioni: il titolare copia il suo compenso_tipo dal piano (resta 'percentuale');
+-- il sostituto da piano passa dalla regola sopra
+CREATE OR REPLACE FUNCTION public.genera_impegni_lezioni(p_giorni integer DEFAULT 28)
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE n integer; n2 integer;
+BEGIN
+  INSERT INTO impegni_staff (user_id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, compenso_tipo, da_piano, note)
+  SELECT p.user_id, 'lezione', c.id, d::date, c.ora_inizio, c.ora_fine, p.ruolo, 'previsto', p.compenso_tipo, true, 'piano fisso'
+    FROM slot_piano_staff p
+    JOIN corsi_attivi_settimanali c ON c.id = p.slot_id AND c.status = 'attivo' AND c.data_evento IS NULL
+    CROSS JOIN generate_series(CURRENT_DATE, CURRENT_DATE + p_giorni, interval '1 day') d
+   WHERE p.attivo AND extract(isodow FROM d) = c.giorno_settimana
+     AND NOT public.staff_indisponibile(p.user_id, d::date, c.ora_inizio, c.ora_fine)
+  ON CONFLICT DO NOTHING;
+  GET DIAGNOSTICS n = ROW_COUNT;
+
+  INSERT INTO impegni_staff (user_id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, compenso_tipo, da_piano, note)
+  SELECT p.sostituto_user_id, 'lezione', c.id, d::date, c.ora_inizio, c.ora_fine, p.ruolo, 'previsto',
+         public._compenso_tipo_staff(p.sostituto_user_id, c.id, p.compenso_tipo), true, 'sostituto da piano (titolare non disponibile)'
+    FROM slot_piano_staff p
+    JOIN corsi_attivi_settimanali c ON c.id = p.slot_id AND c.status = 'attivo' AND c.data_evento IS NULL
+    CROSS JOIN generate_series(CURRENT_DATE, CURRENT_DATE + p_giorni, interval '1 day') d
+   WHERE p.attivo AND p.sostituto_user_id IS NOT NULL AND extract(isodow FROM d) = c.giorno_settimana
+     AND public.staff_indisponibile(p.user_id, d::date, c.ora_inizio, c.ora_fine)
+     AND NOT public.staff_indisponibile(p.sostituto_user_id, d::date, c.ora_inizio, c.ora_fine)
+     AND NOT EXISTS (SELECT 1 FROM impegni_staff x WHERE x.user_id = p.user_id AND x.slot_id = c.id AND x.data = d::date)
+  ON CONFLICT DO NOTHING;
+  GET DIAGNOSTICS n2 = ROW_COUNT;
+  RETURN n + n2;
+END $function$;
+
+-- trigger del sostituto automatico (titolare segnato assente/ritirato)
+CREATE OR REPLACE FUNCTION public.tg_sostituto_da_piano()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE p slot_piano_staff;
+BEGIN
+  IF coalesce(current_setting('kc.no_sostituto', true), '0') = '1' THEN
+    RETURN NEW;
+  END IF;
+  IF NEW.tipo = 'lezione' AND NEW.stato IN ('ritirato','assente') AND OLD.stato NOT IN ('ritirato','assente') THEN
+    SELECT * INTO p FROM slot_piano_staff WHERE slot_id = NEW.slot_id AND user_id = NEW.user_id AND attivo AND sostituto_user_id IS NOT NULL;
+    IF FOUND AND NOT public.staff_indisponibile(p.sostituto_user_id, NEW.data, NEW.ora_inizio, NEW.ora_fine) THEN
+      INSERT INTO impegni_staff (user_id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, compenso_tipo, da_piano, note)
+      VALUES (p.sostituto_user_id, 'lezione', NEW.slot_id, NEW.data, NEW.ora_inizio, NEW.ora_fine, p.ruolo, 'previsto',
+              public._compenso_tipo_staff(p.sostituto_user_id, NEW.slot_id, p.compenso_tipo), true, 'sostituto da piano')
+      ON CONFLICT DO NOTHING;
+    END IF;
+  END IF;
+  RETURN NEW;
+END $function$;
+
+-- SOSTITUISCI: il sostituto non eredita la percentuale (se torna il titolare a percentuale, la riprende)
+CREATE OR REPLACE FUNCTION public.sostituisci_istruttore(p_impegno_id uuid, p_nuovo_user uuid, p_note text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  r public.impegni_staff;
+  v_seg boolean := public.is_segreteria();
+  v_stato text;
+  v_comp text;
+  v_id uuid;
+begin
+  select * into r from public.impegni_staff where id = p_impegno_id;
+  if not found then raise exception 'impegno non trovato'; end if;
+  if r.tipo <> 'lezione' then raise exception 'si sostituisce solo su una lezione'; end if;
+  if r.user_id <> auth.uid() and not v_seg then raise exception 'solo il titolare o la segreteria'; end if;
+  if r.user_id = p_nuovo_user then raise exception 'e'' la stessa persona'; end if;
+  if r.data < current_date and not v_seg then raise exception 'lezione passata: la registra la segreteria'; end if;
+  if not exists (select 1 from public.profile_data where user_id = p_nuovo_user and staff_role like 'staff%') then
+    raise exception 'la persona scelta non e'' staff';
+  end if;
+  if r.data >= current_date and public.staff_indisponibile(p_nuovo_user, r.data, r.ora_inizio, r.ora_fine) then
+    raise exception 'La persona scelta ha segnato che quel giorno non è disponibile: scegli un altro.';
+  end if;
+
+  v_comp := case when exists (select 1 from public.profile_data where user_id = p_nuovo_user and staff_role = 'staff_assistente')
+                 then 'ora' else public._compenso_tipo_staff(p_nuovo_user, r.slot_id, r.compenso_tipo) end;
+  v_stato := case when r.data < current_date then 'presente' else 'previsto' end;
+
+  perform set_config('kc.no_sostituto', '1', true);
+  update public.impegni_staff
+     set stato = case when r.user_id = auth.uid() then 'ritirato' else 'assente' end,
+         updated_at = now(),
+         note = coalesce(note || ' · ', '') || 'sostituito'
+   where id = r.id;
+
+  insert into public.impegni_staff (user_id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato,
+                                    compenso_tipo, da_piano, presenza_inizio, segnato_da, note)
+  values (p_nuovo_user, 'lezione', r.slot_id, r.data, r.ora_inizio, r.ora_fine, r.ruolo, v_stato,
+          v_comp, false, case when v_stato = 'presente' then (r.data + r.ora_inizio) end, auth.uid(),
+          coalesce(p_note, 'sostituzione'))
+  on conflict (user_id, data, ora_inizio, coalesce(slot_id, '00000000-0000-0000-0000-000000000000'::uuid))
+  do update set stato = excluded.stato, ruolo = excluded.ruolo, compenso_tipo = excluded.compenso_tipo,
+                segnato_da = excluded.segnato_da, note = excluded.note, updated_at = now()
+  returning id into v_id;
+  perform set_config('kc.no_sostituto', '0', true);
+
+  return jsonb_build_object('ok', true, 'sostituito', r.id, 'nuovo_impegno', v_id, 'stato', v_stato);
+end $function$;
+
+-- "mi segno" / la segreteria segna qualcuno: su un suo slot a percentuale resta a percentuale
+-- (prima l'ON CONFLICT lo avrebbe riportato a 'lezione')
+CREATE OR REPLACE FUNCTION public.impegno_mi_segno(p_tipo text, p_slot_id uuid DEFAULT NULL::uuid, p_data date DEFAULT NULL::date, p_ora_inizio time without time zone DEFAULT NULL::time without time zone, p_ora_fine time without time zone DEFAULT NULL::time without time zone, p_ruolo text DEFAULT NULL::text, p_user_id uuid DEFAULT NULL::uuid, p_note text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare v_user uuid := coalesce(p_user_id, auth.uid()); v_id uuid; v_data date; v_ini time; v_fin time; v_ruolo text; v_n int; v_comp text := 'lezione';
+begin
+  if not public.is_staff() then raise exception 'solo staff'; end if;
+  if v_user <> auth.uid() and not public.is_segreteria() then raise exception 'solo la segreteria segna gli altri'; end if;
+  if p_tipo = 'lezione' then
+    if p_slot_id is null then raise exception 'slot mancante'; end if;
+    select coalesce(data_evento, p_data), ora_inizio, ora_fine into v_data, v_ini, v_fin from public.corsi_attivi_settimanali where id = p_slot_id;
+    if v_data is null then raise exception 'slot senza data: indica p_data'; end if;
+    v_ruolo := coalesce(p_ruolo, 'supporto');
+    if v_ruolo = 'assistente' then v_ruolo := 'supporto'; v_comp := 'ora'; end if;
+    if v_ruolo not in ('conduce','supporto') then raise exception 'ruolo non valido per una lezione'; end if;
+    if exists (select 1 from public.profile_data where user_id = v_user and staff_role = 'staff_assistente') then v_comp := 'ora'; end if;
+    if v_comp <> 'ora' then v_comp := public._compenso_tipo_staff(v_user, p_slot_id, v_comp); end if;
+  elsif p_tipo = 'monitor' then
+    if p_data is null or p_ora_inizio is null or p_ora_fine is null then raise exception 'data e orario obbligatori per il turno monitor'; end if;
+    v_data := p_data; v_ini := p_ora_inizio; v_fin := p_ora_fine; v_ruolo := 'monitor';
+  else
+    raise exception 'tipo non valido';
+  end if;
+  if v_data < current_date and not public.is_segreteria() then raise exception 'data nel passato'; end if;
+  if public.staff_indisponibile(v_user, v_data, v_ini, v_fin) then
+    raise exception 'Il %/% ha segnato che non è disponibile: se adesso può esserci, prima togli il "non ci sono".',
+      extract(day from v_data)::int, extract(month from v_data)::int;
+  end if;
+
+  insert into public.impegni_staff (user_id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, segnato_da, note, compenso_tipo)
+  values (v_user, p_tipo, case when p_tipo='lezione' then p_slot_id end, v_data, v_ini, v_fin, v_ruolo, auth.uid(), p_note, v_comp)
+  on conflict (user_id, data, ora_inizio, coalesce(slot_id, '00000000-0000-0000-0000-000000000000'::uuid))
+  do update set ruolo = excluded.ruolo, compenso_tipo = excluded.compenso_tipo, note = coalesce(excluded.note, impegni_staff.note),
+                stato = case when impegni_staff.stato = 'ritirato' then 'previsto' else impegni_staff.stato end,
+                segnato_da = excluded.segnato_da, updated_at = now()
+  returning id into v_id;
+
+  select count(*) into v_n from public.impegni_staff where data = v_data and ora_inizio = v_ini and stato <> 'ritirato'
+    and coalesce(slot_id,'00000000-0000-0000-0000-000000000000'::uuid) = coalesce(p_slot_id,'00000000-0000-0000-0000-000000000000'::uuid);
+  return jsonb_build_object('ok', true, 'id', v_id, 'data', v_data, 'ruolo', v_ruolo, 'compenso_tipo', v_comp, 'segnati', v_n);
+end $function$;
+
+-- appello dal calendario: chi fa l'appello sulla lezione di un titolare a percentuale lo segna assente
+-- come un titolare a lezione; se l'appello lo fa il titolare a percentuale resta a percentuale
+CREATE OR REPLACE FUNCTION public._staff_presenza_da_appello(p_slot uuid, p_data date)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  v_uid  uuid := auth.uid();
+  v_role text;
+  c      public.corsi_attivi_settimanali;
+  r      public.impegni_staff;
+  v_min  int;
+  v_prima boolean;
+begin
+  if v_uid is null or p_slot is null or p_data is null then return; end if;
+  select staff_role into v_role from public.profile_data where user_id = v_uid;
+  if coalesce(v_role,'') not in ('staff_istruttore_tutor','staff_istruttore_sr','staff_istruttore_jr') then return; end if;
+  select * into c from public.corsi_attivi_settimanali where id = p_slot;
+  if not found or c.tipo_corso = 'monitor' then return; end if;
+  v_prima := c.tipo_corso like 'prima_lezione%';
+
+  select * into r from public.impegni_staff
+   where user_id = v_uid and tipo = 'lezione' and slot_id = p_slot and data = p_data;
+
+  if found and r.stato = 'presente' then return; end if;
+
+  if found then
+    update public.impegni_staff
+       set stato = 'presente', presenza_inizio = coalesce(presenza_inizio, now()), updated_at = now(),
+           note = case when r.stato in ('ritirato','assente')
+                       then coalesce(r.note || ' · ', '') || 'presente dal calendario' else r.note end
+     where id = r.id;
+    if r.stato = 'previsto' then return; end if;
+  else
+    insert into public.impegni_staff (user_id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato,
+                                      compenso_tipo, da_piano, presenza_inizio, segnato_da, note)
+    values (v_uid, 'lezione', p_slot, p_data, c.ora_inizio, c.ora_fine, 'conduce', 'presente',
+            case when v_prima then 'ora' else public._compenso_tipo_staff(v_uid, p_slot, 'lezione') end, false, now(), v_uid,
+            'sostituzione registrata dal calendario');
+  end if;
+
+  select istruttori_min into v_min from public.slot_copertura where slot_id = p_slot;
+  if coalesce(v_min, 1) = 1 then
+    perform set_config('kc.no_sostituto', '1', true);
+    update public.impegni_staff
+       set stato = 'assente', updated_at = now(),
+           note = coalesce(note || ' · ', '') || 'sostituito (calendario)'
+     where slot_id = p_slot and data = p_data and tipo = 'lezione' and stato = 'previsto'
+       and user_id <> v_uid and (compenso_tipo in ('lezione','percentuale') or v_prima);
+    perform set_config('kc.no_sostituto', '0', true);
+  end if;
+end $function$;
+
+-- 3d. viste
+-- v_compenso_lezioni: a percentuale = 0 € a lezione; da_confermare resta com'è (serve per le sostituzioni).
+-- In fondo la colonna nuova percentuale (la quota del piano, solo sulle righe a percentuale).
+CREATE OR REPLACE VIEW public.v_compenso_lezioni AS
+ SELECT i.id AS impegno_id,
+    i.user_id,
+    COALESCE(NULLIF(TRIM(BOTH FROM (COALESCE(pe.nome, ''::text) || ' '::text) || COALESCE(pe.cognome, ''::text)), ''::text), '—'::text) AS persona,
+    i.data,
+    i.slot_id,
+    c.tipo_corso,
+    c.fascia,
+    i.ora_inizio,
+    i.ora_fine,
+    i.ruolo,
+    i.compenso_tipo,
+    i.stato,
+    round(EXTRACT(epoch FROM i.ora_fine - i.ora_inizio) / 3600.0, 2) AS ore,
+        CASE
+            WHEN i.stato = 'presente'::text THEN
+            CASE
+                WHEN c.tipo_corso ~~ 'prima_lezione%'::text THEN round(EXTRACT(epoch FROM i.ora_fine - i.ora_inizio) / 3600.0 *
+                CASE
+                    WHEN (EXISTS ( SELECT 1
+                       FROM prenotazioni_prima_lezione pp
+                      WHERE pp.slot_id = i.slot_id AND pp.data_lezione = i.data AND pp.stato = 'fatto'::text)) THEN 15
+                    ELSE 5
+                END::numeric, 2)
+                WHEN i.compenso_tipo = 'percentuale'::text THEN 0::numeric
+                WHEN i.compenso_tipo = 'lezione'::text THEN COALESCE(t.euro_lezione, 15::numeric)
+                ELSE round(EXTRACT(epoch FROM i.ora_fine - i.ora_inizio) / 3600.0 * COALESCE(t.euro_ora, 5::numeric), 2)
+            END
+            ELSE 0::numeric
+        END AS euro,
+    i.stato = 'previsto'::text AND i.data < CURRENT_DATE AS da_confermare,
+    sp.percentuale
+   FROM impegni_staff i
+     JOIN corsi_attivi_settimanali c ON c.id = i.slot_id
+     LEFT JOIN tariffe_staff t ON t.user_id = i.user_id
+     LEFT JOIN profile_data pd ON pd.user_id = i.user_id
+     LEFT JOIN persone pe ON pe.id = pd.persona_id
+     LEFT JOIN slot_piano_staff sp ON sp.slot_id = i.slot_id AND sp.user_id = i.user_id AND i.compenso_tipo = 'percentuale'::text
+  WHERE i.tipo = 'lezione'::text AND i.stato <> 'ritirato'::text AND (i.user_id = auth.uid() OR is_segreteria());
+
+-- v_costi_staff_mese: le lezioni a percentuale non contano tra le "lezioni corsi" pagate a lezione;
+-- in fondo la colonna nuova lezioni_percentuale (fatte, presenti)
+CREATE OR REPLACE VIEW public.v_costi_staff_mese AS
+ WITH l AS (
+         SELECT x.user_id,
+            x.persona,
+            date_trunc('month'::text, x.data::timestamp with time zone)::date AS mese,
+            count(*) FILTER (WHERE x.stato = 'presente'::text AND x.tipo_corso !~~ 'prima_lezione%'::text AND x.compenso_tipo <> 'percentuale'::text) AS lezioni_corsi,
+            COALESCE(sum(x.euro) FILTER (WHERE x.tipo_corso !~~ 'prima_lezione%'::text), 0::numeric) AS euro_corsi,
+            count(*) FILTER (WHERE x.stato = 'presente'::text AND x.tipo_corso ~~ 'prima_lezione%'::text) AS prime_lezioni,
+            COALESCE(sum(x.euro) FILTER (WHERE x.tipo_corso ~~ 'prima_lezione%'::text), 0::numeric) AS euro_prime,
+            count(*) FILTER (WHERE x.da_confermare) AS da_confermare,
+            count(*) FILTER (WHERE x.stato = 'assente'::text) AS assenze,
+            count(*) FILTER (WHERE x.note_sost) AS sostituzioni,
+            count(*) FILTER (WHERE x.stato = 'presente'::text AND x.compenso_tipo = 'percentuale'::text) AS lezioni_percentuale
+           FROM ( SELECT v.impegno_id,
+                    v.user_id,
+                    v.persona,
+                    v.data,
+                    v.slot_id,
+                    v.tipo_corso,
+                    v.fascia,
+                    v.ora_inizio,
+                    v.ora_fine,
+                    v.ruolo,
+                    v.compenso_tipo,
+                    v.stato,
+                    v.ore,
+                    v.euro,
+                    v.da_confermare,
+                    s.note ~~* '%sostitu%'::text AND s.user_id = v.user_id AND s.stato = 'presente'::text AS note_sost
+                   FROM v_compenso_lezioni v
+                     JOIN impegni_staff s ON s.id = v.impegno_id) x
+          GROUP BY x.user_id, x.persona, (date_trunc('month'::text, x.data::timestamp with time zone)::date)
+        ), m AS (
+         SELECT v_compenso_monitor_mese.user_id,
+            v_compenso_monitor_mese.monitor,
+            v_compenso_monitor_mese.mese,
+            v_compenso_monitor_mese.ore,
+            v_compenso_monitor_mese.compenso_eur
+           FROM v_compenso_monitor_mese
+        )
+ SELECT COALESCE(l.user_id, m.user_id) AS user_id,
+    COALESCE(l.persona, m.monitor) AS persona,
+    COALESCE(l.mese, m.mese) AS mese,
+    COALESCE(l.lezioni_corsi, 0::bigint) AS lezioni_corsi,
+    COALESCE(l.euro_corsi, 0::numeric) AS euro_corsi,
+    COALESCE(l.prime_lezioni, 0::bigint) AS prime_lezioni,
+    COALESCE(l.euro_prime, 0::numeric) AS euro_prime,
+    COALESCE(m.ore, 0::numeric) AS ore_monitor,
+    COALESCE(m.compenso_eur, 0::numeric) AS euro_monitor,
+    COALESCE(l.euro_corsi, 0::numeric) + COALESCE(l.euro_prime, 0::numeric) + COALESCE(m.compenso_eur, 0::numeric) AS totale,
+    COALESCE(l.sostituzioni, 0::bigint) AS sostituzioni,
+    COALESCE(l.assenze, 0::bigint) AS assenze,
+    COALESCE(l.da_confermare, 0::bigint) AS da_confermare,
+    COALESCE(l.lezioni_percentuale, 0::bigint) AS lezioni_percentuale
+   FROM l
+     FULL JOIN m ON m.user_id = l.user_id AND m.mese = l.mese
+  WHERE COALESCE(l.user_id, m.user_id) = auth.uid() OR is_segreteria();
+
+-- v_copertura_lezioni: chi conduce a percentuale è un istruttore (prima non sarebbe contato: "lezione scoperta")
+CREATE OR REPLACE VIEW public.v_copertura_lezioni AS
+ SELECT c.id AS slot_id,
+    d.d::date AS data,
+    c.tipo_corso,
+    c.fascia,
+    c.ora_inizio,
+    c.ora_fine,
+    sc.istruttori_min,
+    sc.assistenti_min,
+    count(i.id) FILTER (WHERE i.compenso_tipo = ANY (ARRAY['lezione'::text, 'percentuale'::text]) OR c.tipo_corso ~~ 'prima_lezione%'::text) AS istruttori,
+    count(i.id) FILTER (WHERE i.compenso_tipo = 'ora'::text AND c.tipo_corso !~~ 'prima_lezione%'::text) AS assistenti,
+    count(i.id) FILTER (WHERE i.compenso_tipo = ANY (ARRAY['lezione'::text, 'percentuale'::text]) OR c.tipo_corso ~~ 'prima_lezione%'::text) >= sc.istruttori_min AND count(i.id) FILTER (WHERE i.compenso_tipo = 'ora'::text AND c.tipo_corso !~~ 'prima_lezione%'::text) >= sc.assistenti_min AS coperta,
+    ( SELECT rs.id
+           FROM richieste_supporto rs
+          WHERE rs.slot_id = c.id AND rs.data = d.d::date AND rs.stato = 'aperta'::text
+         LIMIT 1) AS supporto_richiesto_id
+   FROM slot_copertura sc
+     JOIN corsi_attivi_settimanali c ON c.id = sc.slot_id AND c.status = 'attivo'::text AND c.data_evento IS NULL
+     CROSS JOIN generate_series(CURRENT_DATE::timestamp with time zone, (CURRENT_DATE + 28)::timestamp with time zone, '1 day'::interval) d(d)
+     LEFT JOIN impegni_staff i ON i.slot_id = c.id AND i.data = d.d::date AND i.tipo = 'lezione'::text AND (i.stato = ANY (ARRAY['previsto'::text, 'presente'::text]))
+  WHERE EXTRACT(isodow FROM d.d) = c.giorno_settimana::numeric AND is_staff()
+  GROUP BY c.id, d.d, c.tipo_corso, c.fascia, c.ora_inizio, c.ora_fine, sc.istruttori_min, sc.assistenti_min;
+-- v_segreteria_da_sistemare: "lezione senza istruttore" conta anche chi conduce a percentuale.
+-- Le lezioni a percentuale RESTANO in "Presenze da confermare" (aggiornamento Marco 29 ott).
+CREATE OR REPLACE VIEW public.v_segreteria_da_sistemare AS
+ WITH imp AS (
+         SELECT i.id,
+            i.user_id,
+            i.tipo,
+            i.slot_id,
+            i.data,
+            i.ora_inizio,
+            i.ora_fine,
+            i.ruolo,
+            i.stato,
+            i.presenza_inizio,
+            i.presenza_fine,
+            i.turno_monitor_id,
+            i.segnato_da,
+            i.note,
+            i.created_at,
+            i.updated_at,
+            i.compenso_tipo,
+            i.da_piano,
+            c.tipo_corso,
+            c.fascia,
+            COALESCE(NULLIF(TRIM(BOTH FROM (COALESCE(pe.nome, ''::text) || ' '::text) || COALESCE(pe.cognome, ''::text)), ''::text), '—'::text) AS persona,
+            pd.staff_role
+           FROM impegni_staff i
+             JOIN corsi_attivi_settimanali c ON c.id = i.slot_id
+             LEFT JOIN profile_data pd ON pd.user_id = i.user_id
+             LEFT JOIN persone pe ON pe.id = pd.persona_id
+          WHERE i.tipo = 'lezione'::text AND i.stato <> 'ritirato'::text
+        )
+ SELECT 1 AS ordine,
+    'presenza_mancante'::text AS tipo,
+    i.data,
+    i.ora_inizio,
+    i.persona,
+    i.user_id,
+    i.id AS impegno_id,
+    NULL::uuid AS turno_id,
+    i.slot_id,
+    i.tipo_corso,
+    i.fascia,
+    'Lezione passata senza presenza: vale 0 € finché non confermi se c''era.'::text AS cosa,
+    'PRESENTE · ASSENTE · SOSTITUISCI'::text AS azioni
+   FROM imp i
+  WHERE i.stato = 'previsto'::text AND i.data < CURRENT_DATE AND i.data >= (CURRENT_DATE - 60)
+UNION ALL
+ SELECT 2 AS ordine,
+    'turno_da_chiudere'::text AS tipo,
+    v.data,
+    v.inizio::time without time zone AS ora_inizio,
+    v.monitor AS persona,
+    v.user_id,
+    NULL::uuid AS impegno_id,
+    v.turno_id,
+    NULL::uuid AS slot_id,
+    'monitor'::text AS tipo_corso,
+    NULL::text AS fascia,
+    'Turno di Sala con Monitor mai chiuso: vale 0 € finché non scrivi l''ora reale di fine.'::text AS cosa,
+    'CHIUDI TURNO'::text AS azioni
+   FROM v_compenso_turni_monitor v
+  WHERE v.da_chiudere
+UNION ALL
+ SELECT 3 AS ordine,
+    'ruolo_da_verificare'::text AS tipo,
+    i.data,
+    i.ora_inizio,
+    i.persona,
+    i.user_id,
+    i.id AS impegno_id,
+    NULL::uuid AS turno_id,
+    i.slot_id,
+    i.tipo_corso,
+    i.fascia,
+    'È un monitor: non è istruttore né assistente, sostituisce solo in casi estremi. È stato davvero un caso estremo? Se no, toglilo.'::text AS cosa,
+    'TOGLI · CONFERMA'::text AS azioni
+   FROM imp i
+  WHERE i.staff_role = 'staff_monitor'::text AND (i.stato = ANY (ARRAY['previsto'::text, 'presente'::text])) AND i.data >= (CURRENT_DATE - 60)
+UNION ALL
+ SELECT 4 AS ordine,
+    'doppia_lezione'::text AS tipo,
+    a.data,
+    a.ora_inizio,
+    a.persona,
+    a.user_id,
+    a.id AS impegno_id,
+    NULL::uuid AS turno_id,
+    a.slot_id,
+    a.tipo_corso,
+    a.fascia,
+    ((('Segnata su due lezioni nello stesso orario ('::text || a.tipo_corso) || ' e '::text) || b.tipo_corso) || '): una delle due è sbagliata?'::text AS cosa,
+    'TOGLI · SOSTITUISCI · CONFERMA'::text AS azioni
+   FROM imp a
+     JOIN imp b ON b.user_id = a.user_id AND b.data = a.data AND b.id <> a.id AND (LEAST(a.ora_fine, b.ora_fine) - GREATEST(a.ora_inizio, b.ora_inizio)) > '00:30:00'::interval AND (b.stato = ANY (ARRAY['previsto'::text, 'presente'::text])) AND a.id < b.id
+  WHERE (a.stato = ANY (ARRAY['previsto'::text, 'presente'::text])) AND a.data >= (CURRENT_DATE - 60)
+UNION ALL
+ SELECT 5 AS ordine,
+    'lezione_scoperta'::text AS tipo,
+    d.d::date AS data,
+    c.ora_inizio,
+    NULL::text AS persona,
+    NULL::uuid AS user_id,
+    NULL::uuid AS impegno_id,
+    NULL::uuid AS turno_id,
+    c.id AS slot_id,
+    c.tipo_corso,
+    c.fascia,
+    ('Lezione senza istruttore'::text ||
+        CASE
+            WHEN sc.assistenti_min > 0 THEN ' o assistente'::text
+            ELSE ''::text
+        END) || ': chi la fa?'::text AS cosa,
+    'AGGIUNGI STAFF'::text AS azioni
+   FROM slot_copertura sc
+     JOIN corsi_attivi_settimanali c ON c.id = sc.slot_id AND c.status = 'attivo'::text AND c.data_evento IS NULL
+     CROSS JOIN generate_series(CURRENT_DATE::timestamp with time zone, (CURRENT_DATE + 7)::timestamp with time zone, '1 day'::interval) d(d)
+  WHERE EXTRACT(isodow FROM d.d) = c.giorno_settimana::numeric AND NOT (EXISTS ( SELECT 1
+           FROM slot_chiusure ch
+          WHERE ch.slot_id = c.id AND ch.data = d.d::date)) AND ((( SELECT count(*) AS count
+           FROM impegni_staff i
+          WHERE i.slot_id = c.id AND i.data = d.d::date AND i.tipo = 'lezione'::text AND (i.stato = ANY (ARRAY['previsto'::text, 'presente'::text])) AND (i.compenso_tipo = ANY (ARRAY['lezione'::text, 'percentuale'::text]) OR c.tipo_corso ~~ 'prima_lezione%'::text))) < sc.istruttori_min OR (( SELECT count(*) AS count
+           FROM impegni_staff i
+          WHERE i.slot_id = c.id AND i.data = d.d::date AND i.tipo = 'lezione'::text AND (i.stato = ANY (ARRAY['previsto'::text, 'presente'::text])) AND i.compenso_tipo = 'ora'::text AND c.tipo_corso !~~ 'prima_lezione%'::text)) < sc.assistenti_min);
+
+-- 3e. v_compenso_percentuale: il conto delle lezioni a percentuale, una riga per lezione (e per sostituto).
+--     esito: fatta (il titolare c'era) · sostituita (c'era un altro a condurre: la sua cifra si scala) ·
+--     da_confermare · prevista · non_fatta. euro_da_scalare = quanto è stato pagato al sostituto.
+--     La cifra del sostituto è la sua tariffa normale, la stessa regola di v_compenso_lezioni
+--     (calcolata qui perché v_compenso_lezioni a Mello mostra solo le sue righe).
+CREATE VIEW public.v_compenso_percentuale AS
+ WITH p AS (
+         SELECT sp.slot_id, sp.user_id, sp.percentuale
+           FROM slot_piano_staff sp
+          WHERE sp.compenso_tipo = 'percentuale'::text
+        ), d AS (
+         SELECT DISTINCT i.slot_id, i.data, p.user_id AS titolare_id, p.percentuale
+           FROM impegni_staff i
+             JOIN p ON p.slot_id = i.slot_id
+          WHERE i.tipo = 'lezione'::text AND i.stato <> 'ritirato'::text
+        )
+ SELECT d.titolare_id AS user_id,
+    COALESCE(NULLIF(TRIM(BOTH FROM (COALESCE(pe.nome, ''::text) || ' '::text) || COALESCE(pe.cognome, ''::text)), ''::text), '—'::text) AS persona,
+    date_trunc('month'::text, d.data::timestamp with time zone)::date AS mese,
+    d.data,
+    d.slot_id,
+    c.tipo_corso,
+    c.fascia,
+    c.ora_inizio,
+    c.ora_fine,
+    d.percentuale,
+    t.stato AS stato_titolare,
+    s.user_id AS sostituto_user_id,
+    COALESCE(NULLIF(TRIM(BOTH FROM (COALESCE(pe2.nome, ''::text) || ' '::text) || COALESCE(pe2.cognome, ''::text)), ''::text), NULL::text) AS sostituto,
+    s.stato AS stato_sostituto,
+        CASE
+            WHEN t.stato = 'presente'::text THEN 'fatta'::text
+            WHEN s.stato = 'presente'::text THEN 'sostituita'::text
+            WHEN COALESCE(t.stato, s.stato) = 'previsto'::text AND d.data < CURRENT_DATE THEN 'da_confermare'::text
+            WHEN COALESCE(t.stato, s.stato) = 'previsto'::text THEN 'prevista'::text
+            ELSE 'non_fatta'::text
+        END AS esito,
+        CASE
+            WHEN s.stato = 'presente'::text THEN
+            CASE
+                WHEN s.compenso_tipo = 'percentuale'::text THEN 0::numeric
+                WHEN s.compenso_tipo = 'lezione'::text THEN COALESCE(ts.euro_lezione, 15::numeric)
+                ELSE round(EXTRACT(epoch FROM s.ora_fine - s.ora_inizio) / 3600.0 * COALESCE(ts.euro_ora, 5::numeric), 2)
+            END
+            ELSE 0::numeric
+        END AS euro_sostituto,
+        CASE
+            WHEN t.stato IS DISTINCT FROM 'presente'::text AND s.stato = 'presente'::text THEN
+            CASE
+                WHEN s.compenso_tipo = 'percentuale'::text THEN 0::numeric
+                WHEN s.compenso_tipo = 'lezione'::text THEN COALESCE(ts.euro_lezione, 15::numeric)
+                ELSE round(EXTRACT(epoch FROM s.ora_fine - s.ora_inizio) / 3600.0 * COALESCE(ts.euro_ora, 5::numeric), 2)
+            END
+            ELSE 0::numeric
+        END AS euro_da_scalare
+   FROM d
+     JOIN corsi_attivi_settimanali c ON c.id = d.slot_id
+     LEFT JOIN impegni_staff t ON t.slot_id = d.slot_id AND t.data = d.data AND t.user_id = d.titolare_id AND t.tipo = 'lezione'::text AND t.stato <> 'ritirato'::text
+     LEFT JOIN impegni_staff s ON s.slot_id = d.slot_id AND s.data = d.data AND s.user_id <> d.titolare_id AND s.tipo = 'lezione'::text AND s.ruolo = 'conduce'::text AND (s.stato = ANY (ARRAY['previsto'::text, 'presente'::text]))
+     LEFT JOIN tariffe_staff ts ON ts.user_id = s.user_id
+     LEFT JOIN profile_data pd ON pd.user_id = d.titolare_id
+     LEFT JOIN persone pe ON pe.id = pd.persona_id
+     LEFT JOIN profile_data pd2 ON pd2.user_id = s.user_id
+     LEFT JOIN persone pe2 ON pe2.id = pd2.persona_id
+  WHERE d.titolare_id = auth.uid() OR is_segreteria();
+COMMENT ON VIEW public.v_compenso_percentuale IS
+  'Lezioni dei titolari a percentuale (slot_piano_staff.compenso_tipo = percentuale): fatte, sostituite e quanto si scala dalla quota. Gli incassi del corso NON sono qui: manca una data di incasso affidabile (consegna 29 ott 2026).';
+REVOKE ALL ON public.v_compenso_percentuale FROM PUBLIC, anon;
+GRANT SELECT ON public.v_compenso_percentuale TO authenticated, service_role;
 --@@CORPO@@
 
 -- ───────────────────────────── CONTROLLI DOPO ─────────────────────────────
@@ -261,6 +865,21 @@ SELECT 'DOPO', '1. firma allineamento_decidi (deve finire con p_slot_ids uuid[])
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'DOPO', '2. cambia_giorni_abbonamento blocca il cambio di numero di giorni (deve essere false)', (prosrc LIKE '%cambia il prezzo%')::text
   FROM pg_proc WHERE oid = 'public.cambia_giorni_abbonamento(uuid,uuid[],text)'::regprocedure;
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'DOPO', '3a. lezioni di Mellozzini su Expert/Giovani NON a percentuale (dopo: 0)', count(*)::text
+  FROM public.impegni_staff WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'DOPO', '3b. lezioni di Mellozzini su Expert/Giovani pagate a lezione, euro > 0 (dopo: 0)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND euro > 0;
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'DOPO', '3c. lezioni di Mellozzini su Expert/Giovani da confermare (restano uguali: servono per le sostituzioni)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND da_confermare;
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'DOPO', '3d. quota nel piano (deve essere 30 su expert e giovani)', string_agg(c.tipo_corso || ' ' || sp.compenso_tipo || ' ' || sp.percentuale, ' | ' ORDER BY c.tipo_corso)
+  FROM public.slot_piano_staff sp JOIN public.corsi_attivi_settimanali c ON c.id = sp.slot_id
+ WHERE sp.user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND sp.slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c');
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'DOPO', '3e. v_compenso_percentuale: lezioni lette (Marco come utente)', count(*)::text FROM public.v_compenso_percentuale;
 --@@CONTROLLI_DOPO@@
 
 COMMIT;
