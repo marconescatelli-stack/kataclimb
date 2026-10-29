@@ -11949,11 +11949,31 @@ function alSceltaOra(){const e=document.querySelector('#kcg-corpo input[name="al
 function alSaVisibili(){
   const s=alSceltaOra();
   document.querySelectorAll('#kcg-corpo [data-per]').forEach(e=>{e.style.display=e.dataset.per.split(' ').includes(s)?'':'none'});
+  const gw=document.getElementById('al-giorni-w'),tp=document.getElementById('al-tipo');
+  if(gw&&s==='registra'&&!(tp&&tp.value&&abbTipoConGiorni(tp.value)))gw.style.display='none'; // v3.148 — i tipi senza giorni non li chiedono
   const li=document.getElementById('al-imp-lbl');
   if(li)li.textContent=s==='pagato'?'Importo (lascialo com’è se è giusto)':s==='correggi_importo'?'Importo giusto €':'Importo €';
   const lm=document.getElementById('al-met-lbl');
   if(lm)lm.textContent=s==='correggi_importo'?'Come ha pagato (facoltativo)':'Come ha pagato';
 }
+
+/* v3.148 — giorni del corso nella scelta "registra" (caso Arianna Calcaterra, Corso Genitori): solo slot attivi del tipo,
+   come ➕ Abbonamento o corso; per un rinnovo dello stesso tipo partono spuntati i giorni che ha gia' */
+var alGiorniAttivi={}; // tipo -> slot_id dell'abbonamento attivo della persona
+function alGiorniHtml(tipo){
+  if(!tipo||!abbTipoConGiorni(tipo))return '';
+  const slots=abbSlotsDelTipo(tipo),pre=alGiorniAttivi[tipo]||[];
+  if(!slots.length)return '<div style="font-size:14px;color:#B91C1C;font-weight:600">Nessun giorno attivo in agenda per questo abbonamento.</div>';
+  return slots.map(s=>`<label class="abb-giorno"><input type="checkbox" name="al-giorno" value="${s.id}"${pre.includes(s.id)?' checked':''}> ${escHtml(abbSlotTesto(s))}</label>`).join('')
+    +(alGiorniAttivi[tipo]?'<div style="font-size:13px;color:var(--text2)">Ha già questo abbonamento: i giorni spuntati sostituiscono quelli attuali.</div>':'');
+}
+function alGiorniDisegna(){
+  const g=document.getElementById('al-giorni');if(!g)return;
+  g.innerHTML=alGiorniHtml(alVal('al-tipo'));
+  alSaVisibili();
+}
+function alGiorniScelti(){return [...document.querySelectorAll('#kcg-corpo input[name="al-giorno"]:checked')].map(x=>x.value)}
+function alGiorniServono(){const t=alVal('al-tipo');return !!t&&abbTipoConGiorni(t)&&!alGiorniAttivi[t]}
 
 function alSistema(id){
   const r=alTrova(id);if(!r)return;
@@ -11999,6 +12019,17 @@ async function alApriSistema(id,forza){
     if(error)console.warn('[allineamento] pagamenti:',error.message);
     pag=(data||[]).slice().sort((a,b)=>String(b.al).localeCompare(String(a.al))||String(b.registrato_il).localeCompare(String(a.registrato_il)));
   }
+  /* v3.148 — giorni del corso per "registra": cataloghi di ➕ Abbonamento o corso e abbonamenti attivi della persona
+     (un rinnovo dello stesso tipo tiene i suoi giorni se non se ne spunta nessuno, come registra_abbonamento) */
+  alGiorniAttivi={};
+  try{await abbCaricaCataloghi()}catch(e){console.warn('[allineamento] cataloghi:',e.message||e)}
+  if(r.persona_id){
+    const{data:isc,error:eI}=await sb.from('iscrizioni_minori').select('id,tipo_abbonamento,data_fine').eq('persona_id',r.persona_id).eq('status','attiva');
+    if(eI)console.warn('[allineamento] abbonamenti attivi:',eI.message);
+    const ids=(isc||[]).map(x=>x.id);
+    const sl=ids.length?await sb.from('iscrizioni_minori_slot').select('iscrizione_id,slot_id').in('iscrizione_id',ids):{data:[]};
+    (isc||[]).forEach(x=>{alGiorniAttivi[x.tipo_abbonamento]=(sl.data||[]).filter(y=>y.iscrizione_id===x.id).map(y=>y.slot_id)});
+  }
   const tipoR=r.tipo_abbonamento;
   const inAttesa=pag.find(p=>!p.metodo&&(!tipoR||p.tipo_abbonamento===tipoR))||null;
   const daCorr=pag.find(p=>(!tipoR||p.tipo_abbonamento===tipoR)&&(!r.dal||(p.dal<=r.dal&&p.al>=r.dal)))||null;
@@ -12018,7 +12049,9 @@ async function alApriSistema(id,forza){
       <div class="sc-lbl" style="margin-top:14px">Com'è andata?</div>
       <div class="al-scelte">${AL_SCELTE.map(([v,t,q])=>`<label class="al-scelta"><input type="radio" name="al-scelta" value="${v}"${pre===v?' checked':''} onchange="alSaVisibili()"><span><b>${t}</b><small>${q}</small></span></label>`).join('')}</div>
       <div data-per="registra"><label class="sc-lbl" for="al-tipo">Abbonamento</label>
-        <select id="al-tipo" class="input sc-in"><option value="">Scegli…</option>${tipi.map(t=>`<option value="${escHtml(t)}"${t===tipoR?' selected':''}>${escHtml(alTipi[t])}</option>`).join('')}</select></div>
+        <select id="al-tipo" class="input sc-in" onchange="alGiorniDisegna()"><option value="">Scegli…</option>${tipi.map(t=>`<option value="${escHtml(t)}"${t===tipoR?' selected':''}>${escHtml(alTipi[t])}</option>`).join('')}</select></div>
+      <div data-per="registra" id="al-giorni-w"><div class="sc-lbl">Giorni del corso</div>
+        <div id="al-giorni" style="display:flex;flex-direction:column;gap:6px">${alGiorniHtml(tipoR)}</div></div>
       <div class="sc-2" data-per="registra">
         <div><label class="sc-lbl" for="al-dal">Dal</label><input id="al-dal" class="input sc-in" type="date" value="${r.dal||''}"></div>
         <div><label class="sc-lbl" for="al-al">Al</label><input id="al-al" class="input sc-in" type="date" value="${r.al||''}"></div>
@@ -12034,7 +12067,9 @@ async function alApriSistema(id,forza){
       const s=alSceltaOra(),imp=alVal('al-imp'),eu=imp!==''?alEuro(imp):'…',m=alMetScelto||'…';
       if(s==='registra'){
         const t=alVal('al-tipo'),dal=alVal('al-dal'),al=alVal('al-al');
-        return[`Nel portale nasce <b>${escHtml(lblTipo(t)||'…')} ${dal?alGM(dal):'…'}–${al?alGM(al):'…'}</b>, pagato <b>${eu} ${m}</b>`,
+        const gs=t&&abbTipoConGiorni(t)?abbSlotsDelTipo(t).filter(x=>alGiorniScelti().includes(x.id)):[];
+        return[`Nel portale nasce <b>${escHtml(lblTipo(t)||'…')} ${dal?alGM(dal):'…'}–${al?alGM(al):'…'}</b>, pagato <b>${eu} ${m}</b>`
+            +(gs.length?`, il <b>${gs.map(x=>escHtml(ABB_GIORNI[x.giorno_settimana]+' '+String(x.ora_inizio).slice(0,5))).join(' + ')}</b>`:''),
           `<b>${escHtml(nome)}</b> risulta in regola fino al <b>${al?alGM(al):'…'}</b>`];
       }
       if(s==='pagato')return[(inAttesa?`Il pagamento già registrato (${descPag(inAttesa)})`:'Il pagamento già registrato')+` diventa pagato in <b>${m}</b>`+(imp!==''&&inAttesa&&Number(imp)!==Number(inAttesa.importo_eur)?`, con importo <b>${eu}</b>`:''),
@@ -12061,6 +12096,7 @@ async function alApriSistema(id,forza){
       if(!s)return "Scegli com'è andata";
       if(s==='registra'){
         if(!alVal('al-tipo'))return "Scegli l'abbonamento";
+        if(alGiorniServono()&&!alGiorniScelti().length)return 'Scegli il giorno del corso';
         if(!alVal('al-dal')||!alVal('al-al'))return 'Scrivi da quando a quando vale';
         if(!impOk)return "Scrivi l'importo";
         if(!alMetScelto)return 'Scegli come ha pagato';
@@ -12077,7 +12113,10 @@ async function alApriSistema(id,forza){
     azione:()=>{
       scelta=alSceltaOra();
       const imp=alVal('al-imp');
-      if(scelta==='registra')return alDecidi(id,'registra',{p_tipo:alVal('al-tipo'),p_dal:alVal('al-dal'),p_al:alVal('al-al'),p_importo:Number(imp),p_metodo:alMetScelto});
+      if(scelta==='registra'){
+        const g=abbTipoConGiorni(alVal('al-tipo'))?alGiorniScelti():[];
+        return alDecidi(id,'registra',{p_tipo:alVal('al-tipo'),p_dal:alVal('al-dal'),p_al:alVal('al-al'),p_importo:Number(imp),p_metodo:alMetScelto,p_slot_ids:g.length?g:null});
+      }
       if(scelta==='pagato')return alDecidi(id,'pagato',{p_metodo:alMetScelto,p_importo:imp!==''?Number(imp):null});
       if(scelta==='correggi_importo')return alDecidi(id,'correggi_importo',{p_importo:Number(imp),p_metodo:alMetScelto||null});
       if(scelta==='chiudi'){testo=alVal('al-motivo');return alDecidi(id,'chiudi',{p_risposta:testo||null});}
