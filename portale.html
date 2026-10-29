@@ -2431,11 +2431,11 @@ fill="#1d4ed8" stroke="none">
 <div id="mo-cambia-giorni" class="mo hidden">
   <div class="mo-box" style="max-width:420px">
     <h3>📅 Cambia giorni</h3>
-    <p style="font-size:14px;color:var(--text);margin-bottom:12px">Sposta i giorni del corso. Pagamento e scadenza restano come sono.</p>
+    <p style="font-size:14px;color:var(--text);margin-bottom:12px">Sposta, aggiungi o togli giorni del corso. Pagamento e scadenza restano come sono.</p>
     <p id="cambia-giorni-info" style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:12px"></p>
     <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px">Giorni</div>
     <div id="cambia-giorni-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-    <div id="cambia-giorni-conta" style="font-size:14px;color:var(--text);margin-bottom:12px"></div>
+    <div id="cambia-giorni-conta" style="font-size:14px;color:var(--text2);margin-bottom:12px"></div>
     <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Nota (opzionale)</div>
     <input type="text" id="cambia-giorni-nota" class="input" maxlength="200" placeholder="Es. richiesta della mamma, sovrapposizione con la scuola" style="font-size:14px;padding:9px 12px">
     <div id="cambia-giorni-msg"></div>
@@ -6852,7 +6852,7 @@ function abbTipoCambiato(){
   gEl.innerHTML=slots.length
     ?slots.map(s=>'<label class="abb-giorno"><input type="checkbox" value="'+s.id+'"'+(pre.includes(s.id)?' checked':'')+' onchange="abbRicalcola()"> '+escHtml(abbSlotTesto(s))+'</label>').join('')
     :'<div style="font-size:14px;color:#B91C1C;font-weight:600">Nessun giorno attivo in agenda per questo abbonamento.</div>';
-  if(es)gEl.insertAdjacentHTML('beforeend','<div style="font-size:13px;color:var(--text2)">Rinnovo: i giorni spuntati sostituiscono quelli attuali.</div><div style="font-size:13px;color:var(--text2)">Devi solo spostare i giorni? Chiudi e usa 📅 Cambia giorni nel fascicolo: non registra pagamenti.</div>');
+  if(es)gEl.insertAdjacentHTML('beforeend','<div style="font-size:13px;color:var(--text2)">Rinnovo: i giorni spuntati sostituiscono quelli attuali.</div><div style="font-size:13px;color:var(--text2)">Devi solo cambiare i giorni (anche quanti)? Chiudi e usa 📅 Cambia giorni nel fascicolo: non registra pagamenti.</div>');
   gwEl.classList.remove('hidden');
   abbRicalcola();
 }
@@ -7076,8 +7076,10 @@ async function annullaPausaAbbonamento(pausaId){
 }
 
 /* ── v3.132 — Cambia giorni (tutti gli abbonamenti con giorni), solo segreteria: solo RPC cambia_giorni_abbonamento ──
-   Non e' un rinnovo: niente importo, scadenza, pagamento. Le guardie (solo segreteria, giorni del suo tipo, stesso
-   numero di giorni, capienza) stanno nella RPC; qui il Conferma spento serve solo a non sbagliare. */
+   Non e' un rinnovo: niente importo, scadenza, pagamento. Le guardie (solo segreteria, giorni del suo tipo,
+   capienza) stanno nella RPC; qui il Conferma spento serve solo a non sbagliare.
+   v3.148 (29 ott, caso Marina Ungari): si puo' cambiare anche QUANTI giorni. La segreteria e' la verita':
+   nessun prezzo da ricalcolare, nessun rimborso. */
 let cambiaGiorniIscr=null;   // {iscrizione_id, prima:[slot_id]}
 async function openCambiaGiorniModal(iscrId){
   const a=currentLeadAbb;if(!a||!questIdOk(iscrId))return;
@@ -7103,13 +7105,9 @@ function cambiaGiorniRicalcola(){
   const c=cambiaGiorniIscr;if(!c)return;
   const scelti=cambiaGiorniScelti(),n=scelti.length,nPrima=c.prima.length;
   const uguali=n===nPrima&&scelti.every(id=>c.prima.includes(id));
-  // come la RPC: senza giorni attuali (nPrima 0) va bene qualsiasi numero, purche' almeno uno
-  const numeroCambiato=nPrima>0&&n!==nPrima;
   const el=document.getElementById('cambia-giorni-conta');
-  el.innerHTML=!numeroCambiato
-    ?'Giorni a settimana: '+n+(n===nPrima?' (come ora)':'')
-    :'Giorni a settimana: '+n+' (ora '+nPrima+')<div style="color:#B91C1C;font-weight:700;margin-top:4px">Da 1 a 2 volte a settimana cambia il prezzo: usa ➕ Abbonamento o corso</div>';
-  cambiaGiorniBtn(!(uguali||numeroCambiato||n===0));
+  el.textContent='Giorni a settimana: '+n+(n===nPrima?' (come ora)':' (ora '+nPrima+')');
+  cambiaGiorniBtn(!(uguali||n===0));
 }
 async function confermaCambiaGiorni(){
   const c=cambiaGiorniIscr;
