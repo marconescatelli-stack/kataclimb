@@ -277,6 +277,9 @@ END $function$;
 --      (compenso_tipo 'lezione', NON eredita la percentuale) e quella cifra si scala dal 30% di Mello.
 --    Conto di Mello = 30% × (incassi del mese degli allievi di Expert e Giovani − iscrizioni annuali da 40 €)
 --                     − pagato ai sostituti sulle sue lezioni a percentuale.
+--    Incassi del mese (decisione Marco 30 ott): ogni pagamento si divide in parti uguali sui mesi che
+--    copre (dal → al). Trimestrale 240 € → 80 ottobre, 80 novembre, 80 dicembre; il 30% segue la stessa
+--    divisione. Vedi 3f (v_compenso_percentuale_mese).
 --
 --    Perché la quota sta su slot_piano_staff e non su tariffe_staff: tariffe_staff ha una riga per
 --    persona (chiave user_id) e vale per tutte le sue lezioni; la percentuale invece vale per persona
@@ -894,9 +897,79 @@ CREATE VIEW public.v_compenso_percentuale AS
      LEFT JOIN persone pe2 ON pe2.id = pd2.persona_id
   WHERE d.titolare_id = auth.uid() OR is_segreteria();
 COMMENT ON VIEW public.v_compenso_percentuale IS
-  'Lezioni dei titolari a percentuale (slot_piano_staff.compenso_tipo = percentuale): fatte, sostituite e quanto si scala dalla quota. Gli incassi del corso NON sono qui: manca una data di incasso affidabile (consegna 29 ott 2026).';
+  'Lezioni dei titolari a percentuale (slot_piano_staff.compenso_tipo = percentuale): fatte, sostituite e quanto si scala dalla quota. Il conto del mese (incassi, quota, netto) è in v_compenso_percentuale_mese (consegna 29 ott 2026).';
 REVOKE ALL ON public.v_compenso_percentuale FROM PUBLIC, anon;
 GRANT SELECT ON public.v_compenso_percentuale TO authenticated, service_role;
+
+-- 3f. v_compenso_percentuale_mese: il conto del mese, una riga per titolare, corso e mese.
+--     Incassi = abbonamenti_pagamenti dello stesso tipo del corso (tipo_abbonamento = tipo_corso),
+--     ogni pagamento diviso in parti uguali sui mesi che copre, da dal ad al (decisione Marco 30 ott).
+--     I centesimi che avanzano dalla divisione vanno sul primo mese, così la somma torna al pagamento.
+--     Iscrizioni da 40 €: in abbonamenti_pagamenti c'è solo la quota del corso (l'iscrizione annuale
+--     si segna a parte, in pagamenti_manuali voce 'iscrizione'), quindi qui non c'è niente da togliere.
+--     netto = quota − da_scalare (pagato ai sostituti). Se va sotto 0 la vista lo mostra negativo:
+--     non si registra niente, il portale lo mostra in rosso a Marco.
+CREATE VIEW public.v_compenso_percentuale_mese AS
+ WITH p AS (
+         SELECT sp.slot_id, sp.user_id, sp.percentuale, c.tipo_corso, c.fascia
+           FROM slot_piano_staff sp
+             JOIN corsi_attivi_settimanali c ON c.id = sp.slot_id
+          WHERE sp.compenso_tipo = 'percentuale'::text
+        ), r AS (
+         SELECT ap.id, ap.tipo_abbonamento, ap.persona_id, ap.importo_eur,
+            m.mese::date AS mese,
+            count(*) OVER (PARTITION BY ap.id) AS n_mesi,
+            row_number() OVER (PARTITION BY ap.id ORDER BY m.mese) AS k
+           FROM abbonamenti_pagamenti ap
+             CROSS JOIN LATERAL generate_series(date_trunc('month'::text, ap.dal::timestamp without time zone), date_trunc('month'::text, ap.al::timestamp without time zone), '1 mon'::interval) m(mese)
+        ), q AS (
+         SELECT r.tipo_abbonamento, r.persona_id, r.mese,
+                CASE
+                    WHEN r.k = 1 THEN r.importo_eur - round(r.importo_eur / r.n_mesi::numeric, 2) * (r.n_mesi - 1)::numeric
+                    ELSE round(r.importo_eur / r.n_mesi::numeric, 2)
+                END AS quota_mese
+           FROM r
+        ), inc AS (
+         SELECT p.slot_id, p.user_id, q.mese, count(DISTINCT q.persona_id) AS allievi_paganti, sum(q.quota_mese) AS incassi
+           FROM p
+             JOIN q ON q.tipo_abbonamento = p.tipo_corso
+          GROUP BY p.slot_id, p.user_id, q.mese
+        ), lez AS (
+         SELECT v.slot_id, v.user_id, v.mese,
+            count(*) FILTER (WHERE v.esito = 'fatta'::text) AS lezioni_fatte,
+            count(*) FILTER (WHERE v.esito = 'sostituita'::text) AS lezioni_sostituite,
+            count(*) FILTER (WHERE v.esito = 'da_confermare'::text) AS lezioni_da_confermare,
+            sum(v.euro_da_scalare) AS da_scalare
+           FROM v_compenso_percentuale v
+          GROUP BY v.slot_id, v.user_id, v.mese
+        ), mesi AS (
+         SELECT inc.slot_id, inc.user_id, inc.mese FROM inc
+        UNION
+         SELECT lez.slot_id, lez.user_id, lez.mese FROM lez
+        )
+ SELECT m.user_id,
+    m.mese,
+    m.slot_id,
+    p.tipo_corso,
+    p.fascia,
+    p.percentuale,
+    COALESCE(inc.allievi_paganti, 0::bigint) AS allievi_paganti,
+    COALESCE(inc.incassi, 0::numeric) AS incassi,
+    round(COALESCE(inc.incassi, 0::numeric) * p.percentuale / 100::numeric, 2) AS quota,
+    COALESCE(lez.lezioni_fatte, 0::bigint) AS lezioni_fatte,
+    COALESCE(lez.lezioni_sostituite, 0::bigint) AS lezioni_sostituite,
+    COALESCE(lez.lezioni_da_confermare, 0::bigint) AS lezioni_da_confermare,
+    COALESCE(lez.da_scalare, 0::numeric) AS da_scalare,
+    round(COALESCE(inc.incassi, 0::numeric) * p.percentuale / 100::numeric, 2) - COALESCE(lez.da_scalare, 0::numeric) AS netto
+   FROM mesi m
+     JOIN p ON p.slot_id = m.slot_id AND p.user_id = m.user_id
+     LEFT JOIN inc ON inc.slot_id = m.slot_id AND inc.user_id = m.user_id AND inc.mese = m.mese
+     LEFT JOIN lez ON lez.slot_id = m.slot_id AND lez.user_id = m.user_id AND lez.mese = m.mese
+  WHERE m.user_id = auth.uid() OR is_segreteria();
+COMMENT ON VIEW public.v_compenso_percentuale_mese IS
+  'Conto del mese dei titolari a percentuale: incassi del corso (ogni pagamento diviso in parti uguali sui mesi dal→al, decisione Marco 30 ott 2026), quota, quanto pagato ai sostituti, netto. Netto negativo = solo da mostrare, non si registra.';
+REVOKE ALL ON public.v_compenso_percentuale_mese FROM PUBLIC, anon;
+GRANT SELECT ON public.v_compenso_percentuale_mese TO authenticated, service_role;
 
 -- ───────────────────────────── CONTROLLI DOPO ─────────────────────────────
 INSERT INTO _controllo_291026 (momento, controllo, valore)
@@ -921,6 +994,10 @@ SELECT 'DOPO', '3d. quota nel piano (deve essere 30 su expert e giovani)', strin
  WHERE sp.user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND sp.slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c');
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'DOPO', '3e. v_compenso_percentuale: lezioni lette (Marco come utente)', count(*)::text FROM public.v_compenso_percentuale;
+INSERT INTO _controllo_291026 (momento, controllo, valore)
+SELECT 'DOPO', '3f. conto del mese ' || tipo_corso || ' ' || to_char(mese, 'YYYY-MM'),
+       'incassi ' || incassi || ' · quota ' || quota || ' · scalato ' || da_scalare || ' · netto ' || netto
+  FROM public.v_compenso_percentuale_mese ORDER BY tipo_corso, mese;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'DOPO', '4. Prime Lezioni nella stessa ora di un corso dello stesso istruttore pagate, euro > 0 (dopo: 0)', count(*)::text
   FROM public.v_compenso_lezioni v
