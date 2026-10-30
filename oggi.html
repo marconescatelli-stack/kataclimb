@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.35 · 2026-10-30 · NOTE DEL MONITOR RETROATTIVE (consegna 30 ott, punto 3, approvata da Marco il 30/10; DB sql/monitor/07_note_retroattive_2026-10-30.sql da applicare dopo la 06 e PRIMA del deploy). (1) I miei turni (viste monitor e istruttore) da monitor_turni_elenco, con l'id del turno: ogni turno chiuso ha APRI E AGGIUNGI (fino a 7 giorni) o GUARDA. (2) Finestra del turno a tutto schermo (monitor_turno_dettaglio): chi e' stato seguito con le note; + AGGIUNGI UNA PERSONA SEGUITA -> cerca per nome (cerca_persona_staff) -> stesso modulo della sera (Su cosa avete lavorato, Com'e' andata, Controlla e segna) -> monitor_nota_turno: la nota va nel giorno e nell'ora del turno e porta "aggiunta il GG/MM"; SPOSTA SU UN'ALTRA PERSONA -> cerca -> "Sei sicuro?" -> monitor_sposta_nota (osservazione e persona seguita insieme, "spostata il GG/MM da X"). Uscire a meta' chiede "Non hai segnato…". (3) Segreteria e creator: nella console segreteria "Turni Sala con Monitor" (60 giorni, tutti i monitor) con la stessa finestra, anche oltre i 7 giorni. I permessi li controlla la RPC: il monitor solo sui suoi turni chiusi e fino a 7 giorni. Errori del DB a schermo (erroreChiaro). CUMULA v2.34 (sotto). -->
 <!-- KC-BUILD: oggi v2.34 · 2026-10-30 · NOTA DI SALA E PERSONA SEGUITA SEMPRE INSIEME (consegna 30 ott, punto 2; DB sql/monitor/06_note_sala_atomiche_2026-10-30.sql da applicare PRIMA del deploy). Caso del 28/10: istruttore in turno di sala, nota scritta da SALVA OSSERVAZIONE della scheda con il contesto precompilato dal tipo dell'allievo, 'monitor': la nota non era nel turno e il turno risultava senza persone seguite; poi chiusura automatica alle 22:00 e un secondo turno vuoto alle 22:10. (1) Scheda: il contesto 'monitor' diventa "Sala con Monitor" (sala_monitor), con la riga che spiega cosa si salva; salva_osservazione a DB scrive nota e persona seguita insieme nel turno aperto (_sala_annota, una sola RPC), senza turno aperto rifiuta con un errore chiaro. (2) Gli errori di SALVA OSSERVAZIONE, SEGNA e INIZIO/FINE TURNO restano a schermo finche' non si chiudono (erroreChiaro col testo del DB), non piu' un toast di 2 secondi. (3) DB: dopo la fine della sala di oggi INIZIO TURNO e SEGNA non aprono un turno nuovo (rimandano a I miei turni); la chiusura automatica non chiude se nell'ultimo quarto d'ora il monitor ha segnato qualcuno, ma la fine e' sempre quella prevista (decisione di Marco 30/10: le ore in piu' le corregge solo la segreteria, la nota del turno dice a che ora ha segnato l'ultima persona). CUMULA v2.33 (sotto). -->
 <!-- KC-BUILD: oggi v2.33 · 2026-10-30 · DA SALDARE (consegna 30 ott, DB Applica_registro_crediti_2026-10-30 gia' applicato; insieme a portale v3.149): solo nella vista allievo (anche il genitore per i figli), in cima sotto il saluto, un riquadro per ogni credito di get_miei_crediti: "Da saldare: X €" (genitore: "Da saldare per <Nome>: X €"), descrizione · entro <giorno> <data>, "Puoi pagare in segreteria in contanti, bancomat o bonifico.", bottone Scrivi alla segreteria (stesso WhatsApp della segreteria del portale). Testo nero su bianco, bordo col colore del portale (#1B74E4), nessun allarme, stesso testo anche a data passata. Si rilegge quando si torna sulla pagina: dopo l'incasso sparisce da solo. Niente cose della segreteria; nessuna scrittura; nessuna modifica alle altre viste. CUMULA v2.32 (sotto). -->
 <!-- KC-BUILD: oggi v2.32 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): (1) nelle liste per scegliere lo staff di Da sistemare (SOSTITUISCI, AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo, con "non disponibile" e il motivo. Ordine: sostituto da piano se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. L'ora di fine della lezione si legge dallo slot. (2) Tessera Turni (tutte le viste staff): sotto MI SEGNO la riga "Hai segnato che non ci sei: N date" se ne hai da oggi in poi. Solo letture. CUMULA v2.31 (sotto). -->
@@ -71,6 +72,12 @@ a{color:inherit; text-decoration:none}
 .saldare-c{font-size:15px;margin-top:4px;line-height:1.4}
 .saldare-p{font-size:14px;margin-top:6px;line-height:1.4}
 .saldare-b{display:inline-block;margin-top:12px;font-size:14px;font-weight:700;color:#FFF;background:#111;padding:10px 18px;border-radius:8px}
+/* v2.34 turno passato */
+.tr-tit{font-size:20px;font-weight:800;margin:0 0 6px}
+.tr-pers{padding:12px 0;border-top:1px solid var(--velo)}
+.tr-pers:first-of-type{border-top:none}
+.tr-pers b{font-size:16px}
+.btn.tr-apri{font-size:13px;padding:6px 10px;white-space:nowrap}
 .console{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:0 12px}
 .full{grid-column:1/-1}
 .due{grid-column:span 2}
@@ -579,6 +586,12 @@ body.turno-on .sch-corpo{padding-bottom:110px}
   <div class="sch-corpo" id="sch-corpo"></div>
 </div>
 
+<!-- v2.34 turno passato: note retroattive e spostamento -->
+<div class="scheda" id="turno-retro" hidden role="dialog" aria-modal="true" aria-label="Turno della Sala con Monitor">
+  <button class="sch-back" aria-label="Chiudi il turno" onclick="chiudiTurnoRetro()">←</button>
+  <div class="sch-corpo" id="tr-corpo"></div>
+</div>
+
 <!-- v2.26 barra fissa del turno: sopra la barra di navigazione e sopra la scheda a schermo intero -->
 <div class="barra-turno" id="barra-turno" hidden role="region" aria-label="Turno in corso">
   <div class="bt-txt"><b id="bt-stato"></b><small id="bt-auto"></small></div>
@@ -689,7 +702,7 @@ async function init(){
   if(pdata.staff_role) setTimeout(loadImpegniOggi,0); // v2.23: dopo il render della vista
   if(pdata.staff_role) setTimeout(loadNonCiMie,0); // v2.32
 
-  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); }
+  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); loadTurniTutti(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); }
   else if(vista==='monitor'){ renderMonitor(); loadMonitor(); loadEventi(); }
   else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); loadDaSaldare(); }
@@ -1174,6 +1187,10 @@ ${segPuoConti()?htmlSistemaPannello():''}
   </div>
   <p class="full rend-7" id="rend-7">Ultimi 7 giorni: …</p>
   ${['creator','admin'].includes(profilo.role)?htmlCompensiTessera():''}
+
+  <div class="zona mono">Turni Sala con Monitor</div>
+  <div class="full pann-all"><p class="aiuto">Apri un turno per aggiungere una persona seguita o spostare una nota sulla persona giusta, anche oltre i 7 giorni.</p>
+    <div id="sala-turni-tutti"><div class="vuota-all">…</div></div></div>
 
   <div class="full pann-all" id="pann-all" hidden></div>
 
@@ -2180,7 +2197,7 @@ async function loadMonitor(){
     if(error)throw error;
     salaOggi=data||{turno:null,seguiti:[],storico:[]};
   }catch(e){ console.error('[monitor]',e); salaOggi=null; }
-  disegnaTurno(); disegnaSalaOggi(); disegnaTurni(); disegnaAvvisoTurno(); avviaPromemoria();
+  disegnaTurno(); disegnaSalaOggi(); loadTurniElenco(); disegnaAvvisoTurno(); avviaPromemoria(); // v2.34 turni con id: si aprono
   loadFinePrevista();
   loadPapabili(); // v2.25: dopo ogni SEGNA le spunte della griglia sono aggiornate
   loadCompensoTurno();
@@ -2637,18 +2654,181 @@ function disegnaSalaOggi(){
       <td class="pre">${esc(x.note||'')}</td><td class="num">${hhmm(x.aggiornato)}</td></tr>`).join('')}</tbody></table>`;
 }
 
+/* ── v2.34 I MIEI TURNI: NOTE RETROATTIVE E SPOSTAMENTO (consegna 30 ott, punto 3, approvata da Marco il 30/10) ──
+   Elenco dei turni da monitor_turni_elenco (segreteria e creator: anche tutti i turni, p_tutti). Un turno chiuso si apre in
+   una finestra a tutto schermo: chi e' stato seguito con le sue note (monitor_turno_dettaglio), + AGGIUNGI UNA PERSONA SEGUITA
+   con lo stesso modulo della sera (su cosa, com'e' andata, controlla e segna -> monitor_nota_turno) e SPOSTA SU UN'ALTRA
+   PERSONA con "Sei sicuro?" (monitor_sposta_nota). I permessi li controlla la RPC: il monitor sui suoi turni fino a 7 giorni,
+   segreteria e creator su tutti. Gli errori restano a schermo finche' non si chiudono. */
+let turniElenco=null, turniTutti=null, retro=null;
+async function loadTurniElenco(){
+  try{
+    const{data,error}=await sb.rpc('monitor_turni_elenco',{p_giorni:30,p_tutti:false});
+    if(error)throw error;
+    turniElenco=data||[];
+  }catch(e){ console.warn('[i miei turni]',e?.message||e); turniElenco=null; }
+  disegnaTurni();
+}
+async function loadTurniTutti(){
+  const el=document.getElementById('sala-turni-tutti'); if(!el)return;
+  try{
+    const{data,error}=await sb.rpc('monitor_turni_elenco',{p_giorni:60,p_tutti:true});
+    if(error)throw error;
+    turniTutti=data||[];
+  }catch(e){ el.innerHTML=`<div class="vuota-all">Non riesco a leggere i turni ora: ${esc(e?.message||e)}</div>`; return; }
+  el.innerHTML=turniTutti.length?htmlTabTurni(turniTutti,true):'<div class="vuota-all">Nessun turno negli ultimi 60 giorni.</div>';
+}
+function htmlTabTurni(L,conMonitor){
+  return `<table class="tab"><thead><tr><th>Data</th>${conMonitor?'<th>Chi</th>':''}<th>Orario</th><th>Ore</th><th>Persone seguite</th><th>Nota di chiusura</th><th></th></tr></thead><tbody>${
+    L.map(t=>`<tr><td>${giornoLungo(t.data)}</td>${conMonitor?`<td>${esc(t.monitor||'—')}</td>`:''}<td class="num">${hhmm(t.inizio)} → ${t.fine?hhmm(t.fine):'<span class="arancio">in corso</span>'}</td>
+      <td class="num">${numIt(t.ore)}</td><td class="num">${t.persone??0}</td><td>${esc(t.note_turno||'')}</td>
+      <td>${t.fine?`<button class="btn tr-apri" onclick="apriTurno('${esc(t.turno_id)}')">${t.modificabile?'APRI E AGGIUNGI':'GUARDA'}</button>`:''}</td></tr>`).join('')
+  }</tbody></table>`;
+}
 function disegnaTurni(){
   const el=document.getElementById('sala-turni'); if(!el)return;
-  if(!salaOggi){ el.innerHTML='<div class="vuota-all">Non riesco a leggere i turni ora.</div>'; return; }
-  const L=salaOggi.storico||[];
+  if(turniElenco===null){ el.innerHTML='<div class="vuota-all">Non riesco a leggere i turni ora.</div>'; return; }
+  const L=turniElenco;
   if(!L.length){ el.innerHTML='<div class="vuota-all">Nessun turno negli ultimi 30 giorni.</div>'; return; }
   const ora=new Date(), mese=ora.getFullYear()+'-'+pad2(ora.getMonth()+1);
   const delMese=L.filter(t=>String(t.data).slice(0,7)===mese);
   const totOre=delMese.reduce((a,t)=>a+Number(t.ore||0),0), totPers=delMese.reduce((a,t)=>a+Number(t.persone||0),0);
-  el.innerHTML=`<table class="tab"><thead><tr><th>Data</th><th>Orario</th><th>Ore</th><th>Persone seguite</th><th>Nota di chiusura</th></tr></thead><tbody>${
-    L.map(t=>`<tr><td>${giornoLungo(t.data)}</td><td class="num">${hhmm(t.inizio)} → ${t.fine?hhmm(t.fine):'<span class="arancio">in corso</span>'}</td>
-      <td class="num">${numIt(t.ore)}</td><td class="num">${t.persone??0}</td><td>${esc(t.note_turno||'')}</td></tr>`).join('')
-  }</tbody></table><p class="tab-tot">Totale di ${MESI[ora.getMonth()]}: ${numIt(totOre)} ore · ${totPers} ${totPers===1?'persona seguita':'persone seguite'}</p>`;
+  el.innerHTML=htmlTabTurni(L,false)+`<p class="tab-tot">Totale di ${MESI[ora.getMonth()]}: ${numIt(totOre)} ore · ${totPers} ${totPers===1?'persona seguita':'persone seguite'}</p>
+    <p class="aiuto">Hai dimenticato qualcuno o l'hai segnato sulla persona sbagliata? Apri il turno: fino a 7 giorni lo sistemi tu, oltre lo fa la segreteria.</p>`;
+}
+
+/* finestra del turno */
+function retroToccato(){ return !!retro && (retro.cosa.trim()||retro.nota.trim()) && ['passo1','passo2','passo3'].includes(retro.modo); }
+async function apriTurno(id){
+  retro={id,dett:null,modo:'lista',persona:null,cosa:'',nota:'',daPersona:null};
+  const s=document.getElementById('turno-retro');
+  document.getElementById('tr-corpo').innerHTML='<p class="sch-vuoto">Un attimo, apro il turno…</p>';
+  s.hidden=false; s.scrollTop=0; document.body.style.overflow='hidden';
+  await caricaTurno();
+}
+async function caricaTurno(){
+  if(!retro)return;
+  try{
+    const{data,error}=await sb.rpc('monitor_turno_dettaglio',{p_turno_id:retro.id});
+    if(error)throw error;
+    retro.dett=data;
+  }catch(e){ document.getElementById('tr-corpo').innerHTML=`<p class="sch-vuoto">Non riesco ad aprire il turno: ${esc(e?.message||e)}</p>`; return; }
+  disegnaRetro();
+}
+function chiudiTurnoRetro(forza){
+  if(!forza && retroToccato()){
+    dialogo(`<p>Non hai segnato <b>${esc(retro.persona?.nome||'')}</b>. Quello che hai scritto si perde.</p>`,
+      ['FINISCI ADESSO',()=>disegnaRetro()],['Esci senza segnare',()=>chiudiTurnoRetro(true)]);
+    return;
+  }
+  document.getElementById('turno-retro').hidden=true; document.body.style.overflow='';
+  retro=null;
+}
+function retroVai(modo){ if(!retro)return; retro.modo=modo; disegnaRetro(true); }
+function disegnaRetro(fuoco){
+  const el=document.getElementById('tr-corpo'); if(!el||!retro||!retro.dett)return;
+  const T=retro.dett.turno||{}, L=retro.dett.seguiti||[];
+  const testa=`<h2 class="tr-tit">Turno di ${esc(giornoLungo(T.data))} · ${hhmm(T.inizio)} → ${hhmm(T.fine)}</h2>
+    ${T.monitor_user_id!==uid?`<p class="aiuto">Turno di ${esc(T.monitor||'—')}</p>`:''}
+    ${T.modificabile?'':'<p class="aiuto">Questo turno è di più di 7 giorni fa: per aggiungere o spostare una nota chiedi alla segreteria.</p>'}`;
+  let corpo='';
+  if(retro.modo==='lista'){
+    corpo=`<section class="sch-sez"><h3>Chi hai seguito</h3>${L.length?L.map((x,i)=>{
+      const righe=String(x.note||'').split('\n').map(r=>r.trim()).filter(Boolean);
+      return `<div class="tr-pers"><b>${esc(x.nome||'—')}</b>
+        ${righe.length?`<div class="diario">${righe.map(r=>`<div class="dr">${esc(r)}</div>`).join('')}</div>`:'<p class="aiuto">Nessuna nota scritta.</p>'}
+        ${T.modificabile?`<div class="sch-btns"><button class="btn" onclick="retroSposta(${i})">SPOSTA SU UN'ALTRA PERSONA</button></div>`:''}</div>`;
+    }).join(''):'<p class="sch-vuoto">Nessuna persona segnata in questo turno.</p>'}
+      ${T.modificabile?`<div class="sch-btns"><button class="btn prim" onclick="retro.daPersona=null;retroVai('cerca')">+ AGGIUNGI UNA PERSONA SEGUITA</button></div>`:''}</section>`;
+  }else if(retro.modo==='cerca'){
+    const sp=retro.daPersona;
+    corpo=`<section class="sch-sez"><h3>${sp?`La nota di ${esc(sp.nome)} va su chi?`:'Chi hai seguito in questo turno?'}</h3>
+      <div class="frm"><input id="tr-q" type="search" autocomplete="off" placeholder="Cerca per nome" oninput="retroCerca(this.value)"></div>
+      <div id="tr-ris"></div>
+      <div class="sch-btns"><button class="btn" onclick="retroVai('lista')">INDIETRO</button></div></section>`;
+  }else{
+    const n=esc(retro.persona?.nome||''), passo=retro.modo==='passo1'?1:retro.modo==='passo2'?2:3;
+    const pall=`<div class="pallini" aria-label="Passo ${passo} di 3">${[1,2,3].map(i=>`<i class="${i<=passo?'on':''}"></i>`).join('')}<span>Passo ${passo} di 3</span></div>`;
+    if(passo===3){
+      corpo=`<section class="sch-sez">${pall}<p class="g-dom">Controlla e segna</p>
+        <div class="riep"><b>${n}</b> · turno di ${esc(giornoLungo(T.data))} ${hhmm(T.inizio)}–${hhmm(T.fine)}
+          <div><span>Su cosa:</span> ${esc(retro.cosa.trim())}</div>
+          <div><span>Com'è andata:</span> ${esc(retro.nota.trim())}</div></div>
+        <p class="riga-fissa">Premendo SEGNA, ${n} risulta seguito/a in quel turno e la nota va nel giorno ${esc(giornoLungo(T.data))}. Resta scritto «aggiunta il ${pad2(new Date().getDate())}/${pad2(new Date().getMonth()+1)}».</p>
+        <div class="sch-btns"><button class="btn" onclick="retroVai('passo2')">INDIETRO</button>
+          <button class="btn prim" onclick="retroSegna(this)">SEGNA</button></div></section>`;
+    }else{
+      const p1=passo===1, val=p1?retro.cosa:retro.nota, ok=val.trim().length>=MIN_GUIDA;
+      corpo=`<section class="sch-sez">${pall}
+        <label class="g-dom" for="tr-t" style="display:block">${p1?`Su cosa avete lavorato con ${n}?`:'Com’è andata?'}</label>
+        <p class="aiuto">${p1?'Cosa avete fatto, in concreto: vie, esercizi, obiettivo.':'Cosa hai visto, cosa è cambiato, cosa riprendere la prossima volta.'}</p>
+        <div class="frm"><textarea id="tr-t" oninput="retroScrivi(this)">${esc(val)}</textarea></div>
+        <div class="sch-btns"><button class="btn" onclick="retroVai('${p1?'cerca':'passo1'}')">INDIETRO</button>
+          <button class="btn prim" id="tr-avanti" onclick="retroVai('${p1?'passo2':'passo3'}')"${ok?'':' disabled'}>AVANTI</button></div>
+        <p class="perche" id="tr-perche"${ok?' hidden':''}>Scrivi ancora qualcosa (almeno ${MIN_GUIDA} caratteri).</p></section>`;
+    }
+  }
+  el.innerHTML=testa+corpo;
+  if(fuoco){ const t=document.getElementById('tr-t')||document.getElementById('tr-q'); if(t)t.focus(); }
+}
+function retroScrivi(el){
+  retro[retro.modo==='passo1'?'cosa':'nota']=el.value;
+  const ok=el.value.trim().length>=MIN_GUIDA;
+  const b=document.getElementById('tr-avanti'); if(b)b.disabled=!ok;
+  const p=document.getElementById('tr-perche'); if(p)p.hidden=ok;
+}
+let _trTimer=null,_trTok=0,_trRis=[];
+function retroCerca(q){
+  clearTimeout(_trTimer);
+  const box=document.getElementById('tr-ris'); if(!box)return;
+  q=(q||'').trim();
+  if(q.length<2){ _trTok++; box.innerHTML=''; return; }
+  _trTimer=setTimeout(async()=>{
+    const tok=++_trTok;
+    const{data,error}=await sb.rpc('cerca_persona_staff',{p_q:q});
+    if(tok!==_trTok)return;
+    if(error){ box.innerHTML=`<div class="vuota-all">Non riesco a cercare ora: ${esc(error.message)}</div>`; return; }
+    _trRis=data||[];
+    if(!_trRis.length){ box.innerHTML='<div class="vuota-all">Nessuno con questo nome.</div>'; return; }
+    box.innerHTML=_trRis.map((x,i)=>`<button class="all-riga" onclick="retroScegli(${i})">
+      ${avatarHtml(x.nome,x.cognome,x.foto_path)}<span class="txt"><b>${esc((x.nome||'')+' '+(x.cognome||''))}</b></span></button>`).join('');
+    applicaFoto(box);
+  },300);
+}
+function retroScegli(i){
+  const x=_trRis[i]; if(!x||!retro)return;
+  const p={id:x.persona_id,nome:((x.nome||'')+' '+(x.cognome||'')).trim()};
+  if(retro.daPersona){ retroConfermaSposta(retro.daPersona,p); return; }
+  retro.persona=p; retro.cosa=''; retro.nota='';
+  retroVai('passo1');
+}
+async function retroSegna(btn){
+  if(!retro||!retro.persona)return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_nota_turno',{p_turno_id:retro.id,p_persona_id:retro.persona.id,p_su_cosa:retro.cosa.trim(),p_note:retro.nota.trim()});
+  if(error){ btn.disabled=false; erroreChiaro('Nota non salvata',error); return; }
+  toast(`Fatto: ${retro.persona.nome} è segnato/a nel turno.`);
+  retro.persona=null; retro.cosa=''; retro.nota=''; retro.modo='lista';
+  await caricaTurno(); loadTurniElenco(); loadTurniTutti();
+}
+function retroSposta(i){
+  const x=retro&&retro.dett&&(retro.dett.seguiti||[])[i]; if(!x)return;
+  retro.daPersona={id:x.persona_id,nome:x.nome||'—'};
+  retroVai('cerca');
+}
+function retroConfermaSposta(da,a){
+  const T=retro.dett.turno||{};
+  if(da.id===a.id){ erroreChiaro('È la stessa persona','Scegli la persona giusta.'); return; }
+  dialogo(`<p><b>Sei sicuro?</b></p>
+    <p>La nota del turno di ${esc(giornoLungo(T.data))} passa da <b>${esc(da.nome)}</b> a <b>${esc(a.nome)}</b>, e ${esc(a.nome)} risulta seguito/a in quel turno al posto di ${esc(da.nome)}.</p>
+    <p>Resta scritto «spostata il ${pad2(new Date().getDate())}/${pad2(new Date().getMonth()+1)} da ${esc(da.nome)}».</p>`,
+    ['SÌ, SPOSTA',async()=>{
+      const{error}=await sb.rpc('monitor_sposta_nota',{p_turno_id:retro.id,p_da_persona:da.id,p_a_persona:a.id});
+      if(error){ erroreChiaro('Nota non spostata',error); return; }
+      toast(`Fatto: la nota ora è su ${a.nome}.`);
+      retro.daPersona=null; retro.modo='lista';
+      await caricaTurno(); loadTurniElenco(); loadTurniTutti();
+    }],['No, torna indietro',()=>disegnaRetro()]);
 }
 
 /* ── Compensi monitor (rendiconto, solo creator/admin) ── */
