@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.33 · 2026-10-30 · DA SALDARE (consegna 30 ott, DB Applica_registro_crediti_2026-10-30 gia' applicato; insieme a portale v3.149): solo nella vista allievo (anche il genitore per i figli), in cima sotto il saluto, un riquadro per ogni credito di get_miei_crediti: "Da saldare: X €" (genitore: "Da saldare per <Nome>: X €"), descrizione · entro <giorno> <data>, "Puoi pagare in segreteria in contanti, bancomat o bonifico.", bottone Scrivi alla segreteria (stesso WhatsApp della segreteria del portale). Testo nero su bianco, bordo col colore del portale (#1B74E4), nessun allarme, stesso testo anche a data passata. Si rilegge quando si torna sulla pagina: dopo l'incasso sparisce da solo. Niente cose della segreteria; nessuna scrittura; nessuna modifica alle altre viste. CUMULA v2.32 (sotto). -->
 <!-- KC-BUILD: oggi v2.32 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): (1) nelle liste per scegliere lo staff di Da sistemare (SOSTITUISCI, AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo, con "non disponibile" e il motivo. Ordine: sostituto da piano se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. L'ora di fine della lezione si legge dallo slot. (2) Tessera Turni (tutte le viste staff): sotto MI SEGNO la riga "Hai segnato che non ci sei: N date" se ne hai da oggi in poi. Solo letture. CUMULA v2.31 (sotto). -->
 <!-- KC-BUILD: oggi v2.31 · 2026-10-27 · CONSOLE SEGRETERIA: DA PAGARE E DA SISTEMARE (consegna 27 ott, DB segreteria_da_sistemare): solo per creator e segreteria (profile_data.staff_role staff_creator/staff_segreteria), nella zona Il tempo dopo Oggi in sala. (1) Tessera 💶 DA PAGARE · <mese>: somma di totale di v_costi_staff_mese del mese in corso, sotto "Corsi · Prime · Monitor", riga arancio "N lezioni da confermare non sono contate" se da_confermare > 0; tocco -> portale.html?nav=segreteria&tab=turni&box=costi (riquadro Costi staff del mese). (2) Tessera ⚠ DA SISTEMARE: numero = righe di v_segreteria_da_sistemare_seg, rossa se > 0, verde "Tutto a posto" se 0; tocco -> elenco raggruppato per tipo (Presenze da confermare, Turni monitor da chiudere, Ruolo da verificare, Stessa persona su due lezioni, Lezioni senza staff (prossimi 7 giorni)) con data e ora, persona, nome completo del corso (minori dalla fascia, scuole con il nome della scuola) e il testo cosa. Azioni solo via RPC esistenti: PRESENTE impegno_presenza 'fine' · ASSENTE 'assente' · SOSTITUISCI sostituisci_istruttore (sostituto da piano per primo) · CHIUDI TURNO segreteria_chiudi_turno con l'ora reale di fine (inizio letto da v_compenso_turni_monitor, non dall'ora della vista) · TOGLI 'assente' con conferma sul monitor · CASO ESTREMO, CONFERMA nasconde la riga per questa sessione · APRI IN AGENDA agenda.html?data=&tipo= · AGGIUNGI STAFF impegno_mi_segno con p_user_id e ruolo. Stessa persona su due lezioni: il testo dice le due lezioni con nome completo e orario (letti da impegni_staff), mai la chiave tecnica. Dopo ogni azione si ricaricano elenco e Da pagare, con "Fatto: …". Nelle liste per scegliere lo staff i monitor stanno in fondo, "solo casi estremi", con conferma. Nessuna modifica a RPC, tabelle o viste. CUMULA v2.30 (sotto). -->
 <!-- KC-BUILD: oggi v2.30 · 2026-10-26 · PRIME LEZIONI TRA GLI IMPEGNI DEL GIORNO (consegna 26 ott, DB staff_lezioni_tutti): le Prime Lezioni arrivano gia' in "I tuoi impegni · oggi" con la riga "Ricordati SONO QUI: senza presenza la lezione non viene pagata." come i corsi (nessun filtro per tipo). Mancava il nome completo di due tipi, che uscivano con la chiave tecnica: IMP_LEZ + prima_lezione_privata 'Prima Lezione Privata Speciale' e manovra_sosta 'Corso Manovra in Sosta KataClimb' (Prima Lezione Adulti, Genitori, Bambini e Ragazzi gia' da NOME_CORSO). Solo nomi. CUMULA v2.29 (sotto). -->
@@ -62,6 +63,13 @@ a{color:inherit; text-decoration:none}
 
 /* console */
 #app{display:none}
+/* v2.33 Da saldare: testo nero su bianco, bordo col colore del portale, nessun allarme */
+#t-saldare[hidden]{display:none}
+.saldare{background:#FFF;color:#111;border:2px solid #1B74E4;border-radius:var(--r);padding:16px;margin-bottom:7px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.saldare-t{font-size:18px;font-weight:800;line-height:1.3}
+.saldare-c{font-size:15px;margin-top:4px;line-height:1.4}
+.saldare-p{font-size:14px;margin-top:6px;line-height:1.4}
+.saldare-b{display:inline-block;margin-top:12px;font-size:14px;font-weight:700;color:#FFF;background:#111;padding:10px 18px;border-radius:8px}
 .console{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:0 12px}
 .full{grid-column:1/-1}
 .due{grid-column:span 2}
@@ -683,7 +691,7 @@ async function init(){
   if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); }
   else if(vista==='monitor'){ renderMonitor(); loadMonitor(); loadEventi(); }
-  else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); }
+  else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); loadDaSaldare(); }
 }
 
 /* ════════════════════════ CONSOLE ALLIEVO (v1.1 invariata) ════════════════════════ */
@@ -695,6 +703,8 @@ function renderAllievo(){
     ?`<a class="t t-switch" href="/oggi.html"><span class="et mono">Console</span><div class="big">STAFF</div><span class="cmd mono">TORNA ›</span></a>`:'';
   c.innerHTML=`
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'KATACLIMBER')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+
+  <div class="full" id="t-saldare" hidden></div>
 
   <div class="zona mono">Il tempo</div>
 
@@ -784,6 +794,28 @@ async function loadManovra(){
     el.style.display='';
   }catch(e){ console.warn('[manovra]',e); }
 }
+
+/* ── v2.33 DA SALDARE: crediti aperti dell'allievo e dei figli (get_miei_crediti, stessa RPC e stesso testo
+   del portale v3.149). Solo nella vista allievo, niente cose della segreteria. Nessun allarme: stesso testo
+   anche a data passata. Sparisce da solo quando la segreteria registra l'incasso (si rilegge al ritorno sulla pagina). ── */
+const SALDARE_WA='https://wa.me/393318743953'; // WhatsApp della segreteria, lo stesso del portale
+function saldareEuro(n){const v=Number(n||0);return v.toLocaleString('it-IT',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2})+' €';}
+function saldareData(iso){const d=dLoc(iso);return GIORNI_FULL[d.getDay()]+' '+d.getDate()+' '+MESI[d.getMonth()];}
+async function loadDaSaldare(){
+  const el=document.getElementById('t-saldare');
+  if(!el||vista!=='allievo')return;
+  let L=[];
+  try{const{data,error}=await sb.rpc('get_miei_crediti');if(error)throw error;L=data||[];}
+  catch(e){console.warn('[da saldare]',e.message||e);el.hidden=true;return;}
+  el.hidden=!L.length;
+  el.innerHTML=L.map(c=>`<div class="saldare">
+    <div class="saldare-t">Da saldare${c.user_id===uid?'':' per '+esc(c.persona||'')}: ${saldareEuro(c.importo)}</div>
+    <div class="saldare-c">${esc(c.descrizione||'')}${c.entro?' · entro '+esc(saldareData(c.entro)):''}</div>
+    <div class="saldare-p">Puoi pagare in segreteria in contanti, bancomat o bonifico.</div>
+    <a class="saldare-b" href="${SALDARE_WA}" target="_blank" rel="noopener">Scrivi alla segreteria</a>
+  </div>`).join('');
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sb&&uid&&vista==='allievo')loadDaSaldare();});
 
 /* ── ADESSO allievo: motore compiti v1 — 4 stati ── */
 async function loadAdesso(){
