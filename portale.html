@@ -20,8 +20,9 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.148 · 2026-10-29 · SEGRETERIA E COMPENSI STAFF (consegna 29 ott, DB sql/segreteria_compensi_2026-10-29.sql da lanciare PRIMA del push): (1) Da sistemare → Sistema adesso → "registra": caselle dei giorni del corso (solo slot attivi del tipo), validazione "Scegli il giorno del corso", p_slot_ids ad allineamento_decidi (caso segnalato dalla segreteria). (2) Cambia giorni: si cambia anche quanti giorni, niente scritta rossa, contatore informativo (caso segnalato dalla segreteria). (3) Mellozzini su Expert e Giovani a percentuale (quota in slot_piano_staff.percentuale): restano nelle presenze, 0 € a lezione, contati come istruttore nella copertura, blocco Compensi a percentuale in Costi staff del mese (v_compenso_percentuale_mese: incassi del mese divisi sui mesi che il pagamento copre, quota, sostituti chi/quanto, netto in rosso se negativo; si conta quello che è entrato davvero, sconti compresi; dal 1/10/2026, settembre saldato a mano; eccezioni decise da Marco 30/10 in compenso_percentuale_eccezioni). (4) Prima Lezione nella stessa ora di un corso dello stesso istruttore: 0 €, fuori da Presenze da confermare, "dentro il corso — non si paga a parte" in Turni e Prime Lezioni del mese. CUMULA v3.147 (sotto). -->
 <!-- KC-BUILD: portale v3.147 · 2026-10-27 · CONSOLE SEGRETERIA: TUTTO LI', E "SISTEMA ADESSO" (consegna 27 ott, DB allineamento_sistema_ora_2026-10-27 gia' applicato: azioni pagato, correggi_importo, chiudi di allineamento_decidi e colonna azione_suggerita). oggi.html non cambia. (1) In cima alla Segreteria, sopra l'interruttore, "Da fare oggi" con tre tessere (solo creator e segreteria): 🔄 Allineamento con il tuo foglio (voci aperte dell'ultima notte -> tab Allineamento), ⚠ Da sistemare (righe di v_segreteria_da_sistemare_seg -> tab Da sistemare), 💶 Da pagare del mese (v_costi_staff_mese: totale, Corsi/Prime/Monitor, lezioni da confermare non contate -> Turni, Costi staff del mese); rosso/arancio se c'e' da fare, verde "Tutto a posto"; si aggiornano dopo ogni azione. (2) Nuovo tab "⚠ Da sistemare" (?nav=segreteria&tab=dasistemare): l'elenco di oggi.html v2.32 portato qui con prefisso ds (stessa vista, stessi gruppi, stesse RPC: impegno_presenza, sostituisci_istruttore, segreteria_chiudi_turno, impegno_mi_segno), ogni azione con kcGuida (presente con il compenso: 15 € a lezione o a ore da impegni_staff.compenso_tipo; monitor scelto = avviso arancio del caso estremo); sotto ogni bottone cosa fa; APRI IN AGENDA in una nuova scheda. (3) Allineamento: su Da registrare e Da chiarire il bottone principale e' SISTEMA ADESSO -> kcGuida "Com'è andata?" con cinque scelte (registra, pagato, correggi_importo, chiudi, rispondi), preselezionata azione_suggerita (Da registrare senza suggerimento: registra), campi della scelta, cosa succede con il pagamento che si tocca (letto da abbonamenti_pagamenti con la stessa regola dell'RPC), avvisi arancio (importo diverso dal foglio, al prima di dal, pagamento non trovato, chiudi su una voce pagata nel foglio); l'esito lo scrive il DB: "✓ <esito> · Il portale è già a posto.". NON È COSÌ resta solo su Da registrare. Voce senza persona: kcGuida -> Inserisci contatto precompilato -> appena salvata "Ora registro l'abbonamento?" (insertNewLead chiama alDopoInserisci; se la voce non ha ancora la persona l'RPC lo dice e si mostra). Da sistemare nel portale: APRI E SISTEMA porta al fascicolo della persona (Prima Lezione o voce senza data) o all'agenda della data in una nuova scheda, e al ritorno nella console chiede "L'hai sistemato?" -> fatto. "Cosa fare oggi": il passo delle domande ora dice che si sistemano subito. CUMULA v3.146 (sotto). -->
-<!-- KC-BUILD: portale v3.146 · 2026-10-27 · PRIMA LEZIONE GIA' FATTA (DATA PASSATA) (consegna 27 ott, caso Kami Cafaro; nessuna modifica al DB): nel fascicolo del lead, finestra "📅 Fissa prima lezione", sopra gli slot il bottone "✔ L'ha già fatta (data passata)", solo per creator e segreteria (isSegreteriaPiena). Apre kcGuida: data dagli ultimi 60 giorni a ieri, slot Prima Lezione attivi di quel giorno della settimana (tipo_corso prima_lezione%, nome completo e orario; se e' uno solo e' gia' scelto); cosa succede si aggiorna con le scelte; se il lead ha gia' una Prima Lezione fatta avvisa "Risulta già una Prima Lezione fatta il GG/MM: vuoi registrarne un'altra?". Conferma -> insert in prenotazioni_prima_lezione (lead_id, slot_id, data_lezione) come confermaFissaLezione, poi marca_presenza_prima_lezione(id,'fatto'); se la seconda chiamata fallisce lo dice in chiaro e riprovando non crea un doppione. Errori del DB (giorno chiuso, slot chiuso, slot pieno) mostrati come arrivano. Messaggio finale con il promemoria del pagamento (➕ Abbonamento o corso). Il messaggio breve (toast) resta a schermo piu' a lungo se il testo e' lungo (fino a 8 secondi). CUMULA v3.145 (sotto). -->
+<!-- KC-BUILD: portale v3.146 · 2026-10-27 · PRIMA LEZIONE GIA' FATTA (DATA PASSATA) (consegna 27 ott, caso segnalato dalla segreteria; nessuna modifica al DB): nel fascicolo del lead, finestra "📅 Fissa prima lezione", sopra gli slot il bottone "✔ L'ha già fatta (data passata)", solo per creator e segreteria (isSegreteriaPiena). Apre kcGuida: data dagli ultimi 60 giorni a ieri, slot Prima Lezione attivi di quel giorno della settimana (tipo_corso prima_lezione%, nome completo e orario; se e' uno solo e' gia' scelto); cosa succede si aggiorna con le scelte; se il lead ha gia' una Prima Lezione fatta avvisa "Risulta già una Prima Lezione fatta il GG/MM: vuoi registrarne un'altra?". Conferma -> insert in prenotazioni_prima_lezione (lead_id, slot_id, data_lezione) come confermaFissaLezione, poi marca_presenza_prima_lezione(id,'fatto'); se la seconda chiamata fallisce lo dice in chiaro e riprovando non crea un doppione. Errori del DB (giorno chiuso, slot chiuso, slot pieno) mostrati come arrivano. Messaggio finale con il promemoria del pagamento (➕ Abbonamento o corso). Il messaggio breve (toast) resta a schermo piu' a lungo se il testo e' lungo (fino a 8 secondi). CUMULA v3.145 (sotto). -->
 <!-- KC-BUILD: portale v3.145 · 2026-10-27 · ALLINEAMENTO: L'INTERFACCIA CHE GUIDA E CONTROLLA (consegna 27 ott, nessuna modifica al DB). (1) Nuova funzione generica kcGuida() vicino a scModal, documentata in testa e pronta per le altre sezioni: modale con titolo, riquadro "Cosa succede se confermi" (si aggiorna mentre si compila), righe arancio di attenzione, campi, conferma scura a destra e annulla chiaro a sinistra; errore = messaggio rosso e la finestra resta aperta; riuscita = chiude, toast e lo stesso testo resta come esito. Mai perdere quello che si e' scritto: se la finestra e' stata toccata, uscire (annulla, ✕, clic fuori, Esc, cambio tab della Segreteria, cambio sezione) chiede "Non hai salvato" con Torna e completa / Esci senza salvare; ricaricare la pagina fa comparire l'avviso del browser; le caselle di testo restano come bozza nel browser (localStorage per voce, try/catch) e si ritrovano riaprendo la voce ("Avevi iniziato a scrivere"). (2) Allineamento: in cima "Cosa fare oggi" a passi dai numeri (entro fine mese solo negli ultimi 7 giorni), cliccabili verso il gruppo; sotto ogni bottone cosa fa; NON VA -> NON È COSÌ, CORRETTO -> HO CORRETTO IL FOGLIO; tutte le azioni passano da kcGuida (REGISTRA con frasi dal vivo e avviso se l'importo e' diverso dal foglio, NON È COSÌ, RISPONDI, FATTO, HO CORRETTO IL FOGLIO, INSERISCI PRIMA LA PERSONA); sulla riga "✎ bozza non inviata"; dopo l'azione la riga resta grigia con cosa e' successo e cosa succede stanotte; storico con etichette chiare (Registrato, Risposta inviata, Chiuso: non è così, Sistemato, Corretto nel foglio). Scritture solo con allineamento_decidi, stato 'scartata' invariato. (3) Il messaggio breve (toast) di tutto il portale passa da 12px a 13px (da 1024px resta 18px). CUMULA v3.144 (sotto). -->
 <!-- KC-BUILD: portale v3.144 · 2026-10-27 · ALLINEAMENTO PRIMA NOTA (consegna 27 ott, DB allineamento_console_2026-10-27): Segreteria -> nuovo tab "🔄 Allineamento" (solo creator e segreteria) con badge = voci aperte dell'ultima notte (arancio se ci sono abbonamenti da registrare), caricato all'apertura della Segreteria. ?nav=segreteria&tab=allineamento apre direttamente il tab. Righe aperte dell'ultima notte di allineamento_proposte (mai le 'superata') in quattro gruppi: Da registrare nel portale, Da chiarire, Da sistemare nel portale, Da correggere nel tuo foglio; "Nel tuo foglio" / "Nel portale" / proposta; bollino "ferma da X giorni" se notte - aperta_dal >= 3; nome -> scheda nel tab Persone (lead_data.persona_id). Azioni solo con allineamento_decidi: REGISTRA (modale con metodo contanti/bancomat/bonifico, importo e scadenza modificabili), INSERISCI PRIMA LA PERSONA (Inserisci contatto) se manca persona_id, NON VA (perche' facoltativo), RISPONDI, FATTO, CORRETTO; la riga resta grigia con l'esito, il badge scende, niente ricarica. In fondo, chiuso: "Chiuse negli ultimi 30 giorni". Solo nomi, mai email o telefoni. Nessuna modifica a DB. Su oggi.html non cambia niente. CUMULA v3.143 (sotto). -->
 <!-- KC-BUILD: portale v3.143 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): Segreteria -> 🗓 Turni. (1) Nella griglia della settimana, sotto il nome di ogni giorno, "Non ci sono: Nome (tutto il giorno), Nome (20–21)" da v_staff_indisponibilita, con TOGLI su ogni riga per creator e segreteria (togli_indisponibile, con conferma). (2) Bottone + NON DISPONIBILE accanto alle settimane (solo creator e segreteria): chi, data (da oggi), tutto il giorno o dalle … alle …, motivo -> segna_indisponibile con p_user_id; dopo, quante lezioni sono state tolte e quali, con il nome completo. (3) Nelle liste per scegliere lo staff (Aggiungi una persona, Sostituisci, anche sui turni monitor) chi non c'e' in quella data e ora resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi, non sui turni monitor), non disponibili. Errori delle RPC mostrati come arrivano. Nessuna modifica a DB. CUMULA v3.142 (sotto). -->
@@ -1784,10 +1785,12 @@ fill="#1d4ed8" stroke="none">
             <input id="tu-mese-costi" type="month" class="input sc-in" style="width:auto" onchange="tuCaricaCosti()">
             <button class="btn sc-scuro sc-piccolo" onclick="tuEsportaCsvCosti()">Esporta CSV</button>
           </div>
-          <p class="sc-nota" style="margin-top:0">Corsi 15 € a lezione · Prime Lezioni 15 € l'ora con almeno un allievo presente, 5 € l'ora se vuota · monitor come sopra. Si paga solo con la presenza segnata.</p>
+          <p class="sc-nota" style="margin-top:0">Corsi 15 € a lezione · Prime Lezioni 15 € l'ora con almeno un allievo presente, 5 € l'ora se vuota, 0 se l'istruttore è già sul corso nella stessa ora · monitor come sopra · Expert e Giovani di Mellozzini a percentuale (sotto). Si paga solo con la presenza segnata.</p>
           <div id="tu-costi"></div>
           <h3 class="sc-h3" style="margin-top:16px">Prime Lezioni del mese</h3>
           <div id="tu-prime"></div>
+          <h3 class="sc-h3" style="margin-top:16px">Compensi a percentuale</h3>
+          <div id="tu-perc"></div>
         </div>
       </div>
 
@@ -2431,11 +2434,11 @@ fill="#1d4ed8" stroke="none">
 <div id="mo-cambia-giorni" class="mo hidden">
   <div class="mo-box" style="max-width:420px">
     <h3>📅 Cambia giorni</h3>
-    <p style="font-size:14px;color:var(--text);margin-bottom:12px">Sposta i giorni del corso. Pagamento e scadenza restano come sono.</p>
+    <p style="font-size:14px;color:var(--text);margin-bottom:12px">Sposta, aggiungi o togli giorni del corso. Pagamento e scadenza restano come sono.</p>
     <p id="cambia-giorni-info" style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:12px"></p>
     <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px">Giorni</div>
     <div id="cambia-giorni-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-    <div id="cambia-giorni-conta" style="font-size:14px;color:var(--text);margin-bottom:12px"></div>
+    <div id="cambia-giorni-conta" style="font-size:14px;color:var(--text2);margin-bottom:12px"></div>
     <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Nota (opzionale)</div>
     <input type="text" id="cambia-giorni-nota" class="input" maxlength="200" placeholder="Es. richiesta della mamma, sovrapposizione con la scuola" style="font-size:14px;padding:9px 12px">
     <div id="cambia-giorni-msg"></div>
@@ -4168,7 +4171,7 @@ async function loadAll(){
 
   /* DEBITO-190 — i numeri del pacchetto non si leggono piu' dalle colonne
      salvate in profile_data (che 40 funzioni ritoccavano a mano e che
-     potevano mentire: il caso Baldina mostrava 5 lezioni quando ne restava 1)
+     potevano mentire: un caso reale mostrava 5 lezioni quando ne restava 1)
      ma da get_contatori, che li deriva contando le righe. */
   try{
     const{data:cc}=await sb.rpc('get_contatori',{p_user_id:user.id});
@@ -6852,7 +6855,7 @@ function abbTipoCambiato(){
   gEl.innerHTML=slots.length
     ?slots.map(s=>'<label class="abb-giorno"><input type="checkbox" value="'+s.id+'"'+(pre.includes(s.id)?' checked':'')+' onchange="abbRicalcola()"> '+escHtml(abbSlotTesto(s))+'</label>').join('')
     :'<div style="font-size:14px;color:#B91C1C;font-weight:600">Nessun giorno attivo in agenda per questo abbonamento.</div>';
-  if(es)gEl.insertAdjacentHTML('beforeend','<div style="font-size:13px;color:var(--text2)">Rinnovo: i giorni spuntati sostituiscono quelli attuali.</div><div style="font-size:13px;color:var(--text2)">Devi solo spostare i giorni? Chiudi e usa 📅 Cambia giorni nel fascicolo: non registra pagamenti.</div>');
+  if(es)gEl.insertAdjacentHTML('beforeend','<div style="font-size:13px;color:var(--text2)">Rinnovo: i giorni spuntati sostituiscono quelli attuali.</div><div style="font-size:13px;color:var(--text2)">Devi solo cambiare i giorni (anche quanti)? Chiudi e usa 📅 Cambia giorni nel fascicolo: non registra pagamenti.</div>');
   gwEl.classList.remove('hidden');
   abbRicalcola();
 }
@@ -7076,8 +7079,10 @@ async function annullaPausaAbbonamento(pausaId){
 }
 
 /* ── v3.132 — Cambia giorni (tutti gli abbonamenti con giorni), solo segreteria: solo RPC cambia_giorni_abbonamento ──
-   Non e' un rinnovo: niente importo, scadenza, pagamento. Le guardie (solo segreteria, giorni del suo tipo, stesso
-   numero di giorni, capienza) stanno nella RPC; qui il Conferma spento serve solo a non sbagliare. */
+   Non e' un rinnovo: niente importo, scadenza, pagamento. Le guardie (solo segreteria, giorni del suo tipo,
+   capienza) stanno nella RPC; qui il Conferma spento serve solo a non sbagliare.
+   v3.148 (29 ott, caso segnalato dalla segreteria): si puo' cambiare anche QUANTI giorni. La segreteria e' la verita':
+   nessun prezzo da ricalcolare, nessun rimborso. */
 let cambiaGiorniIscr=null;   // {iscrizione_id, prima:[slot_id]}
 async function openCambiaGiorniModal(iscrId){
   const a=currentLeadAbb;if(!a||!questIdOk(iscrId))return;
@@ -7103,13 +7108,9 @@ function cambiaGiorniRicalcola(){
   const c=cambiaGiorniIscr;if(!c)return;
   const scelti=cambiaGiorniScelti(),n=scelti.length,nPrima=c.prima.length;
   const uguali=n===nPrima&&scelti.every(id=>c.prima.includes(id));
-  // come la RPC: senza giorni attuali (nPrima 0) va bene qualsiasi numero, purche' almeno uno
-  const numeroCambiato=nPrima>0&&n!==nPrima;
   const el=document.getElementById('cambia-giorni-conta');
-  el.innerHTML=!numeroCambiato
-    ?'Giorni a settimana: '+n+(n===nPrima?' (come ora)':'')
-    :'Giorni a settimana: '+n+' (ora '+nPrima+')<div style="color:#B91C1C;font-weight:700;margin-top:4px">Da 1 a 2 volte a settimana cambia il prezzo: usa ➕ Abbonamento o corso</div>';
-  cambiaGiorniBtn(!(uguali||numeroCambiato||n===0));
+  el.textContent='Giorni a settimana: '+n+(n===nPrima?' (come ora)':' (ora '+nPrima+')');
+  cambiaGiorniBtn(!(uguali||n===0));
 }
 async function confermaCambiaGiorni(){
   const c=cambiaGiorniIscr;
@@ -7522,7 +7523,7 @@ async function confermaFissaLezione(slotId,dataIso,oraInizio,funnelStage,okMsg){
   }
 }
 
-/* ── PRIMA LEZIONE GIA' FATTA (data passata) — portale v3.146, consegna 27 ott (caso Kami Cafaro) ──
+/* ── PRIMA LEZIONE GIA' FATTA (data passata) — portale v3.146, consegna 27 ott (caso segnalato dalla segreteria) ──
    Chi ha fatto la Prima Lezione senza prenotarla: la segreteria la registra a posteriori.
    Due chiamate: insert in prenotazioni_prima_lezione (come confermaFissaLezione), poi
    marca_presenza_prima_lezione(id,'fatto'), che segna presente e aggiorna profilo e funnel.
@@ -11277,9 +11278,18 @@ const TU_NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12
   prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Prima Lezione Privata Speciale',prima_lezione_genitori:'Prima Lezione Genitori',
   prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)'};
 function tuNomeCorso(tipo,fascia){if(tipo==='bambini')return fascia==='ragazzi'?TU_NOME_CORSO.ragazzi:TU_NOME_CORSO.bambini;return TU_NOME_CORSO[tipo]||String(tipo||'Lezione').replace(/_/g,' ')}
-/* stessa regola di v_copertura_lezioni: istruttore = compenso lezione, assistente = ora, contano previsto e presente */
-function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
+/* stessa regola di v_copertura_lezioni: istruttore = compenso lezione o percentuale (v3.148), assistente = ora, contano previsto e presente */
+function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
 let tuCompLez=[];
+/* v3.148 — stessa regola di _prima_dentro_corso (DB): una Prima Lezione con lo stesso istruttore gia' su un corso
+   (previsto o presente) nella stessa ora non si paga a parte */
+function tuTipoSlot(id){const c=tuDati&&((tuDati.corsi||[]).find(x=>x.id===id)||(tuDati.slot||[]).find(x=>x.id===id));return c?String(c.tipo_corso||''):''}
+function tuDentroCorso(i){
+  if(!tuDati||i.tipo!=='lezione'||!tuTipoSlot(i.slot_id).startsWith('prima_lezione'))return false;
+  return (tuDati.imp||[]).some(o=>o.id!==i.id&&o.user_id===i.user_id&&o.data===i.data&&o.tipo==='lezione'&&(o.stato==='previsto'||o.stato==='presente')
+    &&!tuTipoSlot(o.slot_id).startsWith('prima_lezione')&&o.ora_inizio<i.ora_fine&&o.ora_fine>i.ora_inizio);
+}
+const TU_DENTRO='dentro il corso — non si paga a parte';
 
 const tuPuo=()=>!!(profile&&['staff_creator','staff_segreteria'].includes(profile.staff_role));
 /* v3.142 liste staff sulle lezioni: i monitor in fondo, solo casi estremi
@@ -11436,7 +11446,7 @@ function tuDisegnaSettimana(){
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
           const{ni,na}=tuConta(v.seg),ok=ni>=v.imin&&na>=v.amin;
-          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
+          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(tuDentroCorso(i)?' <span style="font-size:13px;color:var(--text2)">'+TU_DENTRO+'</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
           return `<button class="tu-voce ${ok?'verde':'rosso'}" onclick="tuApriVoce(${k})">
             <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${ok?'coperta':'scoperta'}</b></span>
             <span class="tu-t">${escHtml(v.titolo)}</span>
@@ -11468,7 +11478,7 @@ function tuApriVoce(k){
     if(puo&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
-    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
+    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
     const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
       <div class="sc-sub">${escHtml(ruolo)} · ${escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
@@ -11594,11 +11604,14 @@ function tuEsportaCsv(){
 }
 
 /* ── v3.139 Compensi lezioni dei corsi (creator e segreteria) da v_compenso_lezioni: si paga solo con stato presente;
-   i giorni passati ancora previsti sono da_confermare e valgono 0 finche' la segreteria non decide. ── */
+   i giorni passati ancora previsti sono da_confermare e valgono 0 finche' la segreteria non decide.
+   v3.148 — le lezioni a percentuale (Mellozzini su Expert e Giovani) valgono 0 € a lezione: contate a parte (perc),
+   ma restano da confermare come le altre, servono per le sostituzioni. ── */
 function tuTotLez(){
   const m=new Map();
-  tuCompLez.forEach(r=>{const x=m.get(r.user_id)||{persona:r.persona,lezioni:0,ore:0,euro:0,daConf:0};
-    if(r.stato==='presente'){x.lezioni++;x.ore+=Number(r.ore||0);x.euro+=Number(r.euro||0)}
+  tuCompLez.forEach(r=>{const x=m.get(r.user_id)||{persona:r.persona,lezioni:0,ore:0,euro:0,daConf:0,perc:0};
+    if(r.stato==='presente'&&r.compenso_tipo==='percentuale')x.perc++;
+    else if(r.stato==='presente'){x.lezioni++;x.ore+=Number(r.ore||0);x.euro+=Number(r.euro||0)}
     if(r.da_confermare)x.daConf++;
     m.set(r.user_id,x)});
   return [...m.values()].sort((a,b)=>String(a.persona).localeCompare(String(b.persona),'it'));
@@ -11616,12 +11629,12 @@ async function tuCaricaCompLez(){
   const tot=tuTotLez();
   box.innerHTML=!tot.length?'<p class="sc-vuoto">Nessuna lezione dei corsi in questo mese.</p>'
     :`<div style="overflow-x:auto"><table class="tu-tab"><thead><tr><th>Persona</th><th>Lezioni pagate</th><th>Ore</th><th>Compenso</th><th>Da confermare</th></tr></thead><tbody>
-    ${tot.map(x=>`<tr><td>${escHtml(x.persona)}</td><td>${x.lezioni}</td><td>${tuNum(x.ore)}</td><td><b>${tuEur(x.euro)}</b></td><td>${x.daConf?`<span class="sc-warn">${x.daConf}</span>`:'0'}</td></tr>`).join('')}
+    ${tot.map(x=>`<tr><td>${escHtml(x.persona)}</td><td>${x.lezioni}${x.perc?`<div style="font-size:13px;color:var(--text2)">+ ${x.perc} a percentuale</div>`:''}</td><td>${tuNum(x.ore)}</td><td><b>${tuEur(x.euro)}</b></td><td>${x.daConf?`<span class="sc-warn">${x.daConf}</span>`:'0'}</td></tr>`).join('')}
     </tbody><tfoot><tr><td><b>Totale</b></td><td>${tot.reduce((s,x)=>s+x.lezioni,0)}</td><td>${tuNum(tot.reduce((s,x)=>s+x.ore,0))}</td><td><b>${tuEur(tot.reduce((s,x)=>s+x.euro,0))}</b></td><td>${tot.reduce((s,x)=>s+x.daConf,0)}</td></tr></tfoot></table></div>`;
   const L=tuCompLez.filter(r=>r.da_confermare);
   document.getElementById('tu-daconf-n').textContent=L.length?String(L.length):'';
   dc.innerHTML=!L.length?'<p class="sc-vuoto">Nessuna presenza da confermare.</p>':L.map(r=>`<div class="sc-riga">
-    <div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))} · ${r.compenso_tipo==='ora'?'assistente':'istruttore'}</div></div>
+    <div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))} · ${r.compenso_tipo==='ora'?'assistente':r.compenso_tipo==='percentuale'?'istruttore · a percentuale':'istruttore'}</div></div>
     <button class="btn sc-scuro sc-piccolo" onclick="tuConferma('${r.impegno_id}','inizio',this)">Era presente</button>
     <button class="btn btn-g sc-piccolo" onclick="tuConferma('${r.impegno_id}','assente',this)">Assente</button></div>`).join('');
 }
@@ -11659,7 +11672,7 @@ async function tuCaricaCosti(){
   box.innerHTML='<p class="sc-vuoto">Carico…</p>';bp.innerHTML='';
   const[rc,rp]=await Promise.all([
     sb.from('v_costi_staff_mese').select('*').eq('mese',da).order('persona'),
-    sb.from('v_compenso_lezioni').select('impegno_id,persona,data,ora_inizio,ora_fine,tipo_corso,fascia,stato,ore,euro')
+    sb.from('v_compenso_lezioni').select('impegno_id,persona,data,ora_inizio,ora_fine,tipo_corso,fascia,stato,ore,euro,dentro_corso')
       .like('tipo_corso','prima_lezione%').eq('stato','presente').gte('data',da).lte('data',a).order('data').order('ora_inizio')
   ]);
   if(rc.error){box.innerHTML=`<p class="sc-vuoto ko">Costi non letti: ${escHtml(scErr(rc.error))}</p>`;return}
@@ -11671,16 +11684,72 @@ async function tuCaricaCosti(){
       {lc:0,ec:0,pl:0,ep:0,om:0,em:0,tot:0,so:0,as:0,dc:0});
     const dc=n=>Number(n)>0?`<a href="#tu-complez-wrap" class="sc-warn" onclick="tuVaiDaConfermare()">${n}</a>`:'0';
     box.innerHTML=`<div style="overflow-x:auto"><table class="tu-tab"><thead><tr><th>Persona</th><th>Lezioni corsi</th><th>Prime Lezioni</th><th>Monitor</th><th>Totale</th><th>Sostituzioni</th><th>Assenze</th><th>Da confermare</th></tr></thead><tbody>
-      ${tuCosti.map(r=>`<tr><td>${escHtml(r.persona||'—')}</td><td>${r.lezioni_corsi} · ${tuEur(r.euro_corsi)}</td><td>${r.prime_lezioni} · ${tuEur(r.euro_prime)}</td><td>${tuNum(r.ore_monitor)} h · ${tuEur(r.euro_monitor)}</td><td><b>${tuEur(r.totale)}</b></td><td>${r.sostituzioni}</td><td>${r.assenze}</td><td>${dc(r.da_confermare)}</td></tr>`).join('')}
+      ${tuCosti.map(r=>`<tr><td>${escHtml(r.persona||'—')}</td><td>${r.lezioni_corsi} · ${tuEur(r.euro_corsi)}${Number(r.lezioni_percentuale)>0?`<div style="font-size:13px;color:var(--text2)">+ ${r.lezioni_percentuale} a percentuale (sotto)</div>`:''}</td><td>${r.prime_lezioni} · ${tuEur(r.euro_prime)}</td><td>${tuNum(r.ore_monitor)} h · ${tuEur(r.euro_monitor)}</td><td><b>${tuEur(r.totale)}</b></td><td>${r.sostituzioni}</td><td>${r.assenze}</td><td>${dc(r.da_confermare)}</td></tr>`).join('')}
       </tbody><tfoot><tr><td><b>Totale staff</b></td><td>${t.lc} · ${tuEur(t.ec)}</td><td>${t.pl} · ${tuEur(t.ep)}</td><td>${tuNum(t.om)} h · ${tuEur(t.em)}</td><td><b>${tuEur(t.tot)}</b></td><td>${t.so}</td><td>${t.as}</td><td>${dc(t.dc)}</td></tr></tfoot></table></div>
       ${t.dc?'<p class="sc-nota sc-warn">Le lezioni da confermare valgono 0 finché non confermi chi c’era: tocca il numero per l’elenco.</p>':''}`;
   }
+  tuCaricaPerc(da);
   if(rp.error){bp.innerHTML=`<p class="sc-vuoto ko">Prime Lezioni non lette: ${escHtml(scErr(rp.error))}</p>`;return}
   tuPrime=rp.data||[];
   bp.innerHTML=!tuPrime.length?'<p class="sc-vuoto">Nessuna Prima Lezione pagata in questo mese.</p>':tuPrime.map(r=>{
     const piena=Number(r.ore)>0&&Number(r.euro)/Number(r.ore)>=15;
+    const stato=r.dentro_corso?`<span class="sc-stato grigio">${TU_DENTRO}</span>`:`<span class="sc-stato ${piena?'verde':'grigio'}">${piena?'con allievi':'vuota'}</span>`; // v3.148
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))}</div></div>
-      <span class="sc-stato ${piena?'verde':'grigio'}">${piena?'con allievi':'vuota'}</span><b>${tuEur(r.euro)}</b></div>`;
+      ${stato}<b>${tuEur(r.euro)}</b></div>`;
+  }).join('');
+}
+/* ── v3.148 Compensi a percentuale: Mellozzini su Expert e Giovani, quota in slot_piano_staff.percentuale, dal 1/10/2026.
+   Conto del mese da v_compenso_percentuale_mese: incassi del corso (ogni pagamento diviso in parti uguali sui mesi
+   che copre, decisione Marco 30 ott), quota, pagato ai sostituti, netto. Dettaglio lezioni e sostituti da
+   v_compenso_percentuale. Netto sotto zero: in rosso, non si registra. Solo letture. ── */
+async function tuCaricaPerc(da){
+  const box=document.getElementById('tu-perc');if(!box)return;
+  box.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  const[rm,rl]=await Promise.all([
+    sb.from('v_compenso_percentuale_mese').select('*').eq('mese',da),
+    sb.from('v_compenso_percentuale').select('*').eq('mese',da).order('data')
+  ]);
+  const error=rm.error||rl.error;
+  if(error){box.innerHTML=`<p class="sc-vuoto ko">Compensi a percentuale non letti: ${escHtml(scErr(error))}</p>`;return}
+  const M=rm.data||[],R=rl.data||[];
+  if(!M.length&&!R.length){box.innerHTML='<p class="sc-vuoto">Nessun compenso a percentuale in questo mese.</p>';return}
+  const per=new Map(); // titolare|slot -> {conto, righe, nome}
+  const g=(u,sl)=>{const k=u+'|'+sl;if(!per.has(k))per.set(k,{u,conto:null,righe:[],nome:null});return per.get(k)};
+  M.forEach(c=>{g(c.user_id,c.slot_id).conto=c});
+  R.forEach(r=>{const x=g(r.user_id,r.slot_id);x.righe.push(r);x.nome=r.persona;x.tc=x.tc||r});
+  const byTit=new Map();
+  [...per.values()].forEach(x=>{if(!byTit.has(x.u))byTit.set(x.u,[]);byTit.get(x.u).push(x)});
+  const rosso=v=>Number(v)<0?' style="color:#B91C1C"':'';
+  box.innerHTML=[...byTit.values()].map(gs=>{
+    const nome=(gs.find(x=>x.nome)||{}).nome||(gs.find(x=>x.conto)||{conto:{}}).conto.persona||'—';
+    let nettoTot=0,conti=0;
+    const corsi=gs.map(x=>{
+      const c=x.conto,r0=c||x.tc;
+      const lez=new Map(); // una lezione = slot+data (piu' righe se piu' sostituti)
+      x.righe.forEach(y=>{const k=y.slot_id+'|'+y.data;if(!lez.has(k))lez.set(k,[]);lez.get(k).push(y)});
+      const L=[...lez.values()];
+      const esito=a=>a.some(y=>y.esito==='fatta')?'fatta':a.some(y=>y.esito==='sostituita')?'sostituita':a[0].esito;
+      const n=e=>L.filter(a=>esito(a)===e).length;
+      const sost=x.righe.filter(y=>Number(y.euro_da_scalare)>0);
+      const testa=`<b>${escHtml(tuNomeCorso(r0.tipo_corso,r0.fascia))}</b> · ${tuNum(r0.percentuale)}% degli incassi del corso`;
+      const lezTxt=L.length?`<div class="sc-sub">Lezioni fatte: ${n('fatta')} · sostituite: ${n('sostituita')}${n('da_confermare')?` · <span class="sc-warn">da confermare: ${n('da_confermare')}</span>`:''}${n('non_fatta')?` · non fatte: ${n('non_fatta')}`:''}${n('prevista')?` · ancora da fare: ${n('prevista')}`:''}</div>`:'';
+      const sostTxt=sost.map(y=>`<div class="sc-sub">${escHtml(scDataLunga(y.data))}: lo sostituisce ${escHtml(y.sostituto||'—')} · ${tuEur(y.euro_da_scalare)}</div>`).join('');
+      if(!c)return `<div style="margin:6px 0 10px">${testa}${lezTxt}<div class="sc-sub">Mese fuori dal conto a percentuale (saldato a mano).</div></div>`;
+      conti++;nettoTot+=Number(c.netto||0);
+      return `<div style="margin:6px 0 10px">${testa}${lezTxt}${sostTxt}
+        <div style="overflow-x:auto"><table class="tu-tab" style="margin-top:6px"><tbody>
+          <tr><td>Incassi del mese (${c.allievi_paganti} allievi)</td><td>${tuEur(c.incassi)}</td></tr>
+          <tr><td>${tuNum(c.percentuale)}% degli incassi</td><td>${tuEur(c.quota)}</td></tr>
+          <tr><td>Pagato ai sostituti, si scala</td><td>− ${tuEur(c.da_scalare)}</td></tr>
+          <tr><td><b>Netto</b></td><td${rosso(c.netto)}><b>${tuEur(c.netto)}</b></td></tr>
+        </tbody></table></div>
+        ${n('da_confermare')?'<p class="sc-nota sc-warn" style="margin:4px 0 0">Ci sono lezioni da confermare: se le ha fatte un sostituto, il netto scende.</p>':''}
+      </div>`;
+    }).join('');
+    return `<div class="sc-riga" style="display:block"><b>${escHtml(nome)}</b>${corsi}
+      ${conti>1?`<div style="font-size:14px">Netto del mese, tutti i corsi: <b${rosso(nettoTot)}>${tuEur(nettoTot)}</b></div>`:''}
+      ${nettoTot<0?'<p class="sc-nota" style="margin:4px 0 0;color:#B91C1C">Netto sotto zero: non si registra un negativo. Avvisa Marco.</p>':''}
+      <p class="sc-nota" style="margin:4px 0 0">Si conta quello che è entrato davvero (sconti compresi), diviso in parti uguali sui mesi che il pagamento copre (trimestrale: un terzo per mese). Un pagamento non ancora fatto entra quando viene registrato. Le iscrizioni annuali da 40 € non sono dentro questi incassi.</p></div>`;
   }).join('');
 }
 /* "Da confermare": porta all'elenco del mese delle lezioni passate senza presenza (Compensi lezioni dei corsi) */
@@ -11949,11 +12018,31 @@ function alSceltaOra(){const e=document.querySelector('#kcg-corpo input[name="al
 function alSaVisibili(){
   const s=alSceltaOra();
   document.querySelectorAll('#kcg-corpo [data-per]').forEach(e=>{e.style.display=e.dataset.per.split(' ').includes(s)?'':'none'});
+  const gw=document.getElementById('al-giorni-w'),tp=document.getElementById('al-tipo');
+  if(gw&&s==='registra'&&!(tp&&tp.value&&abbTipoConGiorni(tp.value)))gw.style.display='none'; // v3.148 — i tipi senza giorni non li chiedono
   const li=document.getElementById('al-imp-lbl');
   if(li)li.textContent=s==='pagato'?'Importo (lascialo com’è se è giusto)':s==='correggi_importo'?'Importo giusto €':'Importo €';
   const lm=document.getElementById('al-met-lbl');
   if(lm)lm.textContent=s==='correggi_importo'?'Come ha pagato (facoltativo)':'Come ha pagato';
 }
+
+/* v3.148 — giorni del corso nella scelta "registra" (caso segnalato dalla segreteria, Corso Genitori): solo slot attivi del tipo,
+   come ➕ Abbonamento o corso; per un rinnovo dello stesso tipo partono spuntati i giorni che ha gia' */
+var alGiorniAttivi={}; // tipo -> slot_id dell'abbonamento attivo della persona
+function alGiorniHtml(tipo){
+  if(!tipo||!abbTipoConGiorni(tipo))return '';
+  const slots=abbSlotsDelTipo(tipo),pre=alGiorniAttivi[tipo]||[];
+  if(!slots.length)return '<div style="font-size:14px;color:#B91C1C;font-weight:600">Nessun giorno attivo in agenda per questo abbonamento.</div>';
+  return slots.map(s=>`<label class="abb-giorno"><input type="checkbox" name="al-giorno" value="${s.id}"${pre.includes(s.id)?' checked':''}> ${escHtml(abbSlotTesto(s))}</label>`).join('')
+    +(alGiorniAttivi[tipo]?'<div style="font-size:13px;color:var(--text2)">Ha già questo abbonamento: i giorni spuntati sostituiscono quelli attuali.</div>':'');
+}
+function alGiorniDisegna(){
+  const g=document.getElementById('al-giorni');if(!g)return;
+  g.innerHTML=alGiorniHtml(alVal('al-tipo'));
+  alSaVisibili();
+}
+function alGiorniScelti(){return [...document.querySelectorAll('#kcg-corpo input[name="al-giorno"]:checked')].map(x=>x.value)}
+function alGiorniServono(){const t=alVal('al-tipo');return !!t&&abbTipoConGiorni(t)&&!alGiorniAttivi[t]}
 
 function alSistema(id){
   const r=alTrova(id);if(!r)return;
@@ -11999,6 +12088,17 @@ async function alApriSistema(id,forza){
     if(error)console.warn('[allineamento] pagamenti:',error.message);
     pag=(data||[]).slice().sort((a,b)=>String(b.al).localeCompare(String(a.al))||String(b.registrato_il).localeCompare(String(a.registrato_il)));
   }
+  /* v3.148 — giorni del corso per "registra": cataloghi di ➕ Abbonamento o corso e abbonamenti attivi della persona
+     (un rinnovo dello stesso tipo tiene i suoi giorni se non se ne spunta nessuno, come registra_abbonamento) */
+  alGiorniAttivi={};
+  try{await abbCaricaCataloghi()}catch(e){console.warn('[allineamento] cataloghi:',e.message||e)}
+  if(r.persona_id){
+    const{data:isc,error:eI}=await sb.from('iscrizioni_minori').select('id,tipo_abbonamento,data_fine').eq('persona_id',r.persona_id).eq('status','attiva');
+    if(eI)console.warn('[allineamento] abbonamenti attivi:',eI.message);
+    const ids=(isc||[]).map(x=>x.id);
+    const sl=ids.length?await sb.from('iscrizioni_minori_slot').select('iscrizione_id,slot_id').in('iscrizione_id',ids):{data:[]};
+    (isc||[]).forEach(x=>{alGiorniAttivi[x.tipo_abbonamento]=(sl.data||[]).filter(y=>y.iscrizione_id===x.id).map(y=>y.slot_id)});
+  }
   const tipoR=r.tipo_abbonamento;
   const inAttesa=pag.find(p=>!p.metodo&&(!tipoR||p.tipo_abbonamento===tipoR))||null;
   const daCorr=pag.find(p=>(!tipoR||p.tipo_abbonamento===tipoR)&&(!r.dal||(p.dal<=r.dal&&p.al>=r.dal)))||null;
@@ -12018,7 +12118,9 @@ async function alApriSistema(id,forza){
       <div class="sc-lbl" style="margin-top:14px">Com'è andata?</div>
       <div class="al-scelte">${AL_SCELTE.map(([v,t,q])=>`<label class="al-scelta"><input type="radio" name="al-scelta" value="${v}"${pre===v?' checked':''} onchange="alSaVisibili()"><span><b>${t}</b><small>${q}</small></span></label>`).join('')}</div>
       <div data-per="registra"><label class="sc-lbl" for="al-tipo">Abbonamento</label>
-        <select id="al-tipo" class="input sc-in"><option value="">Scegli…</option>${tipi.map(t=>`<option value="${escHtml(t)}"${t===tipoR?' selected':''}>${escHtml(alTipi[t])}</option>`).join('')}</select></div>
+        <select id="al-tipo" class="input sc-in" onchange="alGiorniDisegna()"><option value="">Scegli…</option>${tipi.map(t=>`<option value="${escHtml(t)}"${t===tipoR?' selected':''}>${escHtml(alTipi[t])}</option>`).join('')}</select></div>
+      <div data-per="registra" id="al-giorni-w"><div class="sc-lbl">Giorni del corso</div>
+        <div id="al-giorni" style="display:flex;flex-direction:column;gap:6px">${alGiorniHtml(tipoR)}</div></div>
       <div class="sc-2" data-per="registra">
         <div><label class="sc-lbl" for="al-dal">Dal</label><input id="al-dal" class="input sc-in" type="date" value="${r.dal||''}"></div>
         <div><label class="sc-lbl" for="al-al">Al</label><input id="al-al" class="input sc-in" type="date" value="${r.al||''}"></div>
@@ -12034,7 +12136,9 @@ async function alApriSistema(id,forza){
       const s=alSceltaOra(),imp=alVal('al-imp'),eu=imp!==''?alEuro(imp):'…',m=alMetScelto||'…';
       if(s==='registra'){
         const t=alVal('al-tipo'),dal=alVal('al-dal'),al=alVal('al-al');
-        return[`Nel portale nasce <b>${escHtml(lblTipo(t)||'…')} ${dal?alGM(dal):'…'}–${al?alGM(al):'…'}</b>, pagato <b>${eu} ${m}</b>`,
+        const gs=t&&abbTipoConGiorni(t)?abbSlotsDelTipo(t).filter(x=>alGiorniScelti().includes(x.id)):[];
+        return[`Nel portale nasce <b>${escHtml(lblTipo(t)||'…')} ${dal?alGM(dal):'…'}–${al?alGM(al):'…'}</b>, pagato <b>${eu} ${m}</b>`
+            +(gs.length?`, il <b>${gs.map(x=>escHtml(ABB_GIORNI[x.giorno_settimana]+' '+String(x.ora_inizio).slice(0,5))).join(' + ')}</b>`:''),
           `<b>${escHtml(nome)}</b> risulta in regola fino al <b>${al?alGM(al):'…'}</b>`];
       }
       if(s==='pagato')return[(inAttesa?`Il pagamento già registrato (${descPag(inAttesa)})`:'Il pagamento già registrato')+` diventa pagato in <b>${m}</b>`+(imp!==''&&inAttesa&&Number(imp)!==Number(inAttesa.importo_eur)?`, con importo <b>${eu}</b>`:''),
@@ -12061,6 +12165,7 @@ async function alApriSistema(id,forza){
       if(!s)return "Scegli com'è andata";
       if(s==='registra'){
         if(!alVal('al-tipo'))return "Scegli l'abbonamento";
+        if(alGiorniServono()&&!alGiorniScelti().length)return 'Scegli il giorno del corso';
         if(!alVal('al-dal')||!alVal('al-al'))return 'Scrivi da quando a quando vale';
         if(!impOk)return "Scrivi l'importo";
         if(!alMetScelto)return 'Scegli come ha pagato';
@@ -12077,7 +12182,10 @@ async function alApriSistema(id,forza){
     azione:()=>{
       scelta=alSceltaOra();
       const imp=alVal('al-imp');
-      if(scelta==='registra')return alDecidi(id,'registra',{p_tipo:alVal('al-tipo'),p_dal:alVal('al-dal'),p_al:alVal('al-al'),p_importo:Number(imp),p_metodo:alMetScelto});
+      if(scelta==='registra'){
+        const g=abbTipoConGiorni(alVal('al-tipo'))?alGiorniScelti():[];
+        return alDecidi(id,'registra',{p_tipo:alVal('al-tipo'),p_dal:alVal('al-dal'),p_al:alVal('al-al'),p_importo:Number(imp),p_metodo:alMetScelto,p_slot_ids:g.length?g:null});
+      }
       if(scelta==='pagato')return alDecidi(id,'pagato',{p_metodo:alMetScelto,p_importo:imp!==''?Number(imp):null});
       if(scelta==='correggi_importo')return alDecidi(id,'correggi_importo',{p_importo:Number(imp),p_metodo:alMetScelto||null});
       if(scelta==='chiudi'){testo=alVal('al-motivo');return alDecidi(id,'chiudi',{p_risposta:testo||null});}
@@ -12405,13 +12513,14 @@ async function dsAzione(az,i){
     const c=dsComp[r.impegno_id]||{};
     kcGuida({titolo:`${chi} era presente?`,
       succede:[`<b>${escHtml(chi)}</b> risulta presente alla lezione ${lq}`,
-        c.compenso_tipo==='lezione'?'Gli vengono contati 15 € nei compensi del mese':'Gli vengono contate le ore della lezione nei compensi del mese'],
+        c.compenso_tipo==='percentuale'?'È pagato a percentuale sugli incassi del corso: la lezione non vale euro a parte' // v3.148
+        :c.compenso_tipo==='lezione'?'Gli vengono contati 15 € nei compensi del mese':'Gli vengono contate le ore della lezione nei compensi del mese'],
       ok:'Sì, era presente',annulla:'No, torna indietro',
       azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'fine'});if(error)throw error;},
       dopo:`Fatto: ${chi} risulta presente. Il portale è già a posto.`,poi:dsDopo});
   }else if(az==='assente'){
     kcGuida({titolo:`${chi} era assente?`,
-      succede:[`<b>${escHtml(chi)}</b> risulta assente alla lezione ${lq}`,'La lezione non gli viene pagata'],
+      succede:[`<b>${escHtml(chi)}</b> risulta assente alla lezione ${lq}`,(dsComp[r.impegno_id]||{}).compenso_tipo==='percentuale'?'Se lo ha sostituito qualcuno, quello che si paga al sostituto si scala dalla sua percentuale':'La lezione non gli viene pagata'],
       ok:'Sì, era assente',annulla:'No, torna indietro',
       azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'assente'});if(error)throw error;},
       dopo:`Fatto: ${chi} risulta assente. Il portale è già a posto.`,poi:dsDopo});
@@ -13384,7 +13493,7 @@ const NOSHOW_BRIDGE_BASE='https://noshow-bridge.marconescatelli.workers.dev';
    v3.109 — il Worker v3.66 ha MEMORIA (eventi_notifica, dedup condiviso col
    cron offerta.open): al secondo invio risponde 409 gia_inviata con data +
    url_proposta. Qui: modale con data invio, "Copia link WhatsApp" e re-invio
-   deliberato (force). Mai piu invii alla cieca (anti-pattern Pierotti x4). */
+   deliberato (force). Mai piu invii alla cieca (anti-pattern: stessa persona contattata 4 volte). */
 function fmtDataProposta(iso){
   if(!iso)return'';
   try{
