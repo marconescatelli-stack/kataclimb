@@ -9,11 +9,15 @@
 -- Il risultato finale è una tabellina PRIMA / DOPO con i controlli. Per leggere le viste che filtrano
 -- per utente (auth.uid() / is_segreteria()) i controlli girano "come Marco" (staff_creator) solo dentro
 -- questa transazione: set_config(..., true) vale fino al COMMIT.
+--
+-- VERSIONE PUBBLICA (repo pubblico, 30 ott 2026): nomi di persone, ID e cifre di incasso sono stati tolti
+-- e sostituiti con segnaposto tra < > e commenti generici. Il file è stato lanciato nel DB il 30/10/2026
+-- con i valori veri, che restano solo nel DB. Così com'è NON si può rilanciare (i segnaposto danno errore).
 -- ═══════════════════════════════════════════════════════════════════════════════════════════
 
 BEGIN;
 
-SELECT set_config('request.jwt.claims', '{"sub":"27b04151-93a7-4ecc-824c-fe337cc631a6","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claims', '{"sub":"<id utente segreteria>","role":"authenticated"}', true);
 
 DROP TABLE IF EXISTS _controllo_291026;
 CREATE TEMP TABLE _controllo_291026 (n serial, momento text, controllo text, valore text);
@@ -27,14 +31,14 @@ INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'PRIMA', '2. cambia_giorni_abbonamento blocca il cambio di numero di giorni', (prosrc LIKE '%cambia il prezzo%')::text
   FROM pg_proc WHERE oid = 'public.cambia_giorni_abbonamento(uuid,uuid[],text)'::regprocedure;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'PRIMA', '3a. lezioni di Mellozzini su Expert/Giovani NON a percentuale (dopo: 0)', count(*)::text
-  FROM public.impegni_staff WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
+SELECT 'PRIMA', '3a. lezioni del titolare 1 sui corsi A e B NON a percentuale (dopo: 0)', count(*)::text
+  FROM public.impegni_staff WHERE user_id = '<id titolare 1>' AND slot_id IN ('<id slot corso A>','<id slot corso B>') AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'PRIMA', '3b. lezioni di Mellozzini su Expert/Giovani pagate a lezione, euro > 0 (dopo: 0)', count(*)::text
-  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND euro > 0;
+SELECT 'PRIMA', '3b. lezioni del titolare 1 sui corsi A e B pagate a lezione, euro > 0 (dopo: 0)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = '<id titolare 1>' AND slot_id IN ('<id slot corso A>','<id slot corso B>') AND euro > 0;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'PRIMA', '3c. lezioni di Mellozzini su Expert/Giovani da confermare (restano uguali: servono per le sostituzioni)', count(*)::text
-  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND da_confermare;
+SELECT 'PRIMA', '3c. lezioni del titolare 1 sui corsi A e B da confermare (restano uguali: servono per le sostituzioni)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = '<id titolare 1>' AND slot_id IN ('<id slot corso A>','<id slot corso B>') AND da_confermare;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'PRIMA', '4. Prime Lezioni nella stessa ora di un corso dello stesso istruttore pagate, euro > 0 (dopo: 0)', count(*)::text
   FROM public.v_compenso_lezioni v
@@ -46,7 +50,7 @@ SELECT 'PRIMA', '4. Prime Lezioni nella stessa ora di un corso dello stesso istr
 
 -- ═══════════════════════════════════════════════════════════════════════════════════════════
 -- 1. "Da sistemare" → registra abbonamento: i giorni del corso
---    (caso Arianna Calcaterra, Corso Genitori: "Scegli almeno un giorno del corso" senza caselle)
+--    (caso segnalato dalla segreteria, Corso Genitori: "Scegli almeno un giorno del corso" senza caselle)
 --    allineamento_decidi prende p_slot_ids e lo passa a registra_abbonamento.
 --    Un parametro in più = una funzione nuova (overload): si toglie la firma vecchia e si ricrea.
 --    SECURITY DEFINER, search_path e permessi come prima (postgres, authenticated, service_role).
@@ -195,7 +199,7 @@ REVOKE ALL ON FUNCTION public.allineamento_decidi(uuid, text, text, numeric, dat
 GRANT EXECUTE ON FUNCTION public.allineamento_decidi(uuid, text, text, numeric, date, text, text, date, uuid[]) TO authenticated, service_role;
 -- ═══════════════════════════════════════════════════════════════════════════════════════════
 -- 2. "Cambia giorni": la segreteria può cambiare anche QUANTI giorni
---    (caso Marina Ungari, Corso Bambini: lun+mer per errore, fa solo il mercoledì)
+--    (caso segnalato dalla segreteria, Corso Bambini: due giorni segnati per errore, ne fa uno solo)
 --    Via la guardia "stesso numero di giorni". Restano: solo segreteria, abbonamento attivo, tipo con
 --    giorni, almeno un giorno, slot del tipo giusto e attivi, capienza. Importo, scadenza, pagato e
 --    abbonamenti_pagamenti NON si toccano: la segreteria sa cosa è stato pagato.
@@ -268,27 +272,27 @@ BEGIN
     'prima', v_txt_vecchi, 'dopo', v_txt_nuovi, 'scadenza', v_isc.data_fine);
 END $function$;
 -- ═══════════════════════════════════════════════════════════════════════════════════════════
--- 3. Compenso a percentuale: Marco Mellozzini su Corso Expert Ragazzi e Corso Giovani KataClimb (18–24)
+-- 3. Compenso a percentuale: titolare 1 sui corsi A e B (ID solo nel DB)
 --    Decisione Marco 29 ott (con l'aggiornamento della stessa sera):
 --    - quelle lezioni restano in agenda E nelle presenze (PRESENTE / ASSENTE / SOSTITUISCI, da confermare):
---      servono per le sostituzioni. Cambia solo il compenso: per Mello valgono 0 € a lezione.
---    - quota: 30% a Mellozzini, 70% all'Accademia, salvata come dato (slot_piano_staff.percentuale).
---    - se Mello è ASSENTE e lo sostituisce qualcuno, il sostituto è pagato con la sua tariffa normale
---      (compenso_tipo 'lezione', NON eredita la percentuale) e quella cifra si scala dal 30% di Mello.
---    Conto di Mello = 30% × (incassi del mese degli allievi di Expert e Giovani − iscrizioni annuali da 40 €)
+--      servono per le sostituzioni. Cambia solo il compenso: per il titolare valgono 0 € a lezione.
+--    - quota: percentuale decisa da Marco, il resto all'Accademia, salvata come dato (slot_piano_staff.percentuale).
+--    - se il titolare è ASSENTE e lo sostituisce qualcuno, il sostituto è pagato con la sua tariffa normale
+--      (compenso_tipo 'lezione', NON eredita la percentuale) e quella cifra si scala dalla sua quota.
+--    Conto del titolare = quota × (incassi del mese degli allievi dei corsi A e B − iscrizioni annuali da 40 €)
 --                     − pagato ai sostituti sulle sue lezioni a percentuale.
 --    Decisioni definitive Marco 30 ott 2026 (sostituiscono le precedenti):
---    - il 30% si calcola sui soldi realmente incassati dagli allievi di Expert e Giovani, iscrizione
---      annuale esclusa, divisi in parti uguali sui mesi che il pagamento copre (trimestrale 270 € pagato
---      il 5/10 = 90 ott + 90 nov + 90 dic; centesimi che avanzano sul primo mese). Gli sconti normali
---      (famiglia, secondo figlio…) restano dentro: si conta quello che è entrato (Matteo Parenti: 243 €).
+--    - la quota si calcola sui soldi realmente incassati dagli allievi dei corsi A e B, iscrizione
+--      annuale esclusa, divisi in parti uguali sui mesi che il pagamento copre (un trimestrale vale un
+--      terzo per mese; centesimi che avanzano sul primo mese). Gli sconti normali (famiglia, secondo
+--      figlio…) restano dentro: si conta quello che è entrato davvero.
 --      Un pagamento non ancora fatto non entra finché non viene pagato; poi entra sui mesi che copre.
---    - Davide Costantini paga 90 € al mese (non è un quadrimestrale): contano solo i mesi pagati, 90 €
---      ciascuno, sul mese che coprono.
---    - unica eccezione, Tommaso Pescetelli: per il conto di Mello è un allievo normale, 90 € per ogni
---      mese in cui è iscritto all'Expert, senza il suo sconto.
---    - settembre 2026 è chiuso: Mello è già stato pagato a mano, più 200 € regalati che restano a lui e
---      non si scalano da nessun mese. La percentuale parte dal 1/10/2026 (slot_piano_staff.percentuale_dal).
+--    - eccezione 1 decisa da Marco 30/10: un allievo che paga mese per mese aveva un pagamento registrato
+--      su più mesi; per il conto vale un mese solo.
+--    - eccezione 2 decisa da Marco 30/10 (unica di questo tipo): un allievo vale per il conto la cifra
+--      piena del mese per ogni mese di iscrizione, senza il suo sconto.
+--    - settembre 2026 è chiuso: il titolare è già stato pagato a mano (accordo a parte, non si scala da
+--      nessun mese). La percentuale parte dal 1/10/2026 (slot_piano_staff.percentuale_dal).
 --    Eccezioni salvate come dato in compenso_percentuale_eccezioni (3f); il conto è in 3g.
 --
 --    Perché la quota sta su slot_piano_staff e non su tariffe_staff: tariffe_staff ha una riga per
@@ -306,29 +310,29 @@ ALTER TABLE public.impegni_staff ADD CONSTRAINT impegni_staff_compenso_tipo_chk
 
 ALTER TABLE public.slot_piano_staff ADD COLUMN percentuale numeric;
 COMMENT ON COLUMN public.slot_piano_staff.percentuale IS
-  'Solo con compenso_tipo = percentuale: quota (in %) degli incassi del corso che va a questa persona (29 ott 2026: Mellozzini 30 su Expert e Giovani, 70 all''Accademia).';
+  'Solo con compenso_tipo = percentuale: quota (in %) degli incassi del corso che va a questa persona (decisione di Marco 29 ott 2026).';
 ALTER TABLE public.slot_piano_staff ADD CONSTRAINT slot_piano_staff_percentuale_check
   CHECK ((compenso_tipo = 'percentuale') = (percentuale IS NOT NULL) AND (percentuale IS NULL OR (percentuale > 0 AND percentuale <= 100)));
 
 ALTER TABLE public.slot_piano_staff ADD COLUMN percentuale_dal date;
 COMMENT ON COLUMN public.slot_piano_staff.percentuale_dal IS
-  'Solo con compenso_tipo = percentuale: primo giorno del primo mese in cui vale la quota. I mesi prima non entrano nel conto (30 ott 2026: Mellozzini dal 1/10/2026, settembre saldato a mano).';
+  'Solo con compenso_tipo = percentuale: primo giorno del primo mese in cui vale la quota. I mesi prima non entrano nel conto (decisione di Marco 30 ott 2026).';
 ALTER TABLE public.slot_piano_staff ADD CONSTRAINT slot_piano_staff_percentuale_dal_check
   CHECK (percentuale_dal IS NULL OR compenso_tipo = 'percentuale');
 
--- 3b. i due posti di Mello nel piano e tutte le sue lezioni su quei due slot (passate e future)
+-- 3b. i due posti del titolare 1 nel piano e tutte le sue lezioni su quei due slot (passate e future)
 UPDATE public.slot_piano_staff
-   SET compenso_tipo = 'percentuale', percentuale = 30, percentuale_dal = '2026-10-01',
-       note = concat_ws(' · ', note, 'a percentuale 30% dal 1/10/2026, settembre saldato a mano (Marco, 29–30/10/2026)')
- WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b'   -- Marco Mellozzini
-   AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e',  -- Corso Expert Ragazzi, mercoledì 18:00
-                   '895b3610-a95c-4167-8eca-ed7cd704e92c')  -- Corso Giovani KataClimb (18–24), giovedì 21:00
+   SET compenso_tipo = 'percentuale', percentuale = '<quota decisa da Marco>', percentuale_dal = '2026-10-01',
+       note = concat_ws(' · ', note, 'a percentuale dal 1/10/2026 (Marco, 29–30/10/2026)')
+ WHERE user_id = '<id titolare 1>'   -- titolare 1
+   AND slot_id IN ('<id slot corso A>',  -- corso A
+                   '<id slot corso B>')  -- corso B
    AND ruolo = 'conduce';
 
 UPDATE public.impegni_staff
    SET compenso_tipo = 'percentuale', updated_at = now()
- WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b'
-   AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e', '895b3610-a95c-4167-8eca-ed7cd704e92c')
+ WHERE user_id = '<id titolare 1>'
+   AND slot_id IN ('<id slot corso A>', '<id slot corso B>')
    AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
 
 -- 3c. una regola sola per chi entra su una lezione: la percentuale resta a chi ce l'ha nel piano per
@@ -851,7 +855,7 @@ UNION ALL
 --     esito: fatta (il titolare c'era) · sostituita (c'era un altro a condurre: la sua cifra si scala) ·
 --     da_confermare · prevista · non_fatta. euro_da_scalare = quanto è stato pagato al sostituto.
 --     La cifra del sostituto è la sua tariffa normale, la stessa regola di v_compenso_lezioni
---     (calcolata qui perché v_compenso_lezioni a Mello mostra solo le sue righe).
+--     (calcolata qui perché v_compenso_lezioni al titolare mostra solo le sue righe).
 CREATE VIEW public.v_compenso_percentuale AS
  WITH p AS (
          SELECT sp.slot_id, sp.user_id, sp.percentuale
@@ -950,16 +954,14 @@ REVOKE ALL ON public.compenso_percentuale_eccezioni FROM PUBLIC, anon, authentic
 GRANT ALL ON public.compenso_percentuale_eccezioni TO service_role;
 
 INSERT INTO public.compenso_percentuale_eccezioni (tipo, pagamento_id, dal, al, persona_id, tipo_corso, euro_mese, motivo, deciso_il) VALUES
-  -- Davide Costantini paga 90 € AL MESE (non è un quadrimestrale): il suo unico pagamento registrato,
-  -- 90 € importato dal foglio il 7/10 con periodo set–dic, vale UN mese. Messo su settembre 2026, il primo
-  -- mese del periodo segnato (DA CONFERMARE da Marco: se era ottobre, cambiare dal/al qui sotto).
-  -- I mesi che pagherà dopo entrano da soli, con i loro pagamenti.
-  ('periodo', 'c44e043f-afd4-4e8c-9fda-55e0563cc068', '2026-09-01', '2026-09-30', NULL, NULL, NULL,
-   'Davide Costantini: paga 90 € al mese, non quadrimestrale. Il pagamento da 90 € importato il 7/10 copre un mese solo (settembre 2026).', '2026-10-30'),
-  -- Tommaso Pescetelli, unica eccezione: per il conto di Mello è un allievo normale, 90 € per ogni mese
-  -- in cui è iscritto all'Expert, senza il suo sconto.
-  ('allievo_mese', NULL, NULL, NULL, '7f86ffe2-7272-4c5a-86f6-551713655c48', 'expert', 90,
-   'Tommaso Pescetelli: per il conto di Mello vale 90 € per ogni mese di iscrizione all''Expert, senza il suo sconto (unica eccezione).', '2026-10-30');
+  -- eccezione 1 decisa da Marco 30/10: allievo che paga mese per mese; il pagamento registrato su più
+  -- mesi vale per il conto un mese solo. I mesi che pagherà dopo entrano da soli.
+  ('periodo', '<id pagamento eccezione 1>', '<dal>', '<al>', NULL, NULL, NULL,
+   'eccezione 1 decisa da Marco 30/10', '2026-10-30'),
+  -- eccezione 2 decisa da Marco 30/10 (unica di questo tipo): allievo che per il conto vale la cifra
+  -- piena del mese per ogni mese di iscrizione, senza il suo sconto.
+  ('allievo_mese', NULL, NULL, NULL, '<id persona eccezione 2>', '<tipo corso>', '<cifra del mese>',
+   'eccezione 2 decisa da Marco 30/10', '2026-10-30');
 
 -- 3g. v_compenso_percentuale_mese: il conto del mese, una riga per titolare, corso e mese.
 --     Incassi = abbonamenti_pagamenti dello stesso tipo del corso (tipo_abbonamento = tipo_corso),
@@ -1060,22 +1062,22 @@ INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'DOPO', '2. cambia_giorni_abbonamento blocca il cambio di numero di giorni (deve essere false)', (prosrc LIKE '%cambia il prezzo%')::text
   FROM pg_proc WHERE oid = 'public.cambia_giorni_abbonamento(uuid,uuid[],text)'::regprocedure;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'DOPO', '3a. lezioni di Mellozzini su Expert/Giovani NON a percentuale (dopo: 0)', count(*)::text
-  FROM public.impegni_staff WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
+SELECT 'DOPO', '3a. lezioni del titolare 1 sui corsi A e B NON a percentuale (dopo: 0)', count(*)::text
+  FROM public.impegni_staff WHERE user_id = '<id titolare 1>' AND slot_id IN ('<id slot corso A>','<id slot corso B>') AND tipo = 'lezione' AND compenso_tipo <> 'percentuale';
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'DOPO', '3b. lezioni di Mellozzini su Expert/Giovani pagate a lezione, euro > 0 (dopo: 0)', count(*)::text
-  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND euro > 0;
+SELECT 'DOPO', '3b. lezioni del titolare 1 sui corsi A e B pagate a lezione, euro > 0 (dopo: 0)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = '<id titolare 1>' AND slot_id IN ('<id slot corso A>','<id slot corso B>') AND euro > 0;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'DOPO', '3c. lezioni di Mellozzini su Expert/Giovani da confermare (restano uguali: servono per le sostituzioni)', count(*)::text
-  FROM public.v_compenso_lezioni WHERE user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c') AND da_confermare;
+SELECT 'DOPO', '3c. lezioni del titolare 1 sui corsi A e B da confermare (restano uguali: servono per le sostituzioni)', count(*)::text
+  FROM public.v_compenso_lezioni WHERE user_id = '<id titolare 1>' AND slot_id IN ('<id slot corso A>','<id slot corso B>') AND da_confermare;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'DOPO', '3d. quota nel piano (deve essere 30 dal 2026-10-01 su expert e giovani)', string_agg(c.tipo_corso || ' ' || sp.compenso_tipo || ' ' || sp.percentuale || ' dal ' || sp.percentuale_dal, ' | ' ORDER BY c.tipo_corso)
+SELECT 'DOPO', '3d. quota nel piano sui corsi A e B (deve essere quella decisa da Marco, dal 2026-10-01)', string_agg(c.tipo_corso || ' ' || sp.compenso_tipo || ' ' || sp.percentuale || ' dal ' || sp.percentuale_dal, ' | ' ORDER BY c.tipo_corso)
   FROM public.slot_piano_staff sp JOIN public.corsi_attivi_settimanali c ON c.id = sp.slot_id
- WHERE sp.user_id = 'e4841ae2-aeef-4007-839d-7837d197195b' AND sp.slot_id IN ('9c2150c8-212a-41fb-9e00-bffc953adf2e','895b3610-a95c-4167-8eca-ed7cd704e92c');
+ WHERE sp.user_id = '<id titolare 1>' AND sp.slot_id IN ('<id slot corso A>','<id slot corso B>');
 INSERT INTO _controllo_291026 (momento, controllo, valore)
 SELECT 'DOPO', '3e. v_compenso_percentuale: lezioni lette (Marco come utente)', count(*)::text FROM public.v_compenso_percentuale;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
-SELECT 'DOPO', '3f. eccezioni al conto (Costantini: periodo 2026-09-01→2026-09-30 · Pescetelli: allievo_mese expert 90)',
+SELECT 'DOPO', '3f. eccezioni al conto decise da Marco 30/10 (eccezione 1: periodo · eccezione 2: allievo_mese)',
        string_agg(tipo || ' ' || coalesce(dal || '→' || al, tipo_corso || ' ' || euro_mese), ' · ' ORDER BY tipo DESC)
   FROM public.compenso_percentuale_eccezioni;
 INSERT INTO _controllo_291026 (momento, controllo, valore)
