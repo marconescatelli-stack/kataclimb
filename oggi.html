@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.34 · 2026-10-30 · NOTA DI SALA E PERSONA SEGUITA SEMPRE INSIEME (consegna 30 ott, punto 2; DB sql/monitor/06_note_sala_atomiche_2026-10-30.sql da applicare PRIMA del deploy). Caso del 28/10: istruttore in turno di sala, nota scritta da SALVA OSSERVAZIONE della scheda con il contesto precompilato dal tipo dell'allievo, 'monitor': la nota non era nel turno e il turno risultava senza persone seguite; poi chiusura automatica alle 22:00 e un secondo turno vuoto alle 22:10. (1) Scheda: il contesto 'monitor' diventa "Sala con Monitor" (sala_monitor), con la riga che spiega cosa si salva; salva_osservazione a DB scrive nota e persona seguita insieme nel turno aperto (_sala_annota, una sola RPC), senza turno aperto rifiuta con un errore chiaro. (2) Gli errori di SALVA OSSERVAZIONE, SEGNA e INIZIO/FINE TURNO restano a schermo finche' non si chiudono (erroreChiaro col testo del DB), non piu' un toast di 2 secondi. (3) DB: dopo la fine della sala di oggi INIZIO TURNO e SEGNA non aprono un turno nuovo (rimandano a I miei turni); la chiusura automatica non chiude se nell'ultimo quarto d'ora il monitor ha segnato qualcuno, ma la fine e' sempre quella prevista (decisione di Marco 30/10: le ore in piu' le corregge solo la segreteria, la nota del turno dice a che ora ha segnato l'ultima persona). CUMULA v2.33 (sotto). -->
 <!-- KC-BUILD: oggi v2.33 · 2026-10-30 · DA SALDARE (consegna 30 ott, DB Applica_registro_crediti_2026-10-30 gia' applicato; insieme a portale v3.149): solo nella vista allievo (anche il genitore per i figli), in cima sotto il saluto, un riquadro per ogni credito di get_miei_crediti: "Da saldare: X €" (genitore: "Da saldare per <Nome>: X €"), descrizione · entro <giorno> <data>, "Puoi pagare in segreteria in contanti, bancomat o bonifico.", bottone Scrivi alla segreteria (stesso WhatsApp della segreteria del portale). Testo nero su bianco, bordo col colore del portale (#1B74E4), nessun allarme, stesso testo anche a data passata. Si rilegge quando si torna sulla pagina: dopo l'incasso sparisce da solo. Niente cose della segreteria; nessuna scrittura; nessuna modifica alle altre viste. CUMULA v2.32 (sotto). -->
 <!-- KC-BUILD: oggi v2.32 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): (1) nelle liste per scegliere lo staff di Da sistemare (SOSTITUISCI, AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo, con "non disponibile" e il motivo. Ordine: sostituto da piano se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. L'ora di fine della lezione si legge dallo slot. (2) Tessera Turni (tutte le viste staff): sotto MI SEGNO la riga "Hai segnato che non ci sei: N date" se ne hai da oggi in poi. Solo letture. CUMULA v2.31 (sotto). -->
 <!-- KC-BUILD: oggi v2.31 · 2026-10-27 · CONSOLE SEGRETERIA: DA PAGARE E DA SISTEMARE (consegna 27 ott, DB segreteria_da_sistemare): solo per creator e segreteria (profile_data.staff_role staff_creator/staff_segreteria), nella zona Il tempo dopo Oggi in sala. (1) Tessera 💶 DA PAGARE · <mese>: somma di totale di v_costi_staff_mese del mese in corso, sotto "Corsi · Prime · Monitor", riga arancio "N lezioni da confermare non sono contate" se da_confermare > 0; tocco -> portale.html?nav=segreteria&tab=turni&box=costi (riquadro Costi staff del mese). (2) Tessera ⚠ DA SISTEMARE: numero = righe di v_segreteria_da_sistemare_seg, rossa se > 0, verde "Tutto a posto" se 0; tocco -> elenco raggruppato per tipo (Presenze da confermare, Turni monitor da chiudere, Ruolo da verificare, Stessa persona su due lezioni, Lezioni senza staff (prossimi 7 giorni)) con data e ora, persona, nome completo del corso (minori dalla fascia, scuole con il nome della scuola) e il testo cosa. Azioni solo via RPC esistenti: PRESENTE impegno_presenza 'fine' · ASSENTE 'assente' · SOSTITUISCI sostituisci_istruttore (sostituto da piano per primo) · CHIUDI TURNO segreteria_chiudi_turno con l'ora reale di fine (inizio letto da v_compenso_turni_monitor, non dall'ora della vista) · TOGLI 'assente' con conferma sul monitor · CASO ESTREMO, CONFERMA nasconde la riga per questa sessione · APRI IN AGENDA agenda.html?data=&tipo= · AGGIUNGI STAFF impegno_mi_segno con p_user_id e ruolo. Stessa persona su due lezioni: il testo dice le due lezioni con nome completo e orario (letti da impegni_staff), mai la chiave tecnica. Dopo ogni azione si ricaricano elenco e Da pagare, con "Fatto: …". Nelle liste per scegliere lo staff i monitor stanno in fondo, "solo casi estremi", con conferma. Nessuna modifica a RPC, tabelle o viste. CUMULA v2.30 (sotto). -->
@@ -1869,12 +1870,14 @@ function htmlFormOss(d){
   const R=d.riga||{};
   /* stesso giorno = la RPC aggiorna la riga dell'osservazione (la nota di sala sta su una riga sua, v2.19) */
   const o=ossMiaOggi(d)||{};
-  const ctx=o.contesto||R.corso_attivo||R.tipo||'prima_lezione';
+  let ctx=o.contesto||R.corso_attivo||R.tipo||'prima_lezione';
+  if(ctx==='monitor')ctx='sala_monitor'; // v2.34: era 'monitor' (caso del 28/10), la Sala con Monitor e' una sola
   const opz=Object.keys(NOME_CORSO).map(k=>`<option value="${k}"${k===ctx?' selected':''}>${esc(NOME_CORSO[k])}</option>`).join('')
     +(NOME_CORSO[ctx]?'':`<option value="${esc(ctx)}" selected>${esc(nomeCorso(ctx))}</option>`);
   return `<div class="frm" id="oss-form" oninput="ossSporca=true" onchange="ossSporca=true">
     ${o.id?`<p class="sch-vuoto">Oggi hai già scritto un'osservazione: la stai aggiornando.</p>`:''}
     <label>Contesto</label><select name="contesto">${opz}</select>
+    ${ctx==='sala_monitor'?'<p class="aiuto">Sala con Monitor: la nota va nel tuo turno aperto e la persona risulta seguita. Si salvano temi affrontati, trasformazione e note; le scale no.</p>':''}
     ${DIDATTICA.map(([k,l,staff])=>`<label>${l}${staff?' <span class="solo-staff">solo staff</span>':''}</label><textarea name="${k}">${esc(o[k]||'')}</textarea>`).join('')}
     ${SCALE.map(([k,l])=>`<label>${l}</label>
       <div class="scala" data-k="${k}" data-v="${o[k]??''}">${[1,2,3,4,5].map(i=>
@@ -1907,10 +1910,11 @@ async function salvaOss(btn){
   p.visibile_allievo=!!document.getElementById('oss-visibile')?.checked; // v2.23: la RPC sovrascrive tutta la riga del giorno
   if(p.visibile_allievo && !p.temi_affrontati && !p.trasformazione && !p.per_allievo){ toast("Per mostrarla all'allievo scrivi temi, trasformazione o un messaggio."); return; }
   btn.disabled=true;
-  const{error}=await sb.rpc('salva_osservazione',{p_persona_id:schedaPid,p});
-  if(error){ btn.disabled=false; toast('Osservazione non salvata: '+error.message); return; }
+  const{data,error}=await sb.rpc('salva_osservazione',{p_persona_id:schedaPid,p});
+  if(error){ btn.disabled=false; erroreChiaro('Osservazione non salvata',error); return; } // v2.34: resta a schermo
   ossAperta=false; ossSporca=false;
-  toast('Osservazione salvata.');
+  toast(data&&data.sala?'Nota di Sala con Monitor salvata: risulta seguito/a nel turno.':'Osservazione salvata.');
+  if(data&&data.sala)loadMonitor();
   await caricaScheda();
   loadAllievi();
 }
@@ -2269,7 +2273,7 @@ async function chiediCambio(poi){
 async function eseguiTurno(az,btn,note){
   if(btn)btn.disabled=true;
   const{data,error}=await sb.rpc('monitor_turno',{p_azione:az,p_note:note});
-  if(error){ if(btn)btn.disabled=false; toast('Turno non registrato: '+error.message); return false; }
+  if(error){ if(btn)btn.disabled=false; erroreChiaro('Turno non registrato',error); return false; } // v2.34: resta a schermo
   toast(az==='inizio'?(data?.gia_aperto?'Il turno era già aperto.':'Turno iniziato. Buona sala!'):'Turno chiuso. Grazie!');
   await allineaImpegnoMonitor(az,data&&data.turno_id); // v2.23: il turno segnato in Turni segue il turno reale
   loadMonitor();
@@ -2306,6 +2310,10 @@ function dialogo(testoHtml,primo,secondo){
   b1.focus();
 }
 function chiudiDialogo(){ document.getElementById('dlg').hidden=true; _dlgFn=[null,null]; }
+/* v2.34 errore che resta a schermo finche' non si chiude (niente fallimenti silenziosi): il testo e' quello del DB */
+function erroreChiaro(cosa,e){
+  dialogo(`<p><b>${esc(cosa)}</b></p><p>${esc(String(e?.message||e||'errore'))}</p>`,['HO CAPITO',null]);
+}
 function dlgPremi(i){
   const nota=(document.getElementById('dlg-nota')?.value||'').trim()||null; // letta prima di chiudere
   const f=_dlgFn[i];
@@ -2579,7 +2587,7 @@ async function guidaSegna(btn){
   btn.disabled=true;
   /* passo 1 -> p_su_cosa, passo 2 -> p_note */
   const{error}=await sb.rpc('monitor_segna',{p_persona_id:pid,p_su_cosa:cosa,p_note:nota});
-  if(error){ btn.disabled=false; toast('Non segnato: '+error.message); return; }
+  if(error){ btn.disabled=false; erroreChiaro('Non segnato',error); return; } // v2.34: resta a schermo
   if(pid===schedaPid){ guida={...guidaNuova(),passo:'fatto',alle:hhmm(new Date()),fotoFatta:guida.fotoFatta}; disegnaGuida(true); }
   await loadMonitor();          // turno (si apre da solo), tabella OGGI e la scheda con la conferma
   if(pid===schedaPid)caricaScheda();
