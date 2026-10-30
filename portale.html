@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.149 · 2026-10-30 · CREDITI: "DA INCASSARE" IN SEGRETERIA E "DA SALDARE" PER L'ALLIEVO (consegna 30 ott, DB Applica_registro_crediti_2026-10-30 gia' applicato da Marco: tabella crediti + apri_credito, incassa_credito, annulla_credito, get_crediti_aperti, get_miei_crediti). oggi.html non cambia. Credito = lezioni o servizi gia' dati e non ancora pagati (Master v4.0 §4.3); le rate successive previste non sono crediti. (1) Da fare oggi: quarta tessera 💶 Da incassare (solo segreteria piena: totale € e persone da get_crediti_aperti, riga rossa "N in ritardo", verde "Nessun credito aperto") -> nuovo tab "💶 Da incassare" (?nav=segreteria&tab=crediti): Totale da incassare, righe per data entro (nome -> fascicolo, descrizione, importo, entro gg/mm rosso con "da N giorni" se scaduto, nota), INCASSATO (kcGuida, metodo contanti/bancomat=pos/bonifico, nota; cosa succede con l'iscrizione collegata saldata o in acconto, stessa regola dell'RPC) -> incassa_credito; ANNULLA (motivo obbligatorio, bozza nel browser) -> annulla_credito. (2) Fascicolo: riquadro 💶 Crediti sotto Percorso corsi (crediti per persona_id) con gli stessi bottoni, Storico crediti (incassati e annullati: data, metodo, motivo) e + PAGA DOPO -> kcGuida (cosa precompilato col nome completo del corso attivo, es. "Corso Advance KataClimb (2 volte a settimana) — 8 lezioni"; importo; entro obbligatorio; voce di listino con nome completo, preselezionata solo se il corso attivo ne ha una sola senza dubbi; collega all'iscrizione attiva; nota) -> apri_credito. Senza account della persona il bottone non c'e' (l'RPC vuole p_user_id). (3) Area personale: in cima, riquadro "Da saldare: X €" per ogni credito di get_miei_crediti (genitore: "Da saldare per <Nome>"), bordo colore del portale, testo nero su bianco, nessun "in ritardo", bottone Scrivi alla segreteria (stesso WhatsApp della home); si rilegge a ogni apertura e al ritorno sulla pagina. Scritture solo via le tre RPC. CUMULA v3.148 (sotto). -->
 <!-- KC-BUILD: portale v3.148 · 2026-10-29 · SEGRETERIA E COMPENSI STAFF (consegna 29 ott, DB sql/segreteria_compensi_2026-10-29.sql da lanciare PRIMA del push): (1) Da sistemare → Sistema adesso → "registra": caselle dei giorni del corso (solo slot attivi del tipo), validazione "Scegli il giorno del corso", p_slot_ids ad allineamento_decidi (caso segnalato dalla segreteria). (2) Cambia giorni: si cambia anche quanti giorni, niente scritta rossa, contatore informativo (caso segnalato dalla segreteria). (3) Mellozzini su Expert e Giovani a percentuale (quota in slot_piano_staff.percentuale): restano nelle presenze, 0 € a lezione, contati come istruttore nella copertura, blocco Compensi a percentuale in Costi staff del mese (v_compenso_percentuale_mese: incassi del mese divisi sui mesi che il pagamento copre, quota, sostituti chi/quanto, netto in rosso se negativo; si conta quello che è entrato davvero, sconti compresi; dal 1/10/2026, settembre saldato a mano; eccezioni decise da Marco 30/10 in compenso_percentuale_eccezioni). (4) Prima Lezione nella stessa ora di un corso dello stesso istruttore: 0 €, fuori da Presenze da confermare, "dentro il corso — non si paga a parte" in Turni e Prime Lezioni del mese. CUMULA v3.147 (sotto). -->
 <!-- KC-BUILD: portale v3.147 · 2026-10-27 · CONSOLE SEGRETERIA: TUTTO LI', E "SISTEMA ADESSO" (consegna 27 ott, DB allineamento_sistema_ora_2026-10-27 gia' applicato: azioni pagato, correggi_importo, chiudi di allineamento_decidi e colonna azione_suggerita). oggi.html non cambia. (1) In cima alla Segreteria, sopra l'interruttore, "Da fare oggi" con tre tessere (solo creator e segreteria): 🔄 Allineamento con il tuo foglio (voci aperte dell'ultima notte -> tab Allineamento), ⚠ Da sistemare (righe di v_segreteria_da_sistemare_seg -> tab Da sistemare), 💶 Da pagare del mese (v_costi_staff_mese: totale, Corsi/Prime/Monitor, lezioni da confermare non contate -> Turni, Costi staff del mese); rosso/arancio se c'e' da fare, verde "Tutto a posto"; si aggiornano dopo ogni azione. (2) Nuovo tab "⚠ Da sistemare" (?nav=segreteria&tab=dasistemare): l'elenco di oggi.html v2.32 portato qui con prefisso ds (stessa vista, stessi gruppi, stesse RPC: impegno_presenza, sostituisci_istruttore, segreteria_chiudi_turno, impegno_mi_segno), ogni azione con kcGuida (presente con il compenso: 15 € a lezione o a ore da impegni_staff.compenso_tipo; monitor scelto = avviso arancio del caso estremo); sotto ogni bottone cosa fa; APRI IN AGENDA in una nuova scheda. (3) Allineamento: su Da registrare e Da chiarire il bottone principale e' SISTEMA ADESSO -> kcGuida "Com'è andata?" con cinque scelte (registra, pagato, correggi_importo, chiudi, rispondi), preselezionata azione_suggerita (Da registrare senza suggerimento: registra), campi della scelta, cosa succede con il pagamento che si tocca (letto da abbonamenti_pagamenti con la stessa regola dell'RPC), avvisi arancio (importo diverso dal foglio, al prima di dal, pagamento non trovato, chiudi su una voce pagata nel foglio); l'esito lo scrive il DB: "✓ <esito> · Il portale è già a posto.". NON È COSÌ resta solo su Da registrare. Voce senza persona: kcGuida -> Inserisci contatto precompilato -> appena salvata "Ora registro l'abbonamento?" (insertNewLead chiama alDopoInserisci; se la voce non ha ancora la persona l'RPC lo dice e si mostra). Da sistemare nel portale: APRI E SISTEMA porta al fascicolo della persona (Prima Lezione o voce senza data) o all'agenda della data in una nuova scheda, e al ritorno nella console chiede "L'hai sistemato?" -> fatto. "Cosa fare oggi": il passo delle domande ora dice che si sistemano subito. CUMULA v3.146 (sotto). -->
 <!-- KC-BUILD: portale v3.146 · 2026-10-27 · PRIMA LEZIONE GIA' FATTA (DATA PASSATA) (consegna 27 ott, caso segnalato dalla segreteria; nessuna modifica al DB): nel fascicolo del lead, finestra "📅 Fissa prima lezione", sopra gli slot il bottone "✔ L'ha già fatta (data passata)", solo per creator e segreteria (isSegreteriaPiena). Apre kcGuida: data dagli ultimi 60 giorni a ieri, slot Prima Lezione attivi di quel giorno della settimana (tipo_corso prima_lezione%, nome completo e orario; se e' uno solo e' gia' scelto); cosa succede si aggiorna con le scelte; se il lead ha gia' una Prima Lezione fatta avvisa "Risulta già una Prima Lezione fatta il GG/MM: vuoi registrarne un'altra?". Conferma -> insert in prenotazioni_prima_lezione (lead_id, slot_id, data_lezione) come confermaFissaLezione, poi marca_presenza_prima_lezione(id,'fatto'); se la seconda chiamata fallisce lo dice in chiaro e riprovando non crea un doppione. Errori del DB (giorno chiuso, slot chiuso, slot pieno) mostrati come arrivano. Messaggio finale con il promemoria del pagamento (➕ Abbonamento o corso). Il messaggio breve (toast) resta a schermo piu' a lungo se il testo e' lungo (fino a 8 secondi). CUMULA v3.145 (sotto). -->
@@ -1522,6 +1523,8 @@ fill="#1d4ed8" stroke="none">
 
     <!-- ═══ MY PROFILE VIEW ═══ -->
     <div id="nav-profilo-view" class="screen active">
+      <!-- v3.149 — Da saldare: crediti aperti dell'allievo e dei figli (renderMieiCrediti, get_miei_crediti) -->
+      <div id="my-da-saldare"></div>
       <!-- Profile + Progression -->
       <div class="card fu" style="margin-bottom:22px;padding-bottom:14px" id="my-profile-prog">
         <!-- v3.56 Home Duolingo: streak row -->
@@ -1673,8 +1676,11 @@ fill="#1d4ed8" stroke="none">
         <style>
         #seg-oggi{margin:0 0 16px}
         .seg-oggi-t{font-size:16px;font-weight:800;margin:0 0 8px;color:var(--text)}
-        .seg-tess{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .seg-tess{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+        @media(max-width:1100px){.seg-tess{grid-template-columns:repeat(2,1fr)}}
         @media(max-width:760px){.seg-tess{grid-template-columns:1fr}}
+        .seg-t-rit{font-size:13px;font-weight:700;color:#DC2626}
+        .seg-t-rit[hidden]{display:none}
         .seg-t{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid var(--border);border-left:5px solid var(--border);border-radius:14px;padding:12px 14px;background:var(--bg);color:var(--text);cursor:pointer;font-family:inherit}
         .seg-t:hover{border-color:var(--text)}
         .seg-t-et{font-size:13.5px;font-weight:700;color:var(--text2)}
@@ -1693,6 +1699,7 @@ fill="#1d4ed8" stroke="none">
           <button type="button" class="seg-t" id="seg-t-all" onclick="segMostra('allineamento')"><span class="seg-t-et">🔄 Allineamento con il tuo foglio</span><span class="seg-t-n">…</span><span class="seg-t-sub"></span></button>
           <button type="button" class="seg-t" id="seg-t-ds" onclick="segMostra('dasistemare')"><span class="seg-t-et">⚠ Da sistemare</span><span class="seg-t-n">…</span><span class="seg-t-sub"></span></button>
           <button type="button" class="seg-t" id="seg-t-paga" onclick="dsVaiCosti()"><span class="seg-t-et">💶 Da pagare</span><span class="seg-t-n">…</span><span class="seg-t-sub"></span><span class="seg-t-conf" id="seg-t-paga-conf" hidden></span></button>
+          <button type="button" class="seg-t" id="seg-t-cr" onclick="segMostra('crediti')" style="display:none"><span class="seg-t-et">💶 Da incassare</span><span class="seg-t-n">…</span><span class="seg-t-sub"></span><span class="seg-t-rit" id="seg-t-cr-rit" hidden></span></button>
         </div>
       </div>
 
@@ -1704,6 +1711,7 @@ fill="#1d4ed8" stroke="none">
         <button id="seg-sw-manovra" onclick="segMostra('manovra')">🪢 Corso Manovra in Sosta KataClimb</button>
         <button id="seg-sw-dasistemare" onclick="segMostra('dasistemare')" style="display:none">⚠ Da sistemare <span id="seg-ds-badge"></span></button>
         <button id="seg-sw-allineamento" onclick="segMostra('allineamento')" style="display:none">🔄 Allineamento <span id="seg-all-badge"></span></button>
+        <button id="seg-sw-crediti" onclick="segMostra('crediti')" style="display:none">💶 Da incassare</button>
       </div>
 
       <!-- v3.137 — Turni e presenze staff, Metà C (codice nel blocco TURNI E PRESENZE STAFF) -->
@@ -1835,6 +1843,25 @@ fill="#1d4ed8" stroke="none">
         </div>
         <div id="ds-msg"></div>
         <div id="ds-lista"></div>
+      </div>
+
+      <!-- v3.149 — Da incassare: crediti aperti (codice nel blocco CREDITI: DA INCASSARE E DA SALDARE) -->
+      <div id="seg-crediti-wrap" class="hidden">
+        <style>
+        .cr-tot{font-size:20px;font-weight:800;margin:10px 0 0;color:var(--text)}
+        .cr-testa{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+        .cr-imp{font-size:17px;font-weight:800;color:var(--text);white-space:nowrap}
+        .cr-rit{color:#DC2626;font-weight:700}
+        .cr-sto{font-size:13.5px;padding:8px 0;border-top:1px solid var(--border);line-height:1.45;color:var(--text)}
+        .cr-sto-sum{font-size:14px;font-weight:700;cursor:pointer;margin-top:10px;color:var(--text)}
+        </style>
+        <div class="sc-sez">
+          <h3 class="sc-h3">💶 Da incassare</h3>
+          <p class="al-guida" style="margin:0">Lezioni e servizi già dati e non ancora pagati. Le rate successive previste non sono crediti: chi ha pagato il primo mese è in regola.</p>
+          <div class="cr-tot" id="cr-tot"></div>
+        </div>
+        <div id="cr-msg"></div>
+        <div id="cr-lista"></div>
       </div>
 
       <!-- v3.144 — Allineamento con il foglio della segreteria (codice nel blocco ALLINEAMENTO PRIMA NOTA) -->
@@ -5577,6 +5604,7 @@ function showLeadDetail(id){
   currentLeadPersonaId=null; // v3.114 — persona del lead (lead_data.persona_id) per il blocco Questionario
   currentLeadRfUrl=null; // v3.126 — foto di riconoscimento del lead (URL firmato), caricata dopo persona_id
   currentLeadAbb=null;abbStoricoAperto=false; // v3.127 — abbonamenti della persona, caricati dopo persona_id
+  crFasc=null; // v3.149 — crediti della persona, caricati dopo persona_id
   document.getElementById('seg-lead-list-wrap').style.display='none';
   document.getElementById('seg-lead-detail').classList.remove('hidden');
   renderLeadDetail();
@@ -6045,6 +6073,7 @@ async function loadLeadPersonaId(lead){
     renderLeadDetail();
     if(currentLeadPersonaId)loadLeadFotoRiconoscimento(lead,currentLeadPersonaId); // v3.126
     if(currentLeadPersonaId&&isStaff())loadLeadAbbonamenti(lead,currentLeadPersonaId); // v3.127
+    if(currentLeadPersonaId&&crPuo())crCaricaFascicolo(lead,currentLeadPersonaId); // v3.149
   }catch(e){console.warn('[loadLeadPersonaId]',e.message||e)}
 }
 
@@ -6077,7 +6106,7 @@ async function loadLeadIscrizioni(lead){
   const uid=lead.converted_profile_id;
   if(!uid){currentLeadIscrizioni=[];renderLeadDetail();return;}
   const{data,error}=await sb.from('iscrizioni_corso')
-    .select('tipo_corso,status,lezioni_completate,lezioni_totali,stato_pagamento,data_iscrizione')
+    .select('id,tipo_corso,status,lezioni_completate,lezioni_totali,stato_pagamento,data_iscrizione') // v3.149 id: + PAGA DOPO collega l'iscrizione attiva
     .eq('user_id',uid);
   if(error){console.warn('[loadLeadIscrizioni]',error.message);return}
   if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
@@ -6444,6 +6473,7 @@ function renderLeadDetail(){
     ${questionariBlock}
     ${esitoBlock}
     ${percorsoBlock}
+    ${crBloccoFascicolo()}
     ${tessBlock}
     ${prenotBlock}
   `;
@@ -8659,6 +8689,7 @@ function renderApp(){
   renderQuestionariPersona(profile.persona_id,document.getElementById('my-questionari-diario'),{modo:'diario'});
   renderMioDiarioDidattico(); // v3.137
   renderMioMeseStaff(); // v3.141
+  renderMieiCrediti(); // v3.149
   // v3.56 Home Duolingo: streak + hero (async, non blocca render)
   refreshHomeDuolingo();
   // Avatar — v3.126: foto pubblica (foto_url), altrimenti foto di riconoscimento privata, altrimenti iniziali
@@ -10353,6 +10384,7 @@ async function init(){
           /* v3.144 dai messaggi a Roberta: Segreteria -> 🔄 Allineamento */
           if(navParam==='segreteria'&&params.get('tab')==='allineamento'&&typeof alPuo==='function'&&alPuo())segMostra('allineamento');
           if(navParam==='segreteria'&&params.get('tab')==='dasistemare'&&typeof alPuo==='function'&&alPuo())segMostra('dasistemare'); // v3.147
+          if(navParam==='segreteria'&&params.get('tab')==='crediti'&&typeof crPuo==='function'&&crPuo())segMostra('crediti'); // v3.149
           history.replaceState(null,'',window.location.pathname);
         }
       }
@@ -10422,13 +10454,14 @@ async function scApriDoc(docId,btn){
 /* ── Interruttore Persone / Scuole nella Segreteria ── */
 function segMostra(quale){
   if(kcG){kcGuidaEsci(()=>segMostra(quale));return;} // v3.145
-  const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',allin=quale==='allineamento',dasis=quale==='dasistemare',altro=scuole||turni||manovra||allin||dasis;
+  const scuole=quale==='scuole',turni=quale==='turni',manovra=quale==='manovra',allin=quale==='allineamento',dasis=quale==='dasistemare',cred=quale==='crediti',altro=scuole||turni||manovra||allin||dasis||cred;
   if(altro&&!document.getElementById('seg-lead-detail').classList.contains('hidden')&&typeof closeLeadDetail==='function')closeLeadDetail();
   document.getElementById('seg-scuole-wrap').classList.toggle('hidden',!scuole);
   document.getElementById('seg-turni-wrap').classList.toggle('hidden',!turni); // v3.137
   document.getElementById('seg-manovra-wrap').classList.toggle('hidden',!manovra); // v3.140
   document.getElementById('seg-allineamento-wrap').classList.toggle('hidden',!allin); // v3.144
   document.getElementById('seg-dasistemare-wrap').classList.toggle('hidden',!dasis); // v3.147
+  document.getElementById('seg-crediti-wrap').classList.toggle('hidden',!cred); // v3.149
   document.getElementById('seg-lead-list-wrap').style.display=altro?'none':'';
   if(altro)document.getElementById('seg-lead-detail').classList.add('hidden');
   document.getElementById('seg-sw-persone').classList.toggle('on',!altro);
@@ -10437,9 +10470,11 @@ function segMostra(quale){
   document.getElementById('seg-sw-manovra').classList.toggle('on',manovra);
   document.getElementById('seg-sw-allineamento').classList.toggle('on',allin);
   document.getElementById('seg-sw-dasistemare').classList.toggle('on',dasis);
+  document.getElementById('seg-sw-crediti').classList.toggle('on',cred);
   if(scuole){scChiudiScheda();scCaricaTutto();}
   if(allin)return alCaricaTutto(); // v3.144
   if(dasis)return dsCarica(); // v3.147
+  if(cred)return crCarica(); // v3.149
   if(manovra)msCaricaTutto();
   if(turni)return tuCaricaTutto(); // v3.142 restituito: chi apre Turni da link puo' scorrere dopo il caricamento
 }
@@ -12334,7 +12369,7 @@ async function segOggiCarica(){
   box.style.display=alPuo()?'':'none';
   const sw=document.getElementById('seg-sw-dasistemare');if(sw)sw.style.display=alPuo()?'':'none';
   if(!alPuo())return;
-  await Promise.all([alCaricaBadge(),dsCaricaConto(),dsCaricaPaga()]);
+  await Promise.all([alCaricaBadge(),dsCaricaConto(),dsCaricaPaga(),crCaricaConto()]);
 }
 function dsConto(n){
   const b=document.getElementById('seg-ds-badge');if(b)b.textContent=n?String(n):'';
@@ -12582,6 +12617,286 @@ async function dsAzione(az,i){
     if(!sost)dsRuoloDaPersona();
   }
 }
+
+/* ── CREDITI: DA INCASSARE E DA SALDARE ── (consegna 30 ott 2026, portale v3.149, DB registro_crediti 2026-10-30)
+   Credito = lezioni o servizi gia' dati e non ancora pagati ("paga dopo" concordato, o fatto e non pagato,
+   Master v4.0 §4.3). Le rate successive previste (Mezza2, mese 2) NON sono crediti.
+   Segreteria: tessera "💶 Da incassare" in Da fare oggi e tab "💶 Da incassare" (get_crediti_aperti; iscrizione
+   e voce collegate lette da crediti, che la RLS fa vedere tutta alla segreteria). Fascicolo: riquadro Crediti
+   (crediti per persona_id) con + PAGA DOPO e lo storico. Allievo e genitore: riquadro "Da saldare" in cima
+   all'area personale (get_miei_crediti), senza allarmi. Scritture solo con apri_credito, incassa_credito,
+   annulla_credito, sempre da kcGuida. Solo segreteria piena (stessa regola di is_segreteria_piena nel DB). */
+const CR_METODI=[['contanti','contanti'],['pos','bancomat'],['bonifico','bonifico']];
+const CR_MET_FRASE={contanti:'in contanti',pos:'con bancomat',bonifico:'con bonifico',stripe:'con Stripe'};
+const CR_WA='https://wa.me/393318743953'; // stesso WhatsApp della segreteria della home (heroCtaAction)
+let crRighe=[],crById={},crExtra={},crLead={},crListino=null,crFasc=null;
+const crPuo=()=>isSegreteriaPiena();
+function crEuro(n){const v=Number(n||0);return v.toLocaleString('it-IT',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2})+' €'}
+function crGM(iso){const p=String(iso||'').slice(0,10).split('-');return p.length===3?p[2]+'/'+p[1]:'—'}
+function crDataLunga(iso){const[a,m,g]=String(iso).slice(0,10).split('-').map(Number);const d=new Date(a,m-1,g);return DS_GIORNI[d.getDay()]+' '+g+' '+DS_MESI[m-1]}
+function crGiorni(n){return n===1?'1 giorno':n+' giorni'}
+
+/* ── tessera "💶 Da incassare" ── */
+function crConto(L){
+  const rit=document.getElementById('seg-t-cr-rit');
+  if(L===null){dsTessera('seg-t-cr','—','','Non riesco a leggere ora');if(rit)rit.hidden=true;return;}
+  const tot=L.reduce((a,r)=>a+Number(r.importo||0),0),pers=new Set(L.map(r=>r.persona_id)).size,n=L.filter(r=>r.scaduto).length;
+  if(!L.length)dsTessera('seg-t-cr','0 €','verde','Nessun credito aperto');
+  else dsTessera('seg-t-cr',crEuro(tot),n?'rosso':'arancio',pers===1?'1 persona':pers+' persone');
+  if(rit){rit.hidden=!n;rit.textContent=n+' in ritardo';}
+}
+async function crCaricaConto(){
+  const t=document.getElementById('seg-t-cr'),sw=document.getElementById('seg-sw-crediti');
+  if(t)t.style.display=crPuo()?'':'none';
+  if(sw)sw.style.display=crPuo()?'':'none';
+  if(!crPuo())return;
+  try{const{data,error}=await sb.rpc('get_crediti_aperti');if(error)throw error;crConto(data||[]);}
+  catch(e){console.warn('[da incassare] conto:',e.message||e);crConto(null);}
+}
+
+/* iscrizione e voce collegate: get_crediti_aperti non le restituisce */
+async function crCaricaExtra(ids){
+  if(!ids.length)return;
+  const{data,error}=await sb.from('crediti').select('id,iscrizione_id,voce').in('id',ids);
+  if(error){console.warn('[da incassare] collegamenti:',error.message);return;}
+  const isc=[...new Set((data||[]).map(c=>c.iscrizione_id).filter(Boolean))],I={};
+  if(isc.length){
+    const r=await sb.from('iscrizioni_corso').select('id,tipo_corso,importo_concordato,importo_pagato').in('id',isc);
+    if(r.error)console.warn('[da incassare] iscrizioni:',r.error.message);
+    (r.data||[]).forEach(x=>{I[x.id]=x});
+  }
+  (data||[]).forEach(c=>{crExtra[c.id]={voce:c.voce,isc:c.iscrizione_id?(I[c.iscrizione_id]||{id:c.iscrizione_id}):null}});
+}
+
+/* ── tab "💶 Da incassare" ── */
+async function crCarica(){
+  if(!crPuo())return;
+  const el=document.getElementById('cr-lista');
+  scMsg('cr-msg','');
+  el.innerHTML='<p class="sc-vuoto">Carico…</p>';
+  try{
+    const{data,error}=await sb.rpc('get_crediti_aperti');
+    if(error)throw error;
+    crRighe=data||[];
+    crRighe.forEach(c=>{crById[c.credito_id]=c});
+    await crCaricaExtra(crRighe.map(c=>c.credito_id));
+  }catch(e){crRighe=[];el.innerHTML='';document.getElementById('cr-tot').textContent='';scMsg('cr-msg','Non riesco a leggere i crediti: '+scErr(e));crConto(null);return;}
+  crConto(crRighe);
+  const tot=crRighe.reduce((a,r)=>a+Number(r.importo||0),0);
+  document.getElementById('cr-tot').textContent='Totale da incassare: '+crEuro(tot);
+  if(!crRighe.length){el.innerHTML='<div class="sc-sez"><div class="al-tutto">✓ Nessun credito aperto.</div></div>';return;}
+  const ord=[...crRighe].sort((a,b)=>(a.entro||'9999').localeCompare(b.entro||'9999'));
+  el.innerHTML=`<div class="sc-sez al-gruppo">${ord.map(c=>crRigaHtml(c,false)).join('')}</div>`;
+}
+function crRigaHtml(c,fasc){
+  const nome=escHtml(c.persona||'—');
+  const nomeH=fasc?`<span class="al-nome">${nome}</span>`:`<button type="button" class="al-nome" onclick="crApriPersona('${c.persona_id}')">${nome}</button>`;
+  const quando=!c.entro?'senza data'
+    :c.scaduto?`<span class="cr-rit">entro ${crGM(c.entro)} · da ${crGiorni(c.giorni_ritardo)}</span>`:'entro '+crGM(c.entro);
+  return `<div class="al-riga">
+    <div class="cr-testa">${nomeH}<span class="cr-imp">${crEuro(c.importo)}</span></div>
+    <div class="al-abb">${escHtml(c.descrizione||'')}</div>
+    <div class="al-ctx">${quando}${c.note?' · '+escHtml(c.note):''}</div>
+    <div class="al-azioni">${alAz(true,`crIncassa('${c.credito_id}')`,'INCASSATO','Ha pagato: registri l’incasso e il credito si chiude')}${alAz(false,`crAnnulla('${c.credito_id}')`,'ANNULLA','Non è più da incassare: scrivi il motivo, resta nello storico')}</div>
+  </div>`;
+}
+async function crApriPersona(pid){
+  try{
+    let leadId=crLead[pid];
+    if(!leadId){
+      const{data,error}=await sb.from('lead_data').select('id').eq('persona_id',pid).limit(1);
+      if(error)throw error;
+      leadId=data&&data[0]&&data[0].id;
+    }
+    if(!leadId){toast('Questa persona non ha ancora una scheda nel tab Persone');return;}
+    crLead[pid]=leadId;
+    if(!crmLeadsData.find(l=>l.id===leadId))await loadCrmLeads();
+    segMostra('persone');
+    showLeadDetail(leadId);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){toast('Non riesco ad aprire la scheda: '+scErr(e));}
+}
+/* dopo ogni azione: tessera, tab (se aperto) e fascicolo (se aperto) di nuovo */
+function crDopo(){
+  const p=[crCaricaConto()];
+  if(!document.getElementById('seg-crediti-wrap').classList.contains('hidden'))p.push(crCarica());
+  if(currentLeadDetail&&crFasc){p.push(crCaricaFascicolo(currentLeadDetail,crFasc.personaId));loadLeadFollowUps(currentLeadDetail.id);}
+  return Promise.all(p);
+}
+
+/* ── INCASSATO / ANNULLA ── */
+function crIscFrase(c){
+  const x=crExtra[c.credito_id],isc=x&&x.isc;
+  if(!isc)return '';
+  const nome=isc.tipo_corso?`<b>${escHtml(tuNomeCorso(isc.tipo_corso))}</b>`:'collegata';
+  if(!isc.tipo_corso)return 'L’iscrizione collegata risulta pagata per questo importo';
+  // stessa regola di incassa_credito: senza importo concordato, quello pagato diventa il concordato
+  const pag=Number(isc.importo_pagato||0)+Number(c.importo||0),conc=isc.importo_concordato!=null?Number(isc.importo_concordato):pag;
+  return pag>=conc?`L’iscrizione ${nome} risulta saldata`:`L’iscrizione ${nome} risulta in acconto: pagati ${crEuro(pag)} su ${crEuro(conc)}`;
+}
+function crIncassa(id){
+  const c=crById[id];if(!c)return;
+  const chi=c.persona||'';
+  kcGuida({titolo:`${chi} ha pagato?`,
+    corpo:`<p class="al-ctx" style="margin-top:0"><b>${escHtml(c.descrizione||'')}</b> · ${crEuro(c.importo)}</p>
+      <label class="sc-lbl" for="cr-met">Come ha pagato</label><select id="cr-met" class="input sc-in"><option value="">Scegli…</option>${CR_METODI.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+      <label class="sc-lbl" for="cr-nota">Nota (facoltativa)</label><textarea id="cr-nota" class="input sc-in" maxlength="300"></textarea>`,
+    succede:()=>{const m=alVal('cr-met');return[`Registri <b>${crEuro(c.importo)}</b>${m?' '+CR_MET_FRASE[m]:''} da <b>${escHtml(chi)}</b>`,
+      'Il credito si chiude e resta nello storico',crIscFrase(c),(crExtra[id]||{}).voce?'Il pagamento entra nei pagamenti registrati della persona':''].filter(Boolean)},
+    pronto:()=>alVal('cr-met')?true:'Scegli come ha pagato',
+    cosa:'registrare l’incasso',chi,
+    ok:'Sì, incassato',annulla:'No, torna indietro',
+    azione:async()=>{const{data,error}=await sb.rpc('incassa_credito',{p_credito_id:id,p_metodo:alVal('cr-met'),p_note:alVal('cr-nota')||null});if(error)throw error;return data;},
+    dopo:()=>`Fatto: ${crEuro(c.importo)} da ${chi} incassati. Il portale è già a posto.`,
+    poi:crDopo});
+}
+function crAnnulla(id){
+  const c=crById[id];if(!c)return;
+  const chi=c.persona||'';
+  kcGuida({titolo:`Annulli il credito di ${chi}?`,
+    corpo:`<p class="al-ctx" style="margin-top:0"><b>${escHtml(c.descrizione||'')}</b> · ${crEuro(c.importo)}</p>
+      <label class="sc-lbl" for="cr-motivo">Motivo (obbligatorio)</label><textarea id="cr-motivo" class="input sc-in" maxlength="300" placeholder="Perché non è più da incassare"></textarea>`,
+    succede:['Il credito non è più da incassare','Resta nello storico con il motivo che scrivi'],
+    pronto:()=>alVal('cr-motivo')?true:'Scrivi il motivo',
+    cosa:'annullare il credito',chi,
+    bozza:{chiave:'kc_cr_annulla_'+id,campo:'cr-motivo'},
+    ok:'Sì, annulla il credito',annulla:'No, torna indietro',
+    azione:async()=>{const{error}=await sb.rpc('annulla_credito',{p_credito_id:id,p_motivo:alVal('cr-motivo')});if(error)throw error;},
+    dopo:()=>`Fatto: credito di ${chi} annullato. Il portale è già a posto.`,
+    poi:crDopo});
+}
+
+/* ── Fascicolo: riquadro 💶 Crediti e + PAGA DOPO ── */
+async function crCaricaFascicolo(lead,pid){
+  try{
+    const{data,error}=await sb.from('crediti')
+      .select('id,persona_id,iscrizione_id,descrizione,voce,importo,entro,stato,note,chiuso_il,metodo,motivo_annullo,creato_il')
+      .eq('persona_id',pid);
+    if(error)throw error;
+    if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
+    const nome=((lead.nome||'')+' '+(lead.cognome||'')).trim();
+    const oggi=dsIso(new Date());
+    const aperti=(data||[]).filter(r=>r.stato==='aperto').map(r=>{
+      const sc=!!(r.entro&&r.entro<oggi);
+      return{...r,credito_id:r.id,persona:nome,scaduto:sc,giorni_ritardo:sc?Math.round((new Date(oggi+'T12:00:00')-new Date(r.entro+'T12:00:00'))/864e5):0};
+    }).sort((a,b)=>(a.entro||'9999').localeCompare(b.entro||'9999'));
+    const storico=(data||[]).filter(r=>r.stato!=='aperto').sort((a,b)=>String(b.chiuso_il||'').localeCompare(String(a.chiuso_il||'')));
+    aperti.forEach(c=>{crById[c.credito_id]=c});
+    await crCaricaExtra(aperti.map(c=>c.credito_id));
+    if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
+    crFasc={personaId:pid,aperti,storico};
+    renderLeadDetail();
+  }catch(e){console.warn('[crediti fascicolo]',e.message||e);}
+}
+function crBloccoFascicolo(){
+  const f=crFasc,l=currentLeadDetail;
+  if(!f||!l||!crPuo())return '';
+  const aperti=f.aperti.length?f.aperti.map(c=>crRigaHtml(c,true)).join(''):'<div class="al-ctx" style="margin-top:0">Nessun credito aperto.</div>';
+  const sto=f.storico.map(r=>{
+    const quando=r.chiuso_il?scD(r.chiuso_il):'—';
+    const esito=r.stato==='incassato'?'Incassato '+(CR_MET_FRASE[r.metodo]||escHtml(r.metodo||'')):r.stato==='annullato'?'Annullato · motivo: '+escHtml(r.motivo_annullo||'—'):escHtml(r.stato);
+    return `<div class="cr-sto"><b>${quando}</b> · ${esito}<br>${escHtml(r.descrizione||'')} · ${crEuro(r.importo)}</div>`;
+  }).join('');
+  const btn=l.converted_profile_id
+    ?alAz(true,'crPagaDopo()','+ PAGA DOPO','Concordi che paga più avanti: lo vede nella sua area personale e compare in Da incassare')
+    :'<div class="al-ctx">Per il «paga dopo» serve l’account della persona nel portale.</div>';
+  return `<div class="ld-section">
+    <div class="ld-section-h">💶 Crediti</div>
+    ${aperti}
+    <div class="al-azioni">${btn}</div>
+    ${sto?`<details><summary class="cr-sto-sum">Storico crediti (${f.storico.length})</summary>${sto}</details>`:''}
+  </div>`;
+}
+async function crCaricaListino(){
+  if(crListino)return;
+  const{data,error}=await sb.from('listino_voci').select('voce_id,totale_eur,label_pubblico,tipo_corso,mese,attivo,ordine').eq('attivo',true).order('ordine');
+  if(error)throw error;
+  crListino=data||[];
+}
+/* nome completo della voce di listino (le etichette del listino sono corte: regola ferrea nomenclatura) */
+function crVoceNome(v){
+  if(v.tipo_corso==='iscrizione_annuale')return v.label_pubblico||'Iscrizione Accademia';
+  const s=String(v.label_pubblico||'').replace(/^(Prima Lezione|Open|Advance|Intro Corda|Evo Corda)\b\s*(·\s*)?/i,'')
+    .replace('2x/sett','2 volte a settimana').replace(/dopo Prima\b/,'dopo la Prima Lezione Adulti').trim();
+  return tuNomeCorso(v.tipo_corso)+(s?' · '+s:'');
+}
+/* iscrizione attiva piu' recente della persona (iscrizioni_corso, gia' letta dal blocco Percorso) */
+function crIscrizioneAttiva(){
+  const L=(currentLeadIscrizioni||[]).filter(r=>r.status==='attiva'&&r.id);
+  return L.sort((a,b)=>String(b.data_iscrizione||'').localeCompare(String(a.data_iscrizione||'')))[0]||null;
+}
+/* voce del corso attivo: solo se e' una sola senza dubbi (corso intero, piu' di 4 lezioni); altrimenti nessuna */
+function crVoceDi(att){
+  if(!att||!(Number(att.lezioni_totali)>4))return null;
+  const c=crListino.filter(v=>v.tipo_corso===att.tipo_corso&&v.mese==null);
+  return c.length===1?c[0]:null;
+}
+function crDescrizione(att,voce){
+  if(!att)return '';
+  const freq=voce&&/2x\/sett/.test(voce.label_pubblico||'')?' (2 volte a settimana)':'';
+  return tuNomeCorso(att.tipo_corso)+freq+(att.lezioni_totali?' — '+att.lezioni_totali+' lezioni':'');
+}
+function crImporto(){const n=Number(String(alVal('cr-imp')).replace(',','.'));return isFinite(n)?n:0}
+function crVoceCambia(){
+  const sel=document.getElementById('cr-voce'),imp=document.getElementById('cr-imp');if(!sel||!imp)return;
+  const v=crListino.find(x=>x.voce_id===sel.value),prima=sel.dataset.prima||'';
+  // l'importo segue la voce solo se non l'hai scritto tu
+  if(v&&(!imp.value||imp.value===prima)){imp.value=String(Number(v.totale_eur));sel.dataset.prima=imp.value;}
+  kcGuidaAggiorna();
+}
+async function crPagaDopo(){
+  const l=currentLeadDetail;if(!l||!crFasc||!l.converted_profile_id)return;
+  try{await crCaricaListino();}catch(e){toast('Non riesco a leggere il listino: '+scErr(e));return;}
+  const uid=l.converted_profile_id,nome=((l.nome||'')+' '+(l.cognome||'')).trim();
+  const att=crIscrizioneAttiva(),voce=crVoceDi(att),oggi=dsIso(new Date());
+  const imp0=voce?String(Number(voce.totale_eur)):'';
+  const opt='<option value="">Nessuna</option>'+crListino.map(v=>`<option value="${escHtml(v.voce_id)}"${voce&&voce.voce_id===v.voce_id?' selected':''}>${escHtml(crVoceNome(v))} · ${crEuro(v.totale_eur)}</option>`).join('');
+  kcGuida({titolo:`Paga dopo: ${nome}`,
+    corpo:`<label class="sc-lbl" for="cr-cosa">Cosa deve pagare</label><input id="cr-cosa" class="input sc-in" maxlength="200" value="${escHtml(crDescrizione(att,voce))}">
+      <label class="sc-lbl" for="cr-imp">Importo €</label><input id="cr-imp" class="input sc-in" type="number" min="0" step="0.01" inputmode="decimal" value="${imp0}">
+      <label class="sc-lbl" for="cr-entro">Entro</label><input id="cr-entro" class="input sc-in" type="date">
+      <label class="sc-lbl" for="cr-voce">Voce di listino (facoltativa)</label><select id="cr-voce" class="input sc-in" data-prima="${imp0}" onchange="crVoceCambia()">${opt}</select>
+      ${att?`<label class="al-scelta" style="margin-top:10px"><input type="checkbox" id="cr-isc" checked><span>Collega all’iscrizione <b>${escHtml(tuNomeCorso(att.tipo_corso))}</b>: quando incassi risulta pagata</span></label>`:''}
+      <label class="sc-lbl" for="cr-nota">Nota (facoltativa)</label><textarea id="cr-nota" class="input sc-in" maxlength="300"></textarea>`,
+    succede:()=>{
+      const imp=crImporto(),entro=alVal('cr-entro'),isc=document.getElementById('cr-isc');
+      return[`<b>${escHtml(nome)}</b> deve <b>${imp>0?crEuro(imp):'…'}</b>${entro?' entro '+escHtml(crDataLunga(entro)):''}`,
+        'Lo vede nella sua area personale','Compare in Da incassare',
+        isc&&isc.checked?`Quando incassi, l’iscrizione <b>${escHtml(tuNomeCorso(att.tipo_corso))}</b> risulta pagata`:''].filter(Boolean);
+    },
+    attenzione:()=>{const e=alVal('cr-entro');return e&&e<oggi?'La data è già passata: in Da incassare compare subito in ritardo.':''},
+    pronto:()=>!alVal('cr-cosa')?'Scrivi cosa deve pagare':!(crImporto()>0)?'Scrivi l’importo':!alVal('cr-entro')?'Scegli entro quando paga':true,
+    cosa:'segnare un «paga dopo»',chi:nome,
+    ok:'Sì, paga dopo',annulla:'No, torna indietro',
+    azione:async()=>{
+      const isc=document.getElementById('cr-isc');
+      const{data,error}=await sb.rpc('apri_credito',{p_user_id:uid,p_descrizione:alVal('cr-cosa'),p_importo:crImporto(),p_entro:alVal('cr-entro')||null,
+        p_voce:alVal('cr-voce')||null,p_iscrizione_id:isc&&isc.checked?att.id:null,p_note:alVal('cr-nota')||null});
+      if(error)throw error;return data;
+    },
+    dopo:()=>`Fatto: ${nome} deve ${crEuro(crImporto())} entro ${crDataLunga(alVal('cr-entro'))}. Il portale è già a posto.`,
+    poi:crDopo});
+}
+
+/* ── Area personale: riquadro "Da saldare" (allievo e genitore per i figli) ──
+   Nessun allarme: stesso testo anche a data passata. Sparisce da solo quando la segreteria registra l'incasso
+   (si rilegge a ogni apertura del profilo e quando si torna sulla pagina). */
+async function renderMieiCrediti(){
+  const el=document.getElementById('my-da-saldare');if(!el||!sb||!user)return;
+  let L=[];
+  try{const{data,error}=await sb.rpc('get_miei_crediti');if(error)throw error;L=data||[];}
+  catch(e){console.warn('[da saldare]',e.message||e);el.innerHTML='';return;}
+  el.innerHTML=L.map(c=>{
+    const mio=c.user_id===user.id;
+    return `<div class="card fu" style="margin-bottom:16px;padding:16px;border:2px solid var(--accent);background:#fff;color:#111">
+      <div style="font-size:18px;font-weight:800;color:#111">Da saldare${mio?'':' per '+escHtml(c.persona||'')}: ${crEuro(c.importo)}</div>
+      <div style="font-size:15px;margin-top:4px;color:#111">${escHtml(c.descrizione||'')}${c.entro?' · entro '+escHtml(crDataLunga(c.entro)):''}</div>
+      <div style="font-size:14px;margin-top:6px;color:#111">Puoi pagare in segreteria in contanti, bancomat o bonifico.</div>
+      <a href="${CR_WA}" target="_blank" rel="noopener" style="display:inline-block;margin-top:12px;font-size:14px;color:#fff;text-decoration:none;padding:10px 18px;background:#111;border-radius:8px;font-weight:700">Scrivi alla segreteria</a>
+    </div>`;
+  }).join('');
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&typeof profile!=='undefined'&&profile)renderMieiCrediti();});
 
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
 
