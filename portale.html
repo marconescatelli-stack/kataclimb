@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.151 · 2026-10-31 · IL MIO PERCORSO (consegna 31 ott, quadro dell'allievo; DB Quadro_allievo_2026-10-31 gia' applicato): il riquadro "Il mio diario didattico" del profilo diventa "Il mio percorso". (1) I miei Kata: validati, in attesa di validazione, da migliorare (video rifiutati con il commento + voci kata_da_migliorare del quadro), dai video gia' letti per la sezione Kata (kataVids), nessuna nuova lettura. (2) La mia traccia: v_mio_quadro (la vista restituisce solo le voci che l'allievo puo' leggere e non ritirate) + v_mio_diario_didattico, unite e ordinate per data; ogni tappa con data, autore, ruolo (Istruttore, Monitor, Maestro) e contesto; etichette I tuoi punti di forza, Abitudini da trasformare, Kata da migliorare (Kata 7 — …), Per te; segno di tappa "Fine Corso … KataClimb" sulle valutazioni di fine corso; vuoto: "Qui troverai la traccia del tuo percorso…". DIARIO_DID_CONTESTO: + sala_monitor, via lab. Solo nel proprio profilo. CUMULA v3.150 (sotto). -->
 <!-- KC-BUILD: portale v3.150 · 2026-10-30 · SISTEMA ADESSO CHE CHIUDE DAVVERO (consegna 30 ott, punto 1; DB sql/allineamento_chiudi_2026-10-30.sql da applicare PRIMA del deploy). Caso del 29/10: su una voce "da chiarire" con azione_suggerita 'chiudi' il tasto ha corretto l'importo invece di chiudere l'abbonamento, e la notte dopo la domanda e' tornata. Causa: AL_COLONNE non leggeva azione_suggerita, quindi sulle voci da chiarire non era preselezionato niente. (1) AL_COLONNE legge azione_suggerita: SISTEMA ADESSO parte dalla scelta suggerita, con l'etichetta "suggerito". (2) Avviso arancio se si sceglie un'altra cosa ("Il controllo di stanotte suggerisce …: è giusto?") e, su una voce da chiudere, "Correggere l'importo non chiude l'abbonamento: resta attivo nel portale." (3) DB: chiudi mette la nota con data e autore sull'iscrizione e non tocca importi; la notte (allineamento_pubblica) non ripropone una voce gia' chiusa da segreteria o da Marco negli ultimi 30 giorni (salvo errore_elenco e "riapri"). CUMULA v3.149 (sotto). -->
 <!-- KC-BUILD: portale v3.149 · 2026-10-30 · CREDITI: "DA INCASSARE" IN SEGRETERIA E "DA SALDARE" PER L'ALLIEVO (consegna 30 ott, DB Applica_registro_crediti_2026-10-30 gia' applicato da Marco: tabella crediti + apri_credito, incassa_credito, annulla_credito, get_crediti_aperti, get_miei_crediti). oggi.html non cambia. Credito = lezioni o servizi gia' dati e non ancora pagati (Master v4.0 §4.3); le rate successive previste non sono crediti. (1) Da fare oggi: quarta tessera 💶 Da incassare (solo segreteria piena: totale € e persone da get_crediti_aperti, riga rossa "N in ritardo", verde "Nessun credito aperto") -> nuovo tab "💶 Da incassare" (?nav=segreteria&tab=crediti): Totale da incassare, righe per data entro (nome -> fascicolo, descrizione, importo, entro gg/mm rosso con "da N giorni" se scaduto, nota), INCASSATO (kcGuida, metodo contanti/bancomat=pos/bonifico, nota; cosa succede con l'iscrizione collegata saldata o in acconto, stessa regola dell'RPC) -> incassa_credito; ANNULLA (motivo obbligatorio, bozza nel browser) -> annulla_credito. (2) Fascicolo: riquadro 💶 Crediti sotto Percorso corsi (crediti per persona_id) con gli stessi bottoni, Storico crediti (incassati e annullati: data, metodo, motivo) e + PAGA DOPO -> kcGuida (cosa precompilato col nome completo del corso attivo, es. "Corso Advance KataClimb (2 volte a settimana) — 8 lezioni"; importo; entro obbligatorio; voce di listino con nome completo, preselezionata solo se il corso attivo ne ha una sola senza dubbi; collega all'iscrizione attiva; nota) -> apri_credito. Senza account della persona il bottone non c'e' (l'RPC vuole p_user_id). (3) Area personale: in cima, riquadro "Da saldare: X €" per ogni credito di get_miei_crediti (genitore: "Da saldare per <Nome>"), bordo colore del portale, testo nero su bianco, nessun "in ritardo", bottone Scrivi alla segreteria (stesso WhatsApp della home); si rilegge a ogni apertura e al ritorno sulla pagina. Scritture solo via le tre RPC. CUMULA v3.148 (sotto). -->
 <!-- KC-BUILD: portale v3.148 · 2026-10-29 · SEGRETERIA E COMPENSI STAFF (consegna 29 ott, DB sql/segreteria_compensi_2026-10-29.sql da lanciare PRIMA del push): (1) Da sistemare → Sistema adesso → "registra": caselle dei giorni del corso (solo slot attivi del tipo), validazione "Scegli il giorno del corso", p_slot_ids ad allineamento_decidi (caso segnalato dalla segreteria). (2) Cambia giorni: si cambia anche quanti giorni, niente scritta rossa, contatore informativo (caso segnalato dalla segreteria). (3) Mellozzini su Expert e Giovani a percentuale (quota in slot_piano_staff.percentuale): restano nelle presenze, 0 € a lezione, contati come istruttore nella copertura, blocco Compensi a percentuale in Costi staff del mese (v_compenso_percentuale_mese: incassi del mese divisi sui mesi che il pagamento copre, quota, sostituti chi/quanto, netto in rosso se negativo; si conta quello che è entrato davvero, sconti compresi; dal 1/10/2026, settembre saldato a mano; eccezioni decise da Marco 30/10 in compenso_percentuale_eccezioni). (4) Prima Lezione nella stessa ora di un corso dello stesso istruttore: 0 €, fuori da Presenze da confermare, "dentro il corso — non si paga a parte" in Turni e Prime Lezioni del mese. CUMULA v3.147 (sotto). -->
@@ -5879,36 +5880,83 @@ async function renderMioMeseStaff(){
     +(Number(r.da_confermare)>0?'<p style="margin:8px 0 0;font-size:14px;color:#B45309">'+n(r.da_confermare,'lezione','lezioni')+' ancora senza presenza: valgono 0 finché la segreteria non conferma.</p>':'')
     +'</div>';
 }
-/* v3.137 — Il mio diario didattico. La vista restituisce solo le righe con visibile_allievo e solo
-   temi affrontati, trasformazione e messaggio: mai criticita', da implementare, scale, note, Sala con Monitor.
-   Solo nel proprio profilo: non in Comunita', non pubblico. */
+/* v3.151 — IL MIO PERCORSO (consegna 31 ott 2026, decisioni di Marco): la traccia del progresso promessa sul sito.
+   Dall'alto: I miei Kata (dai video gia' letti per la sezione Kata, kataVids: validati, in attesa, da migliorare con il
+   commento della validazione, piu' le voci kata_da_migliorare del quadro) e La mia traccia: v_mio_quadro (solo le voci che
+   l'allievo puo' leggere e non ritirate: la vista non restituisce mai quelle solo-staff) e v_mio_diario_didattico (note
+   delle lezioni gia' visibili), unite e ordinate per data. Solo nel proprio profilo: non in Comunita', non pubblico. */
 const DIARIO_DID_CONTESTO={prima_lezione:'Prima Lezione Adulti',prima_lezione_genitori:'Prima Lezione Genitori',
   prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)',
   open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb',
   fly:'Corso Fly KataClimb',bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',giovani:'Corso Giovani KataClimb (18–24)',
-  senior:'Corso Senior KataClimb (over 60)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',lab:'Lab',
-  prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
+  senior:'Corso Senior KataClimb (over 60)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',sala_monitor:'Sala con Monitor',
+  prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'}; // v3.151 + Sala con Monitor, via il Lab (eliminato dal 30 ott)
+const PERC_LBL={punti_forza:'I tuoi punti di forza',abitudini_da_trasformare:'Abitudini da trasformare',kata_da_migliorare:'Kata da migliorare',per_te:'Per te'};
+const PERC_ORD=['punti_forza','abitudini_da_trasformare','kata_da_migliorare','per_te'];
+const PERC_RUOLO={istruttore:'Istruttore',monitor:'Monitor',maestro:'Maestro'}; // il DB non ha il genere: il ruolo come etichetta
 async function renderMioDiarioDidattico(){
   const el=document.getElementById('my-diario-didattico');if(!el||!sb||!user)return;
-  let righe=[];
+  let diario=[],quadro=[];
   try{
-    const{data,error}=await sb.from('v_mio_diario_didattico').select('id,data,contesto,temi_affrontati,trasformazione,per_allievo,istruttore').order('data',{ascending:false});
-    if(error)throw error;
-    righe=data||[];
-  }catch(e){console.warn('[diario didattico]',e.message||e);el.innerHTML='';return}
-  if(!righe.length&&profile&&profile.staff_role){el.innerHTML='';el.dataset.sig='';return} // lo staff senza note non vede il riquadro vuoto
-  const sig=JSON.stringify(righe);if(el.dataset.sig===sig)return;el.dataset.sig=sig;
+    const[d,q]=await Promise.all([
+      sb.from('v_mio_diario_didattico').select('id,data,contesto,temi_affrontati,trasformazione,per_allievo,istruttore').order('data',{ascending:false}),
+      sb.from('v_mio_quadro').select('id,created_at,autore_nome,ruolo,contesto,fine_corso,tipo,kata_num,testo').order('created_at',{ascending:false})
+    ]);
+    if(d.error)throw d.error;
+    if(q.error)console.warn('[il mio percorso] quadro:',q.error.message);
+    diario=d.data||[];quadro=q.data||[];
+  }catch(e){console.warn('[il mio percorso]',e.message||e);el.innerHTML='';return}
+  /* I miei Kata: dai video gia' caricati per la sezione Kata del profilo (nessuna nuova lettura) */
+  const tutti=[].concat(...Object.values(kataVids||{}));
+  const nk=k=>'Kata '+k+(KN[k]?' · '+KN[k]:'');
+  const val=[...new Set(tutti.filter(v=>v.status==='certified').map(v=>v.kata_num))].sort((a,b)=>a-b);
+  const att=[...new Set(tutti.filter(v=>v.status==='ready').map(v=>v.kata_num))].filter(k=>!val.includes(k)).sort((a,b)=>a-b);
+  const daMigl=tutti.filter(v=>v.status==='rejected'&&!val.includes(v.kata_num)).map(v=>({k:v.kata_num,t:v.feedback_validazione||''}))
+    .concat(quadro.filter(v=>v.tipo==='kata_da_migliorare').map(v=>({k:v.kata_num,t:v.testo})));
+  const haKata=val.length||att.length||daMigl.length;
+  if(!diario.length&&!quadro.length&&!haKata&&profile&&profile.staff_role){el.innerHTML='';el.dataset.sig='';return} // lo staff senza note non vede il riquadro vuoto
+  const sig=JSON.stringify([diario,quadro,val,att,daMigl]);if(el.dataset.sig===sig)return;el.dataset.sig=sig;
   const blocco=(lbl,t)=>t?'<div class="quest-d"><div class="quest-lbl">'+lbl+'</div><div class="quest-txt">'+escapeHtml(t)+'</div></div>':'';
-  const corpo=righe.length?righe.map(function(r){
-    const ctx=r.contesto?(DIARIO_DID_CONTESTO[r.contesto]||String(r.contesto).replace(/_/g,' ')):'';
+  const kataHtml=haKata?'<div style="margin-bottom:18px">'
+      +'<div class="quest-lbl" style="margin-bottom:6px">I miei Kata</div>'
+      +blocco('Validati ('+val.length+')',val.length?val.map(nk).join(' · '):'Ancora nessuno: il primo è vicino.')
+      +(att.length?blocco('In attesa di validazione ('+att.length+')',att.map(nk).join(' · ')):'')
+      +(daMigl.length?'<div class="quest-d"><div class="quest-lbl">Da migliorare</div>'+daMigl.map(x=>'<div class="quest-txt">'+escapeHtml((x.k?'Kata '+x.k+(KN[x.k]?' '+KN[x.k]:''):'Kata')+(x.t?' — '+x.t:''))+'</div>').join('')+'</div>':'')
+      +'</div>':'';
+  /* La mia traccia: una tappa per ogni valutazione (stesso autore, stesso momento) e per ogni nota di lezione */
+  const tappe=[];
+  quadro.forEach(v=>{
+    const k=[v.autore_nome,String(v.created_at).slice(0,19),v.contesto,v.fine_corso].join('|');
+    let t=tappe.find(x=>x.k===k);
+    if(!t){t={k,quando:v.created_at,q:v,voci:[]};tappe.push(t);}
+    t.voci.push(v);
+  });
+  diario.forEach(r=>tappe.push({k:'d'+r.id,quando:r.data,d:r}));
+  tappe.sort((a,b)=>String(b.quando).localeCompare(String(a.quando)));
+  const ctxDi=c=>c?(DIARIO_DID_CONTESTO[c]||String(c).replace(/_/g,' ')):'';
+  const traccia=tappe.map(function(t){
+    if(t.d){
+      const r=t.d,ctx=ctxDi(r.contesto);
+      return'<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">'
+        +'<div class="quest-tappa" style="font-family:var(--serif);font-size:17px;font-weight:300">'+escapeHtml(questDataLunga(r.data))+'</div>'
+        +'<div class="quest-meta" style="margin-bottom:10px">'+escapeHtml(r.istruttore||'Istruttore')+(ctx?' · '+escapeHtml(ctx):'')+'</div>'
+        +blocco('Temi affrontati',r.temi_affrontati)+blocco('Trasformazione',r.trasformazione)+blocco('Per te',r.per_allievo)
+        +'</div>';
+    }
+    const v=t.q,ctx=ctxDi(v.contesto);
+    const voci=t.voci.slice().sort((a,b)=>PERC_ORD.indexOf(a.tipo)-PERC_ORD.indexOf(b.tipo));
     return'<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">'
-      +'<div class="quest-tappa" style="font-family:var(--serif);font-size:17px;font-weight:300">'+escapeHtml(questDataLunga(r.data))+(ctx?' · '+escapeHtml(ctx):'')+'</div>'
-      +'<div class="quest-meta" style="margin-bottom:10px">'+escapeHtml(r.istruttore||'Istruttore')+'</div>'
-      +blocco('Temi affrontati',r.temi_affrontati)+blocco('Trasformazione',r.trasformazione)+blocco('Per te',r.per_allievo)
+      +(v.fine_corso?'<div style="display:inline-block;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--gold,#C9A227);color:#fff;margin-bottom:6px">🏁 Fine '+escapeHtml(ctx||'corso')+'</div>':'')
+      +'<div class="quest-tappa" style="font-family:var(--serif);font-size:17px;font-weight:300">'+escapeHtml(questDataLunga(v.created_at))+'</div>'
+      +'<div class="quest-meta" style="margin-bottom:10px">'+escapeHtml(v.autore_nome||'')+(PERC_RUOLO[v.ruolo]?', '+PERC_RUOLO[v.ruolo]:'')+(ctx?' · '+escapeHtml(ctx):'')+'</div>'
+      +voci.map(x=>blocco(PERC_LBL[x.tipo]||'',x.tipo==='kata_da_migliorare'&&x.kata_num?'Kata '+x.kata_num+(KN[x.kata_num]?' '+KN[x.kata_num]:'')+' — '+x.testo:x.testo)).join('')
       +'</div>';
-  }).join(''):'<p class="quest-meta" style="margin:0">Qui troverai le note dei tuoi istruttori dopo le lezioni.</p>';
+  }).join('');
+  const corpo=kataHtml
+    +'<div class="quest-lbl" style="margin-bottom:8px">La mia traccia</div>'
+    +(traccia||'<p class="quest-meta" style="margin:0">Qui troverai la traccia del tuo percorso: le note dei tuoi istruttori e del monitor, lezione dopo lezione.</p>');
   el.innerHTML='<div class="card fu" style="margin-bottom:22px;padding:16px">'
-    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 12px">Il mio <em>diario didattico</em></h2>'
+    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 12px">Il mio <em>percorso</em></h2>'
     +corpo+'</div>';
 }
 
