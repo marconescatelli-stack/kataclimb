@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.5 · 2026-11-01 · SALA CON MONITOR ANCHE IL SABATO (consegna 31 ott, decisione di Marco: sabato 14-18, gli istruttori si segnano da soli; caso del 31/10: il sabato non esisteva nel calendario monitor e il turno si apriva a mano). Turni monitor da lunedi' a sabato: fasce per giorno della settimana (lun-ven 19:00-22:00, sabato 14:00-18:00, domenica niente), griglia a 6 colonne (su telefono va a capo come prima), "Sala con Monitor, da lunedì a sabato, prossime 2 settimane.", settimane dal lunedi' al sabato. MI SEGNO e MI TOLGO uguali, con l'orario della fascia di quel giorno (impegno_mi_segno('monitor') accetta qualunque giorno e orario, verificato). Nessuna modifica a DB. CUMULA v1.4 (sotto). -->
 <!-- KC-BUILD: turni v1.4 · 2026-10-27 · NON CI SONO: INDISPONIBILITA' DELLO STAFF (consegna 27 ott, DB staff_indisponibilita): (1) sezione nuova "🚫 Quando non ci sono" in alto: + SEGNA CHE NON CI SONO apre un calendario a selezione multipla (pulsanti da 44px, mese per mese, da oggi in poi; pallino arancio = hai gia' un impegno, righe = gia' segnato), "Tutto il giorno" (default) o "Solo dalle … alle …", motivo facoltativo; prima di confermare, se nelle date hai impegni previsti, "Hai già N lezioni in queste date: verranno tolte e il portale cerca il sostituto. Confermi?"; poi una segna_indisponibile per data e il riepilogo: per ogni lezione tolta chi c'e' adesso (letto da impegni_staff) oppure "nessun sostituto disponibile, la segreteria lo vede"; errori per data cosi' come arrivano. Elenco "Le mie date" (v_staff_indisponibilita, da oggi) con TOGLI -> togli_indisponibile. (2) Sulle card delle lezioni dei corsi, delle scuole e dei turni monitor la riga grigia "Non disponibili: Nome" per quella data e ora. (3) MI SOSTITUISCE…: il sostituto previsto per primo se disponibile, poi gli altri disponibili, poi i monitor (solo casi estremi), in fondo i non disponibili, grigi e non selezionabili, con il motivo. Scritture solo via RPC. Nessuna modifica a DB. CUMULA v1.3 (sotto). -->
 <!-- KC-BUILD: turni v1.3 · 2026-10-27 · MONITOR IN FONDO (consegna 27 ott, DB segreteria_da_sistemare): in MI SOSTITUISCE… chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi" (il sostituto previsto resta primo se non e' un monitor); sceglierlo chiede prima "È un monitor, non è istruttore né assistente. È davvero un caso estremo?". Per saperlo i nomi dello staff si leggono con staff_role. Nessuna modifica a RPC. CUMULA v1.2 (sotto). -->
 <!-- KC-BUILD: turni v1.2 · 2026-10-26 · PRESENZE E SOSTITUZIONI STAFF SU TUTTE LE LEZIONI (consegna 26 ott, DB staff_lezioni_tutti): (1) LEZIONI DEI CORSI mostra tutto v_copertura_lezioni, corsi adulti e Prime Lezioni compresi (nessun filtro sui minori in pagina): nomi completi per Open, Advance, Intro Corda, Evo Corda, Fly, Giovani, Senior, Prima Lezione Adulti, Prima Lezione Privata Speciale (minori dalla fascia come prima). (2) Sulle proprie lezioni ancora previste, accanto a NON CI SONO: MI SOSTITUISCE… -> scelta dallo staff (per primo il sostituto automatico della lezione da slot_piano_staff, poi tutti per nome) -> conferma "La lezione passa a NOME. Tu non risulti più in questa lezione." -> sostituisci_istruttore. (3) Chip "Nome (sostituisce Nome)" dalle note di sostituzione (si leggono anche le righe ritirate, solo per questo). Nessuna modifica a RPC o tabelle. CUMULA v1.1 (sotto). -->
@@ -50,7 +51,7 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 .vuota{font-size:14px; color:#C9C9CE; padding:6px 2px}
 .sett{font-size:14px; font-weight:800; color:var(--fiducia); margin:14px 2px 8px}
 .griglia{display:grid; grid-template-columns:1fr; gap:8px}
-@media (min-width:700px){ .griglia{grid-template-columns:repeat(5,1fr)} }
+@media (min-width:700px){ .griglia{grid-template-columns:repeat(6,1fr)} } /* v1.5 da lunedi' a sabato */
 .giorno{background:var(--tile); border:1px solid var(--velo); border-radius:14px; padding:10px}
 .giorno.passato{opacity:.55}
 .giorno h3{font-size:14px; font-weight:800; margin-bottom:8px; color:var(--titolo)}
@@ -155,7 +156,7 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
   <div id="lezioni"><p class="vuota">…</p></div>
 
   <div class="zona">Turni monitor</div>
-  <p class="nota-zona">Sala con Monitor, da lunedì a venerdì, prossime 2 settimane.</p>
+  <p class="nota-zona">Sala con Monitor, da lunedì a sabato, prossime 2 settimane.</p>
   <div id="monitor"><p class="vuota">…</p></div>
 
   <div class="zona">I miei impegni</div>
@@ -179,8 +180,10 @@ const CFG={
 };
 /* Richiesti fissi sulle lezioni delle scuole: il campo per slot non esiste ancora (fuori consegna). */
 const RICHIESTI_LEZIONE=3;
-/* v1.1 (Marco 23 ott 2026): i turni monitor partono dalle 19, la fascia 18-19 "da coprire" e' tolta. */
-const FASCE_MONITOR=[{ini:'19:00',fin:'22:00'}];
+/* v1.1 (Marco 23 ott 2026): i turni monitor partono dalle 19, la fascia 18-19 "da coprire" e' tolta.
+   v1.5 (Marco 31 ott 2026): la Sala con Monitor c'e' anche il sabato 14-18; domenica niente. Fasce per giorno (Date.getDay()). */
+const FASCE_MONITOR_GIORNO={1:[{ini:'19:00',fin:'22:00'}],2:[{ini:'19:00',fin:'22:00'}],3:[{ini:'19:00',fin:'22:00'}],
+  4:[{ini:'19:00',fin:'22:00'}],5:[{ini:'19:00',fin:'22:00'}],6:[{ini:'14:00',fin:'18:00'}]};
 const RUOLI_CONDUCE=['staff_istruttore_sr','staff_istruttore_tutor','staff_creator'];
 const NOME_LEZ={prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
 const RUOLO={conduce:'conduce',supporto:'supporto',monitor:'monitor'};
@@ -587,12 +590,12 @@ function disegnaMonitor(lunedi){
   const oggiIso=isoLocal(new Date());
   let html='';
   for(let w=0;w<2;w++){
-    const l=piuGiorni(lunedi,w*7), v=piuGiorni(l,4);
+    const l=piuGiorni(lunedi,w*7), v=piuGiorni(l,5); // v1.5 fino al sabato
     html+=`<div class="sett">Settimana dal ${l.getDate()} ${MESI[l.getMonth()]} al ${v.getDate()} ${MESI[v.getMonth()]}</div><div class="griglia">`;
-    for(let g=0;g<5;g++){
+    for(let g=0;g<6;g++){
       const d=piuGiorni(l,g), di=isoLocal(d), passato=di<oggiIso;
       html+=`<div class="giorno${passato?' passato':''}"><h3>${GIORNI_FULL[d.getDay()]} ${d.getDate()}</h3>`;
-      FASCE_MONITOR.forEach(f=>{
+      (FASCE_MONITOR_GIORNO[d.getDay()]||[]).forEach(f=>{
         const seg=impMon.filter(i=>i.data===di && ora(i.ora_inizio)===f.ini);
         const mio=seg.find(i=>i.user_id===uid);
         const chi=seg.length?seg.map(i=>esc(nome(i.user_id))+(i.stato==='presente'?' ✓':i.stato==='assente'?' · assente':'')).join(', '):'Nessuno';
