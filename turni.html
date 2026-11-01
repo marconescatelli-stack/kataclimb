@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.7 · 2026-11-01 · SONO DISPONIBILE (consegna 31 ott, punto 2b; DB staff_disponibilita gia' live dal 1/11: sono_disponibile, ritiro_disponibilita, v_staff_disponibilita, disponibilita' chiusa da sola quando la persona viene segnata o segna "non ci sono"). Sulle voci della bacheca, sui turni monitor senza nessuno della griglia e sulle lezioni scoperte (corsi, supporto richiesto, scuole sotto 3): riga verde "Disponibili: …" (o "Nessuno disponibile ancora"), bottone SONO DISPONIBILE accanto a MI SEGNO; se lo sei gia': "Sei disponibile ✓", NON PIÙ DISPONIBILE (ritiro_disponibilita) e MI SEGNO per prenderlo davvero; segreteria e creator: ASSEGNA accanto a ogni disponibile -> "Sei sicuro? Assegni il turno a …" -> impegno_mi_segno con p_user_id (lezione: p_tipo lezione e p_slot_id; ruolo dal ruolo della persona). Chi ha segnato "non ci sono" non vede il bottone. Nessuna modifica a DB. CUMULA v1.6 (sotto). -->
 <!-- KC-BUILD: turni v1.6 · 2026-11-01 · BACHECA "📌 DA COPRIRE" (consegna 31 ott, decisione di Marco): in cima alla pagina, prima di tutte le altre sezioni (ancora #da-coprire, per arrivarci da Oggi), una sola lista delle cose scoperte dei prossimi 14 giorni in ordine di data e ora: turni monitor senza nessuno (lun-ven 19-22, sab 14-18), lezioni dei corsi scoperte (v_copertura_lezioni coperta = false, con "Istruttori 0/1 · Assistenti 0/1"), richieste di supporto aperte (chi l'ha chiesta e la nota), lezioni delle scuole con meno di 3 persone. Per ogni voce: giorno, orario, nome completo del corso o Sala con Monitor, chi e' gia' segnato, la riga grigia "Non disponibili: …"; MI SEGNO (impegno_mi_segno) o ACCETTO IO (accetta_supporto) se c'e' la richiesta; se hai segnato "non ci sono": niente bottone e "Hai segnato che non ci sei"; rosso entro 3 giorni, arancio dopo; vuota = "Tutto coperto nelle prossime 2 settimane ✓" in verde. Dopo il clic la bacheca si ricalcola subito. Il calcolo sta in kc-da-coprire.js (kcDaCoprire), lo stesso per la tessera di Oggi: un solo conto; le fasce dei turni monitor della griglia vengono dallo stesso file. I monitor vedono solo i turni monitor. Nessuna modifica a DB. CUMULA v1.5 (sotto). -->
 <!-- KC-BUILD: turni v1.5 · 2026-11-01 · SALA CON MONITOR ANCHE IL SABATO (consegna 31 ott, decisione di Marco: sabato 14-18, gli istruttori si segnano da soli; caso del 31/10: il sabato non esisteva nel calendario monitor e il turno si apriva a mano). Turni monitor da lunedi' a sabato: fasce per giorno della settimana (lun-ven 19:00-22:00, sabato 14:00-18:00, domenica niente), griglia a 6 colonne (su telefono va a capo come prima), "Sala con Monitor, da lunedì a sabato, prossime 2 settimane.", settimane dal lunedi' al sabato. MI SEGNO e MI TOLGO uguali, con l'orario della fascia di quel giorno (impegno_mi_segno('monitor') accetta qualunque giorno e orario, verificato). Nessuna modifica a DB. CUMULA v1.4 (sotto). -->
 <!-- KC-BUILD: turni v1.4 · 2026-10-27 · NON CI SONO: INDISPONIBILITA' DELLO STAFF (consegna 27 ott, DB staff_indisponibilita): (1) sezione nuova "🚫 Quando non ci sono" in alto: + SEGNA CHE NON CI SONO apre un calendario a selezione multipla (pulsanti da 44px, mese per mese, da oggi in poi; pallino arancio = hai gia' un impegno, righe = gia' segnato), "Tutto il giorno" (default) o "Solo dalle … alle …", motivo facoltativo; prima di confermare, se nelle date hai impegni previsti, "Hai già N lezioni in queste date: verranno tolte e il portale cerca il sostituto. Confermi?"; poi una segna_indisponibile per data e il riepilogo: per ogni lezione tolta chi c'e' adesso (letto da impegni_staff) oppure "nessun sostituto disponibile, la segreteria lo vede"; errori per data cosi' come arrivano. Elenco "Le mie date" (v_staff_indisponibilita, da oggi) con TOGLI -> togli_indisponibile. (2) Sulle card delle lezioni dei corsi, delle scuole e dei turni monitor la riga grigia "Non disponibili: Nome" per quella data e ora. (3) MI SOSTITUISCE…: il sostituto previsto per primo se disponibile, poi gli altri disponibili, poi i monitor (solo casi estremi), in fondo i non disponibili, grigi e non selezionabili, con il motivo. Scritture solo via RPC. Nessuna modifica a DB. CUMULA v1.3 (sotto). -->
@@ -93,6 +94,13 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 .frm-supp select{flex:1; min-width:180px; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
 .frm-supp input{flex:1; min-width:180px; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:9px 10px}
 .btn.rosso{background:#A51515; border-color:#A51515; color:#fff}
+/* v1.7 sono disponibile */
+.disp{font-size:14px; color:#7EE2A0; font-weight:700; margin-top:8px}
+.disp.nessuno{color:var(--grigio); font-weight:400}
+.disp-p{white-space:nowrap}
+.disp-io{color:#7EE2A0; font-weight:700}
+.btn.mini{font-size:13px; padding:4px 8px; margin-left:4px; border-radius:8px}
+.fascia .btn.mini{width:auto; margin-top:0}
 /* v1.6 bacheca da coprire */
 .box.arancio{border-left:4px solid var(--arancio); background:rgba(255,179,64,.06)}
 .box.tutto-ok{border-left:4px solid var(--cordata); color:var(--cordata); font-weight:800}
@@ -203,6 +211,7 @@ let sb, uid, staffRole=null, nomi={}, lezioni=[], impLez=[], impMon=[], miei=[],
 let copertura=[], richieste=[], slotCorsi={}, corsiVoci=[], _suppAperto=null; // v1.1 lezioni dei corsi
 let impLezTutti=[], piano=[], _sostAperto=null; // v1.2 sostituzioni (righe ritirate solo per i nomi) e piano fisso
 let indisp=[], nonciSel=new Set(), nonciMese=null; // v1.4 quando non ci sono
+let disp=[], dispCtx=[]; // v1.7 sono disponibile: v_staff_disponibilita e i contesti dei bottoni
 /* v1.1 nome completo: per i minori conta la fascia (le lezioni delle 18 di lun e gio hanno tipo bambini e fascia ragazzi) */
 const NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb',
   /* v1.2 corsi adulti e Prime Lezioni */
@@ -269,6 +278,8 @@ async function carica(){
     for(const r of [rs,rl,rm,rmiei]) if(r.error) throw r.error;
     if(rv.error)console.warn('[turni] indisponibilita:',rv.error.message); indisp=rv.data||[]; // v1.4
     lezioni=rs.data||[]; impLezTutti=rl.data||[]; impLez=impLezTutti.filter(x=>x.stato!=='ritirato'); impMon=rm.data||[]; miei=rmiei.data||[];
+    const rd=await sb.from('v_staff_disponibilita').select('id, user_id, persona, staff_role, tipo, slot_id, data, ora_inizio, ora_fine, nota'); // v1.7
+    if(rd.error)console.warn('[turni] disponibilita:',rd.error.message); disp=rd.data||[];
     const rp=await sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo',true); // v1.2
     if(rp.error)console.warn('[turni] piano:',rp.error.message); piano=rp.data||[];
     await caricaCorsi(oggiIso);
@@ -290,8 +301,75 @@ async function carica(){
     ['corsi','lezioni','monitor','miei'].forEach(id=>{ $(id).innerHTML=`<p class="vuota">Non riesco a leggere i turni ora: ${esc(errTesto(e))}</p>`; });
     return;
   }
+  dispCtx=[]; // v1.7
   disegnaCorsi(); disegnaLezioni(); disegnaMonitor(lunedi); disegnaMiei(); disegnaNonCi();
   await caricaBacheca(); // v1.6
+}
+
+/* ── v1.7 SONO DISPONIBILE (Marco 31 ott: "mettilo subito"; DB staff_disponibilita): "posso coprirlo, ma non mi prendo
+   ancora il turno". sono_disponibile / ritiro_disponibilita; quando la persona viene segnata (da sola o dalla segreteria
+   con ASSEGNA) il DB chiude la disponibilita' da solo. Stessa riga e stessi bottoni in bacheca, griglia monitor e lezioni. ── */
+const puoAssegnare=()=>['staff_creator','staff_segreteria'].includes(staffRole); // stessa regola di is_segreteria()
+/* contesto: {tipo:'monitor'|'lezione', data, ini, fin, slot_id} */
+function dispDi(c){ return disp.filter(d=>d.data===c.data&&ora(d.ora_inizio)===ora(c.ini)&&(c.slot_id?d.slot_id===c.slot_id:!d.slot_id)); }
+function htmlDisp(c,opz){
+  opz=opz||{};
+  const k=dispCtx.push(c)-1, L=dispDi(c), mio=L.find(d=>d.user_id===uid);
+  const riga=L.length
+    ?`<div class="disp">Disponibili: ${L.map(d=>`<span class="disp-p">${esc(nomeV(d.user_id,d.persona))}${puoAssegnare()?` <button class="btn mini" onclick="assegnaDisp(${k},'${esc(d.user_id)}',this)">ASSEGNA</button>`:''}</span>`).join(', ')}</div>`
+    :'<div class="disp nessuno">Nessuno disponibile ancora</div>';
+  let az='';
+  if(!opz.soloRiga&&!nonDispDi(uid,c.data,c.ini,c.fin)){
+    az=mio
+      ?`<span class="det disp-io">Sei disponibile ✓</span><button class="btn" onclick="nonPiuDisp('${esc(mio.id)}',this)">NON PIÙ DISPONIBILE</button>`
+        +(opz.miSegno===false?'':`<button class="btn prim" onclick="segnaCtx(${k},this)">MI SEGNO</button>`)
+      :`<button class="btn" onclick="sonoDisp(${k},this)">SONO DISPONIBILE</button>`;
+  }
+  return {riga,az,mio:!!mio};
+}
+async function sonoDisp(k,btn){
+  const c=dispCtx[k]; if(!c)return;
+  btn.disabled=true;
+  const{data,error}=await sb.rpc('sono_disponibile',c.tipo==='monitor'
+    ?{p_tipo:'monitor',p_data:c.data,p_ora_inizio:c.ini,p_ora_fine:c.fin}
+    :{p_tipo:'lezione',p_data:c.data,p_slot_id:c.slot_id});
+  if(error){ btn.disabled=false; toast('Non registrato: '+errTesto(error)); return; }
+  const n=data&&data.disponibili||1;
+  toast(n>1?`Fatto: sei disponibile. Siete in ${n}.`:'Fatto: sei disponibile. La segreteria lo vede.');
+  carica();
+}
+async function nonPiuDisp(id,btn){
+  btn.disabled=true;
+  const{error}=await sb.rpc('ritiro_disponibilita',{p_id:id});
+  if(error){ btn.disabled=false; toast('Non ritirata: '+errTesto(error)); return; }
+  toast('Fatto: non sei più disponibile.');
+  carica();
+}
+/* MI SEGNO da chi aveva detto "sono disponibile": prende il turno davvero */
+async function segnaCtx(k,btn){
+  const c=dispCtx[k]; if(!c)return;
+  btn.disabled=true;
+  const r=c.tipo==='monitor'
+    ?await sb.rpc('impegno_mi_segno',{p_tipo:'monitor',p_data:c.data,p_ora_inizio:c.ini,p_ora_fine:c.fin})
+    :await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:c.slot_id,p_data:c.data,p_ruolo:RUOLI_CONDUCE.includes(staffRole)?'conduce':'supporto'});
+  if(r.error){ btn.disabled=false; toast('Non segnato: '+errTesto(r.error)); return; }
+  toast('Segnato. Grazie!');
+  carica();
+}
+/* segreteria e creator: assegnano il turno a chi si e' detto disponibile */
+async function assegnaDisp(k,u,btn){
+  const c=dispCtx[k]; if(!c)return;
+  const d=dispDi(c).find(x=>x.user_id===u), chi=nomeV(u,d&&d.persona);
+  const cosa=c.tipo==='monitor'?`la Sala con Monitor di ${giornoLungo(c.data)} ${c.ini}–${c.fin}`:`${c.titolo||'la lezione'} di ${giornoLungo(c.data)} ${c.ini}`;
+  if(!confirm(`Sei sicuro? Assegni il turno a ${chi}: ${cosa}.`))return;
+  btn.disabled=true;
+  const conduce=RUOLI_CONDUCE.includes((d&&d.staff_role)||(nomi[u]&&nomi[u].staff_role));
+  const r=c.tipo==='monitor'
+    ?await sb.rpc('impegno_mi_segno',{p_tipo:'monitor',p_data:c.data,p_ora_inizio:c.ini,p_ora_fine:c.fin,p_user_id:u})
+    :await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:c.slot_id,p_data:c.data,p_ruolo:conduce?'conduce':'supporto',p_user_id:u});
+  if(r.error){ btn.disabled=false; toast('Non assegnato: '+errTesto(r.error)); return; }
+  toast(`Fatto: il turno è di ${chi}.`);
+  carica();
 }
 
 /* ── v1.6 BACHECA "📌 DA COPRIRE": la calcola kcDaCoprire (kc-da-coprire.js), la stessa funzione della tessera di Oggi ── */
@@ -309,17 +387,18 @@ function htmlVoceBacheca(v,i){
     :`<span class="chip vuoto">nessuno segnato</span>`;
   const supp=v.richiesta?`<div class="supp">Serve supporto${v.richiesta.chi?` · lo chiede <b>${esc(v.richiesta.chi)}</b>`:''}${v.richiesta.note?`: ${esc(v.richiesta.note)}`:''}</div>`:'';
   const nd=v.nonDisp.length?`<div class="nondisp">Non disponibili: ${v.nonDisp.map(x=>esc(x.persona)+(x.ora_inizio?' ('+esc(ora(x.ora_inizio))+'–'+esc(ora(x.ora_fine))+')':'')).join(', ')}</div>`:'';
+  const D=htmlDisp({tipo:v.tipo==='monitor'?'monitor':'lezione',data:v.data,ini:v.ini,fin:v.fin,slot_id:v.slot_id,titolo:v.titolo},{soloRiga:v.ioNonCi||v.mioSegnato,miSegno:false}); // v1.7
   let az;
   if(v.ioNonCi)az='<span class="det">Hai segnato che non ci sei.</span>';
   else if(v.mioSegnato)az='<span class="det">Sei segnato.</span>';
-  else az=v.richiesta&&v.tipo!=='monitor'
+  else az=(v.richiesta&&v.tipo!=='monitor'
     ?`<button class="btn prim" onclick="bachecaAccetto(${i},this)">ACCETTO IO</button>`
-    :`<button class="btn prim" onclick="bachecaSegno(${i},this)">MI SEGNO</button>`;
+    :`<button class="btn prim" onclick="bachecaSegno(${i},this)">MI SEGNO</button>`)+D.az;
   return `<div class="box ${cls}">
     <div class="r1"><span class="tit">${esc(maiusc(giornoLungo(v.data)))} · ${esc(v.ini)}–${esc(v.fin)}</span>
       <span class="conta zero">${esc(v.conta)}</span></div>
     <div class="det">${esc(v.titolo)}${v.urgente?' · <span class="stato-ko">entro 3 giorni</span>':''}</div>
-    <div class="chips">${chips}</div>${nd}${supp}
+    <div class="chips">${chips}</div>${nd}${supp}${D.riga}
     <div class="az">${az}</div>
   </div>`;
 }
@@ -533,11 +612,16 @@ function htmlCorso(c,i){
   }else if(!c.coperta && !req){
     az=`<button class="btn prim" onclick="miSegnoCorso(${i},this)">MI SEGNO</button>`;
   }
+  let rigaD='';
+  if(!mio && (!c.coperta||req)){ // v1.7 sono disponibile sulle lezioni scoperte o con supporto richiesto
+    const D=htmlDisp({tipo:'lezione',data:c.data,ini:ora(c.ora_inizio),fin:ora(c.ora_fine),slot_id:c.slot_id,titolo:nomeCorsoLez(c.tipo_corso,c.fascia)},{miSegno:false});
+    rigaD=D.riga; az+=D.az;
+  }
   return `<div class="box ${c.coperta?'coperta':'scoperta'}">
     <div class="r1"><span class="tit">${esc(giornoLungo(c.data))} · ${esc(ora(c.ora_inizio))}–${esc(ora(c.ora_fine))}</span>
       <span class="conta ${c.coperta?'ok':'zero'}">${conta}</span></div>
     <div class="det">${esc(nomeCorsoLez(c.tipo_corso,c.fascia))}${c.coperta?'':' · <span class="stato-ko">scoperta</span>'}</div>
-    <div class="chips">${chips}</div>${rigaNonDisp(c.data,c.ora_inizio,c.ora_fine)}${supp}
+    <div class="chips">${chips}</div>${rigaNonDisp(c.data,c.ora_inizio,c.ora_fine)}${supp}${rigaD}
     ${az?`<div class="az">${az}</div>`:''}
   </div>`;
 }
@@ -640,11 +724,16 @@ function disegnaLezioni(){
         </select>
         <button class="btn prim" onclick="segnaLezione('${esc(s.id)}',this)">MI SEGNO</button>`;
     }
+    let rigaD='';
+    if(!mio && n<RICHIESTI_LEZIONE){ // v1.7
+      const D=htmlDisp({tipo:'lezione',data:s.data_evento,ini:ora(s.ora_inizio),fin:ora(s.ora_fine),slot_id:s.id,titolo:titoloLezione(s)},{miSegno:false});
+      rigaD=D.riga; az+=D.az;
+    }
     return `<div class="box ${cls}">
       <div class="r1"><span class="tit">${esc(giornoLungo(s.data_evento))} · ${esc(ora(s.ora_inizio))}–${esc(ora(s.ora_fine))}</span>
         <span class="conta ${ccls}">${n}/${RICHIESTI_LEZIONE}</span></div>
       <div class="det">${esc(titoloLezione(s))}${s.note?' · '+esc(s.note):''}</div>
-      <div class="chips">${chips}</div>${rigaNonDisp(s.data_evento,s.ora_inizio,s.ora_fine)}
+      <div class="chips">${chips}</div>${rigaNonDisp(s.data_evento,s.ora_inizio,s.ora_fine)}${rigaD}
       <div class="az">${az}</div>
     </div>`;
   }).join('');
@@ -664,13 +753,15 @@ function disegnaMonitor(lunedi){
         const mio=seg.find(i=>i.user_id===uid);
         const chi=seg.length?seg.map(i=>esc(nome(i.user_id))+(i.stato==='presente'?' ✓':i.stato==='assente'?' · assente':'')).join(', '):'Nessuno';
         let btn='';
+        let rigaD='';
         if(!passato){
           if(mio) btn=mio.stato==='previsto'?`<button class="btn" onclick="miTolgo('${esc(mio.id)}',this)">MI TOLGO</button>`:'';
           else btn=`<button class="btn prim" onclick="segnaMonitor('${di}','${f.ini}','${f.fin}',this)">MI SEGNO</button>`;
+          if(!seg.length){ const D=htmlDisp({tipo:'monitor',data:di,ini:f.ini,fin:f.fin,slot_id:null},{miSegno:false}); rigaD=D.riga; btn+=D.az; } // v1.7
         }
         html+=`<div class="fascia${f.dacoprire?' dacoprire':''}">
           <div class="fh">${f.ini}–${f.fin}${f.dacoprire?'<span class="bdg">da coprire</span>':''}</div>
-          <div class="chi${seg.length?'':' nessuno'}">${chi}</div>${rigaNonDisp(di,f.ini,f.fin)}${btn}</div>`;
+          <div class="chi${seg.length?'':' nessuno'}">${chi}</div>${rigaNonDisp(di,f.ini,f.fin)}${rigaD}${btn}</div>`;
       });
       html+='</div>';
     }
