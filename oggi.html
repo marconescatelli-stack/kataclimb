@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.36 · 2026-10-31 · QUADRO DELL'ALLIEVO: LA TRACCIA DEL PROGRESSO (consegna 31 ott, decisioni di Marco; DB Quadro_allievo_2026-10-31 gia' applicato: quadro_allievo_voci, quadro_aggiungi, quadro_ritira, v_mio_quadro, quadro_fine_corso_da_fare, monitor_segna e monitor_nota_turno con p_per_allievo). (1) Guida del monitor da 3 a 4 passi: passi 1-2 invariati (note per lo staff), nuovo passo 3 "Cosa porta a casa Nome oggi?" (lo legge l'allievo, voce per_te del quadro) con l'avviso fisso arancio sulle note del carattere, minimo MIN_GUIDA caratteri, link "Oggi niente per Nome" con "Sei sicuro?" (dialogo della pagina); passo 4 Controlla e segna con la riga "Per Nome (lo legge lui/lei)" o "niente oggi"; monitor_segna con p_per_allievo; uscire a meta' chiede come prima. Stesso passo nella guida dei turni passati (monitor_nota_turno), solo se scrive il monitor del turno. (2) Scheda allievo: sezione "Quadro di Nome" sopra le osservazioni: I suoi Kata (kata_videos: validati, in attesa, da rifare con il commento) e La traccia (tutte le voci, dalla piu' recente, una tappa per salvataggio: data, autore, ruolo, contesto, fine corso; bollino solo staff; ritirate barrate con motivo e chi; Ritira con motivo obbligatorio per le proprie voci di 7 giorni, il maestro sempre). AGGIUNGI AL QUADRO (istruttori, monitor, creator; mai la segreteria): blocco verde "Lo legge Nome" con l'avviso fisso (punti di forza, abitudini da trasformare, Kata da migliorare con numero 1-33 anche piu' d'uno, per te) e blocco scuro "Solo istruttori" (punti deboli, problematiche caratteriali); contesto dal corso attivo; "Cosa succede se confermi" con "Nome leggera'" e "Solo lo staff leggera'"; una sola quadro_aggiungi; "Non hai salvato" all'uscita. Il ruolo si mostra come etichetta (Istruttore, Monitor, Maestro): il DB non ha il genere. (3) Fine corso: tessera "Fine corso: com'è cambiato?" da quadro_fine_corso_da_fare (istruttori e creator, non segreteria ne' monitor) con VALUTA -> scheda con il modulo di fine corso (punti di forza e abitudini obbligatori, p_fine_corso e p_iscrizione_id); uscire senza valutare chiede "Sei sicuro?" (Torna e valuta / Piu' tardi), la tessera resta finche' qualcuno valuta. (4) Nuova osservazione: "Mostra all'allievo" si spunta da solo quando "Per l'allievo" ha testo, e lo stesso avviso sulle note del carattere. CUMULA v2.35 (sotto). -->
 <!-- KC-BUILD: oggi v2.35 · 2026-10-30 · NOTE DEL MONITOR RETROATTIVE (consegna 30 ott, punto 3, approvata da Marco il 30/10; DB sql/monitor/07_note_retroattive_2026-10-30.sql da applicare dopo la 06 e PRIMA del deploy). (1) I miei turni (viste monitor e istruttore) da monitor_turni_elenco, con l'id del turno: ogni turno chiuso ha APRI E AGGIUNGI (fino a 7 giorni) o GUARDA. (2) Finestra del turno a tutto schermo (monitor_turno_dettaglio): chi e' stato seguito con le note; + AGGIUNGI UNA PERSONA SEGUITA -> cerca per nome (cerca_persona_staff) -> stesso modulo della sera (Su cosa avete lavorato, Com'e' andata, Controlla e segna) -> monitor_nota_turno: la nota va nel giorno e nell'ora del turno e porta "aggiunta il GG/MM"; SPOSTA SU UN'ALTRA PERSONA -> cerca -> "Sei sicuro?" -> monitor_sposta_nota (osservazione e persona seguita insieme, "spostata il GG/MM da X"). Uscire a meta' chiede "Non hai segnato…". (3) Segreteria e creator: nella console segreteria "Turni Sala con Monitor" (60 giorni, tutti i monitor) con la stessa finestra, anche oltre i 7 giorni. I permessi li controlla la RPC: il monitor solo sui suoi turni chiusi e fino a 7 giorni. Errori del DB a schermo (erroreChiaro). CUMULA v2.34 (sotto). -->
 <!-- KC-BUILD: oggi v2.34 · 2026-10-30 · NOTA DI SALA E PERSONA SEGUITA SEMPRE INSIEME (consegna 30 ott, punto 2; DB sql/monitor/06_note_sala_atomiche_2026-10-30.sql da applicare PRIMA del deploy). Caso del 28/10: istruttore in turno di sala, nota scritta da SALVA OSSERVAZIONE della scheda con il contesto precompilato dal tipo dell'allievo, 'monitor': la nota non era nel turno e il turno risultava senza persone seguite; poi chiusura automatica alle 22:00 e un secondo turno vuoto alle 22:10. (1) Scheda: il contesto 'monitor' diventa "Sala con Monitor" (sala_monitor), con la riga che spiega cosa si salva; salva_osservazione a DB scrive nota e persona seguita insieme nel turno aperto (_sala_annota, una sola RPC), senza turno aperto rifiuta con un errore chiaro. (2) Gli errori di SALVA OSSERVAZIONE, SEGNA e INIZIO/FINE TURNO restano a schermo finche' non si chiudono (erroreChiaro col testo del DB), non piu' un toast di 2 secondi. (3) DB: dopo la fine della sala di oggi INIZIO TURNO e SEGNA non aprono un turno nuovo (rimandano a I miei turni); la chiusura automatica non chiude se nell'ultimo quarto d'ora il monitor ha segnato qualcuno, ma la fine e' sempre quella prevista (decisione di Marco 30/10: le ore in piu' le corregge solo la segreteria, la nota del turno dice a che ora ha segnato l'ultima persona). CUMULA v2.33 (sotto). -->
 <!-- KC-BUILD: oggi v2.33 · 2026-10-30 · DA SALDARE (consegna 30 ott, DB Applica_registro_crediti_2026-10-30 gia' applicato; insieme a portale v3.149): solo nella vista allievo (anche il genitore per i figli), in cima sotto il saluto, un riquadro per ogni credito di get_miei_crediti: "Da saldare: X €" (genitore: "Da saldare per <Nome>: X €"), descrizione · entro <giorno> <data>, "Puoi pagare in segreteria in contanti, bancomat o bonifico.", bottone Scrivi alla segreteria (stesso WhatsApp della segreteria del portale). Testo nero su bianco, bordo col colore del portale (#1B74E4), nessun allarme, stesso testo anche a data passata. Si rilegge quando si torna sulla pagina: dopo l'incasso sparisce da solo. Niente cose della segreteria; nessuna scrittura; nessuna modifica alle altre viste. CUMULA v2.32 (sotto). -->
@@ -72,6 +73,30 @@ a{color:inherit; text-decoration:none}
 .saldare-c{font-size:15px;margin-top:4px;line-height:1.4}
 .saldare-p{font-size:14px;margin-top:6px;line-height:1.4}
 .saldare-b{display:inline-block;margin-top:12px;font-size:14px;font-weight:700;color:#FFF;background:#111;padding:10px 18px;border-radius:8px}
+/* v2.36 avviso fisso: le note sul carattere non vanno dove legge l'allievo */
+.avv-car{font-size:14px;font-weight:700;color:#FFB340;margin:8px 0 0;line-height:1.4}
+/* v2.36 quadro dell'allievo */
+.q-sub{margin-top:6px}
+.q-kata{font-size:15px;line-height:1.5;display:flex;flex-direction:column;gap:8px}
+.q-kata b{display:block;font-size:13px;color:var(--grigio)}
+.q-rif{margin-top:2px}
+.q-tappa{border:1px solid var(--velo);border-radius:12px;padding:12px;margin-bottom:10px}
+.q-tappa .oh{font-size:13px;color:#C9C9CE;margin-bottom:6px}
+.q-fine{display:inline-block;font-size:13px;font-weight:800;color:#000;background:var(--fiducia);border-radius:999px;padding:1px 8px;margin-left:4px}
+.q-voce{margin-top:8px;font-size:15px;line-height:1.45}
+.q-voce b{display:block;font-size:13px;color:var(--grigio)}
+.q-voce.rit .q-testo{text-decoration:line-through;color:#8A8A90}
+.q-ritirata{font-size:13px;color:#B8B8B8;margin-top:2px}
+.q-ritira{font-size:13px;margin-top:4px}
+.q-blocco{border-radius:12px;padding:12px;margin-top:14px}
+.q-blocco.legge{border:2px solid rgba(48,209,88,.7);background:rgba(48,209,88,.05)}
+.q-blocco.staff{border:2px solid #4A4A52;background:#101012}
+.q-btit{font-size:15px;font-weight:800;margin:0 0 6px}
+.q-obbl{font-size:13px;color:#FFB340;font-weight:700}
+.q-kata-riga{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px}
+.t-fine .fc-riga{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--velo)}
+.t-fine .fc-riga:first-of-type{border-top:none}
+.t-fine .fc-riga span{display:block;font-size:14px;color:var(--grigio)}
 /* v2.34 turno passato */
 .tr-tit{font-size:20px;font-weight:800;margin:0 0 6px}
 .tr-pers{padding:12px 0;border-top:1px solid var(--velo)}
@@ -702,8 +727,8 @@ async function init(){
   if(pdata.staff_role) setTimeout(loadImpegniOggi,0); // v2.23: dopo il render della vista
   if(pdata.staff_role) setTimeout(loadNonCiMie,0); // v2.32
 
-  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); loadTurniTutti(); }
-  else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); }
+  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); loadTurniTutti(); loadFineCorso(); }
+  else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); loadFineCorso(); }
   else if(vista==='monitor'){ renderMonitor(); loadMonitor(); loadEventi(); }
   else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); loadDaSaldare(); }
 }
@@ -940,6 +965,7 @@ function renderIstruttore(){
   ${htmlImpegniOggi()}
 
   ${htmlTessereAllievi()}
+  ${htmlTesseraFineCorso()}
 
   ${htmlSalaTessere()}
 
@@ -1175,6 +1201,7 @@ ${segPuoConti()?htmlSistemaPannello():''}
     <span class="cmd mono">CERCA ›</span>
   </a>
   ${mia}
+  ${htmlTesseraFineCorso()}
 
   <div class="zona mono">Rendiconto</div>
 
@@ -1735,6 +1762,7 @@ function disegnaElenco(){
 /* ── Scheda Allievo ── */
 function apriScheda(pid,sala,origine){
   schedaPid=pid; schedaDati=null; ossAperta=false; ossSporca=false;
+  quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
   schedaSala=!!sala || vista==='monitor'; // v2.18: in testa il campo "Su cosa avete lavorato?"
   /* v2.24: la guida riparte da capo a ogni scheda; "ricerca" = aperta da CHI STAI SEGUENDO */
   guida=guidaNuova(); schedaDaRicerca=origine==='ricerca'; schedaVeterano=false;
@@ -1751,6 +1779,7 @@ function nascondiScheda(){
   document.getElementById('scheda').hidden=true;
   document.body.style.overflow=''; document.body.classList.remove('sch-on');
   schedaPid=null; schedaDati=null; ossAperta=false; schedaSala=false;
+  quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
   if(guida)fotoLibera();
   guida=guidaNuova(); schedaDaRicerca=false; schedaVeterano=false; ossSporca=false; _esciOk=false;
 }
@@ -1799,6 +1828,7 @@ async function caricaScheda(){
     schedaDati=data||{};
     disegnaScheda();
     s.scrollTop=top;
+    if(!schedaDati.soloSala)caricaQuadro(pid); // v2.36 Kata e traccia del quadro
   }catch(e){
     if(pid!==schedaPid)return;
     console.error('[scheda]',e);
@@ -1903,7 +1933,8 @@ function htmlFormOss(d){
     ${TESTI_OSS.map(([k,l])=>`<label>${l}</label><textarea name="${k}">${esc(o[k]||'')}</textarea>`).join('')}
     <div class="per-allievo">
       <label for="oss-per-allievo">Per l'allievo</label>
-      <textarea id="oss-per-allievo" name="per_allievo" placeholder="Un messaggio che leggerà nel suo diario">${esc(o.per_allievo||'')}</textarea>
+      <textarea id="oss-per-allievo" name="per_allievo" placeholder="Un messaggio che leggerà nel suo diario" oninput="if(this.value.trim())document.getElementById('oss-visibile').checked=true">${esc(o.per_allievo||'')}</textarea>
+      <p class="avv-car">Qui niente note sul carattere: le legge l'allievo. Vanno nel Quadro, in «Problematiche caratteriali», che legge solo lo staff.</p>
       <label class="interr"><input type="checkbox" id="oss-visibile"${o.visibile_allievo?' checked':''}> Mostra all'allievo</label>
       <p class="aiuto">L'allievo vedrà: temi affrontati, trasformazione, questo messaggio. Mai criticità, scale e note interne.</p>
     </div>
@@ -2012,9 +2043,264 @@ function disegnaScheda(){
     </section>
     ${schedaSala?htmlSalaScheda(d):''}
     ${d.soloSala?'':`<section class="sch-sez"><h3>Percorso</h3>${htmlPercorso(d)}</section>
+    ${htmlQuadro(d)}
     <section class="sch-sez"><h3>Osservazioni</h3>${ossHtml}</section>
     ${htmlCommerciale(d)}`}`;
   applicaFoto(corpo);
+}
+
+/* ════════════════════════ v2.36 QUADRO DELL'ALLIEVO (consegna 31 ott 2026, decisioni di Marco) ════════════════════════
+   La traccia del progresso: ogni valutazione si AGGIUNGE (quadro_aggiungi), mai sostituita; una voce sbagliata si
+   ritira (quadro_ritira), resta a registro per lo staff. Il DB decide ruolo e visibile_allievo dal tipo:
+   lo legge l'allievo = punti_forza, abitudini_da_trasformare, kata_da_migliorare, per_te;
+   solo istruttori = punti_deboli, problematiche_caratteriali.
+   Lo staff legge quadro_allievo_voci e kata_videos (RLS is_staff); scrive solo con le RPC.
+   Scrivono istruttori, monitor e creator (stessa regola di _quadro_autore), mai la segreteria. */
+const QUADRO_SCRIVONO=['staff_creator','staff_istruttore_tutor','staff_istruttore_sr','staff_istruttore_jr','staff_monitor','staff_assistente'];
+const quadroPuoScrivere=()=>QUADRO_SCRIVONO.includes(pdata.staff_role);
+const QV_TIPI=[ // [tipo, etichetta per lo staff, la legge l'allievo]
+  ['punti_forza','Punti di forza',true],['abitudini_da_trasformare','Abitudini da trasformare',true],
+  ['kata_da_migliorare','Kata da migliorare',true],['per_te','Per te',true],
+  ['punti_deboli','Punti deboli',false],['problematiche_caratteriali','Problematiche caratteriali',false]];
+const QV_LBL=Object.fromEntries(QV_TIPI.map(([t,l])=>[t,l]));
+const QV_RUOLO={istruttore:'Istruttore',monitor:'Monitor',maestro:'Maestro'}; // il DB non ha il genere: ruolo come etichetta
+const CORSO_FINE={open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb'};
+let quadro=null;          // {pid, kata:[...]|null, userId, voci:[...], nomi:{user_id:nome}, errore}
+let quadroAperto=false, quadroSporco=false, quadroFine=null, qb=null; // qb = bozza del modulo, sopravvive ai ridisegni
+const qbNuova=ctx=>({contesto:ctx,punti_forza:'',abitudini_da_trasformare:'',per_te:'',punti_deboli:'',problematiche_caratteriali:'',kata:[{num:'',testo:''}]});
+const nomeCorsoQ=c=>c==='sala_monitor'?'Sala con Monitor':nomeCorso(c);
+
+async function caricaQuadro(pid){
+  const q={pid,kata:null,userId:null,voci:[],nomi:{},errore:null};
+  try{
+    const[pd,vv]=await Promise.all([
+      sb.from('profile_data').select('user_id').eq('persona_id',pid).limit(1),
+      sb.from('quadro_allievo_voci').select('*').eq('persona_id',pid).order('created_at',{ascending:false})
+    ]);
+    if(vv.error)throw vv.error;
+    q.voci=vv.data||[];
+    q.userId=(pd.data&&pd.data[0]&&pd.data[0].user_id)||null;
+    if(q.userId){
+      const kv=await sb.from('kata_videos').select('kata_num,status,feedback_validazione,created_at').eq('user_id',q.userId).order('kata_num');
+      if(kv.error)console.warn('[quadro] kata:',kv.error.message);
+      q.kata=kv.data||[];
+    }
+    const chi=[...new Set(q.voci.map(v=>v.ritirata_da).filter(Boolean))];
+    if(chi.length){
+      const{data}=await sb.from('profiles').select('user_id,nome,cognome').in('user_id',chi);
+      (data||[]).forEach(p=>{q.nomi[p.user_id]=[p.nome,p.cognome].filter(Boolean).join(' ')||'staff'});
+    }
+  }catch(e){ console.warn('[quadro]',e?.message||e); q.errore=e?.message||String(e); }
+  if(pid!==schedaPid)return;
+  quadro=q;
+  if(!document.getElementById('scheda').hidden)disegnaScheda();
+  if(quadroFine&&quadroAperto&&!q._visto){ q._visto=true; setTimeout(()=>document.getElementById('sch-quadro')?.scrollIntoView({behavior:'smooth',block:'start'}),60); } // aperta da VALUTA
+}
+
+function htmlKataQuadro(n){
+  const q=quadro;
+  if(!q)return '<p class="sch-vuoto">Un attimo…</p>';
+  if(!q.userId)return `<p class="sch-vuoto">${n} non ha ancora l'account nel portale: niente Kata caricati.</p>`;
+  const K=q.kata||[], kn=k=>`Kata ${k}${KN[k]?' · '+esc(KN[k]):''}`;
+  const val=[...new Set(K.filter(x=>x.status==='certified').map(x=>x.kata_num))];
+  const att=[...new Set(K.filter(x=>x.status==='ready').map(x=>x.kata_num))];
+  const rif=K.filter(x=>x.status==='rejected');
+  if(!val.length&&!att.length&&!rif.length)return `<p class="sch-vuoto">${n} non ha ancora caricato video dei Kata.</p>`;
+  return `<div class="q-kata">
+    <div><b>Validati (${val.length})</b> ${val.length?val.map(kn).join(' · '):'nessuno'}</div>
+    ${att.length?`<div><b>In attesa di validazione (${att.length})</b> ${att.map(kn).join(' · ')}</div>`:''}
+    ${rif.length?`<div><b>Da rifare (${rif.length})</b>${rif.map(x=>`<div class="q-rif">${kn(x.kata_num)}${x.feedback_validazione?' — '+esc(x.feedback_validazione):''}</div>`).join('')}</div>`:''}
+  </div>`;
+}
+function puoRitirare(v){
+  if(v.ritirata_at)return false;
+  if(pdata.staff_role==='staff_creator')return true;
+  return v.autore_user_id===uid && (Date.now()-new Date(v.created_at).getTime())<7*864e5;
+}
+/* la traccia: una tappa per ogni salvataggio (stesso autore, stesso momento, stesso contesto) */
+function htmlTracciaQuadro(n){
+  const q=quadro; if(!q)return '';
+  if(q.errore)return `<p class="sch-vuoto">Non riesco a leggere il quadro ora: ${esc(q.errore)}</p>`;
+  if(!q.voci.length)return `<p class="sch-vuoto">Ancora niente nel quadro di ${n}.</p>`;
+  const tappe=[];
+  q.voci.forEach(v=>{
+    const k=[v.autore_user_id,String(v.created_at).slice(0,19),v.contesto,v.fine_corso].join('|');
+    let t=tappe.find(x=>x.k===k); if(!t){t={k,v,voci:[]};tappe.push(t);}
+    t.voci.push(v);
+  });
+  return tappe.map(({v,voci})=>{
+    const ordine=voci.slice().sort((a,b)=>QV_TIPI.findIndex(x=>x[0]===a.tipo)-QV_TIPI.findIndex(x=>x[0]===b.tipo));
+    return `<div class="q-tappa">
+      <div class="oh">${esc(giornoLungo(String(v.created_at).slice(0,10)))} · ${esc(v.autore_nome||'—')} · ${esc(QV_RUOLO[v.ruolo]||v.ruolo||'')}${v.contesto?' · '+esc(nomeCorsoQ(v.contesto)):''}${v.fine_corso?' <span class="q-fine">fine corso</span>':''}</div>
+      ${ordine.map(x=>`<div class="q-voce${x.ritirata_at?' rit':''}">
+        <b>${esc(QV_LBL[x.tipo]||x.tipo)}${x.kata_num?' · Kata '+x.kata_num+(KN[x.kata_num]?' '+esc(KN[x.kata_num]):''):''}${x.visibile_allievo?'':' <span class="solo-staff">solo staff</span>'}</b>
+        <span class="q-testo">${esc(x.testo)}</span>
+        ${x.ritirata_at?`<div class="q-ritirata">Ritirata il ${ggmm(String(x.ritirata_at).slice(0,10))}${x.ritirata_da?' da '+esc(q.nomi[x.ritirata_da]||'staff'):''}: ${esc(x.ritirata_motivo||'')}</div>`
+          :puoRitirare(x)?`<button class="lnk q-ritira" onclick="quadroRitira('${esc(x.id)}')">Ritira</button>`:''}
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+function htmlQuadro(d){
+  const n=esc(nomeScheda());
+  const corpo=quadroAperto&&quadroPuoScrivere()?htmlFormQuadro(d)
+    :`<h3 class="q-sub">I suoi Kata</h3>${htmlKataQuadro(n)}
+      <h3 class="q-sub">La traccia</h3>${htmlTracciaQuadro(n)}
+      ${quadroPuoScrivere()?`<div class="sch-btns"><button class="btn prim" onclick="quadroApri(null)">AGGIUNGI AL QUADRO</button></div>`:''}`;
+  return `<section class="sch-sez" id="sch-quadro"><h3>Quadro di ${n}</h3>${corpo}</section>`;
+}
+
+/* ── il modulo: due blocchi ben separati ── */
+function contestoQuadro(d){
+  if(quadroFine)return quadroFine.tipo_corso;
+  const o=ossMiaOggi(d)||{}, R=(d&&d.riga)||{};
+  let c=o.contesto||R.corso_attivo||R.tipo||'prima_lezione';
+  if(c==='monitor')c='sala_monitor';
+  if(schedaSala)c='sala_monitor';
+  return c;
+}
+function quadroApri(fine){
+  quadroFine=fine||null; quadroAperto=true; quadroSporco=false;
+  qb=qbNuova(contestoQuadro(schedaDati||{}));
+  disegnaScheda();
+  setTimeout(()=>document.getElementById('sch-quadro')?.scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+function htmlFormQuadro(d){
+  const n=esc(nomeScheda()), b=qb||qbNuova(contestoQuadro(d)), F=quadroFine;
+  const ctxOpz=Object.keys(NOME_CORSO).concat(['sala_monitor']).map(k=>`<option value="${k}"${k===b.contesto?' selected':''}>${esc(nomeCorsoQ(k))}</option>`).join('')
+    +([...Object.keys(NOME_CORSO),'sala_monitor'].includes(b.contesto)?'':`<option value="${esc(b.contesto)}" selected>${esc(nomeCorsoQ(b.contesto))}</option>`);
+  const ta=(k,lbl,ph,obbl)=>`<label for="qf-${k}">${lbl}${obbl?' <span class="q-obbl">obbligatorio</span>':''}</label><textarea id="qf-${k}" data-k="${k}" placeholder="${ph}">${esc(b[k]||'')}</textarea>`;
+  const kataOpz=sel=>'<option value="">Kata…</option>'+Array.from({length:33},(_,i)=>i+1).map(k=>`<option value="${k}"${String(sel)===String(k)?' selected':''}>Kata ${k} · ${esc(KN[k]||'')}</option>`).join('');
+  const kataRighe=b.kata.map((x,i)=>`<div class="q-kata-riga"><select data-kn="${i}">${kataOpz(x.num)}</select><textarea data-kt="${i}" placeholder="Cosa migliorare in questo Kata">${esc(x.testo||'')}</textarea></div>`).join('');
+  return `<div class="frm" id="q-form" oninput="quadroLeggi()" onchange="quadroLeggi()">
+    ${F?`<p class="g-dom">Fine ${esc(CORSO_FINE[F.tipo_corso]||nomeCorso(F.tipo_corso))}: com'è cambiato ${n}?</p>
+      <p class="aiuto">${F.fatte} su ${F.totali} lezioni fatte. È la tappa che ${n} vede nel suo percorso: punti di forza e abitudini da trasformare sono obbligatori.</p>`:''}
+    <label for="qf-contesto">Contesto</label><select id="qf-contesto" data-k="contesto"${F?' disabled':''}>${ctxOpz}</select>
+    <div class="q-blocco legge">
+      <p class="q-btit">👁 Lo legge ${n}</p>
+      <p class="avv-car">${n} legge tutto quello che scrivi qui. Le note sul carattere non vanno qui: scrivile in «Problematiche caratteriali», qui sotto, che legge solo lo staff.</p>
+      ${ta('punti_forza','Punti di forza','Cosa fa bene, su cosa può contare',!!F)}
+      ${ta('abitudini_da_trasformare','Abitudini da trasformare','Una tendenza da correggere, detta in modo che sappia cosa fare',!!F)}
+      <label>Kata da migliorare</label>${kataRighe}
+      <button type="button" class="lnk" onclick="quadroAltroKata()">+ un altro Kata</button>
+      ${ta('per_te','Per te','Un messaggio scritto a lui/lei',false)}
+    </div>
+    <div class="q-blocco staff">
+      <p class="q-btit">🔒 Solo istruttori</p>
+      <p class="aiuto">${n} non vede mai questo blocco.</p>
+      ${ta('punti_deboli','Punti deboli','',false)}
+      ${ta('problematiche_caratteriali','Problematiche caratteriali','',false)}
+    </div>
+    <div class="sch-btns"><button class="btn" onclick="quadroChiudi()">ANNULLA</button>
+      <button class="btn prim" onclick="quadroControlla()">CONTROLLA E AGGIUNGI</button></div>
+  </div>`;
+}
+function quadroLeggi(){
+  const f=document.getElementById('q-form'); if(!f||!qb)return;
+  f.querySelectorAll('[data-k]').forEach(el=>{ qb[el.dataset.k]=el.value; });
+  f.querySelectorAll('[data-kn]').forEach(el=>{ const x=qb.kata[+el.dataset.kn]; if(x)x.num=el.value; });
+  f.querySelectorAll('[data-kt]').forEach(el=>{ const x=qb.kata[+el.dataset.kt]; if(x)x.testo=el.value; });
+  quadroSporco=true;
+}
+function quadroAltroKata(){ quadroLeggi(); qb.kata.push({num:'',testo:''}); disegnaScheda(); }
+/* le voci compilate, nell'ordine dei due blocchi */
+function quadroVoci(){
+  const V=[];
+  ['punti_forza','abitudini_da_trasformare'].forEach(t=>{ const x=String(qb[t]||'').trim(); if(x)V.push({tipo:t,testo:x}); });
+  qb.kata.forEach(k=>{ const x=String(k.testo||'').trim(); if(x||k.num)V.push({tipo:'kata_da_migliorare',testo:x,kata_num:k.num?Number(k.num):null}); });
+  ['per_te','punti_deboli','problematiche_caratteriali'].forEach(t=>{ const x=String(qb[t]||'').trim(); if(x)V.push({tipo:t,testo:x}); });
+  return V;
+}
+function quadroControlla(){
+  quadroLeggi();
+  const n=esc(nomeScheda()), V=quadroVoci();
+  const err=[];
+  if(quadroFine){
+    if(String(qb.punti_forza||'').trim().length<10)err.push('Scrivi i punti di forza (almeno 10 caratteri).');
+    if(String(qb.abitudini_da_trasformare||'').trim().length<10)err.push('Scrivi le abitudini da trasformare (almeno 10 caratteri).');
+  }
+  V.filter(v=>v.tipo==='kata_da_migliorare').forEach(v=>{
+    if(!v.kata_num)err.push('Scegli il numero del Kata da migliorare.');
+    if(v.testo.length<3)err.push(`Scrivi cosa migliorare${v.kata_num?' nel Kata '+v.kata_num:''}.`);
+  });
+  V.filter(v=>v.tipo!=='kata_da_migliorare'&&v.testo.length<3).forEach(v=>err.push(`«${QV_LBL[v.tipo]}» è troppo corto.`));
+  if(!V.length)err.push('Scrivi almeno una voce.');
+  if(err.length){ dialogo(`<p><b>Prima di aggiungere:</b></p><ul class="cambio-l">${[...new Set(err)].map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`,['HO CAPITO',null]); return; }
+  const riga=v=>`<li><b>${esc(QV_LBL[v.tipo])}${v.kata_num?' · Kata '+v.kata_num:''}:</b> ${esc(v.testo)}</li>`;
+  const leg=V.filter(v=>QV_TIPI.find(x=>x[0]===v.tipo)[2]), st=V.filter(v=>!QV_TIPI.find(x=>x[0]===v.tipo)[2]);
+  dialogo(`<p><b>Cosa succede se confermi</b></p>
+    <p>${n} leggerà:</p>${leg.length?`<ul class="cambio-l">${leg.map(riga).join('')}</ul>`:'<p class="aiuto">niente</p>'}
+    <p>Solo lo staff leggerà:</p>${st.length?`<ul class="cambio-l">${st.map(riga).join('')}</ul>`:'<p class="aiuto">niente</p>'}
+    <p class="aiuto">Si aggiunge alla traccia di ${n} con la data di oggi, il tuo nome e il tuo ruolo${quadroFine?', come valutazione di fine corso':''}. Non sostituisce niente.</p>`,
+    ['Sì, aggiungi',()=>quadroSalva(V)],['No, torna indietro',null]);
+}
+async function quadroSalva(V){
+  const pid=schedaPid, nome=nomeScheda(), F=quadroFine;
+  const{data,error}=await sb.rpc('quadro_aggiungi',{p_persona_id:pid,p_contesto:F?F.tipo_corso:(qb.contesto||null),p_voci:V,
+    p_fine_corso:!!F,p_iscrizione_id:F?F.iscrizione_id:null});
+  if(error){ erroreChiaro('Non aggiunto al quadro',error); return; }
+  const r=data||{}, x=r.voci??V.length, y=r.visibili_allievo??0;
+  toast(`Aggiunto al quadro di ${nome}: ${x} ${x===1?'voce':'voci'}, ${y} le legge lui/lei.`);
+  quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null;
+  if(F)loadFineCorso();
+  caricaQuadro(pid);
+}
+function quadroChiudi(poi){
+  const n=esc(nomeScheda());
+  const chiudi=()=>{ quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; if(poi)poi(); else disegnaScheda(); };
+  if(quadroFine){
+    dialogo(`<p><b>Sei sicuro?</b> ${n} ha finito il corso: la valutazione di fine corso è la tappa che vede nel suo percorso.</p>`,
+      ['Torna e valuta',()=>disegnaScheda()],['Più tardi',chiudi]);
+    return;
+  }
+  if(quadroSporco){
+    dialogo(`<p>Non hai aggiunto niente al quadro di ${n}. Se esci, quello che hai scritto si perde.</p>`,
+      ['Torna e completa',()=>disegnaScheda()],['Esci senza salvare',chiudi]);
+    return;
+  }
+  chiudi();
+}
+function quadroRitira(id){
+  const v=(quadro&&quadro.voci||[]).find(x=>x.id===id); if(!v)return;
+  const n=esc(nomeScheda());
+  dialogo(`<p><b>Ritiri questa voce?</b></p><p>${esc(QV_LBL[v.tipo]||v.tipo)}: «${esc(v.testo)}»</p>
+    <div class="frm"><label for="dlg-nota">Perché la ritiri (obbligatorio)</label><textarea id="dlg-nota"></textarea></div>
+    <p class="aiuto">Cosa succede se confermi: ${v.visibile_allievo?n+' non la vedrà più, ':''}lo staff sì, con il motivo.</p>`,
+    ['Sì, ritira',async motivo=>{
+      if(!motivo||motivo.length<5){ erroreChiaro('Voce non ritirata','Scrivi perché la ritiri (almeno 5 caratteri).'); return; }
+      const{error}=await sb.rpc('quadro_ritira',{p_voce_id:id,p_motivo:motivo});
+      if(error){ erroreChiaro('Voce non ritirata',error); return; }
+      toast('Voce ritirata: resta a registro per lo staff.');
+      caricaQuadro(schedaPid);
+    }],['No, torna indietro',null]);
+}
+
+/* ── fine corso: la tessera nella console (istruttori e creator, mai la segreteria) ── */
+let fineCorso=[];
+function htmlTesseraFineCorso(){ return '<div class="t full fermo t-fine" id="t-finecorso" hidden></div>'; }
+async function loadFineCorso(){
+  const el=document.getElementById('t-finecorso'); if(!el)return;
+  if(!quadroPuoScrivere()||pdata.staff_role==='staff_monitor'){ el.hidden=true; return; }
+  try{
+    const{data,error}=await sb.rpc('quadro_fine_corso_da_fare');
+    if(error)throw error;
+    fineCorso=data||[];
+    if(fineCorso.length){
+      const{data:pp}=await sb.from('persone').select('id,nome,cognome').in('id',[...new Set(fineCorso.map(x=>x.persona_id))]);
+      const nomi={}; (pp||[]).forEach(p=>{nomi[p.id]=[p.nome,p.cognome].filter(Boolean).join(' ')});
+      fineCorso.forEach(x=>{x.nome=nomi[x.persona_id]||'—'});
+    }
+  }catch(e){ console.warn('[fine corso]',e?.message||e); el.hidden=true; return; }
+  el.hidden=!fineCorso.length;
+  el.innerHTML=`<span class="et mono">🏁 Fine corso: com'è cambiato?</span>
+    ${fineCorso.map((x,i)=>`<div class="fc-riga"><div><b>${esc(x.nome)}</b><span>${esc(CORSO_FINE[x.tipo_corso]||nomeCorso(x.tipo_corso))} · ${Number(x.fatte)} su ${Number(x.totali)} lezioni fatte</span></div>
+      <button class="btn prim" onclick="valutaFineCorso(${i})">VALUTA</button></div>`).join('')}`;
+}
+function valutaFineCorso(i){
+  const x=fineCorso[i]; if(!x)return;
+  apriScheda(x.persona_id);
+  quadroFine={iscrizione_id:x.iscrizione_id,tipo_corso:x.tipo_corso,fatte:Number(x.fatte),totali:Number(x.totali)};
+  quadroAperto=true; quadroSporco=false; qb=qbNuova(x.tipo_corso);
 }
 
 /* ════════════════════════ v2.16 RENDICONTO (console SEGRETERIA: creator, admin, segreteria) ════════════════════════
@@ -2403,9 +2689,9 @@ function disegnaGriglia(){
 /* ── v2.24 la guida a passi nella scheda in sala ── */
 const MIN_GUIDA=10;
 let guida=null, schedaDaRicerca=false, schedaVeterano=false, ossSporca=false, _esciOk=false, _salaUsata=false;
-const guidaNuova=()=>({passo:1,cosa:'',nota:'',alle:null,fotoFatta:false,foto:null,fotoUrl:null});
+const guidaNuova=()=>({passo:1,cosa:'',nota:'',per:'',perNiente:false,alle:null,fotoFatta:false,foto:null,fotoUrl:null}); // v2.36 per = passo 3, lo legge l'allievo
 guida=guidaNuova();
-const guidaIniziata=()=>!!(schedaSala && schedaPid && [1,2,3].includes(guida.passo) && (guida.cosa.trim()||guida.nota.trim()));
+const guidaIniziata=()=>!!(schedaSala && schedaPid && [1,2,3,4].includes(guida.passo) && (guida.cosa.trim()||guida.nota.trim()||guida.per.trim()));
 const giaSegnato=pid=>!!((salaOggi&&salaOggi.seguiti)||[]).find(x=>x.persona_id===pid);
 const turnoAperto=()=>!!(salaOggi&&salaOggi.turno&&!salaOggi.turno.fine);
 function nomeScheda(pieno){
@@ -2422,7 +2708,7 @@ async function caricaVeterano(pid){
     ]);
     if(pid!==schedaPid)return;
     schedaVeterano=!!(a.data&&a.data.veterano) || (b.data||[]).some(r=>Array.isArray(r.badges)&&r.badges.includes('veterano'));
-    if(guida.passo===3)disegnaGuida();
+    if(guida.passo===4)disegnaGuida();
   }catch(e){ console.warn('[veterano]',e?.message||e); }
 }
 
@@ -2430,6 +2716,7 @@ async function caricaVeterano(pid){
 function motivoUscita(){
   if(document.getElementById('scheda').hidden || !schedaPid)return null;
   if(guidaIniziata())return 'guida';
+  if(quadroAperto && (quadroFine || quadroSporco))return 'quadro'; // v2.36
   if(ossAperta && ossSporca)return 'oss';
   if(schedaSala && schedaDaRicerca && turnoAperto() && !giaSegnato(schedaPid) && guida.passo!=='fatto')return 'ricerca';
   return null;
@@ -2438,6 +2725,7 @@ function dialogoUscita(onEsci){
   const m=motivoUscita(); if(!m)return false;
   const N=`<b>${esc(nomeScheda())}</b>`, n=esc(nomeScheda());
   const esci=onEsci||esciScheda;
+  if(m==='quadro'){ quadroChiudi(esci); return true; } // v2.36 fine corso: "Sei sicuro?", altrimenti "Non hai salvato"
   if(m==='guida')
     dialogo(giaSegnato(schedaPid)
         ?`<p>Non hai finito di segnare ${N}. Quello che hai scritto si perde.</p>`
@@ -2544,22 +2832,28 @@ function htmlGuida(){
       <p class="ok-tit">Fatto. ${n} è segnato/a alle ${esc(g.alle||'')}.</p>
       <div class="sch-btns"><button class="btn prim" onclick="vaiAllaGriglia()">SEGNA UN'ALTRA PERSONA</button>
         <button class="btn" onclick="guidaRiparti()">TORNA ALLA SCHEDA</button></div></div>`;
-  const pall=`<div class="pallini" aria-label="Passo ${g.passo} di 3">${[1,2,3].map(i=>`<i class="${i<=g.passo?'on':''}"></i>`).join('')}<span>Passo ${g.passo} di 3</span></div>`;
+  const pall=`<div class="pallini" aria-label="Passo ${g.passo} di 4">${[1,2,3,4].map(i=>`<i class="${i<=g.passo?'on':''}"></i>`).join('')}<span>Passo ${g.passo} di 4</span></div>`;
   const tit=giaSegnato(schedaPid)?`<p class="g-tit">Vuoi aggiungere qualcosa su ${n}?</p>`:'';
-  if(g.passo===3){
+  if(g.passo===4){
     const vet=schedaVeterano;
     const fissa=giaSegnato(schedaPid)
       ?`Premendo SEGNA, quello che hai scritto si aggiunge alle note di oggi su ${n}.`
       :vet?`Premendo SEGNA, ${n} risulta seguito/a oggi. È veterano/a: l'ora resta a 5 €.`
       :`Premendo SEGNA, ${n} risulta seguito/a oggi e quest'ora vale 8 €.`;
+    const per=g.perNiente||!g.per.trim()
+      ?`<div><span>Per ${n}:</span> niente oggi</div>`
+      :`<div><span>Per ${n} (lo legge lui/lei):</span> ${esc(g.per.trim())}</div>`;
     return `${avv}${pall}${tit}<p class="g-dom">Controlla e segna</p>
       <div class="riep"><b>${esc(nomeScheda(true))}</b> · oggi ${hhmm(new Date())}
         <div><span>Su cosa:</span> ${esc(g.cosa.trim())}</div>
-        <div><span>Com'è andata:</span> ${esc(g.nota.trim())}</div></div>
+        <div><span>Com'è andata:</span> ${esc(g.nota.trim())}</div>
+        ${per}</div>
       <p class="riga-fissa">${fissa}</p>
-      <div class="sch-btns"><button class="btn" onclick="guidaVai(2)">INDIETRO</button>
+      <div class="sch-btns"><button class="btn" onclick="guidaVai(3)">INDIETRO</button>
         <button class="btn prim" onclick="guidaSegna(this)">SEGNA</button></div>`;
   }
+  /* v2.36 passo 3: quello che porta a casa, lo legge l'allievo nel suo diario (voce "per te" del quadro) */
+  if(g.passo===3)return `${avv}${pall}${tit}${htmlPassoPer(n,g.per,'guida-t','guidaScrivi(this)','guida-avanti','guida-perche',"guidaVai(2)","guidaVai(4)","guidaNienteOggi()")}`;
   const p1=g.passo===1;
   const val=p1?g.cosa:g.nota, ok=val.trim().length>=MIN_GUIDA;
   return `${avv}${pall}${tit}
@@ -2572,6 +2866,25 @@ function htmlGuida(){
       <button class="btn prim" id="guida-avanti" onclick="guidaVai(${g.passo+1})"${ok?'':' disabled'}>AVANTI</button></div>
     <p class="perche" id="guida-perche"${ok?' hidden':''}>Scrivi ancora qualcosa (almeno ${MIN_GUIDA} caratteri).</p>`;
 }
+/* v2.36 passo "Cosa porta a casa": lo stesso nella guida della sera e in quella dei turni passati */
+const AVV_CARATTERE='Qui niente note sul carattere: quelle vanno solo ai passi 1–2, che legge lo staff.';
+function htmlPassoPer(n,val,idT,onInput,idAvanti,idPerche,indietro,avanti,niente){
+  const ok=String(val||'').trim().length>=MIN_GUIDA;
+  return `<label class="g-dom" for="${idT}" style="display:block">Cosa porta a casa ${n} oggi?</label>
+    <p class="aiuto">Lo legge ${n} nel suo diario. Scrivi a lui/lei: cosa ha fatto bene, cosa è cambiato, su cosa lavorare la prossima volta.</p>
+    <textarea id="${idT}" oninput="${onInput}" placeholder="Oggi hai lasciato la presa alta senza irrigidirti. Prossima volta: cadute un po' più alte, con lo stesso respiro.">${esc(val||'')}</textarea>
+    <p class="avv-car">${AVV_CARATTERE}</p>
+    <div class="sch-btns"><button class="btn" onclick="${indietro}">INDIETRO</button>
+      <button class="btn prim" id="${idAvanti}" onclick="${avanti}"${ok?'':' disabled'}>AVANTI</button></div>
+    <p class="perche" id="${idPerche}"${ok?' hidden':''}>Scrivi ancora qualcosa (almeno ${MIN_GUIDA} caratteri).</p>
+    <p style="margin-top:10px"><button class="lnk" onclick="${niente}">Oggi niente per ${n}</button></p>`;
+}
+function guidaNienteOggi(){
+  const n=esc(nomeScheda());
+  dialogo(`<p><b>Sei sicuro?</b> ${n} non troverà niente di oggi nel suo diario.</p>`,
+    ['Torna e scrivi',()=>disegnaGuida(true)],
+    ['Sì, oggi niente',()=>{ guida.per=''; guida.perNiente=true; guida.passo=4; disegnaGuida(true); }]);
+}
 function disegnaGuida(fuoco){
   const el=document.getElementById('guida'); if(!el)return;
   el.innerHTML=htmlGuida();
@@ -2581,7 +2894,8 @@ function disegnaGuida(fuoco){
   }
 }
 function guidaScrivi(el){
-  guida[guida.passo===1?'cosa':'nota']=el.value;
+  guida[guida.passo===1?'cosa':guida.passo===2?'nota':'per']=el.value;
+  if(guida.passo===3)guida.perNiente=false; // ha deciso di scrivere
   const ok=el.value.trim().length>=MIN_GUIDA;
   const b=document.getElementById('guida-avanti'); if(b)b.disabled=!ok;
   const p=document.getElementById('guida-perche'); if(p)p.hidden=ok;
@@ -2589,6 +2903,7 @@ function guidaScrivi(el){
 function guidaVai(n){
   if(n>=2 && guida.cosa.trim().length<MIN_GUIDA)n=1;
   else if(n>=3 && guida.nota.trim().length<MIN_GUIDA)n=2;
+  else if(n>=4 && !guida.perNiente && guida.per.trim().length<MIN_GUIDA)n=3; // v2.36 o scrive o sceglie "Oggi niente"
   guida.passo=n; disegnaGuida(true);
 }
 function guidaRiparti(){
@@ -2601,9 +2916,11 @@ async function guidaSegna(btn){
   const cosa=guida.cosa.trim(), nota=guida.nota.trim();
   if(cosa.length<MIN_GUIDA){ guidaVai(1); return; }
   if(nota.length<MIN_GUIDA){ guidaVai(2); return; }
+  const per=guida.perNiente?'':guida.per.trim();
+  if(!guida.perNiente && per.length<MIN_GUIDA){ guidaVai(3); return; }
   btn.disabled=true;
-  /* passo 1 -> p_su_cosa, passo 2 -> p_note */
-  const{error}=await sb.rpc('monitor_segna',{p_persona_id:pid,p_su_cosa:cosa,p_note:nota});
+  /* passo 1 -> p_su_cosa, passo 2 -> p_note (staff), passo 3 -> p_per_allievo (voce "per te" del quadro, la legge l'allievo) */
+  const{error}=await sb.rpc('monitor_segna',{p_persona_id:pid,p_su_cosa:cosa,p_note:nota,p_per_allievo:per||null});
   if(error){ btn.disabled=false; erroreChiaro('Non segnato',error); return; } // v2.34: resta a schermo
   if(pid===schedaPid){ guida={...guidaNuova(),passo:'fatto',alle:hhmm(new Date()),fotoFatta:guida.fotoFatta}; disegnaGuida(true); }
   await loadMonitor();          // turno (si apre da solo), tabella OGGI e la scheda con la conferma
@@ -2637,7 +2954,7 @@ function avviaPromemoria(){
   if(_promemoriaTimer)return;
   _promemoriaTimer=setInterval(()=>{
     disegnaTurno(); loadCompensoTurno(); disegnaAvvisoTurno();
-    if(!document.getElementById('scheda').hidden && schedaSala && guida.passo===3)disegnaGuida(); // l'ora del riepilogo
+    if(!document.getElementById('scheda').hidden && schedaSala && guida.passo===4)disegnaGuida(); // l'ora del riepilogo
   },5*60000);
 }
 
@@ -2698,9 +3015,11 @@ function disegnaTurni(){
 }
 
 /* finestra del turno */
-function retroToccato(){ return !!retro && (retro.cosa.trim()||retro.nota.trim()) && ['passo1','passo2','passo3'].includes(retro.modo); }
+function retroToccato(){ return !!retro && (retro.cosa.trim()||retro.nota.trim()||retro.per.trim()) && ['passo1','passo2','passo3','passo4'].includes(retro.modo); }
+/* v2.36 il passo "per te" c'e' solo se scrive il monitor del turno (la segreteria non scrive valutazioni) */
+const retroConPer=()=>!!(retro&&retro.dett&&retro.dett.turno&&retro.dett.turno.monitor_user_id===uid);
 async function apriTurno(id){
-  retro={id,dett:null,modo:'lista',persona:null,cosa:'',nota:'',daPersona:null};
+  retro={id,dett:null,modo:'lista',persona:null,cosa:'',nota:'',per:'',perNiente:false,daPersona:null};
   const s=document.getElementById('turno-retro');
   document.getElementById('tr-corpo').innerHTML='<p class="sch-vuoto">Un attimo, apro il turno…</p>';
   s.hidden=false; s.scrollTop=0; document.body.style.overflow='hidden';
@@ -2747,15 +3066,22 @@ function disegnaRetro(fuoco){
       <div id="tr-ris"></div>
       <div class="sch-btns"><button class="btn" onclick="retroVai('lista')">INDIETRO</button></div></section>`;
   }else{
-    const n=esc(retro.persona?.nome||''), passo=retro.modo==='passo1'?1:retro.modo==='passo2'?2:3;
-    const pall=`<div class="pallini" aria-label="Passo ${passo} di 3">${[1,2,3].map(i=>`<i class="${i<=passo?'on':''}"></i>`).join('')}<span>Passo ${passo} di 3</span></div>`;
-    if(passo===3){
+    const n=esc(retro.persona?.nome||''), conPer=retroConPer(), tot=conPer?4:3;
+    const passo=retro.modo==='passo1'?1:retro.modo==='passo2'?2:retro.modo==='passo3'?3:tot;
+    const pall=`<div class="pallini" aria-label="Passo ${passo} di ${tot}">${Array.from({length:tot},(_,k)=>k+1).map(i=>`<i class="${i<=passo?'on':''}"></i>`).join('')}<span>Passo ${passo} di ${tot}</span></div>`;
+    if(retro.modo==='passo3'&&conPer){
+      corpo=`<section class="sch-sez">${pall}${htmlPassoPer(n,retro.per,'tr-t','retroScrivi(this)','tr-avanti','tr-perche',"retroVai('passo2')","retroVai('passo4')","retroNienteOggi()")}</section>`;
+    }else if(passo===tot){
+      const perRiga=!conPer?'':(retro.perNiente||!retro.per.trim()
+        ?`<div><span>Per ${n}:</span> niente</div>`
+        :`<div><span>Per ${n} (lo legge lui/lei):</span> ${esc(retro.per.trim())}</div>`);
       corpo=`<section class="sch-sez">${pall}<p class="g-dom">Controlla e segna</p>
         <div class="riep"><b>${n}</b> · turno di ${esc(giornoLungo(T.data))} ${hhmm(T.inizio)}–${hhmm(T.fine)}
           <div><span>Su cosa:</span> ${esc(retro.cosa.trim())}</div>
-          <div><span>Com'è andata:</span> ${esc(retro.nota.trim())}</div></div>
+          <div><span>Com'è andata:</span> ${esc(retro.nota.trim())}</div>
+          ${perRiga}</div>
         <p class="riga-fissa">Premendo SEGNA, ${n} risulta seguito/a in quel turno e la nota va nel giorno ${esc(giornoLungo(T.data))}. Resta scritto «aggiunta il ${pad2(new Date().getDate())}/${pad2(new Date().getMonth()+1)}».</p>
-        <div class="sch-btns"><button class="btn" onclick="retroVai('passo2')">INDIETRO</button>
+        <div class="sch-btns"><button class="btn" onclick="retroVai('${conPer?'passo3':'passo2'}')">INDIETRO</button>
           <button class="btn prim" onclick="retroSegna(this)">SEGNA</button></div></section>`;
     }else{
       const p1=passo===1, val=p1?retro.cosa:retro.nota, ok=val.trim().length>=MIN_GUIDA;
@@ -2772,7 +3098,8 @@ function disegnaRetro(fuoco){
   if(fuoco){ const t=document.getElementById('tr-t')||document.getElementById('tr-q'); if(t)t.focus(); }
 }
 function retroScrivi(el){
-  retro[retro.modo==='passo1'?'cosa':'nota']=el.value;
+  retro[retro.modo==='passo1'?'cosa':retro.modo==='passo2'?'nota':'per']=el.value;
+  if(retro.modo==='passo3')retro.perNiente=false;
   const ok=el.value.trim().length>=MIN_GUIDA;
   const b=document.getElementById('tr-avanti'); if(b)b.disabled=!ok;
   const p=document.getElementById('tr-perche'); if(p)p.hidden=ok;
@@ -2799,16 +3126,25 @@ function retroScegli(i){
   const x=_trRis[i]; if(!x||!retro)return;
   const p={id:x.persona_id,nome:((x.nome||'')+' '+(x.cognome||'')).trim()};
   if(retro.daPersona){ retroConfermaSposta(retro.daPersona,p); return; }
-  retro.persona=p; retro.cosa=''; retro.nota='';
+  retro.persona=p; retro.cosa=''; retro.nota=''; retro.per=''; retro.perNiente=false;
   retroVai('passo1');
+}
+function retroNienteOggi(){
+  const n=esc(retro?.persona?.nome||'');
+  dialogo(`<p><b>Sei sicuro?</b> ${n} non troverà niente di questo turno nel suo diario.</p>`,
+    ['Torna e scrivi',()=>disegnaRetro(true)],
+    ['Sì, niente',()=>{ retro.per=''; retro.perNiente=true; retroVai('passo4'); }]);
 }
 async function retroSegna(btn){
   if(!retro||!retro.persona)return;
+  const per=retroConPer()&&!retro.perNiente?retro.per.trim():'';
+  if(retroConPer()&&!retro.perNiente&&per.length<MIN_GUIDA){ retroVai('passo3'); return; }
   btn.disabled=true;
-  const{error}=await sb.rpc('monitor_nota_turno',{p_turno_id:retro.id,p_persona_id:retro.persona.id,p_su_cosa:retro.cosa.trim(),p_note:retro.nota.trim()});
+  /* v2.36 p_per_allievo = voce per_te del quadro (solo se scrive il monitor del turno) */
+  const{error}=await sb.rpc('monitor_nota_turno',{p_turno_id:retro.id,p_persona_id:retro.persona.id,p_su_cosa:retro.cosa.trim(),p_note:retro.nota.trim(),p_per_allievo:per||null});
   if(error){ btn.disabled=false; erroreChiaro('Nota non salvata',error); return; }
   toast(`Fatto: ${retro.persona.nome} è segnato/a nel turno.`);
-  retro.persona=null; retro.cosa=''; retro.nota=''; retro.modo='lista';
+  retro.persona=null; retro.cosa=''; retro.nota=''; retro.per=''; retro.perNiente=false; retro.modo='lista';
   await caricaTurno(); loadTurniElenco(); loadTurniTutti();
 }
 function retroSposta(i){
