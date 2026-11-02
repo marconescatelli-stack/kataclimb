@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.154 · 2026-11-02 · VIDEO KATA: MEMORIA 20 s, VALIDAZIONE 15 s (decisione Marco 2 nov: chi impara deve poter caricare, chi certifica deve essere immediato). KATA_MAX_DURATION unica → KATA_MAX_DURATION_MEMORIA 20 / KATA_MAX_DURATION_VALIDAZIONE 15 + kataMaxDur(slot). Nient'altro. CUMULA v3.153 (sotto). -->
 <!-- KC-BUILD: portale v3.153 · 2026-11-02 · LEZIONE NON SVOLTA OVUNQUE (consegna 2 nov, punto 3): Turni -> voce della lezione: "lezione non svolta" in grigio e solo "Riporta a previsto" (niente Segna assente/presente/Sostituisci); Compensi lezioni dei corsi: sotto le lezioni pagate "N lezioni non svolte (0 €, non sono assenze)" in grigio; Il mio mese: "N lezioni non svolte: la lezione non c'era, non conta come assenza." in grigio (conteggio da impegni_staff del mese). Mai come assenza ne' in arancio. Nessuna modifica a DB. CUMULA v3.152 (sotto). -->
 <!-- KC-BUILD: portale v3.152 · 2026-11-02 · NON C'ERA LEZIONE (richiesta della segreteria 2 nov, approvata da Marco; DB impegni_lezione_non_svolta gia' live). Segreteria -> ⚠ Da sistemare -> Presenze da confermare: quarto bottone NON C'ERA LEZIONE con sotto "Nessun allievo o corso non attivo: non è un'assenza, non si paga e non cerca il sostituto"; kcGuida "Sei sicuro? Non c'era lezione" -> impegno_presenza(id,'non_svolta') su tutta la lezione -> "Fatto: lezione segnata come non svolta (N istruttori)"; l'errore "c'è già qualcuno segnato presente" resta nella finestra. Suggerito (etichetta "suggerito"): NON C'ERA LEZIONE se Prima Lezione o corso a lezioni (Open, Advance, Intro Corda, Evo Corda) senza prenotazioni non cancellate per quello slot e quella data; altrimenti PRESENTE. Riga di aiuto del riquadro: Prima Lezione con l'istruttore presente e nessun allievo = PRESENTE (vuota, 5 €/h). Turni: lo stato si legge "lezione non svolta" in grigio (nella voce e nei nomi), la lezione con tutti gli impegni non svolti e' grigia "lezione non svolta", non rossa scoperta. Nessuna modifica a DB. CUMULA v3.151 (sotto). -->
 <!-- KC-BUILD: portale v3.151 · 2026-10-31 · IL MIO PERCORSO (consegna 31 ott, quadro dell'allievo; DB Quadro_allievo_2026-10-31 gia' applicato): il riquadro "Il mio diario didattico" del profilo diventa "Il mio percorso". (1) I miei Kata: validati, in attesa di validazione, da migliorare (video rifiutati con il commento + voci kata_da_migliorare del quadro), dai video gia' letti per la sezione Kata (kataVids), nessuna nuova lettura. (2) La mia traccia: v_mio_quadro (la vista restituisce solo le voci che l'allievo puo' leggere e non ritirate) + v_mio_diario_didattico, unite e ordinate per data; ogni tappa con data, autore, ruolo (Istruttore, Monitor, Maestro) e contesto; etichette I tuoi punti di forza, Abitudini da trasformare, Kata da migliorare (Kata 7 — …), Per te; segno di tappa "Fine Corso … KataClimb" sulle valutazioni di fine corso; vuoto: "Qui troverai la traccia del tuo percorso…". DIARIO_DID_CONTESTO: + sala_monitor, via lab. Solo nel proprio profilo. CUMULA v3.150 (sotto). -->
@@ -1592,7 +1593,7 @@ fill="#1d4ed8" stroke="none">
         <div style="display:flex;align-items:baseline;justify-content:flex-end;margin-bottom:12px">
           <!-- Etichetta riempita da setKataGridMeta(): dall'11 giugno 2026 gli slot per
                Kata sono 2 (Memoria + Validazione), non 5, e i secondi escono da
-               KATA_MAX_DURATION. -->
+               kataMaxDur(slot): Memoria 20, Validazione 15 (v3.154). -->
           <span id="my-kata-meta" style="font-size:13px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.8px"></span>
         </div>
         <div class="tabs" id="my-course-tabs"></div>
@@ -2248,7 +2249,7 @@ fill="#1d4ed8" stroke="none">
       <p id="upload-fname" style="margin-top:8px;font-size:13px;color:var(--open);display:none"></p>
     </div>
     <!-- Regole del video: testo riempito da setUploadRegole() — i numeri escono dalle
-         costanti PRES_MAX_DURATION / KATA_MAX_DURATION, mai scritti a mano. -->
+         costanti PRES_MAX_DURATION / kataMaxDur(slot) (v3.154), mai scritti a mano. -->
     <p class="upload-regole" id="upload-dz-sub"></p>
     <input id="vid-input" type="file" accept="video/mp4,video/quicktime,video/webm" style="display:none" onchange="handleVideoSelect(event)">
     <div class="ib info">ℹ Il video viene caricato su Cloudflare Stream. L'elaborazione richiede ~30 secondi.</div>
@@ -9632,7 +9633,7 @@ function openUpload(k,s){
   document.getElementById('upload-fname').style.display='none';
   document.getElementById('upload-prog').classList.add('hidden');
   document.getElementById('upload-title').textContent='Carica Video';
-  setUploadRegole('kata');
+  setUploadRegole('kata',s); // v3.154 Memoria 20 s, Validazione 15 s
   document.getElementById('upload-info').innerHTML=`Kata ${String(k).padStart(2,'0')} — ${KN[k]}<br>${s===0?'Memoria (permanente 🔒)':'Validazione (sostituibile)'}`;
   document.getElementById('upload-warn').classList.toggle('hidden',s>=1);
   openModal('mo-upload');
@@ -9642,7 +9643,7 @@ async function handleVideoSelect(e){
   e.target.value=''; // riscegliere lo stesso file (es. dopo un annullo) deve ripartire
   if(!f)return;
   const isPres=(uploadKind==='presentazione');
-  const maxDur=isPres?PRES_MAX_DURATION:KATA_MAX_DURATION;
+  const maxDur=isPres?PRES_MAX_DURATION:kataMaxDur(uploadTgt.slot); // v3.154 per slot
   const el=document.getElementById('upload-fname');
   selFile=null;el.style.display='none';
   // durata, risoluzione, eventuale riduzione a 720p: blocco condiviso "VIDEO RIDOTTO A 720p"
@@ -13548,7 +13549,12 @@ async function toggleVideoPublic(videoId){
 
 const PRES_STREAM_DOMAIN=(typeof CF_STREAM_BASE!=='undefined'?CF_STREAM_BASE:'https://customer-w6v58fe3qv5tc0m4.cloudflarestream.com/').replace(/\/$/,'').replace(/^https?:\/\//,'');
 const PRES_MAX_DURATION=120;
-const KATA_MAX_DURATION=12;        // deve combaciare con MAX_DURATION_KATA nel Worker stream-bridge (v3.130: 12s, decisione Marco 9 ott — il Worker NON e' in questo repo, va verificato a parte)
+/* v3.154 due limiti, uno per slot (decisione Marco 2 nov 2026, supera i 12 s del 9 ott): chi impara deve poter caricare,
+   chi certifica deve essere immediato. Il Worker stream-bridge (NON in questo repo) da' a Stream un tetto unico per i due
+   slot: deve stare a 20 o piu' (copre la Memoria); i 15 s della Validazione li fa rispettare il portale. */
+const KATA_MAX_DURATION_MEMORIA=20;      // slot 1 · Memoria (decisione Marco 2 nov 2026)
+const KATA_MAX_DURATION_VALIDAZIONE=15;  // slot 2 · Validazione/certificato (decisione Marco 2 nov 2026)
+function kataMaxDur(slotIdx){ return slotIdx>=1 ? KATA_MAX_DURATION_VALIDAZIONE : KATA_MAX_DURATION_MEMORIA; } // slotIdx 0-based come in openUpload(k,s)
 const VIDEO_TARGET_SHORT_SIDE=720;    // v3.131: sopra questo lato corto il portale riduce il video a 720p prima dell'upload (decisione Marco 14 ott, da verificare nel tempo: E8)
 const VIDEO_TARGET_BITRATE=2200000;   // bit/s del video ridotto (H.264): adatto a clip brevi
 const VIDEO_FALLBACK_SHORT_SIDE=1080; // solo ripiego: se il browser non riesce a ridurre, l'originale parte fino a questo lato corto
@@ -13559,7 +13565,7 @@ const VIDEO_SIZE_SCELTO_MAX=2*1024*1024*1024; // tetto sul file SCELTO dal telef
    Marco, 20 set 2026, da partecipante: "non dà descrizione di come deve essere pesante o
    lungo il video". C'era, ma era una riga grigia da 13px dentro la dropzone. Ora è un
    riquadro leggibile (.upload-regole) e la frase è distesa.
-   I numeri NON si scrivono a mano: escono da PRES_MAX_DURATION e KATA_MAX_DURATION, così
+   I numeri NON si scrivono a mano: escono da PRES_MAX_DURATION e kataMaxDur(slot), così
    se cambiano le costanti cambia il testo. Anche i 720p escono da VIDEO_TARGET_SHORT_SIDE.
    I messaggi d'errore (durata, peso) sono nel blocco "VIDEO RIDOTTO A 720p" (preparaVideo). */
 function uploadDurataTesto(sec){
@@ -13567,24 +13573,27 @@ function uploadDurataTesto(sec){
   if(s >= 60 && s % 60 === 0){ const m = s/60; return m === 1 ? '1 minuto' : m + ' minuti'; }
   return s + ' secondi';
 }
-function uploadRegoleTesto(kind){
-  const max = (kind === 'presentazione') ? PRES_MAX_DURATION : KATA_MAX_DURATION;
+function uploadRegoleTesto(kind,slot){
+  /* v3.154 Validazione: il video che il maestro certifica, piu' corto */
+  if(kind !== 'presentazione' && Number(slot) >= 1)
+    return 'Durata massima: ' + uploadDurataTesto(kataMaxDur(slot)) + '. È il video che il maestro certifica: un’esecuzione pulita, senza tempi morti.';
+  const max = (kind === 'presentazione') ? PRES_MAX_DURATION : kataMaxDur(slot);
   return 'Durata massima: ' + uploadDurataTesto(max) + '. Va bene il video del telefono, in qualsiasi qualità: '
        + 'il portale prepara il video a ' + VIDEO_TARGET_SHORT_SIDE + 'p. Formato MP4 o MOV.';
 }
-function setUploadRegole(kind){
+function setUploadRegole(kind,slot){
   const el = document.getElementById('upload-dz-sub');
-  if(el) el.textContent = uploadRegoleTesto(kind);
+  if(el) el.textContent = uploadRegoleTesto(kind,slot);
 }
-/* Valore iniziale del riquadro: anche questo dalle costanti, mai scritto nell'HTML. */
+/* Valore iniziale del riquadro: anche questo dalle costanti, mai scritto nell'HTML. Senza slot vale come Memoria. */
 setUploadRegole('kata');
 
 /* Etichetta sopra la griglia dei Kata. Diceva "5 VIDEO · MAX 20S · AUTO-GIF": i 5 video
    sono quelli della presentazione, gli slot per Kata sono 2 dall'11 giugno 2026
-   (Memoria + Validazione). I secondi escono da KATA_MAX_DURATION. */
+   (Memoria + Validazione). I secondi escono dalle costanti per slot (v3.154). */
 function setKataGridMeta(){
   const el = document.getElementById('my-kata-meta');
-  if(el) el.textContent = '2 video per Kata · max ' + KATA_MAX_DURATION + 's';
+  if(el) el.textContent = '2 video per Kata · Memoria max ' + KATA_MAX_DURATION_MEMORIA + 's · Validazione max ' + KATA_MAX_DURATION_VALIDAZIONE + 's';
 }
 setKataGridMeta();
 

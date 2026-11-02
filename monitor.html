@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: monitor v3.59 · 2026-11-02 · VIDEO KATA: MEMORIA 20 s, VALIDAZIONE 15 s (decisione Marco 2 nov: chi impara deve poter caricare, chi certifica deve essere immediato). KATA_MAX_DURATION unica → KATA_MAX_DURATION_MEMORIA 20 / KATA_MAX_DURATION_VALIDAZIONE 15 + kataMaxDur(slot). Nient'altro. + controllo durata nel browser, scritta slot 1–2 invece di /5. CUMULA v3.58 (sotto). -->
 <!-- KC-BUILD: monitor v3.58 · 2026-10-21 · SCUOLE F1 METÀ B (consegna Claude 20 ott): la ricerca allievo esclude i profili role referente_scuola (il referente della scuola non e' un allievo). Nient'altro. CUMULA v3.57 (sotto). -->
 <!-- KC-BUILD: monitor v3.57 · 2026-06-11 21:50 · UPLOAD TUS: kata a frammenti 5MB riprendibili (retry crescenti, ripresa da offset via HEAD, tusSession su "Riprova"); fallback direct se Worker non aggiornato. Richiede Worker stream-bridge v2.12 -->
 <!-- KC-BUILD-PREV: monitor v3.56b · 2026-05-28 -->
@@ -156,7 +157,7 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
     <div class="modal-sub" id="up-sub">—</div>
     <label class="file-pick" id="up-pick" for="up-file">
       📹 Scegli video<br>
-      <span style="font-size:11px;color:var(--text3)">scatta col telefono, poi seleziona da libreria<br>max 12 secondi · MP4/MOV</span>
+      <span style="font-size:13px;color:var(--text3)">scatta col telefono, poi seleziona da libreria<br><span id="up-max">MP4/MOV</span></span>
     </label>
     <input id="up-file" type="file" accept="video/*" style="display:none" onchange="onFilePicked(event)">
     <div id="up-fname" class="file-name hidden"></div>
@@ -492,13 +493,19 @@ async function redoLastVideo(kataNum) {
 /* ═══════════════════════════════════════════════════════════
    UPLOAD
    ═══════════════════════════════════════════════════════════ */
+/* v3.59 due limiti, uno per slot (decisione Marco 2 nov 2026): identici a portale.html */
+const KATA_MAX_DURATION_MEMORIA=20;      // slot 1 · Memoria (decisione Marco 2 nov 2026)
+const KATA_MAX_DURATION_VALIDAZIONE=15;  // slot 2 · Validazione/certificato (decisione Marco 2 nov 2026)
+function kataMaxDur(slotIdx){ return slotIdx>=1 ? KATA_MAX_DURATION_VALIDAZIONE : KATA_MAX_DURATION_MEMORIA; } // slotIdx 0-based come in openUpload(k,s)
 function openUpload(kataNum) {
   const k = KATA_PRIMA_LEZIONE.find(x => x.n === kataNum);
   if (!k) return;
-  uploadTarget = { kata_num: kataNum };
+  const slot = Math.min(videoCorrenti[kataNum] || 0, 1); // v3.59 lo slot che si riempie: 0 = Memoria, 1 = Validazione
+  uploadTarget = { kata_num: kataNum, slot };
   uploadFile = null;
   document.getElementById('up-title').textContent = `Kata ${String(k.n).padStart(2,'0')} — ${k.name}`;
-  document.getElementById('up-sub').textContent = `Allievo: ${allievoCorrente.nome || ''} ${allievoCorrente.cognome || ''} · slot ${(videoCorrenti[kataNum] || 0) + 1}/5`;
+  document.getElementById('up-sub').textContent = `Allievo: ${allievoCorrente.nome || ''} ${allievoCorrente.cognome || ''} · ${slot === 0 ? 'Memoria' : 'Validazione'}`;
+  document.getElementById('up-max').textContent = 'max ' + kataMaxDur(slot) + ' secondi · MP4/MOV';
   document.getElementById('up-fname').classList.add('hidden');
   document.getElementById('up-fname').textContent = '';
   document.getElementById('up-prog').classList.add('hidden');
@@ -515,13 +522,36 @@ function closeUpload() {
   document.getElementById('modal-upload').classList.add('hidden');
 }
 
-function onFilePicked(e) {
+/* v3.59 durata del video letta dal browser (metadata), come preparaVideo del portale */
+function leggiDurata(file) {
+  return new Promise((resolve) => {
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    const fine = d => { try { URL.revokeObjectURL(v.src); } catch (_) {} resolve(d); };
+    v.onloadedmetadata = () => fine(isFinite(v.duration) ? v.duration : null);
+    v.onerror = () => fine(null);
+    v.src = URL.createObjectURL(file);
+  });
+}
+async function onFilePicked(e) {
   const f = e.target.files[0];
   if (!f) return;
-  // Non blocchiamo per dimensione: il limite vero è duration (12s lato Stream)
-  uploadFile = f;
+  // Non blocchiamo per dimensione: il limite vero è la durata (il tetto di Stream è 20 s; i 15 s della validazione li controlla il browser)
+  uploadFile = null;
   const fn = document.getElementById('up-fname');
-  fn.textContent = '📹 ' + f.name + ' · ' + (f.size / 1024 / 1024).toFixed(1) + ' MB';
+  document.getElementById('up-submit').disabled = true;
+  const max = kataMaxDur(uploadTarget && uploadTarget.slot);
+  const dur = await leggiDurata(f);
+  if (dur != null && dur > max + 0.5) {
+    fn.textContent = `Questo video dura ${Math.round(dur)} secondi: per questo slot il massimo è ${max}. Taglialo e riprova.`;
+    fn.style.color = 'var(--danger,#B91C1C)';
+    fn.classList.remove('hidden');
+    e.target.value = '';
+    return;
+  }
+  fn.style.color = '';
+  uploadFile = f;
+  fn.textContent = '📹 ' + f.name + ' · ' + (f.size / 1024 / 1024).toFixed(1) + ' MB' + (dur != null ? ' · ' + Math.round(dur) + ' s' : '');
   fn.classList.remove('hidden');
   document.getElementById('up-submit').disabled = false;
 }
