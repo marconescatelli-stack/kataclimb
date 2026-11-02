@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.40 · 2026-11-02 · LEZIONE NON SVOLTA NELLA TESSERA DELL'ISTRUTTORE (consegna 2 nov, punto 3): in "I tuoi impegni · oggi", accanto a "La segreteria ti ha segnato assente", il caso non_svolta: "La lezione non c'era: non conta come assenza." in grigio, senza SONO QUI. Nessuna modifica a DB. CUMULA v2.39 (sotto). -->
+<!-- KC-BUILD: oggi v2.39 · 2026-11-02 · NON C'ERA LEZIONE NELLE PRESENZE DA CONFERMARE (richiesta della segreteria 2 nov, approvata da Marco; DB impegni_lezione_non_svolta gia' live: impegni_staff.stato 'non_svolta', impegno_presenza 'non_svolta' su tutta la lezione, senza sostituto, 0 €, fuori dalle assenze). Da sistemare -> Presenze da confermare: quarto bottone NON C'ERA LEZIONE con la riga grigia "nessun allievo o corso non attivo: non è un'assenza, non si paga e non cerca il sostituto"; conferma "Sei sicuro? La lezione di <giorno> <ora> · <nome completo> risulta non svolta per tutti gli istruttori segnati." -> impegno_presenza(id,'non_svolta') -> "Fatto: lezione segnata come non svolta (N istruttori)", l'elenco si rilegge e spariscono anche le righe degli altri istruttori della stessa lezione; l'errore "c'è già qualcuno segnato presente" resta a schermo. Suggerito (etichetta verde): NON C'ERA LEZIONE se la Prima Lezione o il corso a lezioni (Open, Advance, Intro Corda, Evo Corda) non ha nessuna prenotazione non cancellata in tempo per quello slot e quella data (prenotazioni_prima_lezione / prenotazioni_corso); altrimenti, e per i corsi ad abbonamento che non hanno prenotazioni, PRESENTE. Riga di aiuto del riquadro: Prima Lezione con l'istruttore presente ma nessun allievo = PRESENTE (vuota, 5 €/h). Nessuna modifica a DB. CUMULA v2.38 (sotto). -->
 <!-- KC-BUILD: oggi v2.38 · 2026-11-01 · TURNO CHIUSO, DOVE SI RIMEDIA (consegna 31 ott, punto 4; caso del 31/10: dopo le 18 di sabato ogni segna rispondeva "Nessun turno aperto oggi"): quando SEGNA, SALVA OSSERVAZIONE o FINE TURNO tornano che il turno di oggi e' chiuso ("Nessun turno aperto oggi", "…di oggi è finita…", "…il tuo turno non è aperto…"), al posto dell'errore: "Il turno di oggi è chiuso (la sala chiude alle HH:MM). Per aggiungere chi hai seguito vai in I miei turni → APRI E AGGIUNGI." con il bottone VAI A I MIEI TURNI (chiude la scheda e scorre alla sezione). L'ora da fine_turno_prevista(oggi): sabato 18:00, gli altri giorni 22:00. Nessuna modifica a DB. CUMULA v2.37 (sotto). -->
 <!-- KC-BUILD: oggi v2.37 · 2026-11-01 · TESSERA "📌 DA COPRIRE" (consegna 31 ott, punto 3): accanto alla tessera Turni, in tutte le viste dello staff (istruttori, assistenti, segreteria, creator; i monitor contano solo i turni monitor), il numero delle voci della bacheca di Turni: "nei prossimi 14 giorni · N con persone disponibili · N entro 3 giorni" -> /turni.html#da-coprire. Rossa se c'e' qualcosa entro 3 giorni, arancio se piu' avanti, verde "Tutto coperto nelle prossime 2 settimane" se vuota. Il conto lo fa kcDaCoprire (kc-da-coprire.js), la stessa funzione della bacheca: un solo conto. Nessuna modifica a DB. CUMULA v2.36 (sotto). -->
 <!-- KC-BUILD: oggi v2.36 · 2026-10-31 · QUADRO DELL'ALLIEVO: LA TRACCIA DEL PROGRESSO (consegna 31 ott, decisioni di Marco; DB Quadro_allievo_2026-10-31 gia' applicato: quadro_allievo_voci, quadro_aggiungi, quadro_ritira, v_mio_quadro, quadro_fine_corso_da_fare, monitor_segna e monitor_nota_turno con p_per_allievo). (1) Guida del monitor da 3 a 4 passi: passi 1-2 invariati (note per lo staff), nuovo passo 3 "Cosa porta a casa Nome oggi?" (lo legge l'allievo, voce per_te del quadro) con l'avviso fisso arancio sulle note del carattere, minimo MIN_GUIDA caratteri, link "Oggi niente per Nome" con "Sei sicuro?" (dialogo della pagina); passo 4 Controlla e segna con la riga "Per Nome (lo legge lui/lei)" o "niente oggi"; monitor_segna con p_per_allievo; uscire a meta' chiede come prima. Stesso passo nella guida dei turni passati (monitor_nota_turno), solo se scrive il monitor del turno. (2) Scheda allievo: sezione "Quadro di Nome" sopra le osservazioni: I suoi Kata (kata_videos: validati, in attesa, da rifare con il commento) e La traccia (tutte le voci, dalla piu' recente, una tappa per salvataggio: data, autore, ruolo, contesto, fine corso; bollino solo staff; ritirate barrate con motivo e chi; Ritira con motivo obbligatorio per le proprie voci di 7 giorni, il maestro sempre). AGGIUNGI AL QUADRO (istruttori, monitor, creator; mai la segreteria): blocco verde "Lo legge Nome" con l'avviso fisso (punti di forza, abitudini da trasformare, Kata da migliorare con numero 1-33 anche piu' d'uno, per te) e blocco scuro "Solo istruttori" (punti deboli, problematiche caratteriali); contesto dal corso attivo; "Cosa succede se confermi" con "Nome leggera'" e "Solo lo staff leggera'"; una sola quadro_aggiungi; "Non hai salvato" all'uscita. Il ruolo si mostra come etichetta (Istruttore, Monitor, Maestro): il DB non ha il genere. (3) Fine corso: tessera "Fine corso: com'è cambiato?" da quadro_fine_corso_da_fare (istruttori e creator, non segreteria ne' monitor) con VALUTA -> scheda con il modulo di fine corso (punti di forza e abitudini obbligatori, p_fine_corso e p_iscrizione_id); uscire senza valutare chiede "Sei sicuro?" (Torna e valuta / Piu' tardi), la tessera resta finche' qualcuno valuta. (4) Nuova osservazione: "Mostra all'allievo" si spunta da solo quando "Per l'allievo" ha testo, e lo stesso avviso sulle note del carattere. CUMULA v2.35 (sotto). -->
@@ -481,6 +483,9 @@ body{font-size:17px}
 .sist-r .cosa{font-size:14px; color:#C9C9CE; margin-top:4px}
 .sist-r .az{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 .sist-r .az .btn{flex:1 1 auto}
+.sist-aiuto{font-size:13px; color:#B8B8B8; margin-top:6px; line-height:1.4} /* v2.39 */
+.grigio-t{color:#B8B8B8} /* v2.40 lezione non svolta */
+.btn .sug{display:inline-block; font-size:13px; font-weight:800; padding:0 6px; border-radius:999px; background:#30D158; color:#000; margin-left:4px; letter-spacing:0}
 .imp{padding:10px 0; border-top:1px solid var(--velo)}
 .imp:first-of-type{border-top:none; padding-top:2px}
 .imp .imp-h{font-size:16px; font-weight:700}
@@ -1312,6 +1317,10 @@ const segPuoConti=()=>['staff_creator','staff_segreteria'].includes(pdata.staff_
 const SIST_GRUPPI=[['presenza_mancante','Presenze da confermare'],['turno_da_chiudere','Turni monitor da chiudere'],
   ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stessa persona su due lezioni'],['lezione_scoperta','Lezioni senza staff (prossimi 7 giorni)']];
 let sistRighe=[], sistSlot={}, sistAltre={}, sistInizio={}, sistStaff=null, sistPiano=[], sistIndisp=[];
+/* v2.39 NON C'ERA LEZIONE: prenotazioni (non cancellate in tempo) per slot e data delle presenze da confermare.
+   Solo Prime Lezioni e corsi a lezioni hanno prenotazioni: per gli altri corsi (abbonamenti) il suggerito resta PRESENTE. */
+let sistPren=null;
+const CORSI_A_LEZIONI=['open','advance','intro_corda','evo_corda'];
 /* CASO ESTREMO, CONFERMA: la riga del monitor si nasconde solo per questa sessione */
 const sistNascoste=new Set((()=>{ try{ return JSON.parse(sessionStorage.getItem('kc_sist_nascoste')||'[]'); }catch(e){ return []; } })());
 function sistSalvaNascoste(){ try{ sessionStorage.setItem('kc_sist_nascoste',JSON.stringify([...sistNascoste])); }catch(e){} }
@@ -1364,6 +1373,7 @@ async function loadSegSistema(){
     if(error)throw error;
     sistRighe=(data||[]).filter(r=>!(r.tipo==='ruolo_da_verificare'&&sistNascoste.has(r.impegno_id)));
     await sistCaricaContorno();
+    await sistCaricaPren(); // v2.39
   }catch(e){ sistRighe=null; console.error('[seg-sistema]',e); }
   disegnaSistema();
 }
@@ -1398,6 +1408,28 @@ async function sistCaricaContorno(){
     (data||[]).forEach(t=>{ sistInizio[t.turno_id]=t.inizio; });
   }
 }
+async function sistCaricaPren(){
+  sistPren=null;
+  const P=(sistRighe||[]).filter(r=>r.tipo==='presenza_mancante'&&r.slot_id);
+  if(!P.length){ sistPren={}; return; }
+  const slot=[...new Set(P.map(r=>r.slot_id))], date=[...new Set(P.map(r=>r.data))];
+  try{
+    const[a,b]=await Promise.all([
+      sb.from('prenotazioni_prima_lezione').select('slot_id,data_lezione,stato').in('slot_id',slot).in('data_lezione',date).neq('stato','cancellato_in_tempo'),
+      sb.from('prenotazioni_corso').select('slot_id,data_lezione,stato').in('slot_id',slot).in('data_lezione',date).neq('stato','cancellato_in_tempo')
+    ]);
+    if(a.error)throw a.error; if(b.error)throw b.error;
+    const m={}; [...(a.data||[]),...(b.data||[])].forEach(x=>{ const k=x.slot_id+'|'+x.data_lezione; m[k]=(m[k]||0)+1; });
+    sistPren=m;
+  }catch(e){ console.warn('[seg-sistema] prenotazioni:',e?.message||e); sistPren=null; } // senza dati, nessun suggerimento
+}
+/* suggerito NON C'ERA LEZIONE: Prima Lezione o corso a lezioni senza nessuna prenotazione per quello slot e quella data */
+function sistSugNonSvolta(r){
+  if(!sistPren)return false;
+  const tc=String((sistSlot[r.slot_id]||{}).tipo_corso||r.tipo_corso||'');
+  if(!(tc.startsWith('prima_lezione')||CORSI_A_LEZIONI.includes(tc)))return false;
+  return !sistPren[r.slot_id+'|'+r.data];
+}
 function sistNomeLez(slotId,tipo,fascia){
   if(tipo==='monitor')return 'Sala con Monitor';
   const sl=sistSlot[slotId]||{tipo_corso:tipo,fascia};
@@ -1431,13 +1463,19 @@ function disegnaSistema(){
   el.innerHTML=SIST_GRUPPI.map(([tipo,tit])=>{
     const L=sistRighe.map((r,i)=>[r,i]).filter(([r])=>r.tipo===tipo);
     if(!L.length)return '';
-    return `<div class="sist-gr">${esc(tit)}<span>${L.length}</span></div>`+L.map(([r,i])=>rigaSistema(r,i)).join('');
+    return `<div class="sist-gr">${esc(tit)}<span>${L.length}</span></div>`
+      +(tipo==='presenza_mancante'?'<p class="sist-aiuto">Prima Lezione con l’istruttore presente ma nessun allievo: PRESENTE (vale come vuota, 5 €/h). NON C’ERA LEZIONE solo se la lezione non si è tenuta e l’istruttore non c’era.</p>':'') // v2.39
+      +L.map(([r,i])=>rigaSistema(r,i)).join('');
   }).join('');
 }
 function rigaSistema(r,i){
-  const b=(az,txt,prim)=>`<button class="btn${prim?' prim':''}" onclick="sistAzione('${az}',${i},this)">${txt}</button>`;
-  let az='';
-  if(r.tipo==='presenza_mancante') az=b('presente','PRESENTE',1)+b('assente','ASSENTE')+b('sostituisci','SOSTITUISCI');
+  const b=(az,txt,prim,sug)=>`<button class="btn${prim?' prim':''}" onclick="sistAzione('${az}',${i},this)">${txt}${sug?' <span class="sug">suggerito</span>':''}</button>`;
+  let az='', aiuto='';
+  if(r.tipo==='presenza_mancante'){
+    const sug=sistSugNonSvolta(r); // v2.39
+    az=b('presente','PRESENTE',!sug,!sug)+b('assente','ASSENTE')+b('sostituisci','SOSTITUISCI')+b('non_svolta','NON C’ERA LEZIONE',sug,sug);
+    aiuto=`<p class="sist-aiuto">${sug?'Nessuna prenotazione per questa lezione. ':''}NON C’ERA LEZIONE: nessun allievo o corso non attivo: non è un’assenza, non si paga e non cerca il sostituto.</p>`;
+  }
   else if(r.tipo==='turno_da_chiudere') az=b('chiudi','CHIUDI TURNO',1);
   else if(r.tipo==='ruolo_da_verificare') az=b('togli','TOGLI',1)+b('estremo','CASO ESTREMO, CONFERMA');
   else if(r.tipo==='doppia_lezione') az=`<a class="btn prim" href="/agenda.html?data=${encodeURIComponent(r.data)}&tipo=${encodeURIComponent(r.tipo_corso||'')}">APRI IN AGENDA</a>`;
@@ -1447,7 +1485,7 @@ function rigaSistema(r,i){
     ${r.persona?`<div class="chi">${esc(r.persona)}</div>`:''}
     <div class="lez">${esc(sistNomeLez(r.slot_id,r.tipo_corso,r.fascia))}</div>
     <div class="cosa">${esc(sistCosa(r))}</div>
-    <div class="az">${az}</div>
+    <div class="az">${az}</div>${aiuto}
   </div>`;
 }
 function apriSistema(){
@@ -1517,7 +1555,19 @@ function sistRuoloDaPersona(){
 async function sistAzione(az,i,btn){
   const r=sistRighe&&sistRighe[i]; if(!r)return;
   const lez=sistNomeLez(r.slot_id,r.tipo_corso,r.fascia), quando=sistQuando(r);
-  if(az==='presente'){
+  if(az==='non_svolta'){ // v2.39: tutta la lezione, nessun sostituto, 0 €
+    dialogo(`<p><b>Sei sicuro?</b> La lezione di ${esc(quando)} · ${esc(lez)} risulta non svolta per tutti gli istruttori segnati.</p>
+      <p>Non è un’assenza, non si paga e non cerca il sostituto.</p>`,
+      ['SÌ, NON C’ERA LEZIONE',async()=>{
+        if(btn)btn.disabled=true;
+        const{data,error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'non_svolta'});
+        if(error){ if(btn)btn.disabled=false; erroreChiaro('Non fatto',error); return; } // resta a schermo finche' non si chiude
+        const n=Number(data&&data.impegni_aggiornati||0);
+        const t=`Fatto: lezione segnata come non svolta (${n} ${n===1?'istruttore':'istruttori'})`;
+        sistMsg(t,true); toast(t);
+        await Promise.all([loadSegSistema(),loadSegPaga()]);
+      }],['No, torna indietro',null]);
+  }else if(az==='presente'){
     sistEsegui(btn,()=>sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'fine'}),`Fatto: ${r.persona} segnato presente`);
   }else if(az==='assente'){
     dialogo(`<p>Segnare assente <b>${esc(r.persona)}</b>?</p><p>${esc(lez)} · ${esc(quando)}. La lezione non viene pagata.</p>`,
@@ -3368,6 +3418,7 @@ function disegnaImpegniOggi(){
         :'<p class="imp-ricorda">Ricordati SONO QUI: senza presenza la lezione non viene pagata.</p>';
     }
     if(x.stato==='assente') stato='La segreteria ti ha segnato assente.';
+    else if(x.stato==='non_svolta') stato='<span class="grigio-t">La lezione non c’era: non conta come assenza.</span>'; // v2.40
     else if(x.presenza_fine) stato=`<span class="ok-t">✓ Presente dalle ${hhmm(x.presenza_inizio)} alle ${hhmm(x.presenza_fine)}</span>`;
     else if(x.stato==='presente'){ stato=`<span class="ok-t">Sei qui dalle ${hhmm(x.presenza_inizio)}</span>`; btn=`<button class="btn fine" onclick="impPresenza('${esc(x.id)}','fine',this)">HO FINITO</button>`; }
     else btn=`<button class="btn prim grande" onclick="impPresenza('${esc(x.id)}','inizio',this)">SONO QUI</button>`;

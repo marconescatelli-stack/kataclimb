@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.8 · 2026-11-02 · LEZIONE NON SVOLTA (consegna 2 nov, punto 3; DB impegni_staff.stato non_svolta): nelle lezioni dei corsi, nelle scuole e in I miei impegni lo stato non_svolta si legge "lezione non svolta" in grigio, mai come assenza ne' in arancio/rosso. Nessuna modifica a DB. CUMULA v1.7 (sotto). -->
 <!-- KC-BUILD: turni v1.7 · 2026-11-01 · SONO DISPONIBILE (consegna 31 ott, punto 2b; DB staff_disponibilita gia' live dal 1/11: sono_disponibile, ritiro_disponibilita, v_staff_disponibilita, disponibilita' chiusa da sola quando la persona viene segnata o segna "non ci sono"). Sulle voci della bacheca, sui turni monitor senza nessuno della griglia e sulle lezioni scoperte (corsi, supporto richiesto, scuole sotto 3): riga verde "Disponibili: …" (o "Nessuno disponibile ancora"), bottone SONO DISPONIBILE accanto a MI SEGNO; se lo sei gia': "Sei disponibile ✓", NON PIÙ DISPONIBILE (ritiro_disponibilita) e MI SEGNO per prenderlo davvero; segreteria e creator: ASSEGNA accanto a ogni disponibile -> "Sei sicuro? Assegni il turno a …" -> impegno_mi_segno con p_user_id (lezione: p_tipo lezione e p_slot_id; ruolo dal ruolo della persona). Chi ha segnato "non ci sono" non vede il bottone. Nessuna modifica a DB. CUMULA v1.6 (sotto). -->
 <!-- KC-BUILD: turni v1.6 · 2026-11-01 · BACHECA "📌 DA COPRIRE" (consegna 31 ott, decisione di Marco): in cima alla pagina, prima di tutte le altre sezioni (ancora #da-coprire, per arrivarci da Oggi), una sola lista delle cose scoperte dei prossimi 14 giorni in ordine di data e ora: turni monitor senza nessuno (lun-ven 19-22, sab 14-18), lezioni dei corsi scoperte (v_copertura_lezioni coperta = false, con "Istruttori 0/1 · Assistenti 0/1"), richieste di supporto aperte (chi l'ha chiesta e la nota), lezioni delle scuole con meno di 3 persone. Per ogni voce: giorno, orario, nome completo del corso o Sala con Monitor, chi e' gia' segnato, la riga grigia "Non disponibili: …"; MI SEGNO (impegno_mi_segno) o ACCETTO IO (accetta_supporto) se c'e' la richiesta; se hai segnato "non ci sono": niente bottone e "Hai segnato che non ci sei"; rosso entro 3 giorni, arancio dopo; vuota = "Tutto coperto nelle prossime 2 settimane ✓" in verde. Dopo il clic la bacheca si ricalcola subito. Il calcolo sta in kc-da-coprire.js (kcDaCoprire), lo stesso per la tessera di Oggi: un solo conto; le fasce dei turni monitor della griglia vengono dallo stesso file. I monitor vedono solo i turni monitor. Nessuna modifica a DB. CUMULA v1.5 (sotto). -->
 <!-- KC-BUILD: turni v1.5 · 2026-11-01 · SALA CON MONITOR ANCHE IL SABATO (consegna 31 ott, decisione di Marco: sabato 14-18, gli istruttori si segnano da soli; caso del 31/10: il sabato non esisteva nel calendario monitor e il turno si apriva a mano). Turni monitor da lunedi' a sabato: fasce per giorno della settimana (lun-ven 19:00-22:00, sabato 14:00-18:00, domenica niente), griglia a 6 colonne (su telefono va a capo come prima), "Sala con Monitor, da lunedì a sabato, prossime 2 settimane.", settimane dal lunedi' al sabato. MI SEGNO e MI TOLGO uguali, con l'orario della fascia di quel giorno (impegno_mi_segno('monitor') accetta qualunque giorno e orario, verificato). Nessuna modifica a DB. CUMULA v1.4 (sotto). -->
@@ -72,6 +73,8 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 .imp .s{font-size:14px; color:#C9C9CE}
 .stato-ok{color:var(--cordata); font-weight:700}
 .stato-ko{color:var(--rosso); font-weight:700}
+.stato-nonsv{color:var(--grigio)} /* v1.8 lezione non svolta: non e' un'assenza */
+.chip.nonsv{background:none; border:1px solid rgba(255,255,255,.18); color:var(--grigio)}
 .gate{padding:60px 10px; text-align:center}
 .gate p{color:#C9C9CE; margin:10px 0 22px}
 .gate a{display:inline-block; padding:14px 28px; border-radius:12px; background:var(--fiducia); color:#000; font-weight:800; text-decoration:none}
@@ -587,7 +590,7 @@ function htmlCorso(c,i){
   const req=c.supporto_richiesto_id?richieste.find(r=>r.id===c.supporto_richiesto_id)||{id:c.supporto_richiesto_id}:null;
   const ni=Number(c.istruttori||0), na=Number(c.assistenti||0), mi=Number(c.istruttori_min||0), ma=Number(c.assistenti_min||0);
   const conta=`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:'');
-  const chips=seg.map(x=>{const chi=sostituisceChi(x);return `<span class="chip${x.compenso_tipo==='ora'?' ass':''}${x.user_id===uid?' io':''}">${esc(nome(x.user_id))}${chi?' (sostituisce '+esc(chi)+')':''} · ${x.compenso_tipo==='ora'?'assistente':'istruttore'}${x.stato==='presente'?' ✓':''}</span>`}).join('')
+  const chips=seg.map(x=>{const chi=sostituisceChi(x);return `<span class="chip${x.compenso_tipo==='ora'?' ass':''}${x.user_id===uid?' io':''}${x.stato==='non_svolta'?' nonsv':''}">${esc(nome(x.user_id))}${chi?' (sostituisce '+esc(chi)+')':''} · ${x.compenso_tipo==='ora'?'assistente':'istruttore'}${x.stato==='presente'?' ✓':x.stato==='non_svolta'?' · lezione non svolta':''}</span>`}).join('')
     +assenti.map(x=>`<span class="chip vuoto">${esc(nome(x.user_id))} · assente</span>`).join('')
     +(seg.length?'':'<span class="chip vuoto">nessuno segnato</span>');
   let supp='';
@@ -710,7 +713,7 @@ function disegnaLezioni(){
     const cls=n>=RICHIESTI_LEZIONE?'pieno':n?'parziale':'scoperto';
     const ccls=n>=RICHIESTI_LEZIONE?'ok':n?'mezzo':'zero';
     const chips=seg.sort((a,b)=>(a.ruolo==='conduce'?0:1)-(b.ruolo==='conduce'?0:1)).map(i=>
-      `<span class="chip${i.user_id===uid?' io':''}">${esc(nome(i.user_id))} · ${esc(RUOLO[i.ruolo]||i.ruolo)}${i.stato==='presente'?' ✓':i.stato==='assente'?' · assente':''}</span>`).join('')
+      `<span class="chip${i.user_id===uid?' io':''}${i.stato==='non_svolta'?' nonsv':''}">${esc(nome(i.user_id))} · ${esc(RUOLO[i.ruolo]||i.ruolo)}${i.stato==='presente'?' ✓':i.stato==='assente'?' · assente':i.stato==='non_svolta'?' · lezione non svolta':''}</span>`).join('')
       +Array.from({length:Math.max(0,RICHIESTI_LEZIONE-n)},()=>'<span class="chip vuoto">posto libero</span>').join('');
     let az;
     if(mio){
@@ -776,7 +779,7 @@ function disegnaMiei(){
   $('miei').innerHTML=miei.map(x=>{
     const s=x.slot_id?lezioni.find(l=>l.id===x.slot_id):null;
     const cosa=x.tipo==='monitor'?'Sala con Monitor':(s?titoloLezione(s):'Lezione')+' · '+(RUOLO[x.ruolo]||x.ruolo);
-    const st=x.stato==='presente'?'<span class="stato-ok">presente ✓</span>':x.stato==='assente'?'<span class="stato-ko">assente</span>':(x.data===oggiIso?'oggi: segna la presenza su Oggi':'');
+    const st=x.stato==='presente'?'<span class="stato-ok">presente ✓</span>':x.stato==='assente'?'<span class="stato-ko">assente</span>':x.stato==='non_svolta'?'<span class="stato-nonsv">lezione non svolta</span>':(x.data===oggiIso?'oggi: segna la presenza su Oggi':''); // v1.8
     const corso=s&&!s.lead_scuola_id&&!s.data_evento; // v1.1: lezione dei corsi
     const btn=x.stato!=='previsto'?'':corso
       ?`<button class="btn rosso" onclick="nonCiSono('${esc(x.id)}',this)">NON CI SONO</button>`
