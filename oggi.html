@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.38 · 2026-11-01 · TURNO CHIUSO, DOVE SI RIMEDIA (consegna 31 ott, punto 4; caso del 31/10: dopo le 18 di sabato ogni segna rispondeva "Nessun turno aperto oggi"): quando SEGNA, SALVA OSSERVAZIONE o FINE TURNO tornano che il turno di oggi e' chiuso ("Nessun turno aperto oggi", "…di oggi è finita…", "…il tuo turno non è aperto…"), al posto dell'errore: "Il turno di oggi è chiuso (la sala chiude alle HH:MM). Per aggiungere chi hai seguito vai in I miei turni → APRI E AGGIUNGI." con il bottone VAI A I MIEI TURNI (chiude la scheda e scorre alla sezione). L'ora da fine_turno_prevista(oggi): sabato 18:00, gli altri giorni 22:00. Nessuna modifica a DB. CUMULA v2.37 (sotto). -->
+<!-- KC-BUILD: oggi v2.37 · 2026-11-01 · TESSERA "📌 DA COPRIRE" (consegna 31 ott, punto 3): accanto alla tessera Turni, in tutte le viste dello staff (istruttori, assistenti, segreteria, creator; i monitor contano solo i turni monitor), il numero delle voci della bacheca di Turni: "nei prossimi 14 giorni · N con persone disponibili · N entro 3 giorni" -> /turni.html#da-coprire. Rossa se c'e' qualcosa entro 3 giorni, arancio se piu' avanti, verde "Tutto coperto nelle prossime 2 settimane" se vuota. Il conto lo fa kcDaCoprire (kc-da-coprire.js), la stessa funzione della bacheca: un solo conto. Nessuna modifica a DB. CUMULA v2.36 (sotto). -->
 <!-- KC-BUILD: oggi v2.36 · 2026-10-31 · QUADRO DELL'ALLIEVO: LA TRACCIA DEL PROGRESSO (consegna 31 ott, decisioni di Marco; DB Quadro_allievo_2026-10-31 gia' applicato: quadro_allievo_voci, quadro_aggiungi, quadro_ritira, v_mio_quadro, quadro_fine_corso_da_fare, monitor_segna e monitor_nota_turno con p_per_allievo). (1) Guida del monitor da 3 a 4 passi: passi 1-2 invariati (note per lo staff), nuovo passo 3 "Cosa porta a casa Nome oggi?" (lo legge l'allievo, voce per_te del quadro) con l'avviso fisso arancio sulle note del carattere, minimo MIN_GUIDA caratteri, link "Oggi niente per Nome" con "Sei sicuro?" (dialogo della pagina); passo 4 Controlla e segna con la riga "Per Nome (lo legge lui/lei)" o "niente oggi"; monitor_segna con p_per_allievo; uscire a meta' chiede come prima. Stesso passo nella guida dei turni passati (monitor_nota_turno), solo se scrive il monitor del turno. (2) Scheda allievo: sezione "Quadro di Nome" sopra le osservazioni: I suoi Kata (kata_videos: validati, in attesa, da rifare con il commento) e La traccia (tutte le voci, dalla piu' recente, una tappa per salvataggio: data, autore, ruolo, contesto, fine corso; bollino solo staff; ritirate barrate con motivo e chi; Ritira con motivo obbligatorio per le proprie voci di 7 giorni, il maestro sempre). AGGIUNGI AL QUADRO (istruttori, monitor, creator; mai la segreteria): blocco verde "Lo legge Nome" con l'avviso fisso (punti di forza, abitudini da trasformare, Kata da migliorare con numero 1-33 anche piu' d'uno, per te) e blocco scuro "Solo istruttori" (punti deboli, problematiche caratteriali); contesto dal corso attivo; "Cosa succede se confermi" con "Nome leggera'" e "Solo lo staff leggera'"; una sola quadro_aggiungi; "Non hai salvato" all'uscita. Il ruolo si mostra come etichetta (Istruttore, Monitor, Maestro): il DB non ha il genere. (3) Fine corso: tessera "Fine corso: com'è cambiato?" da quadro_fine_corso_da_fare (istruttori e creator, non segreteria ne' monitor) con VALUTA -> scheda con il modulo di fine corso (punti di forza e abitudini obbligatori, p_fine_corso e p_iscrizione_id); uscire senza valutare chiede "Sei sicuro?" (Torna e valuta / Piu' tardi), la tessera resta finche' qualcuno valuta. (4) Nuova osservazione: "Mostra all'allievo" si spunta da solo quando "Per l'allievo" ha testo, e lo stesso avviso sulle note del carattere. CUMULA v2.35 (sotto). -->
 <!-- KC-BUILD: oggi v2.35 · 2026-10-30 · NOTE DEL MONITOR RETROATTIVE (consegna 30 ott, punto 3, approvata da Marco il 30/10; DB sql/monitor/07_note_retroattive_2026-10-30.sql da applicare dopo la 06 e PRIMA del deploy). (1) I miei turni (viste monitor e istruttore) da monitor_turni_elenco, con l'id del turno: ogni turno chiuso ha APRI E AGGIUNGI (fino a 7 giorni) o GUARDA. (2) Finestra del turno a tutto schermo (monitor_turno_dettaglio): chi e' stato seguito con le note; + AGGIUNGI UNA PERSONA SEGUITA -> cerca per nome (cerca_persona_staff) -> stesso modulo della sera (Su cosa avete lavorato, Com'e' andata, Controlla e segna) -> monitor_nota_turno: la nota va nel giorno e nell'ora del turno e porta "aggiunta il GG/MM"; SPOSTA SU UN'ALTRA PERSONA -> cerca -> "Sei sicuro?" -> monitor_sposta_nota (osservazione e persona seguita insieme, "spostata il GG/MM da X"). Uscire a meta' chiede "Non hai segnato…". (3) Segreteria e creator: nella console segreteria "Turni Sala con Monitor" (60 giorni, tutti i monitor) con la stessa finestra, anche oltre i 7 giorni. I permessi li controlla la RPC: il monitor solo sui suoi turni chiusi e fino a 7 giorni. Errori del DB a schermo (erroreChiaro). CUMULA v2.34 (sotto). -->
 <!-- KC-BUILD: oggi v2.34 · 2026-10-30 · NOTA DI SALA E PERSONA SEGUITA SEMPRE INSIEME (consegna 30 ott, punto 2; DB sql/monitor/06_note_sala_atomiche_2026-10-30.sql da applicare PRIMA del deploy). Caso del 28/10: istruttore in turno di sala, nota scritta da SALVA OSSERVAZIONE della scheda con il contesto precompilato dal tipo dell'allievo, 'monitor': la nota non era nel turno e il turno risultava senza persone seguite; poi chiusura automatica alle 22:00 e un secondo turno vuoto alle 22:10. (1) Scheda: il contesto 'monitor' diventa "Sala con Monitor" (sala_monitor), con la riga che spiega cosa si salva; salva_osservazione a DB scrive nota e persona seguita insieme nel turno aperto (_sala_annota, una sola RPC), senza turno aperto rifiuta con un errore chiaro. (2) Gli errori di SALVA OSSERVAZIONE, SEGNA e INIZIO/FINE TURNO restano a schermo finche' non si chiudono (erroreChiaro col testo del DB), non piu' un toast di 2 secondi. (3) DB: dopo la fine della sala di oggi INIZIO TURNO e SEGNA non aprono un turno nuovo (rimandano a I miei turni); la chiusura automatica non chiude se nell'ultimo quarto d'ora il monitor ha segnato qualcuno, ma la fine e' sempre quella prevista (decisione di Marco 30/10: le ore in piu' le corregge solo la segreteria, la nota del turno dice a che ora ha segnato l'ultima persona). CUMULA v2.33 (sotto). -->
@@ -39,6 +41,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/kc-da-coprire.js"></script>
 <style>
 :root{
   --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
@@ -73,6 +76,12 @@ a{color:inherit; text-decoration:none}
 .saldare-c{font-size:15px;margin-top:4px;line-height:1.4}
 .saldare-p{font-size:14px;margin-top:6px;line-height:1.4}
 .saldare-b{display:inline-block;margin-top:12px;font-size:14px;font-weight:700;color:#FFF;background:#111;padding:10px 18px;border-radius:8px}
+/* v2.37 tessera Da coprire */
+.t-dacoprire{border-left:4px solid var(--velo)}
+.t-dacoprire .dc-sub{display:block;font-size:13px;color:var(--grigio);margin-top:2px;line-height:1.35}
+.t-dacoprire.dc-rosso{border-left-color:#FF3B30} .t-dacoprire.dc-rosso .big{color:#FF8A84}
+.t-dacoprire.dc-arancio{border-left-color:#FFB340} .t-dacoprire.dc-arancio .big{color:#FFB340}
+.t-dacoprire.dc-verde{border-left-color:#30D158} .t-dacoprire.dc-verde .big{color:#30D158}
 /* v2.36 avviso fisso: le note sul carattere non vanno dove legge l'allievo */
 .avv-car{font-size:14px;font-weight:700;color:#FFB340;margin:8px 0 0;line-height:1.4}
 /* v2.36 quadro dell'allievo */
@@ -726,6 +735,7 @@ async function init(){
   document.getElementById('app').style.display='block';
   if(pdata.staff_role) setTimeout(loadImpegniOggi,0); // v2.23: dopo il render della vista
   if(pdata.staff_role) setTimeout(loadNonCiMie,0); // v2.32
+  if(pdata.staff_role) setTimeout(loadDaCoprire,0); // v2.37 tessera Da coprire (stessa funzione della bacheca di Turni)
 
   if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); loadTurniTutti(); loadFineCorso(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); loadFineCorso(); }
@@ -2615,7 +2625,24 @@ function dialogo(testoHtml,primo,secondo){
 function chiudiDialogo(){ document.getElementById('dlg').hidden=true; _dlgFn=[null,null]; }
 /* v2.34 errore che resta a schermo finche' non si chiude (niente fallimenti silenziosi): il testo e' quello del DB */
 function erroreChiaro(cosa,e){
-  dialogo(`<p><b>${esc(cosa)}</b></p><p>${esc(String(e?.message||e||'errore'))}</p>`,['HO CAPITO',null]);
+  const m=String(e?.message||e||'errore');
+  if(TURNO_CHIUSO_RE.test(m))return turnoChiusoDialogo(); // v2.38
+  dialogo(`<p><b>${esc(cosa)}</b></p><p>${esc(m)}</p>`,['HO CAPITO',null]);
+}
+/* v2.38 turno di oggi chiuso (es. il sabato alle 18, caso del 31/10): invece del solo errore, dove si rimedia.
+   Le risposte del DB: monitor_turno 'fine' "Nessun turno aperto oggi", monitor_segna "…di oggi è finita…",
+   salva_osservazione "…il tuo turno non è aperto…". L'ora la dice fine_turno_prevista(oggi): sabato 18:00, gli altri giorni 22:00. */
+const TURNO_CHIUSO_RE=/nessun turno aperto oggi|sala con monitor di oggi è finita|turno non è aperto/i;
+async function turnoChiusoDialogo(){
+  let alle='';
+  try{ const{data,error}=await sb.rpc('fine_turno_prevista',{p_data:isoLocal(new Date())}); if(!error&&data)alle=hhmm(data); }catch(_){}
+  const vai=()=>{
+    if(!document.getElementById('scheda').hidden){ _esciOk=true; chiudiScheda(); }
+    setTimeout(()=>{ const el=document.getElementById('sala-turni'); if(el)el.scrollIntoView({behavior:'smooth',block:'start'}); else location.href='/oggi.html#sala-turni'; },250);
+  };
+  dialogo(`<p><b>Il turno di oggi è chiuso${alle?` (la sala chiude alle ${esc(alle)})`:''}.</b></p>
+    <p>Per aggiungere chi hai seguito vai in <b>I miei turni</b> → APRI E AGGIUNGI.</p>`,
+    ['VAI A I MIEI TURNI',vai],['Chiudi',null]);
 }
 function dlgPremi(i){
   const nota=(document.getElementById('dlg-nota')?.value||'').trim()||null; // letta prima di chiudere
@@ -3272,7 +3299,27 @@ function htmlTesseraTurni(){
     <div class="big">📌</div>
     <span class="cmd mono">MI SEGNO ›</span>
     <span class="t-nonci" id="turni-nonci" hidden></span>
+  </a>
+  <a class="t t-fasc t-dacoprire" id="t-dacoprire" href="/turni.html#da-coprire">
+    <span class="et mono">📌 Da coprire</span>
+    <div class="big" id="dc-n">…</div>
+    <span class="dc-sub" id="dc-sub"></span>
+    <span class="cmd mono">GUARDA ›</span>
   </a>`;
+}
+/* v2.37 tessera Da coprire: kcDaCoprire (kc-da-coprire.js) e' la stessa funzione della bacheca di Turni, un solo conto.
+   I monitor vedono solo i turni monitor (lo decide la funzione). */
+async function loadDaCoprire(){
+  const t=document.getElementById('t-dacoprire'); if(!t||typeof kcDaCoprire!=='function')return;
+  const n=document.getElementById('dc-n'), sub=document.getElementById('dc-sub');
+  try{
+    const r=await kcDaCoprire(sb,uid,pdata.staff_role), k=r.voci.length;
+    t.classList.remove('dc-rosso','dc-arancio','dc-verde');
+    if(!k){ t.classList.add('dc-verde'); n.textContent='✓'; sub.textContent='Tutto coperto nelle prossime 2 settimane'; return; }
+    t.classList.add(r.urgenti?'dc-rosso':'dc-arancio');
+    n.textContent=String(k);
+    sub.textContent=`nei prossimi 14 giorni${r.conDisponibili?` · ${r.conDisponibili} con persone disponibili`:''}${r.urgenti?` · ${r.urgenti} entro 3 giorni`:''}`;
+  }catch(e){ console.warn('[da coprire]',e?.message||e); n.textContent='—'; sub.textContent='Non riesco a leggerlo ora'; }
 }
 /* v2.32 le mie date in cui ho segnato che non ci sono (da oggi in poi) */
 async function loadNonCiMie(){
