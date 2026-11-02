@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.153 · 2026-11-02 · LEZIONE NON SVOLTA OVUNQUE (consegna 2 nov, punto 3): Turni -> voce della lezione: "lezione non svolta" in grigio e solo "Riporta a previsto" (niente Segna assente/presente/Sostituisci); Compensi lezioni dei corsi: sotto le lezioni pagate "N lezioni non svolte (0 €, non sono assenze)" in grigio; Il mio mese: "N lezioni non svolte: la lezione non c'era, non conta come assenza." in grigio (conteggio da impegni_staff del mese). Mai come assenza ne' in arancio. Nessuna modifica a DB. CUMULA v3.152 (sotto). -->
 <!-- KC-BUILD: portale v3.152 · 2026-11-02 · NON C'ERA LEZIONE (richiesta della segreteria 2 nov, approvata da Marco; DB impegni_lezione_non_svolta gia' live). Segreteria -> ⚠ Da sistemare -> Presenze da confermare: quarto bottone NON C'ERA LEZIONE con sotto "Nessun allievo o corso non attivo: non è un'assenza, non si paga e non cerca il sostituto"; kcGuida "Sei sicuro? Non c'era lezione" -> impegno_presenza(id,'non_svolta') su tutta la lezione -> "Fatto: lezione segnata come non svolta (N istruttori)"; l'errore "c'è già qualcuno segnato presente" resta nella finestra. Suggerito (etichetta "suggerito"): NON C'ERA LEZIONE se Prima Lezione o corso a lezioni (Open, Advance, Intro Corda, Evo Corda) senza prenotazioni non cancellate per quello slot e quella data; altrimenti PRESENTE. Riga di aiuto del riquadro: Prima Lezione con l'istruttore presente e nessun allievo = PRESENTE (vuota, 5 €/h). Turni: lo stato si legge "lezione non svolta" in grigio (nella voce e nei nomi), la lezione con tutti gli impegni non svolti e' grigia "lezione non svolta", non rossa scoperta. Nessuna modifica a DB. CUMULA v3.151 (sotto). -->
 <!-- KC-BUILD: portale v3.151 · 2026-10-31 · IL MIO PERCORSO (consegna 31 ott, quadro dell'allievo; DB Quadro_allievo_2026-10-31 gia' applicato): il riquadro "Il mio diario didattico" del profilo diventa "Il mio percorso". (1) I miei Kata: validati, in attesa di validazione, da migliorare (video rifiutati con il commento + voci kata_da_migliorare del quadro), dai video gia' letti per la sezione Kata (kataVids), nessuna nuova lettura. (2) La mia traccia: v_mio_quadro (la vista restituisce solo le voci che l'allievo puo' leggere e non ritirate) + v_mio_diario_didattico, unite e ordinate per data; ogni tappa con data, autore, ruolo (Istruttore, Monitor, Maestro) e contesto; etichette I tuoi punti di forza, Abitudini da trasformare, Kata da migliorare (Kata 7 — …), Per te; segno di tappa "Fine Corso … KataClimb" sulle valutazioni di fine corso; vuoto: "Qui troverai la traccia del tuo percorso…". DIARIO_DID_CONTESTO: + sala_monitor, via lab. Solo nel proprio profilo. CUMULA v3.150 (sotto). -->
 <!-- KC-BUILD: portale v3.150 · 2026-10-30 · SISTEMA ADESSO CHE CHIUDE DAVVERO (consegna 30 ott, punto 1; DB sql/allineamento_chiudi_2026-10-30.sql da applicare PRIMA del deploy). Caso del 29/10: su una voce "da chiarire" con azione_suggerita 'chiudi' il tasto ha corretto l'importo invece di chiudere l'abbonamento, e la notte dopo la domanda e' tornata. Causa: AL_COLONNE non leggeva azione_suggerita, quindi sulle voci da chiarire non era preselezionato niente. (1) AL_COLONNE legge azione_suggerita: SISTEMA ADESSO parte dalla scelta suggerita, con l'etichetta "suggerito". (2) Avviso arancio se si sceglie un'altra cosa ("Il controllo di stanotte suggerisce …: è giusto?") e, su una voce da chiudere, "Correggere l'importo non chiude l'abbonamento: resta attivo nel portale." (3) DB: chiudi mette la nota con data e autore sull'iscrizione e non tocca importi; la notte (allineamento_pubblica) non ripropone una voce gia' chiusa da segreteria o da Marco negli ultimi 30 giorni (salvo errore_elenco e "riapri"). CUMULA v3.149 (sotto). -->
@@ -5872,6 +5873,10 @@ async function renderMioMeseStaff(){
     const{data,error}=await sb.from('v_costi_staff_mese').select('lezioni_corsi,prime_lezioni,ore_monitor,totale,da_confermare').eq('user_id',user.id).eq('mese',mese).maybeSingle();
     if(error)throw error;
     r=data||{lezioni_corsi:0,prime_lezioni:0,ore_monitor:0,totale:0,da_confermare:0};
+    // v3.153 lezioni non svolte del mese: si leggono, non sono assenze
+    const fineM=new Date(o.getFullYear(),o.getMonth()+1,0),fineIso=fineM.getFullYear()+'-'+String(fineM.getMonth()+1).padStart(2,'0')+'-'+String(fineM.getDate()).padStart(2,'0');
+    const ns=await sb.from('impegni_staff').select('id',{count:'exact',head:true}).eq('user_id',user.id).eq('stato','non_svolta').gte('data',mese).lte('data',fineIso);
+    r.non_svolte=ns.error?0:(ns.count||0);
   }catch(e){console.warn('[mio mese]',e.message||e);el.innerHTML='';return}
   const eur=Number(r.totale||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
   const ore=Number(r.ore_monitor||0).toLocaleString('it-IT',{maximumFractionDigits:2});
@@ -5880,6 +5885,7 @@ async function renderMioMeseStaff(){
     +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 8px">Il mio <em>mese</em></h2>'
     +'<p style="margin:0;font-size:15px">Questo mese: '+n(r.lezioni_corsi,'lezione','lezioni')+', '+n(r.prime_lezioni,'prima','prime')+', '+ore+' ore monitor = <b>'+eur+'</b></p>'
     +(Number(r.da_confermare)>0?'<p style="margin:8px 0 0;font-size:14px;color:#B45309">'+n(r.da_confermare,'lezione','lezioni')+' ancora senza presenza: valgono 0 finché la segreteria non conferma.</p>':'')
+    +(Number(r.non_svolte)>0?'<p style="margin:8px 0 0;font-size:14px;color:var(--text2)">'+n(r.non_svolte,'lezione non svolta','lezioni non svolte')+': la lezione non c’era, non conta come assenza.</p>':'')
     +'</div>';
 }
 /* v3.151 — IL MIO PERCORSO (consegna 31 ott 2026, decisioni di Marco): la traccia del progresso promessa sul sito.
@@ -11560,16 +11566,17 @@ function tuApriVoce(k){
   const puo=tuPuo();
   const righe=v.seg.length?v.seg.map(i=>{
     const az=[];
+    const nsv=i.stato==='non_svolta'; // v3.153 lezione non svolta: si riporta solo a previsto
     if(puo&&i.stato==='previsto'&&!passato)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('togli','${i.id}',${k})">Togli</button>`);
-    if(puo&&i.stato!=='assente')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('assente','${i.id}',${k})">Segna assente</button>`);
-    if(puo&&v.tipo==='corso'&&i.stato!=='presente'&&!futuro)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('presente','${i.id}',${k})">Segna presente</button>`);
-    if(puo&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
+    if(puo&&!nsv&&i.stato!=='assente')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('assente','${i.id}',${k})">Segna assente</button>`);
+    if(puo&&!nsv&&v.tipo==='corso'&&i.stato!=='presente'&&!futuro)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('presente','${i.id}',${k})">Segna presente</button>`);
+    if(puo&&!nsv&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
     const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
     const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
-      <div class="sc-sub">${escHtml(ruolo)} · ${escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
+      <div class="sc-sub">${escHtml(ruolo)} · ${nsv?'<span style="color:var(--text2)">lezione non svolta</span>':escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
   }).join(''):'<p class="sc-vuoto">Nessuno segnato.</p>';
   const gia=v.seg.map(i=>i.user_id);
   const liberi=(tuStaff||[]).filter(u=>!gia.includes(u.user_id));
@@ -11697,7 +11704,8 @@ function tuEsportaCsv(){
    ma restano da confermare come le altre, servono per le sostituzioni. ── */
 function tuTotLez(){
   const m=new Map();
-  tuCompLez.forEach(r=>{const x=m.get(r.user_id)||{persona:r.persona,lezioni:0,ore:0,euro:0,daConf:0,perc:0};
+  tuCompLez.forEach(r=>{const x=m.get(r.user_id)||{persona:r.persona,lezioni:0,ore:0,euro:0,daConf:0,perc:0,nonSv:0};
+    if(r.stato==='non_svolta')x.nonSv++; // v3.153 0 €, non e' un'assenza
     if(r.stato==='presente'&&r.compenso_tipo==='percentuale')x.perc++;
     else if(r.stato==='presente'){x.lezioni++;x.ore+=Number(r.ore||0);x.euro+=Number(r.euro||0)}
     if(r.da_confermare)x.daConf++;
@@ -11717,7 +11725,7 @@ async function tuCaricaCompLez(){
   const tot=tuTotLez();
   box.innerHTML=!tot.length?'<p class="sc-vuoto">Nessuna lezione dei corsi in questo mese.</p>'
     :`<div style="overflow-x:auto"><table class="tu-tab"><thead><tr><th>Persona</th><th>Lezioni pagate</th><th>Ore</th><th>Compenso</th><th>Da confermare</th></tr></thead><tbody>
-    ${tot.map(x=>`<tr><td>${escHtml(x.persona)}</td><td>${x.lezioni}${x.perc?`<div style="font-size:13px;color:var(--text2)">+ ${x.perc} a percentuale</div>`:''}</td><td>${tuNum(x.ore)}</td><td><b>${tuEur(x.euro)}</b></td><td>${x.daConf?`<span class="sc-warn">${x.daConf}</span>`:'0'}</td></tr>`).join('')}
+    ${tot.map(x=>`<tr><td>${escHtml(x.persona)}</td><td>${x.lezioni}${x.perc?`<div style="font-size:13px;color:var(--text2)">+ ${x.perc} a percentuale</div>`:''}${x.nonSv?`<div style="font-size:13px;color:var(--text2)">${x.nonSv} ${x.nonSv===1?'lezione non svolta':'lezioni non svolte'} (0 €, non sono assenze)</div>`:''}</td><td>${tuNum(x.ore)}</td><td><b>${tuEur(x.euro)}</b></td><td>${x.daConf?`<span class="sc-warn">${x.daConf}</span>`:'0'}</td></tr>`).join('')}
     </tbody><tfoot><tr><td><b>Totale</b></td><td>${tot.reduce((s,x)=>s+x.lezioni,0)}</td><td>${tuNum(tot.reduce((s,x)=>s+x.ore,0))}</td><td><b>${tuEur(tot.reduce((s,x)=>s+x.euro,0))}</b></td><td>${tot.reduce((s,x)=>s+x.daConf,0)}</td></tr></tfoot></table></div>`;
   const L=tuCompLez.filter(r=>r.da_confermare);
   document.getElementById('tu-daconf-n').textContent=L.length?String(L.length):'';

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.107 · 2026-11-02 · LEZIONE NON SVOLTA (consegna 2 nov, punto 3; DB impegni_staff.stato non_svolta): nello Staff della lezione lo stato non_svolta si legge "lezione non svolta" in un chip grigio, mai come assenza. Nessuna modifica a DB. CUMULA v3.106 (sotto). -->
 <!-- KC-BUILD: agenda v3.106 · 2026-10-27 · CERCA NELL'AGENDA (consegna 27 ott, nessuna modifica al DB): campo "🔎 Cerca nell'agenda" sopra i bottoni settimana (segnaposto "scuola, Open, Manovra, un nome…"), da 2 caratteri, 300 ms dopo l'ultima lettera, senza maiuscole ne' accenti, ✕ per svuotare. STAFF: cerca nel nome completo del corso (mappa con i nomi completi, minori dalla fascia, scuole con "scuola" e il nome della scuola da lead_scuola_id), negli eventi di get_eventi_calendario, nei nomi dello staff segnato (impegni_staff previsto/presente), negli allievi prenotati (prenotazioni_corso, prenotazioni_prima_lezione, v_lista_manovra_sosta) e negli iscritti fissi (get_iscritti_minori). ALLIEVO: solo le sue lezioni prenotate (prenotazioni_corso del suo user_id), mai nomi di altri. Periodo da oggi a 6 mesi, "Anche passate" aggiunge gli ultimi 3 mesi (date passate in grigio); tutte le letture filtrate per intervallo di date, a pagine da 1000. Ricorrenti: solo le date con almeno un prenotato o un iscritto; cercando un corso, le prossime 8 settimane; giorni chiusi e chiusure dello slot fuori. Risultati per data ("Mar 12 gen 2027"), riga con ora, nome e "N prenotati"/"N iscritti" (e lo staff), contatore in alto ("Institut International Saint-Dominique · 8 date"), "Nessuna data trovata per «…»". Tocco su una lezione: settimana e corso giusti, scorre alla lezione e la evidenzia 2 secondi; "← Torna ai risultati" riapre l'elenco. Le card portano data-slot-id e data-data. Solo letture. CUMULA v3.105 (sotto). -->
 <!-- KC-BUILD: agenda v3.105 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita letta con le lezioni della settimana, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. Gli errori delle RPC (impegno_mi_segno e sostituisci_istruttore rifiutano chi e' indisponibile) si mostrano come arrivano. Solo letture. CUMULA v3.104 (sotto). -->
 <!-- KC-BUILD: agenda v3.104 · 2026-10-27 · MONITOR IN FONDO + APRI SU UNA DATA (consegna 27 ott, DB segreteria_da_sistemare): (1) Nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha staff_role staff_monitor sta in fondo, separato, sotto "Monitor · solo casi estremi" (il sostituto previsto resta primo se non e' un monitor); sceglierlo chiede "È un monitor, non è istruttore né assistente. È davvero un caso estremo?" prima della RPC. (2) agenda.html?data=AAAA-MM-GG&tipo=<tipo_corso> apre la settimana di quella data e, se il corso e' nel menu, quel corso (scuole -> Scuole, Prime Bambini e Ragazzi -> Bambini e Ragazzi, altre Prime -> Prima Lezione): serve ad APRI IN AGENDA di oggi v2.31. Parametri non validi: agenda come prima. Nessuna modifica a RPC. CUMULA v3.103 (sotto). -->
@@ -151,6 +152,7 @@
   .staffrow .s-chip.previsto { background:#E5E7EB; color:#374151; }
   .staffrow .s-chip.presente { background:#DCFCE7; color:#166534; }
   .staffrow .s-chip.assente { background:#FEE2E2; color:#991B1B; }
+  .staffrow .s-chip.non_svolta { background:#F3F4F6; color:#6B7280; } /* lezione non svolta: grigio, non e' un'assenza */
   .staffrow .s-vuoto { color:#B91C1C; font-weight:700; }
   .staffrow .s-btn { font-size:13px; font-weight:800; padding:.3rem .6rem; border-radius:8px; border:1px solid var(--ink); background:#fff; color:var(--ink); cursor:pointer; }
   .staffrow .s-btn.s-agg { background:var(--ink); color:#fff; }
@@ -2253,7 +2255,7 @@
   const avvisiAppello = new Set();
   const isSegreteriaAg = () => STAFF_COMPLETO.includes(userStaffRole);
   const haRigaStaff = (s) => !haTurni(s) && s.tipo_corso !== 'monitor'; // scuole: riga Istruttori di sempre · Sala con Monitor: turni a parte
-  const STAFF_STATO = { previsto: 'previsto', presente: 'presente ✓', assente: 'assente' };
+  const STAFF_STATO = { previsto: 'previsto', presente: 'presente ✓', assente: 'assente', non_svolta: 'lezione non svolta' }; // non_svolta: 2 nov 2026
 
   async function caricaStaffLezioni(lezioni) {
     staffSlot = {}; staffErr = null;

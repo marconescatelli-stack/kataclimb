@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.40 · 2026-11-02 · LEZIONE NON SVOLTA NELLA TESSERA DELL'ISTRUTTORE (consegna 2 nov, punto 3): in "I tuoi impegni · oggi", accanto a "La segreteria ti ha segnato assente", il caso non_svolta: "La lezione non c'era: non conta come assenza." in grigio, senza SONO QUI. Nessuna modifica a DB. CUMULA v2.39 (sotto). -->
 <!-- KC-BUILD: oggi v2.39 · 2026-11-02 · NON C'ERA LEZIONE NELLE PRESENZE DA CONFERMARE (richiesta della segreteria 2 nov, approvata da Marco; DB impegni_lezione_non_svolta gia' live: impegni_staff.stato 'non_svolta', impegno_presenza 'non_svolta' su tutta la lezione, senza sostituto, 0 €, fuori dalle assenze). Da sistemare -> Presenze da confermare: quarto bottone NON C'ERA LEZIONE con la riga grigia "nessun allievo o corso non attivo: non è un'assenza, non si paga e non cerca il sostituto"; conferma "Sei sicuro? La lezione di <giorno> <ora> · <nome completo> risulta non svolta per tutti gli istruttori segnati." -> impegno_presenza(id,'non_svolta') -> "Fatto: lezione segnata come non svolta (N istruttori)", l'elenco si rilegge e spariscono anche le righe degli altri istruttori della stessa lezione; l'errore "c'è già qualcuno segnato presente" resta a schermo. Suggerito (etichetta verde): NON C'ERA LEZIONE se la Prima Lezione o il corso a lezioni (Open, Advance, Intro Corda, Evo Corda) non ha nessuna prenotazione non cancellata in tempo per quello slot e quella data (prenotazioni_prima_lezione / prenotazioni_corso); altrimenti, e per i corsi ad abbonamento che non hanno prenotazioni, PRESENTE. Riga di aiuto del riquadro: Prima Lezione con l'istruttore presente ma nessun allievo = PRESENTE (vuota, 5 €/h). Nessuna modifica a DB. CUMULA v2.38 (sotto). -->
 <!-- KC-BUILD: oggi v2.38 · 2026-11-01 · TURNO CHIUSO, DOVE SI RIMEDIA (consegna 31 ott, punto 4; caso del 31/10: dopo le 18 di sabato ogni segna rispondeva "Nessun turno aperto oggi"): quando SEGNA, SALVA OSSERVAZIONE o FINE TURNO tornano che il turno di oggi e' chiuso ("Nessun turno aperto oggi", "…di oggi è finita…", "…il tuo turno non è aperto…"), al posto dell'errore: "Il turno di oggi è chiuso (la sala chiude alle HH:MM). Per aggiungere chi hai seguito vai in I miei turni → APRI E AGGIUNGI." con il bottone VAI A I MIEI TURNI (chiude la scheda e scorre alla sezione). L'ora da fine_turno_prevista(oggi): sabato 18:00, gli altri giorni 22:00. Nessuna modifica a DB. CUMULA v2.37 (sotto). -->
 <!-- KC-BUILD: oggi v2.37 · 2026-11-01 · TESSERA "📌 DA COPRIRE" (consegna 31 ott, punto 3): accanto alla tessera Turni, in tutte le viste dello staff (istruttori, assistenti, segreteria, creator; i monitor contano solo i turni monitor), il numero delle voci della bacheca di Turni: "nei prossimi 14 giorni · N con persone disponibili · N entro 3 giorni" -> /turni.html#da-coprire. Rossa se c'e' qualcosa entro 3 giorni, arancio se piu' avanti, verde "Tutto coperto nelle prossime 2 settimane" se vuota. Il conto lo fa kcDaCoprire (kc-da-coprire.js), la stessa funzione della bacheca: un solo conto. Nessuna modifica a DB. CUMULA v2.36 (sotto). -->
@@ -483,6 +484,7 @@ body{font-size:17px}
 .sist-r .az{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 .sist-r .az .btn{flex:1 1 auto}
 .sist-aiuto{font-size:13px; color:#B8B8B8; margin-top:6px; line-height:1.4} /* v2.39 */
+.grigio-t{color:#B8B8B8} /* v2.40 lezione non svolta */
 .btn .sug{display:inline-block; font-size:13px; font-weight:800; padding:0 6px; border-radius:999px; background:#30D158; color:#000; margin-left:4px; letter-spacing:0}
 .imp{padding:10px 0; border-top:1px solid var(--velo)}
 .imp:first-of-type{border-top:none; padding-top:2px}
@@ -3416,6 +3418,7 @@ function disegnaImpegniOggi(){
         :'<p class="imp-ricorda">Ricordati SONO QUI: senza presenza la lezione non viene pagata.</p>';
     }
     if(x.stato==='assente') stato='La segreteria ti ha segnato assente.';
+    else if(x.stato==='non_svolta') stato='<span class="grigio-t">La lezione non c’era: non conta come assenza.</span>'; // v2.40
     else if(x.presenza_fine) stato=`<span class="ok-t">✓ Presente dalle ${hhmm(x.presenza_inizio)} alle ${hhmm(x.presenza_fine)}</span>`;
     else if(x.stato==='presente'){ stato=`<span class="ok-t">Sei qui dalle ${hhmm(x.presenza_inizio)}</span>`; btn=`<button class="btn fine" onclick="impPresenza('${esc(x.id)}','fine',this)">HO FINITO</button>`; }
     else btn=`<button class="btn prim grande" onclick="impPresenza('${esc(x.id)}','inizio',this)">SONO QUI</button>`;
