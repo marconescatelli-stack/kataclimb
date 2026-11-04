@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.108 · 2026-11-04 · RICORDO DOPO LA PRIMA LEZIONE (consegna 4 nov, scheda allievo B): dopo P (fatto) su una Prima Lezione, il portale chiede subito "Come lo riconosci tra un mese?" (300 caratteri, 🔒 solo staff, precompilato se c'e' gia') con Salta come scelta visibile -> salva_ricordo_lead(lead_id, p_ricordo). Se la lettura fallisce non chiede niente: la presenza resta salvata. Nessuna modifica a DB. CUMULA v3.107 (sotto). -->
 <!-- KC-BUILD: agenda v3.107 · 2026-11-02 · LEZIONE NON SVOLTA (consegna 2 nov, punto 3; DB impegni_staff.stato non_svolta): nello Staff della lezione lo stato non_svolta si legge "lezione non svolta" in un chip grigio, mai come assenza. Nessuna modifica a DB. CUMULA v3.106 (sotto). -->
 <!-- KC-BUILD: agenda v3.106 · 2026-10-27 · CERCA NELL'AGENDA (consegna 27 ott, nessuna modifica al DB): campo "🔎 Cerca nell'agenda" sopra i bottoni settimana (segnaposto "scuola, Open, Manovra, un nome…"), da 2 caratteri, 300 ms dopo l'ultima lettera, senza maiuscole ne' accenti, ✕ per svuotare. STAFF: cerca nel nome completo del corso (mappa con i nomi completi, minori dalla fascia, scuole con "scuola" e il nome della scuola da lead_scuola_id), negli eventi di get_eventi_calendario, nei nomi dello staff segnato (impegni_staff previsto/presente), negli allievi prenotati (prenotazioni_corso, prenotazioni_prima_lezione, v_lista_manovra_sosta) e negli iscritti fissi (get_iscritti_minori). ALLIEVO: solo le sue lezioni prenotate (prenotazioni_corso del suo user_id), mai nomi di altri. Periodo da oggi a 6 mesi, "Anche passate" aggiunge gli ultimi 3 mesi (date passate in grigio); tutte le letture filtrate per intervallo di date, a pagine da 1000. Ricorrenti: solo le date con almeno un prenotato o un iscritto; cercando un corso, le prossime 8 settimane; giorni chiusi e chiusure dello slot fuori. Risultati per data ("Mar 12 gen 2027"), riga con ora, nome e "N prenotati"/"N iscritti" (e lo staff), contatore in alto ("Institut International Saint-Dominique · 8 date"), "Nessuna data trovata per «…»". Tocco su una lezione: settimana e corso giusti, scorre alla lezione e la evidenzia 2 secondi; "← Torna ai risultati" riapre l'elenco. Le card portano data-slot-id e data-data. Solo letture. CUMULA v3.105 (sotto). -->
 <!-- KC-BUILD: agenda v3.105 · 2026-10-27 · NON CI SONO (consegna 27 ott, DB staff_indisponibilita): nella finestra Staff (SOSTITUISCI, + AGGIUNGI STAFF) chi ha segnato che non c'e' in quella data e ora (v_staff_indisponibilita letta con le lezioni della settimana, ore nulle = tutto il giorno) resta visibile ma grigio e non selezionabile, in fondo sotto "Non disponibili", con il motivo. Ordine: sostituto previsto se disponibile, altri disponibili, monitor (solo casi estremi), non disponibili. Gli errori delle RPC (impegno_mi_segno e sostituisci_istruttore rifiutano chi e' indisponibile) si mostrano come arrivano. Solo letture. CUMULA v3.104 (sotto). -->
@@ -476,6 +477,20 @@
     <div class="modal-actions">
       <button class="btn-ann" id="rimarca-annulla">Ripensaci</button>
       <button class="btn-warn" id="rimarca-conferma">Sì, correggi</button>
+    </div>
+  </div>
+</div>
+
+<!-- v3.108 — Dopo la Prima Lezione fatta: come lo riconosci tra un mese? (solo staff, salva_ricordo_lead) -->
+<div id="modal-ricordo" class="modal-bg">
+  <div class="modal">
+    <h3>Come lo riconosci tra un mese?</h3>
+    <p style="font-size:14px;margin:.4rem 0 .6rem 0"><b id="ricordo-nome"></b> ha fatto la Prima Lezione. Due righe per ricordartelo: aspetto, con chi è venuto, cosa ti ha colpito. 🔒 Lo legge solo lo staff.</p>
+    <textarea id="ricordo-testo" maxlength="300" rows="3" style="width:100%;font:inherit;font-size:16px;padding:.6rem .7rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box" placeholder="Es. alto, capelli ricci, è venuto con la fidanzata, lavora di notte, ha paura dell'altezza ma vuole provarci"></textarea>
+    <div id="ricordo-msg" class="modal-msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ann" id="ricordo-salta">Salta</button>
+      <button class="btn-ok" id="ricordo-salva">Salva</button>
     </div>
   </div>
 </div>
@@ -3010,6 +3025,38 @@
     notifyParent('marca_presenza');
     await render();
     avvisoAppello(prenotId, tipo); // v3.103 — l'istruttore vede se la lezione e' a suo nome o se ha sostituito
+    if (isPrimaTipo(tipo) && action === 'fatto') chiediRicordo(prenotId); // v3.108 il portale guida: subito il ricordo
+  }
+
+  /* v3.108 — dopo la Prima Lezione fatta, "Come lo riconosci tra un mese?" (lead_data.ricordo via salva_ricordo_lead).
+     Salta e' una scelta visibile; se qualcosa non si legge, non si chiede niente (la presenza e' gia' salvata). */
+  async function chiediRicordo(prenotId) {
+    try {
+      const { data: pp } = await sb.from('prenotazioni_prima_lezione').select('lead_id').eq('id', prenotId).maybeSingle();
+      const leadId = pp && pp.lead_id; if (!leadId) return;
+      const { data: ld } = await sb.from('lead_data').select('ricordo, persona_id').eq('id', leadId).maybeSingle();
+      let nome = '';
+      if (ld && ld.persona_id) {
+        const { data: pe } = await sb.from('persone').select('nome, cognome').eq('id', ld.persona_id).maybeSingle();
+        nome = pe ? ((pe.nome || '') + ' ' + (pe.cognome || '')).trim() : '';
+      }
+      document.getElementById('ricordo-nome').textContent = nome || 'La persona';
+      const ta = document.getElementById('ricordo-testo'); ta.value = (ld && ld.ricordo) || '';
+      const msg = document.getElementById('ricordo-msg'); msg.textContent = ''; msg.className = 'modal-msg';
+      const ok = document.getElementById('ricordo-salva'); ok.disabled = false;
+      document.getElementById('ricordo-salta').onclick = () => closeModal('modal-ricordo');
+      ok.onclick = async () => {
+        const t = ta.value.trim();
+        if (!t) { msg.textContent = 'Scrivi due parole, oppure premi Salta.'; msg.className = 'modal-msg err'; return; }
+        ok.disabled = true;
+        const { error } = await sb.rpc('salva_ricordo_lead', { p_lead_id: leadId, p_ricordo: t });
+        if (error) { ok.disabled = false; msg.textContent = error.message.replace(/^.*ERROR:\s*/i, ''); msg.className = 'modal-msg err'; return; }
+        closeModal('modal-ricordo');
+        toast('✓ Salvato: lo ritrovi nella sua scheda');
+      };
+      openModal('modal-ricordo');
+      ta.focus();
+    } catch (e) { console.warn('[ricordo]', e && e.message || e); }
   }
 
   // ─── DEBITO-178: instradamento marca vs correzione (rimarca) ───────
