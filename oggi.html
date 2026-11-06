@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.47 · 2026-11-06 · CARICA I KATA (Marco 6 nov): in testa a "I suoi Kata" il bottone CARICA UN KATA verso monitor.html?u=&da=oggi&pid= (solo con account nel portale, un solo codice di caricamento); tessera Carica i Kata al posto di Monitor nella console istruttore e nuova nella console monitor, mai in segreteria/creator. Tornando da monitor.html ?scheda= si toglie dall'URL con replaceState; con torna= resta, serve al ricaricamento. La scheda resta su origine 'cerca': con 'kata' un monitor rientrerebbe nella logica del turno. Nessun SQL. CUMULA v2.46. -->
 <!-- KC-BUILD: oggi v2.46 · 2026-11-06 · RITORNO ALL'AGENDA (Marco 5–6 nov): torna=agenda con data e tipo validati, indirizzo ricostruito (mai copiato dalla URL), ← "Torna all'agenda", sotto il nome "Aperta dall'agenda · ← torna alla lezione"; la scheda resta fuori dal turno (origine 'cerca'). Nel Quadro commerciale "Apri il fascicolo CRM →" solo per la vista segreteria. Nessun SQL. CUMULA v2.45. -->
 <!-- KC-BUILD: oggi v2.45 · 2026-11-06 · RITORNO A COMMERCIALE (Marco 6 nov): oggi.html?scheda=<uuid> apre la scheda allo staff (origine 'cerca', fuori dalla logica del turno); torna=commerciale riporta li' alla chiusura, dopo il solito dialogoUscita, ← con etichetta "Torna a commerciale". Qualunque altro valore di torna si ignora. Il parametro scheda non esisteva: la consegna agenda del 5 nov non e' mai stata applicata, torna=agenda resta da fare. CUMULA v2.44. -->
 <!-- KC-BUILD: oggi v2.44 · 2026-11-06 · CERCA UNA PERSONA + AGGIUNGI UNA NOTA (Marco 6 nov): campo "Cerca una persona" in cima alle viste staff (cerca_persona_staff, funzione propria cercaPersona; salaCerca intatta); nella scheda, sotto nome e contatti, bottone AGGIUNGI UNA NOTA e diario (htmlNote): il riquadro di htmlRicontatto e il diario escono dal Quadro commerciale, stessa ricSalva e stessa RPC istruttore_azione_lead. La bozza sta in ric e sopravvive ai ridisegni della scheda; nota non salvata -> dialogoUscita. Senza fascicolo contatti il bottone avvisa e non scrive; scheda ridotta: niente bottone. La ricerca generale apre la scheda con origine propria 'cerca' ('ricerca' resta alla sola ricerca di sala): con 'cerca' schedaSala e' spenta anche nella vista monitor, quindi niente blocco del turno, guida, caricaVeterano, _salaUsata, e all'uscita mai "Hai seguito…?", neanche col turno aperto. Nessun SQL. CUMULA v2.43. -->
@@ -319,6 +320,7 @@ a{color:inherit; text-decoration:none}
 .btn.prim{background:var(--fiducia); color:#000; border-color:var(--fiducia)}
 .btn.wa{background:#1F8F4E; border-color:#1F8F4E}
 .btn.ok{background:#1E6B34; border-color:#1E6B34}
+.kata-carica{display:block; width:100%; text-align:center; text-decoration:none; margin-bottom:10px} /* v2.47 */
 .sch-da{font-size:13px; color:#C9C9CE; margin-top:4px} /* v2.46 */
 .sch-stato{font-size:14px; margin-top:12px; color:#E5E5EA}
 .sch-banner{background:linear-gradient(135deg,#FF9F0A,#FF7A00); color:#1A1200; border-radius:12px; padding:12px 14px; margin-top:12px; font-weight:800; font-size:15px}
@@ -812,6 +814,7 @@ async function init(){
   if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sPid) && (pdata.staff_role||SEG_ROLES.includes(profilo.role))){
     if(qs.get('torna')==='commerciale'){ schedaTorna='commerciale.html'; document.querySelector('.sch-back').setAttribute('aria-label','Torna a commerciale'); }
     if(qs.get('torna')==='agenda'){ schedaTorna=tornaAgenda(qs); schedaDaAgenda=true; document.querySelector('.sch-back').setAttribute('aria-label',"Torna all'agenda"); }
+    if(!schedaTorna){ qs.delete('scheda'); const r=qs.toString(); history.replaceState(null,'',location.pathname+(r?'?'+r:'')); } // v2.47 un ricaricamento non la riapre
     apriScheda(sPid,false,'cerca');
   }
 }
@@ -1069,9 +1072,9 @@ function renderIstruttore(){
   ${htmlTesseraTurni()}
 
   <a class="t t-fasc" href="/monitor.html">
-    <span class="et mono">Monitor</span>
-    <div class="big">🎬</div>
-    <span class="cmd mono">APRI ›</span>
+    <span class="et mono">Carica i Kata</span>
+    <div class="big">📹</div>
+    <span class="cmd mono">CERCA LA PERSONA ›</span>
   </a>
 
   <a class="t t-uscita due" id="t-ev2" href="/eventi.html">
@@ -2413,12 +2416,13 @@ function htmlKataQuadro(n){
   const q=quadro;
   if(!q)return '<p class="sch-vuoto">Un attimo…</p>';
   if(!q.userId)return `<p class="sch-vuoto">${n} non ha ancora l'account nel portale: niente Kata caricati.</p>`;
+  const carica=`<a class="btn prim kata-carica" href="monitor.html?u=${encodeURIComponent(q.userId)}&da=oggi&pid=${encodeURIComponent(schedaPid)}">📹 CARICA UN KATA DI ${n}</a>`; // v2.47
   const K=q.kata||[], kn=k=>`Kata ${k}${KN[k]?' · '+esc(KN[k]):''}`;
   const val=[...new Set(K.filter(x=>x.status==='certified').map(x=>x.kata_num))];
   const att=[...new Set(K.filter(x=>x.status==='ready').map(x=>x.kata_num))];
   const rif=K.filter(x=>x.status==='rejected');
-  if(!val.length&&!att.length&&!rif.length)return `<p class="sch-vuoto">${n} non ha ancora caricato video dei Kata.</p>`;
-  return `<div class="q-kata">
+  if(!val.length&&!att.length&&!rif.length)return `${carica}<p class="sch-vuoto">${n} non ha ancora caricato video dei Kata.</p>`;
+  return `${carica}<div class="q-kata">
     <div><b>Validati (${val.length}) ${visPill('tutti')}</b> ${val.length?val.map(kn).join(' · '):'nessuno'}</div>
     ${att.length?`<div><b>In attesa di validazione (${att.length}) ${visPill('tutti')}</b> ${att.map(kn).join(' · ')}</div>`:''}
     ${rif.length?`<div><b>Da rifare (${rif.length}) ${visPill('allievo')}</b>${rif.map(x=>`<div class="q-rif">${kn(x.kata_num)}${x.feedback_validazione?' — '+esc(x.feedback_validazione):''}</div>`).join('')}</div>`:''}
@@ -2752,6 +2756,12 @@ function renderMonitor(){
   ${htmlImpegniOggi()}
   ${htmlSalaTessere()}
   ${htmlTesseraTurni()}
+
+  <a class="t t-fasc" href="/monitor.html">
+    <span class="et mono">Carica i Kata</span>
+    <div class="big">📹</div>
+    <span class="cmd mono">CERCA LA PERSONA ›</span>
+  </a>
 
   ${htmlSalaTabelle()}
 
