@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.109 · 2026-11-06 · IL TOCCO SUL NOME APRE LA SCHEDA (Marco 5–6 nov, sostituisce la consegna v1 del 5 nov): per tutto lo staff (isStaff) ogni nome prenotato o iscritto apre oggi.html?scheda=<persona_id>&torna=agenda&data=&tipo= nella stessa scheda del browser. persona_id: iscritti, abbonati e Manovra in Sosta dalla riga (v_lista_manovra_sosta ha persona_id, non user_id); Prima Lezione e Scuole dalla lettura della foto v3.95; corsi a credito da profile_data, una lettura in batch con cache (idrataNomi). Persona non trovata: nome senza tocco e console.warn. apriCardLead resta nel file ma non e' piu' legata ai nomi. Nessun SQL. CUMULA v3.108. -->
 <!-- KC-BUILD: agenda v3.108 · 2026-11-04 · RICORDO DOPO LA PRIMA LEZIONE (consegna 4 nov, scheda allievo B): dopo P (fatto) su una Prima Lezione, il portale chiede subito "Come lo riconosci tra un mese?" (300 caratteri, 🔒 solo staff, precompilato se c'e' gia') con Salta come scelta visibile -> salva_ricordo_lead(lead_id, p_ricordo). Se la lettura fallisce non chiede niente: la presenza resta salvata. Nessuna modifica a DB. CUMULA v3.107 (sotto). -->
 <!-- KC-BUILD: agenda v3.107 · 2026-11-02 · LEZIONE NON SVOLTA (consegna 2 nov, punto 3; DB impegni_staff.stato non_svolta): nello Staff della lezione lo stato non_svolta si legge "lezione non svolta" in un chip grigio, mai come assenza. Nessuna modifica a DB. CUMULA v3.106 (sotto). -->
 <!-- KC-BUILD: agenda v3.106 · 2026-10-27 · CERCA NELL'AGENDA (consegna 27 ott, nessuna modifica al DB): campo "🔎 Cerca nell'agenda" sopra i bottoni settimana (segnaposto "scuola, Open, Manovra, un nome…"), da 2 caratteri, 300 ms dopo l'ultima lettera, senza maiuscole ne' accenti, ✕ per svuotare. STAFF: cerca nel nome completo del corso (mappa con i nomi completi, minori dalla fascia, scuole con "scuola" e il nome della scuola da lead_scuola_id), negli eventi di get_eventi_calendario, nei nomi dello staff segnato (impegni_staff previsto/presente), negli allievi prenotati (prenotazioni_corso, prenotazioni_prima_lezione, v_lista_manovra_sosta) e negli iscritti fissi (get_iscritti_minori). ALLIEVO: solo le sue lezioni prenotate (prenotazioni_corso del suo user_id), mai nomi di altri. Periodo da oggi a 6 mesi, "Anche passate" aggiunge gli ultimi 3 mesi (date passate in grigio); tutte le letture filtrate per intervallo di date, a pagine da 1000. Ricorrenti: solo le date con almeno un prenotato o un iscritto; cercando un corso, le prossime 8 settimane; giorni chiusi e chiusure dello slot fuori. Risultati per data ("Mar 12 gen 2027"), riga con ora, nome e "N prenotati"/"N iscritti" (e lo staff), contatore in alto ("Institut International Saint-Dominique · 8 date"), "Nessuna data trovata per «…»". Tocco su una lezione: settimana e corso giusti, scorre alla lezione e la evidenzia 2 secondi; "← Torna ai risultati" riapre l'elenco. Le card portano data-slot-id e data-data. Solo letture. CUMULA v3.105 (sotto). -->
@@ -198,7 +199,8 @@
   .prenot ul { list-style:none; padding:0; margin:0; }
   .prenot li { padding:.08rem 0; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
   .prenot .nome { flex:1; min-width:120px; }
-  .prenot .nome-clickable { cursor:pointer; color:var(--gold); }
+  .prenot .nome-clickable { cursor:pointer; color:var(--gold); text-decoration:underline dashed 1px; text-underline-offset:3px; } /* v3.109: si capisce anche da telefono */
+  .prenot .nome-clickable .stage-tag { display:inline-block; text-decoration:none; }
   .prenot .nome-clickable:hover { text-decoration:underline; }
   .prenot .stage-tag { font-size:13px; padding:2px 7px; border-radius:5px; background:rgba(46,134,171,.1);
                       color:var(--info); font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
@@ -1589,11 +1591,11 @@
   async function caricaManovraSettimana(lun, dom) {
     if (viewMode === 'allievo') return [];
     const { data, error } = await sb.from('v_lista_manovra_sosta')
-      .select('id, slot_id, data_lezione, stato, esito, nome, cognome')
+      .select('id, persona_id, slot_id, data_lezione, stato, esito, nome, cognome')
       .in('stato', STATI_MANOVRA)
       .gte('data_lezione', isoD(lun)).lte('data_lezione', isoD(dom));
     if (error) { console.warn('[manovra]', error.message); return []; }
-    return (data || []).map(r => ({ id: r.id, slot_id: r.slot_id, data_lezione: r.data_lezione, stato: r.stato, esito: r.esito,
+    return (data || []).map(r => ({ id: r.id, persona_id: r.persona_id, slot_id: r.slot_id, data_lezione: r.data_lezione, stato: r.stato, esito: r.esito,
       tipo_corso: 'manovra_sosta', profile_data: { nome: r.nome, cognome: r.cognome }, _manovra: true }));
   }
 
@@ -1839,7 +1841,7 @@
       bindSlotEvents(lezioni, cfg);
       bindTurni(); // v3.99 — 7b
       bindStaff(); // v3.103
-      idrataFotoRiconoscimento(); // v3.95 — async, non blocca: se fallisce restano le iniziali
+      idrataNomi(); // v3.95 foto + v3.109 tocco sui nomi — async, non blocca: se fallisce restano iniziali e nomi senza tocco
 
     } catch (err) {
       console.error('[render] errore:', err);
@@ -2034,10 +2036,10 @@
         const rm = isStaffCompleto()
           ? `<div class="pa-buttons"><button class="pa-btn" data-iscr="${r.iscrizione_id}" data-iscr-nome="${escAttr(nomeCompleto)}" title="Termina iscrizione">\u2717</button></div>`
           : '';
-        return `<li><span class="nome">${nomeCompleto} <span class="stage-tag">Iscritto</span></span>${rm}</li>`;
+        return `<li><span class="nome" ${kpAttr({ pid: r.persona_id })}>${nomeCompleto} <span class="stage-tag">Iscritto</span></span>${rm}</li>`;
       }).join('') + abbonatiSlot.map(r => {
         const nomeCompleto = ((r.nome || '') + ' ' + (r.cognome || '')).trim() || '—';
-        return `<li><span class="nome">${escAttr(nomeCompleto)} <span class="stage-tag">Abbonato</span></span></li>`;
+        return `<li><span class="nome" ${kpAttr({ pid: r.persona_id })}>${escAttr(nomeCompleto)} <span class="stage-tag">Abbonato</span></span></li>`;
       }).join('');
       if (prenotAttive.length === 0 && !itemsIscritti) {
         colPrenot = `<div class="prenot"><em>Nessun iscritto</em></div>`;
@@ -2049,23 +2051,17 @@
           if (isManovra(tipoEff)) {
             const nomeM = `${p.profile_data?.nome || ''} ${p.profile_data?.cognome || ''}`.trim() || '—';
             const tag = p.esito === 'abile' ? 'Abile' : p.esito === 'non_abile' ? 'Non abile' : 'Prenotato';
-            return `<li><span class="nome">${escAttr(nomeM)} <span class="stage-tag">${tag}</span></span></li>`;
+            return `<li><span class="nome" ${kpAttr({ pid: p.persona_id })}>${escAttr(nomeM)} <span class="stage-tag">${tag}</span></span></li>`;
           }
-          let nome, stageTag = '', clickHandler = '';
+          let nome, stageTag = '', nomeAttr = '';
           if (usaTabellaPrima(tipoEff)) { // v3.99 — anche Prima Lezione Scuola
             nome = `${p.crm_leads?.nome || ''} ${p.crm_leads?.cognome || ''}`.trim() || '—';
             const stage = p.crm_leads?.funnel_stage;
             if (isStaffCompleto() && stage) stageTag = `<span class="stage-tag">${labelStage(stage)}</span>`;
-            // Per Prima lezione abbiamo già lead_id direttamente
-            if (isStaffCompleto() && p.lead_id) {
-              clickHandler = `data-leadid="${p.lead_id}"`;
-            }
+            nomeAttr = kpAttr({ lead: p.lead_id }); // v3.109 — persona_id dalla lettura della foto
           } else {
             nome = `${p.profile_data?.nome || ''} ${p.profile_data?.cognome || ''}`.trim() || '—';
-            // Per Open/Adv/Intro/Evo abbiamo user_id, serve lookup lead via converted_profile_id
-            if (isStaffCompleto() && p.user_id) {
-              clickHandler = `data-userid="${p.user_id}"`;
-            }
+            nomeAttr = kpAttr({ user: p.user_id }); // v3.109 — persona_id da profile_data in idrataNomi
           }
           // Bottoni P/A
           let paLabels;
@@ -2110,7 +2106,7 @@
           const fotoHtml = (usaTabellaPrima(tipoEff) && isStaff() && p.lead_id)
             ? rfMiniaturaHtml(p.lead_id, nome, rfIniziali(p.crm_leads?.nome, p.crm_leads?.cognome))
             : '';
-          return `<li>${fotoHtml}<span class="nome${clickHandler ? ' nome-clickable' : ''}" ${clickHandler}>${escAttr(nome)} ${stageTag}</span>${paHtml}${sposterHtml}</li>`; // v3.99 — escape: i nomi dei ragazzi delle scuole li scrive la scuola
+          return `<li>${fotoHtml}<span class="nome" ${nomeAttr}>${escAttr(nome)} ${stageTag}</span>${paHtml}${sposterHtml}</li>`; // v3.99 — escape: i nomi dei ragazzi delle scuole li scrive la scuola
         }).join('');
         colPrenot = `<div class="prenot"><ul>${itemsIscritti}${items}</ul></div>`;
       }
@@ -2657,10 +2653,6 @@
     document.querySelectorAll('.pa-btn[data-act="annulla"]').forEach(b => {
       b.onclick = () => onAnnullaSegreteria(b.dataset.prenot);
     });
-    // Click nome iscritto → apre card lead nel portale segreteria
-    document.querySelectorAll('.nome-clickable').forEach(el => {
-      el.onclick = () => apriCardLead(el.dataset.leadid, el.dataset.userid);
-    });
     // v3.95 — tocco sulla miniatura con foto → ingrandimento
     document.querySelectorAll('#grid .rf-av[data-rf-lead]').forEach(el => {
       el.onclick = () => { const u = rfUrlLead(el.dataset.rfLead); if (u && el.classList.contains('ha-foto')) rfApriZoom(u, el.dataset.rfNome); };
@@ -2677,6 +2669,7 @@
      errore solo in console. */
   const RF_URL_TTL_MS = 50 * 60 * 1000;   // URL firmati per 3600s, riusati per 50 minuti
   const _rfPathLead = new Map();          // lead_id -> path | null
+  const _rfPersonaLead = new Map();       // lead_id -> persona_id | null (v3.109, serve anche al tocco sul nome)
   const _rfUrl = new Map();               // path -> { url, exp }
 
   function rfIniziali(nome, cognome) {
@@ -2722,7 +2715,7 @@
         const { data: ld, error: e1 } = await sb.from('lead_data').select('id, persona_id').in('id', nuovi);
         if (e1) throw e1;
         const personaDiLead = {};
-        (ld || []).forEach(r => { personaDiLead[r.id] = r.persona_id || null; });
+        (ld || []).forEach(r => { personaDiLead[r.id] = r.persona_id || null; _rfPersonaLead.set(r.id, r.persona_id || null); });
         const pids = [...new Set(Object.values(personaDiLead).filter(Boolean))];
         const pathDiPersona = {};
         if (pids.length) {
@@ -2749,6 +2742,41 @@
     } catch (err) {
       console.warn('[foto riconoscimento]', err?.message || err);
     }
+  }
+  /* v3.109 — IL TOCCO SUL NOME: ogni nome porta l'id che ha (data-pid, data-kp-lead, data-kp-user); qui diventa
+     persona_id e il nome si tocca. Cache in memoria come la foto: il realtime ridisegna, le letture no. */
+  const _kpPersonaUser = new Map();       // user_id -> persona_id | null
+  function kpAttr({ pid, lead, user }) {
+    if (!isStaff()) return '';
+    if (pid) return `data-pid="${escAttr(pid)}"`;
+    if (lead) return `data-kp-lead="${escAttr(lead)}"`;
+    return user ? `data-kp-user="${escAttr(user)}"` : '';
+  }
+  function apriSchedaPersona(pid) {
+    location.href = 'oggi.html?' + new URLSearchParams({ scheda: pid, torna: 'agenda', data: isoD(lunSett(weekOffset)), tipo: currentTipo });
+  }
+  async function idrataNomi() {
+    if (!isStaff()) return;
+    await idrataFotoRiconoscimento(); // legge anche lead -> persona_id: niente query doppie
+    const utenti = [...new Set([...document.querySelectorAll('#grid .nome[data-kp-user]')].map(e => e.dataset.kpUser))].filter(id => !_kpPersonaUser.has(id));
+    if (utenti.length) {
+      const { data, error } = await sb.from('profile_data').select('user_id, persona_id').in('user_id', utenti);
+      if (error) console.warn('[nomi agenda]', error.message);
+      else {
+        utenti.forEach(id => _kpPersonaUser.set(id, null));
+        (data || []).forEach(r => _kpPersonaUser.set(r.user_id, r.persona_id || null));
+      }
+    }
+    document.querySelectorAll('#grid .nome').forEach(el => { // il realtime puo' aver ridisegnato nel frattempo
+      const { pid: p, kpLead, kpUser } = el.dataset;
+      const pid = p || _rfPersonaLead.get(kpLead) || _kpPersonaUser.get(kpUser);
+      if (!pid) { if (kpLead || kpUser) console.warn('[nomi agenda] persona non trovata', kpLead || kpUser); return; }
+      el.classList.add('nome-clickable');
+      el.setAttribute('role', 'link');
+      el.tabIndex = 0;
+      el.onclick = () => apriSchedaPersona(pid);
+      el.onkeydown = (e) => { if (e.key === 'Enter') apriSchedaPersona(pid); };
+    });
   }
   // Ingrandimento: overlay con foto grande + nome, si chiude al tocco o con Esc.
   function rfApriZoom(url, nome) {
