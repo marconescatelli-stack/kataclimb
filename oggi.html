@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.50 · 2026-11-06 · DA SISTEMARE SOLO ALLA SEGRETERIA (Marco 6 nov): segPuoSistemare = staff_segreteria. Tessera, pannello e caricamento di Da sistemare non ci sono per il creator; Da pagare resta a creator e segreteria. Per la segreteria la pagina non cambia. Nessun SQL. CUMULA v2.49. -->
 <!-- KC-BUILD: oggi v2.49 · 2026-11-06 · PACCHETTO INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): nel turno, accanto a chi ha un pacchetto valido oggi, ✓ Ingresso (segna_ingresso_pacchetto) in griglia e nella ricerca di sala, perche' i veterani in griglia non ci sono; "✓ segnato" se oggi c'e' gia'. Vista allievo: card Il tuo pacchetto ingressi. get_ingressi_persona solo per le persone in lista, con cache. CUMULA v2.48. -->
 <!-- KC-BUILD: oggi v2.48 · 2026-11-06 · MONITOR 5 € ANCHE EXPERT E SALA VETERANI (decisione Marco 6 nov): caricaVeterano non decide piu' da sola, chiede al DB monitor_seguito_a_5(persona, oggi), la stessa regola del conto.
      Il riepilogo prima di SEGNA dice "l'ora resta a 5 € (veterano, Expert o Sala Veterani)"; RIGA_COMPENSO e la regola nei turni lo dicono anche loro. Nessun SQL qui: il DB e' gia' aggiornato. CUMULA v2.47. -->
@@ -812,7 +813,7 @@ async function init(){
   if(pdata.staff_role) setTimeout(loadNonCiMie,0); // v2.32
   if(pdata.staff_role) setTimeout(loadDaCoprire,0); // v2.37 tessera Da coprire (stessa funzione della bacheca di Turni)
 
-  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); loadTurniTutti(); loadFineCorso(); }
+  if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti())loadSegPaga(); if(segPuoSistemare())loadSegSistema(); loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); loadTurniTutti(); loadFineCorso(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); loadFineCorso(); }
   else if(vista==='monitor'){ renderMonitor(); loadMonitor(); loadEventi(); }
   else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); loadDaSaldare(); loadPacchetti(); }
@@ -1294,7 +1295,7 @@ ${segPuoConti()?htmlSegConti():''}
     <div class="big">🗓</div>
     <span class="cmd mono">NUOVO EVENTO ›</span>
   </a>
-${segPuoConti()?htmlSistemaPannello():''}
+${segPuoSistemare()?htmlSistemaPannello():''}
 
   <div class="zona mono">La cura</div>
 
@@ -1458,6 +1459,7 @@ async function loadSegCode(){
    v_costi_staff_mese (mese in corso) e v_segreteria_da_sistemare_seg. Scritture solo via RPC esistenti:
    impegno_presenza, sostituisci_istruttore, segreteria_chiudi_turno, impegno_mi_segno. */
 const segPuoConti=()=>['staff_creator','staff_segreteria'].includes(pdata.staff_role);
+const segPuoSistemare=()=>pdata.staff_role==='staff_segreteria'; // v2.50 Da sistemare e' lavoro della segreteria
 const SIST_GRUPPI=[['presenza_mancante','Presenze da confermare'],['turno_da_chiudere','Turni monitor da chiudere'],
   ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stessa persona su due lezioni'],['lezione_scoperta','Lezioni senza staff (prossimi 7 giorni)']];
 let sistRighe=[], sistSlot={}, sistAltre={}, sistInizio={}, sistStaff=null, sistPiano=[], sistIndisp=[];
@@ -1477,11 +1479,11 @@ function htmlSegConti(){
     <div class="paga-conf" id="paga-conf" hidden></div>
     <span class="cmd mono">COSTI STAFF ›</span>
   </a>
-  <a class="t t-sist" id="t-sist" href="#sistema" role="button" onclick="apriSistema();return false">
+  ${segPuoSistemare()?`<a class="t t-sist" id="t-sist" href="#sistema" role="button" onclick="apriSistema();return false">
     <span class="et mono">⚠ Da sistemare</span>
     <div class="big" id="sist-num">…</div>
     <span class="cmd mono" id="sist-cmd">GUARDA ›</span>
-  </a>`;
+  </a>`:''}`;
 }
 function htmlSistemaPannello(){
   return `<div class="full sist-pann" id="sist-pann" hidden>
@@ -1511,6 +1513,7 @@ async function loadSegPaga(){
 }
 
 async function loadSegSistema(){
+  if(!segPuoSistemare())return;
   if(!document.getElementById('t-sist'))return;
   try{
     const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('*').order('ordine').order('data').order('ora_inizio');
