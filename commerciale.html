@@ -7,6 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://kataclimb.com/commerciale">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- KC-BUILD: commerciale v2.5 · 2026-11-06 · CERCA UN CONTATTO (Marco 6 nov): campo in cima, da 2 caratteri, 300 ms. "In queste liste" = tutti i lead caricati con la card di rowHtml e il chip della coda; "Altre persone" = cerca_persona_staff (solo nome e cognome) meno il primo blocco, tocco -> oggi.html?scheda=&torna=commerciale. Con la ricerca attiva render() disegna i risultati dentro #fasi; svuotato il campo torna la coda di prima, filtro impatto compreso, senza ricaricare. Nessun SQL. CUMULA v2.4. -->
 <!-- KC-BUILD: commerciale v2.4 · 2026-11-05 · CODA ARRAMPICATORI (Marco 5 nov): quinta coda 'arrampicatori' = lead_data.coda='arrampicatori', scritta dalla RPC invia_questionario_arrampicatore (pagina arrampichi-gia.html, chi arrampica già). Bottone 🧗 Arrampicatori sopra Percorsi, ?coda=arrampicatori, titolo 'Arrampicatori · da richiamare'. Le fasi dentro la coda sono le stesse della commerciale (ultimi arrivi, da richiamare, ricordi, prenotati) e le risposte del questionario arrivano gia' come ultima_nota (lead_richieste.note) e nel diario (crm_follow_ups tipo questionario): nessun'altra riga toccata. codaEff gia' restituisce la coda com'e' quando non e' 'commerciale'. CUMULA v2.3 (sotto). -->
 <!-- KC-BUILD: commerciale v2.3 · 2026-10-21 · SCUOLE F1 METÀ B (decisione Marco 21 ott): i ragazzi delle scuole (lead_data.tipo_persona allievo_scuola) non sono contatti commerciali: tolti dalle liste di get_leads_da_contattare (la RPC non espone tipo_persona: id letti da crm_leads e filtrati qui; se la lettura fallisce non si toglie niente). Nient'altro. CUMULA v2.2 (sotto). -->
 <!-- KC-BUILD: commerciale v2.2 · 2026-09-22 · DEBITO-190 FASE C: questa pagina non ha mai letto i contatori salvati, li prendeva gia' dalla RPC get_cruscotto_percorsi — che dal 22 set li deriva da contatori_corso invece che dalle colonne di profile_data. Quindi i numeri cambiano significato senza che una riga di codice cambi: 'residue' diventa 'prenotabili' anche nelle due etichette, perche' e' quello che il numero vuol dire. + IL NO DEL CRUSCOTTO SI DICE. L'errore della RPC veniva ingoiato (percorsi=[] e basta): chi guardava vedeva un cruscotto vuoto e pensava 'non c'e' nessuno da ricontattare', mentre era un permesso negato travestito da zero. Ora compare una riga che lo dice. Serve davvero: la guardia della RPC confronta staff_role con quattro valori che a DB NON esistono (creator, admin, segreteria, istruttore_senior) e solo staff_istruttore_sr e' reale — il 22 set passavano 3 persone su 11, e creator e segreteria, cioe' chi del cruscotto ha bisogno, restavano fuori. La guardia va sistemata nella RPC, non qui: vedi sql/audit-security-definer.sql. NON toccati: lead, code, campagne, note, permessi della pagina. CUMULA v2.1 · 2026-07-16 · ONDA 1 AUDIT: (a) meta robots noindex,nofollow — il CRM era indicizzabile (gate solo JS); (b) FIX tessera "Da prenotare": contava fase 'prenotare' che phase() non restituisce mai (sempre 0, clic=vuoto) — ora conta i contattati del gruppo messaggi (ricordo1+ricordo2+motivazionale = da convertire in prenotazione) e il clic filtra quelle 3 sezioni. CUMULA v2.0 · 2026-07-08 · CRUSCOTTO PERCORSI: 5° tab 🧗 Percorsi (RPC get_cruscotto_percorsi, def Marco: finito = lezioni tutte EFFETTUATE, residue=0 e zero prenotazioni future). Bucket: prima_non_proseguita / in_open / open_finito_no_advance / in_advance / advance_finito_no_intro / in_intro / intro_finito_no_evo / in_evo / evo_finito + tessera ⚠️ Scaduti (credito residuo con finestra scaduta — caso Ardillo/Zurischi, controllo manuale). Card percorsi: Chiama / WhatsApp / ⭐ Recensione (segna_recensione_inviata_persona, template per bucket) / 📲 Salva+Chiama (vCard poi dialer). + 📲 Salva+Chiama anche su ogni card lead. CUMULA v1.15 · 2026-07-08 · + ⭐ RECENSIONE su OGNI card (entrambe le code): azRecensione apre WhatsApp precompilato con link recensione Google (g.page/r/...) e SEGNA in DB via RPC segna_recensione_inviata (lead_data.recensione_inviata_at + ultima_interazione; colonna esposta da get_leads_da_contattare). Bottone acceso + ✓ se gia inviata (anti doppia richiesta). Template per stato: prenotato -> post-Prima-Lezione, altrimenti fedelissimi/generico. CUMULA v1.13 · 2026-06-30 · BUCKETING ETA 30/60 + LEAD VECCHI: codaEff banda TUTTI i lead aperti per eta (lead_creato_il) -> Freschi 0-30 (commerciale) · Riacciuffo 31-60 · Lead vecchi >60 (4o tab separato). Prenotati e richiami-futuri esclusi dall'invecchiamento. RPC get_leads_da_contattare: ultima_nota = COALESCE(lead_data.note, lead_richieste.note) -> note operative visibili. CUMULA v1.12 · 2026-06-24 · SCHEDA RIACCIUFFO: i mai-sentiti oltre 45gg escono dal commerciale e vanno in coda dedicata 'riacciuffo' (toggle 🔁 Riacciuffo + tessera oggi.html ?coda=riacciuffo). codaEff() calcola la coda effettiva; isFreddo non riguarda piu i nuovi. I contatti vecchi/import non intasano piu da-chiamare ma restano lavorabili a freddo. CUMULA v1.11 · 2026-06-24 · MAI-SENTITI per DATA INGRESSO: 📞 Ultimi arrivi (<=3gg) + 📅 fasce 4-15 / 16-30 / 31-45 gg; oltre 45gg -> isFreddo (box Lead freddi, fuori vista). Risolve i lead vecchi/import che intasavano da-chiamare. CUMULA v1.10 · 2026-06-24 · + TOGGLE CODA in cima (📞 Commerciali | 🗂 Segreteria): il filtro coda non e piu fisso, segue codaAttiva. Roberta (ruolo segreteria) apre e vede di default la coda segreteria = i lead girati con azGira; ?coda=segreteria forza la vista. Stesse card (chiama/dati/rubrica/note). CUMULA v1.9 · 2026-06-24 · + 📞 Chiama (tel: apre dialer) + ✏️ Dati (form inline nome/cognome/tel/email -> salva via crm_leads, come il fascicolo) su ogni card. Commerciale autosufficiente: chiamare, salvare in rubrica, modificare dati senza passare dalla scheda. CUMULA v1.8 · 2026-06-24 · (1) FUNNEL A GRUPPI: 📞 Ultimi arrivi da chiamare (cronologico puro per ingresso) · 🔁 Da richiamare · ✉️ Ricordo 1 · ✉️ Ricordo 2 · 💪 Motivazionale · ✅ Prenotati. I contattati si distribuiscono nei 3 gruppi messaggi via ricordo1/2/motivazionale_inviato_at; pulsanti azMsg->segna_step_messaggio si accendono e fanno avanzare. (2) vCard: provenienza (RCC+campagna+data) spostata nel campo N -> visibile su iPhone. CUMULA v1.7 · 2026-06-24 · + pulsante 📇 Rubrica (salvaContattoVCard) su OGNI card lead (prenotati e non): vCard via foglio iOS -> Aggiungi ai contatti, fallback download desktop. Stesso comportamento del portale. CUMULA v1.6 · 2026-06-22 · ETICHETTA STATO sulla scheda (statoLead): 🔴 Chiama (nuovo) / 🟠 Da richiamare +data / 🟢 Da risentire·messaggia (contattato non prenotato) / ✅ Prenotato. A colpo d'occhio si distingue il mai-chiamato dal già-sentito. CUMULA v1.5 · 2026-06-22 · (1) chip preferenza oraria (☀️/🌤️/🌙 da ultima_nota kcFasciaPref); (2) ordine RECENTE→vecchio per fase (lastAct desc); (3) FUNNEL FREDDO collassabile: lead fermi >21gg fuori dalle fasi, in box "🧊 Funnel freddo" apribile (mail/WhatsApp). Impatto conta solo i caldi. CUMULA v1.4 · 2026-06-18 · v1.3 + CAMPAGNE DIVISE: i lead ads_meta sono raggruppati per finestra bisettimanale NUMERATA (14gg da DATA_ZERO = lun 9 giu 2026), derivata da lead_creato_il (no colonna/cron). Chip "📣 Camp #N" su ogni lead da campagna; in alto le campagne separate "Camp #N · X" cliccabili per filtrare l'elenco (+ "pre-campagna" per i lead entrati prima del 9 giu). Sostituisce il vecchio blocco unico "● N da campagna". -->
@@ -126,6 +127,17 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 .cold-head .t{font-weight:800;font-size:15px;color:var(--txt2)}
 .cold-head .c{font-size:12px;color:var(--txt3);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:700}
 .cold-head .cold-exp{margin-left:auto;color:var(--txt3);font-size:13px}
+/* v2.5 cerca un contatto */
+#cerca-box{position:relative;margin:14px 0 12px}
+#cerca-q{width:100%;font:inherit;font-size:16px;color:var(--txt);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 42px 12px 12px;outline:none}
+#cerca-q:placeholder-shown{padding-right:12px}
+#cerca-q::placeholder{font-size:13px;color:var(--txt3)}
+#cerca-q::-webkit-search-cancel-button{display:none}
+#cerca-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:var(--card2);color:var(--txt);font-size:15px;cursor:pointer}
+body.cerca-on #code-bar,body.cerca-on #impatto,body.cerca-on .foot{display:none!important} /* la barra ha display inline */
+.chip.coda-chip{font-size:13px;font-weight:600;margin-left:6px;vertical-align:1px}
+.cerca-msg{color:var(--txt2);font-size:15px;padding:18px 2px}
+.cerca-altro{display:block;padding:13px 14px;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-size:15px;font-weight:600;text-decoration:none}
 </style>
 </head>
 <body>
@@ -143,7 +155,11 @@ header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);
 <div class="wrap">
   <div id="stato">Carico…</div>
   <div id="app" style="display:none">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    <div id="cerca-box">
+      <input id="cerca-q" type="search" autocomplete="off" placeholder="🔎 Cerca un contatto (nome, cognome o telefono)" aria-label="Cerca un contatto" oninput="cercaContatto(this.value)">
+      <button id="cerca-x" type="button" aria-label="Svuota la ricerca" hidden onclick="cercaSvuota()">✕</button>
+    </div>
+    <div id="code-bar" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <button id="cs-comm" onclick="setCoda('commerciale')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:var(--accent,#111);color:#fff;font-weight:600;cursor:pointer;font-size:14px">📞 Commerciali</button>
       <button id="cs-riac" onclick="setCoda('riacciuffo')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🔁 Riacciuffo</button>
       <button id="cs-segr" onclick="setCoda('segreteria')" style="flex:1;padding:10px 8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--txt,#444);font-weight:600;cursor:pointer;font-size:14px;opacity:.7">🗂 Segreteria</button>
@@ -463,7 +479,7 @@ async function salvaContattoVCard(id){
     setTimeout(function(){URL.revokeObjectURL(url);},1500);
   }catch(e){ alert('Errore salvataggio contatto: '+(e&&e.message)); }
 }
-function rowHtml(l,dot){
+function rowHtml(l,dot,chip){
   const ns=notesByLead[l.id]||[];
   const last=ns.find(n=>n.testo);
   const fermoH=oreFermo(l);
@@ -542,7 +558,7 @@ function rowHtml(l,dot){
     +'<div class="row-top" onclick="toggleHist('+I+')">'
       +'<span class="dot" style="background:'+dot+'"></span>'
       +'<div style="min-width:0;flex:1">'
-        +'<div class="nm">'+esc((l.nome||'')+' '+(l.cognome||'')).trim()+'</div>'
+        +'<div class="nm">'+esc((l.nome||'')+' '+(l.cognome||'')).trim()+(chip||'')+'</div>'
         +'<div class="meta">'+statoChip+fasciaChip+prefChip+fermoBadge+doneBadges+campChip+metaExtra+'<span class="chip">'+esc(l.fonte||'')+'</span></div>'
         +notePv
       +'</div>'
@@ -557,6 +573,7 @@ function rowHtml(l,dot){
 }
 
 function render(){
+  if(_cq){ disegnaCerca(); return; } // v2.5
   if(codaAttiva==='percorsi'){ renderPercorsi(); return; }
   const rows=leads.filter(l=>phase(l)&&isCommerciale(l)&&(!filtroCamp||campNum(l)===filtroCamp));
   const caldi=(codaAttiva==='commerciale')?rows.filter(l=>!isFreddo(l)):rows;
@@ -610,6 +627,58 @@ function render(){
       +'<div class="hint" style="font-size:11px;color:var(--txt3);margin:-4px 0 9px">'+ph.hint+'</div>'
       +body+'</div>';
   }).join('')+freddiHtml(freddi);
+}
+// ── v2.5 CERCA UN CONTATTO: riusa rowHtml e lo stato della pagina; code, fasi e tessere restano come sono ──
+const CODA_LBL={commerciale:'Commerciale',segreteria:'Segreteria',riacciuffo:'Riacciuffo',vecchi:'Lead vecchi',arrampicatori:'Arrampicatori'};
+let _cq='', _cqAltri=null, _cqErr=false, _cqTimer=null, _cqTok=0, _cqIds=new Set();
+const cercaNorm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const telCifre=s=>(s||'').replace(/\D/g,'').replace(/^(00)?39(?=\d{9})/,''); // il prefisso si toglie solo se restano almeno 9 cifre
+function cercaTrova(q){
+  if(/^[\d\s+().\/-]+$/.test(q)){
+    const d=telCifre(q.replace(/^\s*(\+|00)39/,''));
+    return d.length<2?[]:leads.filter(l=>telCifre(l.telefono).includes(d));
+  }
+  const parole=cercaNorm(q).split(/\s+/).filter(Boolean);
+  return leads.filter(l=>{ const n=cercaNorm((l.nome||'')+' '+(l.cognome||'')); return parole.every(p=>n.includes(p)); });
+}
+function cercaContatto(v){
+  clearTimeout(_cqTimer);
+  const q=(v||'').trim();
+  document.getElementById('cerca-x').hidden=!v;
+  if(q.length<2){
+    if(_cq){ _cq=''; _cqTok++; document.body.classList.remove('cerca-on'); render(); }
+    return;
+  }
+  _cqTimer=setTimeout(async()=>{
+    const tok=++_cqTok;
+    _cq=q; _cqAltri=null; _cqErr=false;
+    document.body.classList.add('cerca-on');
+    render();
+    let r; try{ r=await sb.rpc('cerca_persona_staff',{p_q:q}); }catch(e){ r={error:e}; }
+    if(tok!==_cqTok)return;
+    _cqErr=!!r.error; _cqAltri=r.data||[];
+    disegnaAltri(); // solo il secondo blocco: una nota iniziata in una card non si perde
+  },300);
+}
+function cercaSvuota(){ document.getElementById('cerca-q').value=''; cercaContatto(''); }
+function disegnaCerca(){
+  const L=cercaTrova(_cq).sort(ordRecente);
+  _cqIds=new Set(L.map(l=>l.persona_id));
+  document.getElementById('fasi').innerHTML=(L.length?'<div class="sec"><div class="sec-h"><span class="t">In queste liste</span><span class="c">'+L.length+'</span></div>'
+    +L.map(l=>{
+      const ph=PHASES.find(x=>x.k===phase(l)), c=codaEff(l);
+      return rowHtml(l,ph?ph.dot:'var(--txt3)','<span class="chip coda-chip">'+esc(CODA_LBL[c]||c)+'</span>');
+    }).join('')+'</div>':'')+'<div id="cerca-altri"></div>';
+  disegnaAltri();
+}
+function disegnaAltri(){
+  const box=document.getElementById('cerca-altri'); if(!box)return;
+  if(_cqErr){ box.innerHTML='<div class="cerca-msg">Non riesco a cercare ora.</div>'; return; }
+  if(_cqAltri===null){ box.innerHTML=_cqIds.size?'':'<div class="cerca-msg">Cerco…</div>'; return; }
+  const A=_cqAltri.filter(p=>!_cqIds.has(p.persona_id));
+  if(!A.length){ box.innerHTML=_cqIds.size?'':'<div class="cerca-msg">Nessuno con questo nome.</div>'; return; }
+  box.innerHTML='<div class="sec"><div class="sec-h"><span class="t">Altre persone</span><span class="c">'+A.length+'</span></div>'
+    +A.map(p=>'<a class="cerca-altro" href="oggi.html?scheda='+encodeURIComponent(p.persona_id)+'&torna=commerciale">'+esc(((p.nome||'')+' '+(p.cognome||'')).trim())+'</a>').join('')+'</div>';
 }
 function tile(n,label,cls,key){
   const c=(cls==='red0')?'':cls;
