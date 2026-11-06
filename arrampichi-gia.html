@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: arrampichi-gia v1.4 · 2026-11-06 · FOTO IN TESTATA (Marco 6 nov): la foto del volo in falesia (volo_falesia_arrampichi_gia.jpg, radice di kataclimb.com, stessa del sito Accademia) sopra la barra, con il titolo h1 "Se arrampichi già, questo è il tuo posto" dentro. CUMULA v1.3 -->
 <!-- KC-BUILD: arrampichi-gia v1.3 · 2026-11-06 · VIA LA SCHERMATA INTRO (Marco 6 nov): chi arriva dal sito ha già letto la presentazione, si parte dalla domanda 1; Indietro nascosto sulla prima domanda; l'avviso "vuoi uscire?" scatta alla prima risposta. CUMULA v1.2 -->
 <!-- KC-BUILD: arrampichi-gia v1.2 · 2026-11-06 · tolto noindex: il blocco in home del sito Accademia (v1.11) e la card Expert portano qui. Griglia orari = i primi DUE GIORNI UTILI (lun–ven, fuori indisponibilità) entro 10 giorni, non due giorni di calendario: il test di Marco di venerdì 6 nov 9:31 non vedeva slot (sab/dom) e finiva sulla fascia. CUMULA v1.1: -->
 <!-- KC-BUILD: arrampichi-gia v1.1 · 2026-11-05 · correzioni Marco 5 nov sera: gradi 5c/6a-6b/6c/7a/7b/7c/8a+, motivi (via "cerco compagni", + "ho difficoltà a trovare compagni"), d.8 = frequenza ideale indoor, d.9 "Ok. Marco Nescatelli ti ricontatta…" con GRIGLIA ORARI (slot_liberi_marco nei prossimi 2 giorni, quarti d'ora lun–ven 12–13 e 18–19) e, se vuota, fascia mattina/pomeriggio/sera; p_slot alla RPC → appuntamenti_marco + notifica a Marco; chiusura "protette dalla privacy, le legge solo Marco". CUMULA v1.0: QUESTIONARIO "PER CHI ARRAMPICA GIÀ" (Marco 3–5 nov): una domanda per schermata (concetto Duolingo), 9 domande + contatti, barra di avanzamento, Indietro sempre disponibile, "vuoi uscire?" se si lascia a metà. Le risposte vanno alla RPC invia_questionario_arrampicatore (anon) → persona + lead (fonte form_arrampicatori, coda arrampicatori) + nota domande/risposte nel diario + questionari_arrampicatori + push lead.nuovo a Marco e segreteria. Stile e meccanica di questionario-prima v1.0 (stessi colori, stessa rpc() a fetch). Niente grado in facciata: il grado serve a Marco per smistare (6a/6b standard · 6c intensivo dimezzato · 7a+ gestione delle complessità). Pagina pubblica: noindex finché il blocco in home non è online. -->
@@ -14,7 +15,11 @@
   body { font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--crema);
          color:var(--inchiostro); line-height:1.65; -webkit-font-smoothing:antialiased; }
   .wrap { max-width:640px; margin:0 auto; padding:28px 20px 80px; }
-  .logo { font-weight:800; letter-spacing:.02em; margin-bottom:18px; font-size:.95rem; color:var(--grigio); }
+  .logo { font-weight:800; letter-spacing:.02em; margin-bottom:14px; font-size:.95rem; color:var(--grigio); }
+  .testata { position:relative; border-radius:14px; overflow:hidden; margin-bottom:18px; aspect-ratio:16 / 9; background:#2C2418; }
+  .testata img { width:100%; height:100%; object-fit:cover; object-position:center 18%; display:block; }
+  .testata h1 { position:absolute; left:0; right:0; bottom:0; margin:0; padding:40px 18px 14px; color:#fff; font-size:1.35rem; line-height:1.25; background:linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,0)); }
+  @media (min-width:600px){ .testata h1 { font-size:1.6rem; } }
   .barra { height:6px; background:#e6e0d4; border-radius:3px; overflow:hidden; margin-bottom:8px; }
   .barra i { display:block; height:100%; width:0; background:var(--blu); transition:width .25s; }
   .passo { font-size:.9rem; color:var(--grigio); margin-bottom:26px; min-height:1.4em; }
@@ -56,6 +61,7 @@
 <body>
 <div class="wrap">
   <div class="logo">KATACLIMB · Accademia ArrampiKata RCC</div>
+  <div class="testata"><img src="/volo_falesia_arrampichi_gia.jpg" alt="Volo in aria su una parete strapiombante: qui il volo si impara"><h1>Se arrampichi già, questo è il tuo posto</h1></div>
   <div class="barra"><i id="barra"></i></div>
   <div class="passo" id="passo"></div>
 
