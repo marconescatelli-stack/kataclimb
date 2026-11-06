@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: proposta-advance · 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Advance di KataClimb" -> "Il percorso Advance KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO ADVANCE" -> "IL TUO PERCORSO ADVANCE KATACLIMB IN ACCADEMIA RCC"; (2) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
+<!-- KC-BUILD: proposta-advance · 2026-11-06 · PAGAMENTO ONLINE DEL CORSO ADVANCE KATACLIMB (decisione Marco 6 nov): con ?u=<persona_id> compaiono tre bottoni (1 volta a settimana prima rata 140 € · 1 volta a settimana intero 280 € · 2 volte a settimana 190 €) verso stripe-worker v3.93 GET /advance-checkout?u=&mode=mese1|intero|2xsett (mint-on-click, come proposta-open). Senza ?u resta solo la segreteria. Messaggi per ?pagato=, ?annullato=1 e ?errore= (account, open, open_in_corso, gia, parametri, server, stripe) via textContent. Seconda rata da 140 € sempre in segreteria. Card prezzi: 1 volta a settimana anche 280 € in una volta. Resto invariato. CUMULA 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Advance di KataClimb" -> "Il percorso Advance KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO ADVANCE" -> "IL TUO PERCORSO ADVANCE KATACLIMB IN ACCADEMIA RCC"; (2) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -134,6 +134,16 @@ body{
   display:inline-block; margin-top:16px; background:#25D366; color:#fff; text-decoration:none;
   font-weight:800; font-size:15px; padding:13px 28px; border-radius:12px;
 }
+.paga-block{margin-top:28px; text-align:center}
+.paga-block h3{font-size:19px; font-weight:800; margin-bottom:8px}
+.paga-block p{font-size:14px; color:var(--ink2); line-height:1.6; margin-bottom:12px}
+.paga-btn{display:block; width:100%; margin:10px 0; padding:15px 18px; border-radius:12px; background:#0B2E42; color:#F5F0E8;
+  text-decoration:none; font-weight:800; font-size:15px; line-height:1.35}
+.paga-btn span{display:block; font-weight:500; font-size:13px; opacity:.85; margin-top:2px}
+.paga-btn:hover{background:#14537A}
+.msg-box{padding:14px 16px; border-radius:12px; font-size:14px; line-height:1.55; text-align:center; margin-top:20px}
+.msg-ok{background:#ECFDF5; border:1px solid #A7F3D0; color:#065F46}
+.msg-info{background:#FFFBEB; border:1px solid #FDE68A; color:#7a5e1f}
 .foot-note{font-size:12px; color:var(--ink3); text-align:center; margin-top:24px; line-height:1.7}
 .err-box{
   background:#FEF2F2; border:1px solid #FECACA; color:#991B1B;
@@ -171,7 +181,7 @@ body{
     <div class="pz-card">
       <div class="pz-tag">1 volta a settimana</div>
       <div class="pz-val">140&nbsp;€<span class="pz-x">/rata</span></div>
-      <div class="pz-note">8 lezioni · due rate da 140€ (280€ in tutto)</div>
+      <div class="pz-note">8 lezioni · due rate da 140€, oppure 280€ in una volta</div>
     </div>
     <div class="pz-card">
       <div class="pz-tag">2 volte a settimana</div>
@@ -189,12 +199,23 @@ body{
 
   <div class="note-posti" id="note-posti"></div>
 
-  <!-- CTA: iscrizione in segreteria (niente pagamento online) -->
+  <div id="msg-pagamento"></div>
+
+  <!-- v2026-11-06: pagamento online (solo con ?u=<persona_id>) -->
+  <div class="paga-block" id="paga-block" style="display:none">
+    <h3>Iscriviti e paga online</h3>
+    <p>Scegli la formula del Corso Advance KataClimb. Appena hai pagato, le lezioni sono nel tuo portale e le prenoti da subito.</p>
+    <a class="paga-btn" data-mode="mese1" href="#">1 volta a settimana · prima rata 140 €<span>4 lezioni subito, le altre 4 con la seconda rata da 140 € in Accademia</span></a>
+    <a class="paga-btn" data-mode="intero" href="#">1 volta a settimana · intero 280 €<span>Le 8 lezioni in un solo pagamento</span></a>
+    <a class="paga-btn" data-mode="2xsett" href="#">2 volte a settimana · 190 €<span>Le 8 lezioni con un ritmo più intenso</span></a>
+  </div>
+
+  <!-- CTA: iscrizione in segreteria -->
   <div class="cta-block">
     <div class="cta-card">
-      <h3>Come iscriverti</h3>
+      <h3 id="cta-titolo">Come iscriverti</h3>
       <p>L'Advance sono <strong>8 lezioni</strong>, una o due volte a settimana.</p>
-      <p>Per iscriverti parla con la <strong>segreteria in Accademia</strong>: scegli la modalità, perfezioni il pagamento di persona e ricevi l'accesso al portale per prenotare le tue lezioni.</p>
+      <p>Puoi iscriverti anche con la <strong>segreteria in Accademia</strong>: scegli la modalità, perfezioni il pagamento di persona e ricevi l'accesso al portale per prenotare le tue lezioni.</p>
       <a class="wa" href="https://wa.me/393318743953">Scrivici su WhatsApp</a>
     </div>
   </div>
@@ -316,6 +337,51 @@ async function caricaDisponibilita(){
 }
 
 caricaDisponibilita();
+
+// v2026-11-06 — pagamento online del Corso Advance KataClimb (stripe-worker v3.93 /advance-checkout)
+const KC_WORKER = 'https://stripe-worker.marconescatelli.workers.dev';
+(function pagamentoOnline(){
+  const u = qs.get('u') || '';
+  const box = document.getElementById('msg-pagamento');
+  const msg = (cls, testo) => {
+    const d = document.createElement('div');
+    d.className = 'msg-box ' + cls;
+    d.textContent = testo;
+    box.replaceChildren(d);
+  };
+  const pagato = qs.get('pagato');
+  const errore = qs.get('errore');
+  if (pagato) {
+    const testi = {
+      mese1:  'Pagamento ricevuto: il Corso Advance KataClimb è attivo con le prime 4 lezioni. Ti abbiamo scritto una mail: prenota dall\'agenda del portale.',
+      intero: 'Pagamento ricevuto: il Corso Advance KataClimb è attivo con tutte le 8 lezioni. Ti abbiamo scritto una mail: prenota dall\'agenda del portale.',
+      '2xsett':'Pagamento ricevuto: il Corso Advance KataClimb 2 volte a settimana è attivo con le 8 lezioni. Ti abbiamo scritto una mail: prenota dall\'agenda del portale.',
+    };
+    msg('msg-ok', testi[pagato] || 'Pagamento ricevuto: trovi il corso nel tuo portale.');
+    return; // pagato: niente bottoni, niente secondo pagamento
+  }
+  if (qs.get('annullato')) msg('msg-info', 'Pagamento annullato: non ti è stato addebitato nulla. Puoi riprovare qui sotto quando vuoi.');
+  if (errore) {
+    const restano = qs.get('restano');
+    const testi = {
+      account:       'Non troviamo il tuo accesso al portale: scrivi alla segreteria su WhatsApp e ti iscriviamo noi.',
+      open:          'Il Corso Advance KataClimb si apre dopo il Corso Open KataClimb. Per qualsiasi dubbio scrivi alla segreteria.',
+      open_in_corso: `Hai ancora ${restano || 'qualche'} ${restano === '1' ? 'lezione' : 'lezioni'} del Corso Open KataClimb da fare: puoi pagare l'Advance da qui dopo l'ultima, oppure in Accademia.`,
+      gia:           'Risulti già iscritto al Corso Advance KataClimb: trovi le lezioni nell\'agenda del portale.',
+      parametri:     'Il link non è completo: usa quello che ti abbiamo mandato per email, oppure scrivi alla segreteria.',
+      server:        'Il pagamento non si è aperto: riprova tra un minuto. Se si ripete scrivi alla segreteria su WhatsApp.',
+      stripe:        'Il pagamento non si è aperto: riprova tra un minuto. Se si ripete scrivi alla segreteria su WhatsApp.',
+    };
+    msg('msg-info', testi[errore] || testi.server);
+    if (errore === 'gia' || errore === 'open' || errore === 'account') return;
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(u)) return; // senza persona: solo segreteria
+  document.querySelectorAll('.paga-btn').forEach(a => {
+    a.href = `${KC_WORKER}/advance-checkout?u=${encodeURIComponent(u)}&mode=${encodeURIComponent(a.dataset.mode)}`;
+  });
+  document.getElementById('paga-block').style.display = '';
+  document.getElementById('cta-titolo').textContent = 'Preferisci iscriverti in Accademia?';
+})();
 </script>
 </body>
 </html>
