@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.156 · 2026-11-06 · INGRESSI GIA' FATTI (Marco 6 nov): riga pacchetto del blocco 🎫, bottone ＋ Ingressi già fatti e modale per segnare i giorni passati, uno alla volta in ordine di data (segna_ingresso_pacchetto con p_data). Se una chiamata fallisce ci si ferma: errore del DB col suo giorno, in lista solo i giorni non segnati. Il bottone c'e' anche sui pacchetti scaduti, finche' restano ingressi. Nessun SQL. CUMULA v3.155. -->
 <!-- KC-BUILD: portale v3.155 · 2026-11-06 · INGRESSI E PACCHETTI 10 INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): modale con terza scheda Ingresso singolo (registra_ingresso_singolo); pacchetto = "10 ingressi · validita' 3 mesi" e mai rinnovo (abbEsistente); blocco 🎫 con usati/restano, ✓ Ingresso di oggi (segna_ingresso_pacchetto) e tendina Ingressi (get_ingressi_persona, annulla_ingresso), anche per chi ha solo ingressi; area personale: card Il tuo pacchetto ingressi. Solo RPC. CUMULA v3.154. -->
 <!-- KC-BUILD: portale v3.154 · 2026-11-02 · VIDEO KATA: MEMORIA 20 s, VALIDAZIONE 15 s (decisione Marco 2 nov: chi impara deve poter caricare, chi certifica deve essere immediato). KATA_MAX_DURATION unica → KATA_MAX_DURATION_MEMORIA 20 / KATA_MAX_DURATION_VALIDAZIONE 15 + kataMaxDur(slot). Nient'altro. CUMULA v3.153 (sotto). -->
 <!-- KC-BUILD: portale v3.153 · 2026-11-02 · LEZIONE NON SVOLTA OVUNQUE (consegna 2 nov, punto 3): Turni -> voce della lezione: "lezione non svolta" in grigio e solo "Riporta a previsto" (niente Segna assente/presente/Sostituisci); Compensi lezioni dei corsi: sotto le lezioni pagate "N lezioni non svolte (0 €, non sono assenze)" in grigio; Il mio mese: "N lezioni non svolte: la lezione non c'era, non conta come assenza." in grigio (conteggio da impegni_staff del mese). Mai come assenza ne' in arancio. Nessuna modifica a DB. CUMULA v3.152 (sotto). -->
@@ -2497,6 +2498,25 @@ fill="#1d4ed8" stroke="none">
     <div style="display:flex;gap:7px;margin-top:14px">
       <button class="btn btn-dark" id="pausa-abb-conferma" style="flex:1" onclick="confermaPausaAbbonamento()">Registra pausa</button>
       <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-pausa-abb')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ingressi gia' fatti (v3.156, RPC segna_ingresso_pacchetto con p_data) -->
+<div id="mo-ing-passati" class="mo hidden">
+  <div class="mo-box" style="max-width:440px">
+    <h3 id="ip-titolo">Ingressi già fatti</h3>
+    <p id="ip-info" style="font-size:14px;color:var(--text);margin-bottom:12px"></p>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <input type="date" id="ip-data" class="input" style="flex:1;min-width:150px;font-size:14px;padding:9px 12px;margin-bottom:0">
+      <button class="btn btn-g" id="ip-aggiungi" style="font-size:14px;padding:9px 14px" onclick="ipAggiungi()">Aggiungi giorno</button>
+    </div>
+    <div id="ip-lista" style="margin-bottom:10px"></div>
+    <div id="ip-avviso"></div>
+    <div id="ip-msg"></div>
+    <div style="display:flex;gap:7px;margin-top:14px">
+      <button class="btn btn-dark" id="ip-conferma" style="flex:1" onclick="ipConferma()" disabled>Segna 0 ingressi</button>
+      <button class="btn btn-g" id="ip-chiudi" style="flex:1" onclick="ipChiudi()">Chiudi</button>
     </div>
   </div>
 </div>
@@ -7153,6 +7173,74 @@ async function annullaIngressoFascicolo(id){
     console.error('[annulla_ingresso]',e);
   }
 }
+/* ── v3.156 INGRESSI GIA' FATTI: i giorni passati di un pacchetto, un giorno alla volta. Il DB accetta la data
+   se chi chiama e' staff, dentro la validita' e con ingressi rimasti: qui min/max servono solo a non sbagliare. ── */
+let ipPk=null, ipGiorni=[];
+const ipN=n=>n===1?'1 ingresso':n+' ingressi';
+function ipGiaSegnati(){return(currentLeadAbb?.ingressi||[]).filter(i=>!i.annullato&&i.tipo===ipPk.tipo).map(i=>String(i.data).slice(0,10))}
+function openIngressiPassati(id){
+  const a=currentLeadAbb, r=a&&a.righe.find(x=>x.iscrizione_id===id);
+  if(!r||!currentLeadDetail)return;
+  const oggi=abbIsoOggi(), dal=String(r.data_inizio).slice(0,10), fine=r.data_fine?String(r.data_fine).slice(0,10):null;
+  ipPk={lead:currentLeadDetail,personaId:a.personaId,label:r.label,dal,fine,max:fine&&fine<oggi?fine:oggi,
+    tipo:r.tipo_abbonamento==='pacchetto_ingressi_veterani'?'veterani':'corda',restano:r.ingressi_inclusi-(r.ingressi_usati??0)};
+  ipGiorni=[];
+  document.getElementById('ip-titolo').textContent='Ingressi già fatti — '+r.label;
+  const d=document.getElementById('ip-data');
+  d.min=dal;d.max=ipPk.max;d.value='';
+  abbMsg('ip-msg','');
+  ipDisegna();
+  openModal('mo-ing-passati');
+}
+function ipDisegna(){
+  const R=ipPk.restano,n=ipGiorni.length,oltre=n-R;
+  document.getElementById('ip-info').textContent='Pacchetto dal '+abbGMA(ipPk.dal)+(ipPk.fine?' al '+abbGMA(ipPk.fine):'')+' · restano '+R+' ingressi. Aggiungi i giorni in cui la persona è venuta.';
+  const gia=[...new Set(ipGiaSegnati())].filter(g=>g>=ipPk.dal&&g<=ipPk.max);
+  const righe=[...ipGiorni.map(g=>[g,true]),...gia.map(g=>[g,false])].sort((x,y)=>x[0].localeCompare(y[0]));
+  document.getElementById('ip-lista').innerHTML=righe.map(([g,nuovo])=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;color:var(--text);padding:6px 0;border-bottom:1px solid var(--border)">
+    <span style="font-weight:${nuovo?700:400}">${abbGMA(g)}</span>
+    ${nuovo?`<button class="btn btn-g" style="font-size:13px;padding:2px 10px" aria-label="Togli il ${abbGMA(g)}" onclick="ipTogli('${g}')">✕</button>`:'<span style="font-size:13px;color:var(--text2)">già segnato</span>'}
+  </div>`).join('');
+  abbMsg('ip-avviso',oltre>0?'Restano '+R+' ingressi: togli '+oltre+(oltre===1?' giorno':' giorni'):'');
+  const b=document.getElementById('ip-conferma');
+  b.textContent='Segna '+ipN(n);
+  b.disabled=!n||oltre>0;
+}
+function ipAggiungi(){
+  const el=document.getElementById('ip-data'),g=el.value;
+  abbMsg('ip-msg','');
+  if(!g)return abbMsg('ip-msg','Scegli un giorno');
+  if(g<ipPk.dal||g>ipPk.max)return abbMsg('ip-msg','Scegli un giorno dal '+abbGMA(ipPk.dal)+' al '+abbGMA(ipPk.max));
+  if(ipGiorni.includes(g))return abbMsg('ip-msg','Il '+abbGMA(g)+' è già in lista');
+  if(ipGiaSegnati().includes(g))return abbMsg('ip-msg','Il '+abbGMA(g)+' è già segnato');
+  ipGiorni.push(g);ipGiorni.sort();el.value='';
+  ipDisegna();
+}
+function ipTogli(g){ipGiorni=ipGiorni.filter(x=>x!==g);abbMsg('ip-msg','');ipDisegna()}
+function ipChiudi(){
+  if(ipGiorni.length&&!confirm('Vuoi uscire senza segnare questi giorni?'))return;
+  ipGiorni=[];closeModal('mo-ing-passati');
+}
+async function ipConferma(){
+  const n=ipGiorni.length,R=ipPk.restano;
+  if(!n||n>R)return;
+  if(!confirm('Sei sicuro? Segni '+ipN(n)+': il pacchetto scende da '+R+' a '+(R-n)+'.'))return;
+  const{lead,personaId,tipo}=ipPk,btn=document.getElementById('ip-conferma'),chiudi=document.getElementById('ip-chiudi');
+  btn.disabled=true;chiudi.disabled=true;abbMsg('ip-msg','');
+  let fatti=0,errore=null;
+  for(const g of [...ipGiorni].sort()){
+    try{
+      const{data,error}=await sb.rpc('segna_ingresso_pacchetto',{p_persona_id:personaId,p_tipo:tipo,p_data:g});
+      if(error)throw error;
+      fatti++;ipPk.restano=(data||{}).restano;ipGiorni=ipGiorni.filter(x=>x!==g);
+    }catch(e){errore=abbGMA(g)+': '+(e.message||String(e));console.error('[segna_ingresso_pacchetto]',e);break;}
+  }
+  await loadLeadAbbonamenti(lead,personaId);
+  chiudi.disabled=false;
+  if(errore){ipDisegna();abbMsg('ip-msg',errore);return}
+  closeModal('mo-ing-passati');
+  toast((fatti===1?'Segnato 1 ingresso':'Segnati '+fatti+' ingressi')+' · restano '+ipPk.restano);
+}
 function htmlIngressiTendina(a){
   const L=a.ingressi||[];
   if(!L.length)return'';
@@ -7212,6 +7300,7 @@ function renderAbbonamentiBlock(){
         <span style="font-size:13px;font-weight:700;color:${r.pagato?'#15803D':'#B91C1C'}">${r.pagato?'pagato':'da pagare'}</span>
         ${isSegreteriaPiena()&&abbTipoConGiorni(r.tipo_abbonamento)&&r.stato!=='scaduto'&&questIdOk(r.iscrizione_id)?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="openCambiaGiorniModal('${r.iscrizione_id}')">📅 Cambia giorni</button>`:''}
         ${isStaff()&&r.ingressi_inclusi!=null&&r.stato!=='scaduto'&&r.stato!=='esaurito'?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="segnaIngressoFascicolo('${escHtml(String(r.tipo_abbonamento).replace('pacchetto_ingressi_',''))}')">✓ Ingresso di oggi</button>`:''}
+        ${isStaff()&&r.ingressi_inclusi!=null&&r.ingressi_inclusi-(r.ingressi_usati??0)>0&&questIdOk(r.iscrizione_id)?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="openIngressiPassati('${r.iscrizione_id}')">＋ Ingressi già fatti</button>`:''}
       </div>
     </div>`;
   }).join('');
