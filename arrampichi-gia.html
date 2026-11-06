@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: arrampichi-gia v1.3 · 2026-11-06 · VIA LA SCHERMATA INTRO (Marco 6 nov): chi arriva dal sito ha già letto la presentazione, si parte dalla domanda 1; Indietro nascosto sulla prima domanda; l'avviso "vuoi uscire?" scatta alla prima risposta. CUMULA v1.2 -->
 <!-- KC-BUILD: arrampichi-gia v1.2 · 2026-11-06 · tolto noindex: il blocco in home del sito Accademia (v1.11) e la card Expert portano qui. Griglia orari = i primi DUE GIORNI UTILI (lun–ven, fuori indisponibilità) entro 10 giorni, non due giorni di calendario: il test di Marco di venerdì 6 nov 9:31 non vedeva slot (sab/dom) e finiva sulla fascia. CUMULA v1.1: -->
 <!-- KC-BUILD: arrampichi-gia v1.1 · 2026-11-05 · correzioni Marco 5 nov sera: gradi 5c/6a-6b/6c/7a/7b/7c/8a+, motivi (via "cerco compagni", + "ho difficoltà a trovare compagni"), d.8 = frequenza ideale indoor, d.9 "Ok. Marco Nescatelli ti ricontatta…" con GRIGLIA ORARI (slot_liberi_marco nei prossimi 2 giorni, quarti d'ora lun–ven 12–13 e 18–19) e, se vuota, fascia mattina/pomeriggio/sera; p_slot alla RPC → appuntamenti_marco + notifica a Marco; chiusura "protette dalla privacy, le legge solo Marco". CUMULA v1.0: QUESTIONARIO "PER CHI ARRAMPICA GIÀ" (Marco 3–5 nov): una domanda per schermata (concetto Duolingo), 9 domande + contatti, barra di avanzamento, Indietro sempre disponibile, "vuoi uscire?" se si lascia a metà. Le risposte vanno alla RPC invia_questionario_arrampicatore (anon) → persona + lead (fonte form_arrampicatori, coda arrampicatori) + nota domande/risposte nel diario + questionari_arrampicatori + push lead.nuovo a Marco e segreteria. Stile e meccanica di questionario-prima v1.0 (stessi colori, stessa rpc() a fetch). Niente grado in facciata: il grado serve a Marco per smistare (6a/6b standard · 6c intensivo dimezzato · 7a+ gestione delle complessità). Pagina pubblica: noindex finché il blocco in home non è online. -->
 <meta charset="UTF-8">
@@ -58,19 +59,8 @@
   <div class="barra"><i id="barra"></i></div>
   <div class="passo" id="passo"></div>
 
-  <!-- 0 · INTRO -->
-  <section class="schermo" data-k="intro">
-    <h1>Se arrampichi già, questo è il tuo posto.</h1>
-    <div class="intro">
-      <p>C'è chi arriva perché la parete è diventata stress: accanimento sul grado, competizione, la paura che torna, la rabbia dopo un volo. E c'è chi arriva perché sta bene e vuole di più: compagni di cordata con cui risuonare, un ambiente che gli somiglia, salire di livello con tranquillità.</p>
-      <p>Per tutti e due il percorso parte da alcune domande: da dove vieni, cosa cerchi, cosa vuoi. Le legge Marco, poi ti chiama e costruite insieme la strada.</p>
-      <p class="nota">Nove domande, tre minuti. Puoi tornare indietro quando vuoi.</p>
-    </div>
-    <div class="azioni"><button type="button" data-avanti>Comincio</button></div>
-  </section>
-
   <!-- 1 -->
-  <section class="schermo nascosto" data-k="da_quanto" data-tipo="single" data-obbl="1">
+  <section class="schermo" data-k="da_quanto" data-tipo="single" data-obbl="1">
     <p class="domanda">Da quanto arrampichi?</p>
     <div class="scelte">
       <label><input type="radio" name="da_quanto" value="meno di 1 anno"> Meno di un anno</label>
@@ -222,8 +212,8 @@ function mostra(n) {
   $('barra').style.width = (k === 'grazie' ? 100 : k === 'intro' ? 0 : Math.round(((pos) / domande.length) * 100)) + '%';
   $('passo').textContent = pos >= 0 ? ('Domanda ' + (pos + 1) + ' di ' + domande.length) : '';
   $('err').textContent = '';
-  $('indietro').classList.toggle('nascosto', k === 'intro' || k === 'grazie');
-  $('avanti').classList.toggle('nascosto', k === 'intro' || k === 'grazie');
+  $('indietro').classList.toggle('nascosto', n === 0 || k === 'grazie');
+  $('avanti').classList.toggle('nascosto', k === 'grazie');
   $('avanti').textContent = (k === 'contatti') ? 'Invia a Marco' : 'Avanti';
   window.scrollTo({ top: 0, behavior: 'smooth' });
   const primo = s.querySelector('textarea, input[type=text]');
@@ -344,7 +334,7 @@ $('avanti').addEventListener('click', () => {
   mostra(i + 1);
 });
 $('indietro').addEventListener('click', () => { if (i > 0) mostra(i - 1); });
-document.querySelectorAll('[data-avanti]').forEach(b => b.addEventListener('click', () => { iniziato = true; mostra(i + 1); }));
+document.querySelectorAll('.schermo input, .schermo textarea').forEach(el => el.addEventListener('input', () => { iniziato = true; }, { once: true }));
 
 // Scelta singola: si va avanti da soli dopo un attimo (una domanda, una risposta)
 schermi.forEach(s => {
