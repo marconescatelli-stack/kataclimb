@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.46 · 2026-11-06 · RITORNO ALL'AGENDA (Marco 5–6 nov): torna=agenda con data e tipo validati, indirizzo ricostruito (mai copiato dalla URL), ← "Torna all'agenda", sotto il nome "Aperta dall'agenda · ← torna alla lezione"; la scheda resta fuori dal turno (origine 'cerca'). Nel Quadro commerciale "Apri il fascicolo CRM →" solo per la vista segreteria. Nessun SQL. CUMULA v2.45. -->
 <!-- KC-BUILD: oggi v2.45 · 2026-11-06 · RITORNO A COMMERCIALE (Marco 6 nov): oggi.html?scheda=<uuid> apre la scheda allo staff (origine 'cerca', fuori dalla logica del turno); torna=commerciale riporta li' alla chiusura, dopo il solito dialogoUscita, ← con etichetta "Torna a commerciale". Qualunque altro valore di torna si ignora. Il parametro scheda non esisteva: la consegna agenda del 5 nov non e' mai stata applicata, torna=agenda resta da fare. CUMULA v2.44. -->
 <!-- KC-BUILD: oggi v2.44 · 2026-11-06 · CERCA UNA PERSONA + AGGIUNGI UNA NOTA (Marco 6 nov): campo "Cerca una persona" in cima alle viste staff (cerca_persona_staff, funzione propria cercaPersona; salaCerca intatta); nella scheda, sotto nome e contatti, bottone AGGIUNGI UNA NOTA e diario (htmlNote): il riquadro di htmlRicontatto e il diario escono dal Quadro commerciale, stessa ricSalva e stessa RPC istruttore_azione_lead. La bozza sta in ric e sopravvive ai ridisegni della scheda; nota non salvata -> dialogoUscita. Senza fascicolo contatti il bottone avvisa e non scrive; scheda ridotta: niente bottone. La ricerca generale apre la scheda con origine propria 'cerca' ('ricerca' resta alla sola ricerca di sala): con 'cerca' schedaSala e' spenta anche nella vista monitor, quindi niente blocco del turno, guida, caricaVeterano, _salaUsata, e all'uscita mai "Hai seguito…?", neanche col turno aperto. Nessun SQL. CUMULA v2.43. -->
 <!-- KC-BUILD: oggi v2.42 · 2026-11-04 · "CHI SEGUI STASERA?" + CARD "IN BREVE" (decisione di Marco 4 nov; DB Brief_allievo_inizio_turno gia' applicato: brief_allievi(uuid[]), monitor_scegli_seguiti(uuid[])). (A) Apertura del turno di sala, passo obbligato e senza salta: con il turno aperto e nessuno scelto, finestra a tutto schermo "Chi segui stasera?" con la lista di sala_papabili_oggi (foto, nome, motivo, ora) a spunte e "Cerca per nome e aggiungi" (cerca_persona_staff); AVANTI solo con almeno una spunta -> monitor_scegli_seguiti -> card "In breve" una sotto l'altra -> INIZIA IL TURNO -> console come prima. Ricaricando con le persone gia' scelte non si richiede la scelta: si rivedono le card una volta per sessione (sessionStorage) e poi la console. Chi si aggiunge dopo vede la card in cima alla sua scheda prima di scrivere la nota. (B) Istruttore: sulle lezioni di oggi il bottone IN BREVE · N con le card dei prenotati (prenotazioni_corso e prenotazioni_prima_lezione -> persone -> brief_allievi); scheda allievo: la card in cima. (C) Card uguale ovunque: foto, nome, corso con fatte/totali, ultima volta in sala, ricordo in corsivo 🔒; riassunto 🔒 con autore e data; lavoro fatto fino a 3 righe (note di sala 🔒, voci del quadro 👤); Sensibilità 🔒 "solo staff, non dirlo così all'allievo"; Da proseguire 👤 con "Kata N"; vuota = "Prima volta che la seguiamo: parti da zero e scrivi la prima nota a fine serata." Nessuna modifica a DB. CUMULA v2.41 (sotto). -->
@@ -318,6 +319,7 @@ a{color:inherit; text-decoration:none}
 .btn.prim{background:var(--fiducia); color:#000; border-color:var(--fiducia)}
 .btn.wa{background:#1F8F4E; border-color:#1F8F4E}
 .btn.ok{background:#1E6B34; border-color:#1E6B34}
+.sch-da{font-size:13px; color:#C9C9CE; margin-top:4px} /* v2.46 */
 .sch-stato{font-size:14px; margin-top:12px; color:#E5E5EA}
 .sch-banner{background:linear-gradient(135deg,#FF9F0A,#FF7A00); color:#1A1200; border-radius:12px; padding:12px 14px; margin-top:12px; font-weight:800; font-size:15px}
 .sch-banner p{font-weight:500; font-size:14px; margin-top:6px; font-style:italic}
@@ -809,6 +811,7 @@ async function init(){
   const qs=new URLSearchParams(window.location.search), sPid=qs.get('scheda')||'';
   if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sPid) && (pdata.staff_role||SEG_ROLES.includes(profilo.role))){
     if(qs.get('torna')==='commerciale'){ schedaTorna='commerciale.html'; document.querySelector('.sch-back').setAttribute('aria-label','Torna a commerciale'); }
+    if(qs.get('torna')==='agenda'){ schedaTorna=tornaAgenda(qs); schedaDaAgenda=true; document.querySelector('.sch-back').setAttribute('aria-label',"Torna all'agenda"); }
     apriScheda(sPid,false,'cerca');
   }
 }
@@ -1952,7 +1955,17 @@ function disegnaElenco(){
 }
 
 /* ── Scheda Allievo ── */
-let schedaTorna=null; // v2.45 dove si torna alla chiusura (?torna=commerciale)
+let schedaTorna=null, schedaDaAgenda=false; // v2.45 dove si torna alla chiusura (?torna=commerciale, v2.46 ?torna=agenda)
+/* v2.46 stesse chiavi di TIPO_LABELS in agenda.html: l'indirizzo si ricostruisce, data e tipo non validi si omettono */
+const AGENDA_TIPI=['prima_lezione','prima_lezione_bambini','prima_lezione_ragazzi','prima_lezione_genitori','prima_lezione_privata','open','advance','intro_corda','evo_corda','bambini','evo_ragazzi','expert','giovani','senior','genitori','monitor','prima_lezione_scuola','scuola_mini','manovra_sosta','scuole','lab','fly','tutti'];
+function tornaAgenda(qs){
+  const p=new URLSearchParams(), d=qs.get('data')||'', t=qs.get('tipo');
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d), x=m&&new Date(+m[1],+m[2]-1,+m[3]);
+  if(x&&x.getMonth()===+m[2]-1&&x.getDate()===+m[3])p.set('data',d);
+  if(AGENDA_TIPI.includes(t))p.set('tipo',t);
+  const s=p.toString();
+  return 'agenda.html'+(s?'?'+s:'');
+}
 function apriScheda(pid,sala,origine){
   schedaPid=pid; schedaDati=null; ossAperta=false; ossSporca=false;
   quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
@@ -2178,6 +2191,7 @@ function htmlCommerciale(d){
   const pross=L.prossima_azione_il?`Prossimo richiamo: ${ggmmTs(L.prossima_azione_il)}`:'';
   const tent=L.tentativi_contatto?`Tentativi di contatto: ${L.tentativi_contatto}`:'';
   return `<section class="sch-sez"><h3>Quadro commerciale ${visPill('staff')}</h3>
+    ${vista==='segreteria'?`<p><a class="lnk" href="portale.html?lead_id=${esc(L.id)}" target="_blank" rel="noopener">Apri il fascicolo CRM →</a></p>`:''}
     ${L.intenzione?`<div class="kv"><b>Intenzione</b>${pillIntenzione(L.intenzione)}</div>`:''}
     <div class="frm ricordo"><label for="sch-ricordo">Come lo riconosco</label>
       <textarea id="sch-ricordo" maxlength="300" placeholder="Es. alto, capelli ricci, è venuto con la fidanzata, lavora di notte, ha paura dell'altezza ma vuole provarci">${esc(L.ricordo||'')}</textarea>
@@ -2332,7 +2346,7 @@ function disegnaScheda(){
     <section class="sch-sez">
       <div class="sch-vis">${visPill('staff')}</div>
       <div class="sch-testa">${avatarHtml(P.nome||R.nome,P.cognome||R.cognome,P.foto_path||R.foto_path,true)}
-        <div><h2>${esc((P.nome||R.nome||'')+' '+(P.cognome||R.cognome||''))}</h2>${htmlEtaScheda(d)}${tel?`<div class="tel">${esc(tel)}</div>`:''}</div></div>
+        <div><h2>${esc((P.nome||R.nome||'')+' '+(P.cognome||R.cognome||''))}</h2>${htmlEtaScheda(d)}${tel?`<div class="tel">${esc(tel)}</div>`:''}${schedaDaAgenda?`<p class="sch-da">Aperta dall'agenda · ← torna alla lezione</p>`:''}</div></div>
       ${tel?`<div class="sch-btns"><a class="btn" href="tel:${esc(telNum(tel))}">📞 CHIAMA</a><button class="btn wa" onclick="apriWaScheda()">💬 WHATSAPP</button></div>`:''}
       ${stato?`<p class="sch-stato">${esc(stato)}</p>`:''}
       ${banner}
