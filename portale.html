@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.157 · 2026-11-06 · SCADENZA DEL CORSO NEL FASCICOLO (richiesta della segreteria, 6 nov): loadLeadIscrizioni legge data_inizio_validita, data_fine_validita, inizio_da_prima_presenza; nel blocco Percorso, per i corsi attivi e sospesi, riga "scade il gg/mm/aaaa" col relativo, "la scadenza parte dalla prima presenza" o "senza scadenza"; sospesa si legge "sospeso"; nomi completi nella pill. Nessun SQL. CUMULA v3.156. -->
 <!-- KC-BUILD: portale v3.156 · 2026-11-06 · INGRESSI GIA' FATTI (Marco 6 nov): riga pacchetto del blocco 🎫, bottone ＋ Ingressi già fatti e modale per segnare i giorni passati, uno alla volta in ordine di data (segna_ingresso_pacchetto con p_data). Se una chiamata fallisce ci si ferma: errore del DB col suo giorno, in lista solo i giorni non segnati. Il bottone c'e' anche sui pacchetti scaduti, finche' restano ingressi. Nessun SQL. CUMULA v3.155. -->
 <!-- KC-BUILD: portale v3.155 · 2026-11-06 · INGRESSI E PACCHETTI 10 INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): modale con terza scheda Ingresso singolo (registra_ingresso_singolo); pacchetto = "10 ingressi · validita' 3 mesi" e mai rinnovo (abbEsistente); blocco 🎫 con usati/restano, ✓ Ingresso di oggi (segna_ingresso_pacchetto) e tendina Ingressi (get_ingressi_persona, annulla_ingresso), anche per chi ha solo ingressi; area personale: card Il tuo pacchetto ingressi. Solo RPC. CUMULA v3.154. -->
 <!-- KC-BUILD: portale v3.154 · 2026-11-02 · VIDEO KATA: MEMORIA 20 s, VALIDAZIONE 15 s (decisione Marco 2 nov: chi impara deve poter caricare, chi certifica deve essere immediato). KATA_MAX_DURATION unica → KATA_MAX_DURATION_MEMORIA 20 / KATA_MAX_DURATION_VALIDAZIONE 15 + kataMaxDur(slot). Nient'altro. CUMULA v3.153 (sotto). -->
@@ -6222,7 +6223,7 @@ async function loadLeadIscrizioni(lead){
   const uid=lead.converted_profile_id;
   if(!uid){currentLeadIscrizioni=[];renderLeadDetail();return;}
   const{data,error}=await sb.from('iscrizioni_corso')
-    .select('id,tipo_corso,status,lezioni_completate,lezioni_totali,stato_pagamento,data_iscrizione') // v3.149 id: + PAGA DOPO collega l'iscrizione attiva
+    .select('id,tipo_corso,status,lezioni_completate,lezioni_totali,stato_pagamento,data_iscrizione,data_inizio_validita,data_fine_validita,inizio_da_prima_presenza') // v3.149 id: + PAGA DOPO collega l'iscrizione attiva
     .eq('user_id',uid);
   if(error){console.warn('[loadLeadIscrizioni]',error.message);return}
   if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
@@ -6489,9 +6490,20 @@ function renderLeadDetail(){
   let percorsoBlock='';
   if(currentLeadIscrizioni&&currentLeadIscrizioni.length){
     const ORD={prima_lezione:0,open:1,advance:2,intro_corda:3,evo_corda:4};
-    const LBL={prima_lezione:'Prima',open:'Open',advance:'Advance',intro_corda:'Intro',evo_corda:'Evo'};
+    const LBL={prima_lezione:'Prima Lezione',open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb'};
     const COL={prima_lezione:'#B45309',open:'#2563EB',advance:'#064E2F',intro_corda:'#1B74E4',evo_corda:'#7B2D8E'};
     const rows=[...currentLeadIscrizioni].sort((a,b)=>(ORD[a.tipo_corso]??9)-(ORD[b.tipo_corso]??9));
+    // v3.157 scadenza: date in formato locale, i giorni si contano fra due AAAA-MM-GG (Trappola #134)
+    const scadenzaCorso=r=>{
+      if(r.status!=='attiva'&&r.status!=='sospesa')return'';
+      const riga=(t,c,b)=>`<div style="flex-basis:100%;text-align:right;font-size:13px;color:${c};font-weight:${b?700:400}">${t}</div>`;
+      const fine=r.data_fine_validita?String(r.data_fine_validita).slice(0,10):null;
+      if(!fine)return riga(r.inizio_da_prima_presenza?'la scadenza parte dalla prima presenza':'senza scadenza','#4B5563');
+      const g=Math.round((Date.parse(fine)-Date.parse(abbIsoOggi()))/864e5), t='scade il '+abbGMA(fine)+' · ';
+      if(g<0)return riga(t+'scaduto da '+(-g)+(g===-1?' giorno':' giorni'),'#B91C1C',true);
+      if(g===0)return riga(t+'scade oggi','#B45309');
+      return riga(t+'tra '+g+(g===1?' giorno':' giorni'),g<=7?'#B45309':'#4B5563');
+    };
     const items=rows.map(r=>{
       const lbl=LBL[r.tipo_corso]||r.tipo_corso;
       const col=COL[r.tipo_corso]||'#6B7280';
@@ -6507,6 +6519,7 @@ function renderLeadDetail(){
           : 'in corso · '+(r.lezioni_completate||0)+'/'+(r.lezioni_totali||0);
         statoCol='#2563EB';
       }
+      else if(r.status==='sospesa'){statoTxt='sospeso';statoCol='#6B7280';}
       else{statoTxt=r.status;statoCol='#6B7280';}
       const pag=r.stato_pagamento==='saldato'?'':` · <span style="color:#B45309">${r.stato_pagamento||'da incassare'}</span>`;
       return`<div class="ld-prenot-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
@@ -6515,6 +6528,7 @@ function renderLeadDetail(){
           <input type="date" value="${r.data_iscrizione||''}" onchange="aggiornaDataCorso('${r.tipo_corso}',this.value)" title="Data di questo corso (modificabile)" style="font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text)">
           <span style="font-size:13px;color:${statoCol};font-weight:600;white-space:nowrap">${statoTxt}${pag}</span>
         </span>
+        ${scadenzaCorso(r)}
       </div>`;
     }).join('');
     percorsoBlock=`<div class="ld-section">
