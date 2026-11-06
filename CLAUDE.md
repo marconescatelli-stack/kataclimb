@@ -49,6 +49,8 @@ Cloudflare Pages/Workers/R2 + Supabase + Brevo (email transazionali) + Stripe + 
 - Modello funnel canonico: ogni corso ha esattamente 3 stati: `prenotato_X` / `iscritto_X` / `concluso_X`.
 - Prenotazioni: tabella canonica `prenotazioni_prima_lezione` (NON la vecchia `crm_prime_lezioni`). Capienza slot: max 6.
 - VIETATO scrivere sul database o modificare la logica di scrittura (prenotazioni, iscrizioni, pagamenti) senza istruzione esplicita nel task. Il DB collegato è quello di PRODUZIONE, con dati reali.
+- RPC PUBBLICHE (sicurezza, 6 nov 2026 — Master v4.23): le funzioni nuove nascono CHIUSE a chi non ha login. Se una pagina senza login (inizia*, orari, eventi, evento, proposta-*, questionario-prima, completa-contatti, arrampichi-gia, listino-corsi-*, sumisura, prima-lezione-privata) chiama una RPC nuova, l'SQL della consegna deve contenere `GRANT EXECUTE ON FUNCTION public.<nome>(<argomenti>) TO anon;`. Senza quella riga la pagina riceve 401. Non aprire mai al pubblico funzioni che scrivono dati di persone già registrate.
+- GUARDIA D'IDENTITÀ (trappola T-UID-NULL): nelle funzioni SECURITY DEFINER il controllo si scrive `IF auth.uid() IS NULL OR …` (oppure `IS DISTINCT FROM`), mai solo `IF p_user_id <> auth.uid()`: senza login quel confronto vale NULL e non blocca.
 
 ## Regole di codice
 
