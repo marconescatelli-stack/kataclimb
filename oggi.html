@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- KC-BUILD: oggi v2.48 · 2026-11-06 · MONITOR 5 € ANCHE EXPERT E SALA VETERANI (decisione Marco 6 nov): caricaVeterano non decide piu' da sola, chiede al DB monitor_seguito_a_5(persona, oggi), la stessa regola del conto.
-     Il riepilogo prima di SEGNA dice "l'ora resta a 5 € (veterano, Expert o Sala Veterani)". Nessun SQL qui: il DB e' gia' aggiornato. CUMULA v2.47. -->
+     Il riepilogo prima di SEGNA dice "l'ora resta a 5 € (veterano, Expert o Sala Veterani)"; RIGA_COMPENSO e la regola nei turni lo dicono anche loro. Nessun SQL qui: il DB e' gia' aggiornato. CUMULA v2.47. -->
 <!-- KC-BUILD: oggi v2.47 · 2026-11-06 · CARICA I KATA (Marco 6 nov): in testa a "I suoi Kata" il bottone CARICA UN KATA verso monitor.html?u=&da=oggi&pid= (solo con account nel portale, un solo codice di caricamento); tessera Carica i Kata al posto di Monitor nella console istruttore e nuova nella console monitor, mai in segreteria/creator. Tornando da monitor.html ?scheda= si toglie dall'URL con replaceState; con torna= resta, serve al ricaricamento. La scheda resta su origine 'cerca': con 'kata' un monitor rientrerebbe nella logica del turno. Nessun SQL. CUMULA v2.46. -->
 <!-- KC-BUILD: oggi v2.46 · 2026-11-06 · RITORNO ALL'AGENDA (Marco 5–6 nov): torna=agenda con data e tipo validati, indirizzo ricostruito (mai copiato dalla URL), ← "Torna all'agenda", sotto il nome "Aperta dall'agenda · ← torna alla lezione"; la scheda resta fuori dal turno (origine 'cerca'). Nel Quadro commerciale "Apri il fascicolo CRM →" solo per la vista segreteria. Nessun SQL. CUMULA v2.45. -->
 <!-- KC-BUILD: oggi v2.45 · 2026-11-06 · RITORNO A COMMERCIALE (Marco 6 nov): oggi.html?scheda=<uuid> apre la scheda allo staff (origine 'cerca', fuori dalla logica del turno); torna=commerciale riporta li' alla chiusura, dopo il solito dialogoUscita, ← con etichetta "Torna a commerciale". Qualunque altro valore di torna si ignora. Il parametro scheda non esisteva: la consegna agenda del 5 nov non e' mai stata applicata, torna=agenda resta da fare. CUMULA v2.44. -->
@@ -2742,7 +2742,7 @@ function disegnaDiario(){
    Solo RPC: monitor_oggi · monitor_turno · cerca_persona_staff · monitor_segna · get_compenso_monitor. */
 let salaOggi=null, schedaSala=false, _salaTimer=null, _salaTok=0;
 const _salaPersone={}; // persona_id -> {nome,cognome,foto_path} dall'ultima ricerca
-const RIGA_COMPENSO="Ogni persona che segui e segni nella sua scheda vale un'ora a 8 €. Le ore senza nessuno valgono 5 €.";
+const RIGA_COMPENSO="Ogni allievo che segui e segni nella sua scheda vale un'ora a 8 €. Veterani, Expert e Sala Veterani restano a 5 €, come le ore senza nessuno.";
 const hhmm=ts=>{ if(!ts)return ''; const d=new Date(ts); return pad2(d.getHours())+':'+pad2(d.getMinutes()); };
 const numIt=n=>Number(n||0).toLocaleString('it-IT',{maximumFractionDigits:1});
 const euro=n=>Number(n||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
@@ -3768,7 +3768,7 @@ function apriCompensi(){
 }
 function disegnaCompensi(){
   const p=document.getElementById('comp-pann'); if(!p)return;
-  const testa=`<p class="turno-regola">1 ora a 8 € per ogni persona seguita, le altre ore a 5 €.</p>`;
+  const testa=`<p class="turno-regola">1 ora a 8 € per ogni allievo seguito (veterani, Expert e Sala Veterani a 5 €), le altre ore a 5 €.</p>`;
   if(!compensi){ p.innerHTML=testa+'<div class="vuota-all">Non riesco a leggere i compensi ora.</div>'; return; }
   if(!compensi.length){ p.innerHTML=testa+'<div class="vuota-all">Nessun turno in Sala con Monitor questo mese.</div>'; return; }
   const tot=new Map();
