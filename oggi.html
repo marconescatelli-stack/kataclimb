@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.48 · 2026-11-06 · MONITOR 5 € ANCHE EXPERT E SALA VETERANI (decisione Marco 6 nov): caricaVeterano non decide piu' da sola, chiede al DB monitor_seguito_a_5(persona, oggi), la stessa regola del conto.
+     Il riepilogo prima di SEGNA dice "l'ora resta a 5 € (veterano, Expert o Sala Veterani)". Nessun SQL qui: il DB e' gia' aggiornato. CUMULA v2.47. -->
 <!-- KC-BUILD: oggi v2.47 · 2026-11-06 · CARICA I KATA (Marco 6 nov): in testa a "I suoi Kata" il bottone CARICA UN KATA verso monitor.html?u=&da=oggi&pid= (solo con account nel portale, un solo codice di caricamento); tessera Carica i Kata al posto di Monitor nella console istruttore e nuova nella console monitor, mai in segreteria/creator. Tornando da monitor.html ?scheda= si toglie dall'URL con replaceState; con torna= resta, serve al ricaricamento. La scheda resta su origine 'cerca': con 'kata' un monitor rientrerebbe nella logica del turno. Nessun SQL. CUMULA v2.46. -->
 <!-- KC-BUILD: oggi v2.46 · 2026-11-06 · RITORNO ALL'AGENDA (Marco 5–6 nov): torna=agenda con data e tipo validati, indirizzo ricostruito (mai copiato dalla URL), ← "Torna all'agenda", sotto il nome "Aperta dall'agenda · ← torna alla lezione"; la scheda resta fuori dal turno (origine 'cerca'). Nel Quadro commerciale "Apri il fascicolo CRM →" solo per la vista segreteria. Nessun SQL. CUMULA v2.45. -->
 <!-- KC-BUILD: oggi v2.45 · 2026-11-06 · RITORNO A COMMERCIALE (Marco 6 nov): oggi.html?scheda=<uuid> apre la scheda allo staff (origine 'cerca', fuori dalla logica del turno); torna=commerciale riporta li' alla chiusura, dopo il solito dialogoUscita, ← con etichetta "Torna a commerciale". Qualunque altro valore di torna si ignora. Il parametro scheda non esisteva: la consegna agenda del 5 nov non e' mai stata applicata, torna=agenda resta da fare. CUMULA v2.44. -->
@@ -3071,15 +3073,13 @@ function nomeScheda(pieno){
   const nome=P.nome||R.nome||S.nome||'', cogn=P.cognome||R.cognome||S.cognome||'';
   return (pieno?(nome+' '+cogn).trim():nome.trim())||'questa persona';
 }
-/* veterano: stessa regola di v_compenso_turni_monitor (persone.veterano o badge 'veterano' in profile_data) */
+/* a 5 €: stessa regola del DB, monitor_seguito_a_5 (veterano, Expert, Sala Veterani, Sala+Corda Veterani) */
 async function caricaVeterano(pid){
   try{
-    const[a,b]=await Promise.all([
-      sb.from('persone').select('veterano').eq('id',pid).maybeSingle(),
-      sb.from('profile_data').select('badges').eq('persona_id',pid)
-    ]);
+    const{data,error}=await sb.rpc('monitor_seguito_a_5',{p_persona_id:pid,p_data:isoLocal(new Date())});
+    if(error)throw error; // la rpc non lancia: senza questo l'errore passerebbe muto
     if(pid!==schedaPid)return;
-    schedaVeterano=!!(a.data&&a.data.veterano) || (b.data||[]).some(r=>Array.isArray(r.badges)&&r.badges.includes('veterano'));
+    schedaVeterano=data===true;
     if(guida.passo===4)disegnaGuida();
   }catch(e){ console.warn('[veterano]',e?.message||e); }
 }
@@ -3214,7 +3214,7 @@ function htmlGuida(){
     const vet=schedaVeterano;
     const fissa=giaSegnato(schedaPid)
       ?`Premendo SEGNA, quello che hai scritto si aggiunge alle note di oggi su ${n}.`
-      :vet?`Premendo SEGNA, ${n} risulta seguito/a oggi. È veterano/a: l'ora resta a 5 €.`
+      :vet?`Premendo SEGNA, ${n} risulta seguito/a oggi. Per questa persona l'ora resta a 5 € (veterano, Expert o Sala Veterani).`
       :`Premendo SEGNA, ${n} risulta seguito/a oggi e quest'ora vale 8 €.`;
     const per=g.perNiente||!g.per.trim()
       ?`<div><span>Per ${n}:</span> niente oggi</div>`
