@@ -34,6 +34,9 @@ Quattro entità da tenere sempre separate, mai confonderle nei testi:
 - `dev` = sviluppo. Tutto il lavoro avviene qui. Anteprima automatica su kataclimb-dev.pages.dev (Cloudflare Pages).
 - Ogni task si chiude con una pull request verso `dev` (o da `dev` verso `main` solo su richiesta esplicita di Marco).
 - Il merge in produzione lo decide solo Marco, dopo verifica sull'anteprima.
+- **Allineamento automatico, senza interrompere Marco.** Prima della prima modifica a un file: `git checkout dev` se non ci si è già, poi `git pull --rebase origin dev` in silenzio. Non chiedere conferma, non annunciarlo. Parlarne solo se il pull fallisce per un conflitto: in quel caso fermarsi, dire quale file e aspettare Marco.
+- **Se il push viene rifiutato** perché su origin ci sono commit nuovi: `git pull --rebase`, poi push normale. Mai `--force`.
+- **"Fine sessione"**: quando Marco lo dice, (1) verificare che non ci siano modifiche non committate, (2) se c'è un commit non pushato o una PR non aperta ricordarglielo e aspettare il suo ok, (3) `git pull --rebase` su dev e `git fetch` di main, (4) rispondere con una riga: branch, ultimo commit, PR aperte, allineato sì/no.
 
 ## Stack (non proporre alternative esterne)
 

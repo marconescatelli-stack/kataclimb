@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- KC-BUILD: oggi v2.42 · 2026-11-04 · "CHI SEGUI STASERA?" + CARD "IN BREVE" (decisione di Marco 4 nov; DB Brief_allievo_inizio_turno gia' applicato: brief_allievi(uuid[]), monitor_scegli_seguiti(uuid[])). (A) Apertura del turno di sala, passo obbligato e senza salta: con il turno aperto e nessuno scelto, finestra a tutto schermo "Chi segui stasera?" con la lista di sala_papabili_oggi (foto, nome, motivo, ora) a spunte e "Cerca per nome e aggiungi" (cerca_persona_staff); AVANTI solo con almeno una spunta -> monitor_scegli_seguiti -> card "In breve" una sotto l'altra -> INIZIA IL TURNO -> console come prima. Ricaricando con le persone gia' scelte non si richiede la scelta: si rivedono le card una volta per sessione (sessionStorage) e poi la console. Chi si aggiunge dopo vede la card in cima alla sua scheda prima di scrivere la nota. (B) Istruttore: sulle lezioni di oggi il bottone IN BREVE · N con le card dei prenotati (prenotazioni_corso e prenotazioni_prima_lezione -> persone -> brief_allievi); scheda allievo: la card in cima. (C) Card uguale ovunque: foto, nome, corso con fatte/totali, ultima volta in sala, ricordo in corsivo 🔒; riassunto 🔒 con autore e data; lavoro fatto fino a 3 righe (note di sala 🔒, voci del quadro 👤); Sensibilità 🔒 "solo staff, non dirlo così all'allievo"; Da proseguire 👤 con "Kata N"; vuota = "Prima volta che la seguiamo: parti da zero e scrivi la prima nota a fine serata." Nessuna modifica a DB. CUMULA v2.41 (sotto). -->
+<!-- KC-BUILD: oggi v2.43 · 2026-11-05 · TESSERA ARRAMPICATORI (Marco 5 nov): nella zona La cura, dopo Chiamate, tessera 'Arrampicatori · CHI ARRAMPICA GIÀ' -> commerciale.html?coda=arrampicatori, numero da conta_coda_arrampicatori() (RPC dedicata, DB Questionario_arrampicatori_2026-11-05 gia' applicato; conta_code_lead non toccata). Nient'altro toccato. CUMULA v2.41 (sotto). -->
 <!-- KC-BUILD: oggi v2.41 · 2026-11-04 · SCHEDA ALLIEVO: CHI VEDE COSA, RICORDO, ETÀ, RICONTATTI (richiesta dello staff 4 nov e Marco; DB Scheda_allievo_ricordo_eta_ricontatti gia' applicato: get_scheda_allievo con persona.eta/eta_fonte e lead.ricordo/eta_stimata/intenzione, salva_ricordo_lead, istruttore_azione_lead con messaggio_inviato/messaggio_risposto e p_intenzione). (A) In cima alla scheda la legenda fissa 🔒 Solo staff · 👤 Anche l'allievo (lo legge sul suo profilo) · 🌐 Tutti (community); ogni blocco ha la sua: testa con i contatti, Sala con Monitor, Osservazioni, Quadro commerciale 🔒; Percorso 👤; Kata validati e in attesa 🌐 (la community li mostra gia'), Kata da rifare 👤; voci del quadro 👤 o 🔒 dal tipo; nelle osservazioni gia' scritte 👤 o 🔒 per campo. Moduli di scrittura: osservazione in due riquadri distinti con l'etichetta sul bordo (🔒 criticita', da implementare, scale, note · 👤 temi affrontati, trasformazione, per l'allievo + "Questo l'allievo lo legge sul suo profilo."), quadro con 👤/🔒 sul bordo dei due blocchi e la stessa riga sotto quello dell'allievo. (B) Quadro commerciale: "Come lo riconosco" (300 caratteri) -> salva_ricordo_lead. (C) Pill dell'eta' accanto al nome ("34 anni" dalla nascita, "~34 anni" stimata, "età ?"); senza data di nascita si tocca e si scrive (4-99) -> salva_ricordo_lead p_eta_stimata. La stessa pill nella lista Da richiamare (persone.data_nascita e lead_data.eta_stimata, letture). (D) Ricontatti: sei scelte (Chiamato ha risposto, Chiamato non risponde, Messaggio inviato, Ha risposto al messaggio, Richiama tra 1/3/7, Nota) con al massimo tre righe: cosa ho detto/scritto (obbligatoria), cosa ha risposto (non per messaggio inviato), intenzione Si iscrive / Ci pensa / Più avanti / No; p_testo "Ho scritto: … · Ha risposto: … · Intenzione: …"; non risponde passa da solo l'intenzione non_risponde; pill dell'intenzione in cima al blocco (verde, giallo, grigio). WHATSAPP generico invariato. Nessuna modifica a DB. CUMULA v2.40 (sotto). -->
 <!-- KC-BUILD: oggi v2.40 · 2026-11-02 · LEZIONE NON SVOLTA NELLA TESSERA DELL'ISTRUTTORE (consegna 2 nov, punto 3): in "I tuoi impegni · oggi", accanto a "La segreteria ti ha segnato assente", il caso non_svolta: "La lezione non c'era: non conta come assenza." in grigio, senza SONO QUI. Nessuna modifica a DB. CUMULA v2.39 (sotto). -->
 <!-- KC-BUILD: oggi v2.39 · 2026-11-02 · NON C'ERA LEZIONE NELLE PRESENZE DA CONFERMARE (richiesta della segreteria 2 nov, approvata da Marco; DB impegni_lezione_non_svolta gia' live: impegni_staff.stato 'non_svolta', impegno_presenza 'non_svolta' su tutta la lezione, senza sostituto, 0 €, fuori dalle assenze). Da sistemare -> Presenze da confermare: quarto bottone NON C'ERA LEZIONE con la riga grigia "nessun allievo o corso non attivo: non è un'assenza, non si paga e non cerca il sostituto"; conferma "Sei sicuro? La lezione di <giorno> <ora> · <nome completo> risulta non svolta per tutti gli istruttori segnati." -> impegno_presenza(id,'non_svolta') -> "Fatto: lezione segnata come non svolta (N istruttori)", l'elenco si rilegge e spariscono anche le righe degli altri istruttori della stessa lezione; l'errore "c'è già qualcuno segnato presente" resta a schermo. Suggerito (etichetta verde): NON C'ERA LEZIONE se la Prima Lezione o il corso a lezioni (Open, Advance, Intro Corda, Evo Corda) non ha nessuna prenotazione non cancellata in tempo per quello slot e quella data (prenotazioni_prima_lezione / prenotazioni_corso); altrimenti, e per i corsi ad abbonamento che non hanno prenotazioni, PRESENTE. Riga di aiuto del riquadro: Prima Lezione con l'istruttore presente ma nessun allievo = PRESENTE (vuota, 5 €/h). Nessuna modifica a DB. CUMULA v2.38 (sotto). -->
@@ -1266,6 +1267,12 @@ ${segPuoConti()?htmlSistemaPannello():''}
     <span class="cmd mono">DA CHIAMARE ›</span>
   </a>
 
+  <a class="t t-coda" href="/commerciale.html?coda=arrampicatori">
+    <span class="et mono">Arrampicatori</span>
+    <div class="big" id="coda-arr">…</div>
+    <span class="cmd mono">CHI ARRAMPICA GIÀ ›</span>
+  </a>
+
   <a class="t t-valida due" href="/valida.html">
     <span class="et mono">▶ Da validare</span>
     <div class="big" id="valida-num">…<small> video Kata</small></div>
@@ -1383,6 +1390,12 @@ async function loadSegCode(){
     console.error('[seg-code]',e);
     ['coda-comm','coda-riac','coda-vecc','coda-segr'].forEach(id=>setN(id,'—'));
   }
+  // Arrampicatori: RPC dedicata (DB Questionario_arrampicatori_2026-11-05), separata per non toccare conta_code_lead
+  try{
+    const{data,error}=await sb.rpc('conta_coda_arrampicatori');
+    if(error)throw error;
+    setN('coda-arr', data);
+  }catch(e){ console.error('[coda-arr]',e); setN('coda-arr','—'); }
 }
 
 /* ════════════════════════ v2.31 SEGRETERIA: DA PAGARE e DA SISTEMARE ════════════════════════

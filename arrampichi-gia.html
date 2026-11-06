@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<!-- KC-BUILD: arrampichi-gia v1.1 · 2026-11-05 · correzioni Marco 5 nov sera: gradi 5c/6a-6b/6c/7a/7b/7c/8a+, motivi (via "cerco compagni", + "ho difficoltà a trovare compagni"), d.8 = frequenza ideale indoor, d.9 "Ok. Marco Nescatelli ti ricontatta…" con GRIGLIA ORARI (slot_liberi_marco nei prossimi 2 giorni, quarti d'ora lun–ven 12–13 e 18–19) e, se vuota, fascia mattina/pomeriggio/sera; p_slot alla RPC → appuntamenti_marco + notifica a Marco; chiusura "protette dalla privacy, le legge solo Marco". CUMULA v1.0: QUESTIONARIO "PER CHI ARRAMPICA GIÀ" (Marco 3–5 nov): una domanda per schermata (concetto Duolingo), 9 domande + contatti, barra di avanzamento, Indietro sempre disponibile, "vuoi uscire?" se si lascia a metà. Le risposte vanno alla RPC invia_questionario_arrampicatore (anon) → persona + lead (fonte form_arrampicatori, coda arrampicatori) + nota domande/risposte nel diario + questionari_arrampicatori + push lead.nuovo a Marco e segreteria. Stile e meccanica di questionario-prima v1.0 (stessi colori, stessa rpc() a fetch). Niente grado in facciata: il grado serve a Marco per smistare (6a/6b standard · 6c intensivo dimezzato · 7a+ gestione delle complessità). Pagina pubblica: noindex finché il blocco in home non è online. -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Se arrampichi già — KataClimb</title>
+<meta name="description" content="Per chi arrampica già: alcune domande, poi Marco ti chiama e costruite insieme la strada all'Accademia ArrampiKata RCC.">
+<style>
+  :root { --crema:#F5F0E8; --inchiostro:#2C2418; --blu:#1E8FE6; --bordo:#d9d2c6; --grigio:#9a9486; --rosso:#b3261e; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--crema);
+         color:var(--inchiostro); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:640px; margin:0 auto; padding:28px 20px 80px; }
+  .logo { font-weight:800; letter-spacing:.02em; margin-bottom:18px; font-size:.95rem; color:var(--grigio); }
+  .barra { height:6px; background:#e6e0d4; border-radius:3px; overflow:hidden; margin-bottom:8px; }
+  .barra i { display:block; height:100%; width:0; background:var(--blu); transition:width .25s; }
+  .passo { font-size:.9rem; color:var(--grigio); margin-bottom:26px; min-height:1.4em; }
+  h1 { font-size:1.55rem; font-weight:700; margin-bottom:12px; line-height:1.3; }
+  .intro p { margin-bottom:14px; font-size:1.02rem; }
+  .domanda { font-weight:700; font-size:1.25rem; margin-bottom:6px; line-height:1.35; }
+  .aiuto { color:var(--grigio); font-size:.95rem; margin-bottom:16px; }
+  .scelte { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+  .scelte label { border:1.5px solid var(--bordo); border-radius:12px; padding:14px 16px; cursor:pointer;
+                  background:#fff; font-weight:600; font-size:1.02rem; display:flex; align-items:center; gap:12px; }
+  .scelte input { width:20px; height:20px; accent-color:var(--blu); flex:none; }
+  .scelte label:has(input:checked) { border-color:var(--blu); background:#eaf4fd; }
+  textarea, input[type=text], input[type=tel], input[type=email] {
+    width:100%; padding:14px; border:1.5px solid var(--bordo); border-radius:10px; font-family:inherit;
+    font-size:1.02rem; background:#fff; color:var(--inchiostro); }
+  textarea { min-height:120px; resize:vertical; }
+  textarea:focus, input:focus { outline:none; border-color:var(--blu); }
+  .campo { margin-bottom:14px; }
+  .campo label.et { display:block; font-weight:600; font-size:.95rem; margin-bottom:6px; }
+  .tel { display:flex; gap:8px; }
+  .tel .pref { flex:none; width:72px; padding:14px 0; text-align:center; border:1.5px solid var(--bordo);
+               border-radius:10px; background:#f0ebe2; font-weight:700; }
+  .consenso { display:flex; gap:10px; align-items:flex-start; font-size:.95rem; margin-top:6px; }
+  .consenso input { width:20px; height:20px; accent-color:var(--blu); flex:none; margin-top:3px; }
+  .azioni { display:flex; gap:10px; margin-top:26px; }
+  button { background:var(--blu); color:#fff; border:none; border-radius:10px; padding:16px; font-size:1.08rem;
+           font-weight:700; cursor:pointer; font-family:inherit; flex:1; }
+  button.secondario { background:transparent; color:var(--inchiostro); border:1.5px solid var(--bordo); flex:0 0 auto; padding:16px 18px; }
+  button:disabled { opacity:.5; cursor:default; }
+  .errore-msg { color:var(--rosso); margin-top:14px; min-height:1.4em; font-weight:600; }
+  .nascosto { display:none; }
+  .stato { text-align:center; padding:40px 10px; }
+  .stato h2 { margin-bottom:14px; font-size:1.4rem; }
+  .stato p { margin-bottom:12px; }
+  .stato a { color:var(--blu); font-weight:700; }
+  .nota { font-size:.9rem; color:var(--grigio); margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">KATACLIMB · Accademia ArrampiKata RCC</div>
+  <div class="barra"><i id="barra"></i></div>
+  <div class="passo" id="passo"></div>
+
+  <!-- 0 · INTRO -->
+  <section class="schermo" data-k="intro">
+    <h1>Se arrampichi già, questo è il tuo posto.</h1>
+    <div class="intro">
+      <p>C'è chi arriva perché la parete è diventata stress: accanimento sul grado, competizione, la paura che torna, la rabbia dopo un volo. E c'è chi arriva perché sta bene e vuole di più: compagni di cordata con cui risuonare, un ambiente che gli somiglia, salire di livello con tranquillità.</p>
+      <p>Per tutti e due il percorso parte da alcune domande: da dove vieni, cosa cerchi, cosa vuoi. Le legge Marco, poi ti chiama e costruite insieme la strada.</p>
+      <p class="nota">Nove domande, tre minuti. Puoi tornare indietro quando vuoi.</p>
+    </div>
+    <div class="azioni"><button type="button" data-avanti>Comincio</button></div>
+  </section>
+
+  <!-- 1 -->
+  <section class="schermo nascosto" data-k="da_quanto" data-tipo="single" data-obbl="1">
+    <p class="domanda">Da quanto arrampichi?</p>
+    <div class="scelte">
+      <label><input type="radio" name="da_quanto" value="meno di 1 anno"> Meno di un anno</label>
+      <label><input type="radio" name="da_quanto" value="1-3 anni"> Da uno a tre anni</label>
+      <label><input type="radio" name="da_quanto" value="3-10 anni"> Da tre a dieci anni</label>
+      <label><input type="radio" name="da_quanto" value="più di 10 anni"> Da più di dieci anni</label>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="schermo nascosto" data-k="dove" data-tipo="multi" data-obbl="1">
+    <p class="domanda">Dove arrampichi di solito?</p>
+    <p class="aiuto">Puoi segnare più di una risposta.</p>
+    <div class="scelte">
+      <label><input type="checkbox" name="dove" value="indoor"> Indoor, in sala</label>
+      <label><input type="checkbox" name="dove" value="parete bassa senza corda"> Su parete bassa, senza corda</label>
+      <label><input type="checkbox" name="dove" value="falesia"> Falesia</label>
+      <label><input type="checkbox" name="dove" value="vie lunghe"> Vie lunghe, montagna</label>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="schermo nascosto" data-k="ruolo" data-tipo="single" data-obbl="1">
+    <p class="domanda">Da primo o da secondo?</p>
+    <div class="scelte">
+      <label><input type="radio" name="ruolo" value="senza corda o con la corda dall'alto"> Senza corda, o con la corda dall'alto</label>
+      <label><input type="radio" name="ruolo" value="da secondo"> Da secondo</label>
+      <label><input type="radio" name="ruolo" value="da primo in sala"> Da primo in sala</label>
+      <label><input type="radio" name="ruolo" value="da primo in falesia"> Da primo anche in falesia</label>
+      <label><input type="radio" name="ruolo" value="anche vie lunghe"> Anche sulle vie lunghe</label>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="schermo nascosto" data-k="grado" data-tipo="single" data-obbl="1">
+    <p class="domanda">Il grado che sali a vista, con tranquillità.</p>
+    <p class="aiuto">Quello che fai senza pensarci, non il tuo massimo.</p>
+    <div class="scelte">
+      <label><input type="radio" name="grado" value="fino al 5c"> Fino al 5c</label>
+      <label><input type="radio" name="grado" value="6a-6b"> 6a – 6b</label>
+      <label><input type="radio" name="grado" value="6c"> 6c</label>
+      <label><input type="radio" name="grado" value="7a"> 7a</label>
+      <label><input type="radio" name="grado" value="7b"> 7b</label>
+      <label><input type="radio" name="grado" value="7c"> 7c</label>
+      <label><input type="radio" name="grado" value="8a o sopra"> 8a o sopra</label>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="schermo nascosto" data-k="motivi" data-tipo="multi" data-obbl="1">
+    <p class="domanda">Cosa ti porta qui?</p>
+    <p class="aiuto">Segna tutto quello che senti tuo.</p>
+    <div class="scelte">
+      <label><input type="checkbox" name="motivi" value="la parete è diventata stress"> La parete è diventata stress</label>
+      <label><input type="checkbox" name="motivi" value="la paura che torna"> La paura che torna ogni volta</label>
+      <label><input type="checkbox" name="motivi" value="la rabbia dopo un volo o un errore"> La rabbia dopo un volo o un errore</label>
+      <label><input type="checkbox" name="motivi" value="il grado che non si muove"> Il grado che non si muove</label>
+      <label><input type="checkbox" name="motivi" value="cerco un ambiente che mi somiglia"> Cerco un ambiente che mi somiglia</label>
+      <label><input type="checkbox" name="motivi" value="voglio salire di livello con tranquillità"> Voglio salire di livello con tranquillità</label>
+      <label><input type="checkbox" name="motivi" value="voglio imparare le procedure per bene"> Voglio imparare le procedure per bene</label>
+      <label><input type="checkbox" name="motivi" value="ho difficoltà a trovare compagni"> Ho difficoltà a trovare compagni</label>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="schermo nascosto" data-k="racconto" data-tipo="testo">
+    <p class="domanda">Con parole tue: cosa succede quando sei in parete e non va?</p>
+    <p class="aiuto">Anche due righe vere. Se preferisci dirlo a voce, vai avanti.</p>
+    <textarea name="racconto" maxlength="800" placeholder="Per esempio: quando sono sopra il rinvio…"></textarea>
+  </section>
+
+  <!-- 7 -->
+  <section class="schermo nascosto" data-k="sei_mesi" data-tipo="testo">
+    <p class="domanda">Tra sei mesi, cosa vorresti fosse diverso?</p>
+    <p class="aiuto">Nella parete o fuori. Facoltativa.</p>
+    <textarea name="sei_mesi" maxlength="800" placeholder="Per esempio: andare da primo in falesia senza bloccarmi…"></textarea>
+  </section>
+
+  <!-- 8 -->
+  <section class="schermo nascosto" data-k="frequenza" data-tipo="single" data-obbl="1">
+    <p class="domanda">Qual è la tua frequenza ideale di pratica indoor?</p>
+    <div class="scelte">
+      <label><input type="radio" name="frequenza" value="1 volta a settimana"> Una volta a settimana</label>
+      <label><input type="radio" name="frequenza" value="2 volte a settimana"> Due volte a settimana</label>
+      <label><input type="radio" name="frequenza" value="3 o più volte a settimana"> Tre o più volte a settimana</label>
+      <label><input type="radio" name="frequenza" value="quando capita"> Quando capita</label>
+    </div>
+  </section>
+
+  <!-- 9 · CONTATTI -->
+  <section class="schermo nascosto" data-k="contatti" data-tipo="contatti">
+    <p class="domanda">Ok. Marco Nescatelli ti ricontatta. Dove preferisci essere chiamato/a?</p>
+    <p class="aiuto">Legge le tue risposte prima di chiamarti.</p>
+    <div class="campo"><label class="et" for="nome">Nome</label><input type="text" id="nome" autocomplete="given-name" maxlength="150"></div>
+    <div class="campo"><label class="et" for="cognome">Cognome</label><input type="text" id="cognome" autocomplete="family-name" maxlength="150"></div>
+    <div class="campo"><label class="et" for="telefono">Telefono</label>
+      <div class="tel"><span class="pref">+39</span><input type="tel" id="telefono" autocomplete="tel-national" inputmode="numeric" placeholder="3xx xxx xxxx" maxlength="20"></div>
+    </div>
+    <div class="campo"><label class="et" for="email">Email <span style="font-weight:400;color:var(--grigio)">(facoltativa)</span></label><input type="email" id="email" autocomplete="email" maxlength="200"></div>
+    <div class="campo" id="blocco-slot">
+      <label class="et">Scegli il quarto d'ora in cui ti chiama</label>
+      <p class="aiuto" id="slot-aiuto">Carico i prossimi orari liberi…</p>
+      <div class="scelte" id="slot-lista"></div>
+    </div>
+    <div class="campo nascosto" id="blocco-orario">
+      <label class="et">Quando preferisci essere chiamato/a?</label>
+      <p class="aiuto">Nei prossimi due giorni l'agenda di Marco è piena: dicci la fascia e ti richiama lui.</p>
+      <div class="scelte">
+        <label><input type="radio" name="orario" value="mattina"> Mattina</label>
+        <label><input type="radio" name="orario" value="pomeriggio"> Pomeriggio</label>
+        <label><input type="radio" name="orario" value="sera"> Sera</label>
+      </div>
+    </div>
+    <label class="consenso"><input type="checkbox" id="consenso"><span>Acconsento a essere ricontattato/a e al trattamento dei miei dati per questa richiesta.</span></label>
+  </section>
+
+  <!-- GRAZIE -->
+  <section class="schermo nascosto stato" data-k="grazie">
+    <h2>Fatto 🧗</h2>
+    <p>Le tue risposte sono protette dalla privacy e le legge solo Marco.</p>
+    <p id="grazie-testo">Ti chiama lui nel giorno e nell'orario che hai scelto.</p>
+    <p>Se nel frattempo vuoi vedere dove siamo: <a href="https://palestra-arrampicata-roma.it/#contatti">Accademia ArrampiKata RCC, Via Cassia 1634, La Storta</a>.</p>
+  </section>
+
+  <div class="errore-msg" id="err"></div>
+  <div class="azioni" id="azioni">
+    <button type="button" class="secondario nascosto" id="indietro">Indietro</button>
+    <button type="button" class="nascosto" id="avanti">Avanti</button>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://wbtougychlhnlcnonqge.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+
+const schermi = Array.from(document.querySelectorAll('.schermo'));
+const domande = schermi.filter(s => s.dataset.k !== 'intro' && s.dataset.k !== 'grazie');
+let i = 0;            // indice in schermi
+let iniziato = false; // per il "vuoi uscire?"
+let inviato = false;
+
+const $ = id => document.getElementById(id);
+
+function mostra(n) {
+  i = n;
+  schermi.forEach((s, k) => s.classList.toggle('nascosto', k !== n));
+  const s = schermi[n], k = s.dataset.k;
+  const pos = domande.indexOf(s);
+  $('barra').style.width = (k === 'grazie' ? 100 : k === 'intro' ? 0 : Math.round(((pos) / domande.length) * 100)) + '%';
+  $('passo').textContent = pos >= 0 ? ('Domanda ' + (pos + 1) + ' di ' + domande.length) : '';
+  $('err').textContent = '';
+  $('indietro').classList.toggle('nascosto', k === 'intro' || k === 'grazie');
+  $('avanti').classList.toggle('nascosto', k === 'intro' || k === 'grazie');
+  $('avanti').textContent = (k === 'contatti') ? 'Invia a Marco' : 'Avanti';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const primo = s.querySelector('textarea, input[type=text]');
+  if (primo) setTimeout(() => primo.focus(), 150);
+  if (k === 'contatti') caricaSlot();
+}
+
+function valore(s) {
+  const k = s.dataset.k, t = s.dataset.tipo;
+  if (t === 'single') { const c = s.querySelector('input:checked'); return c ? c.value : null; }
+  if (t === 'multi')  { return Array.from(s.querySelectorAll('input:checked')).map(c => c.value); }
+  if (t === 'testo')  { return s.querySelector('textarea').value.trim(); }
+  return null;
+}
+
+function controlla(s) {
+  const t = s.dataset.tipo, v = valore(s);
+  if (s.dataset.obbl === '1') {
+    if (t === 'single' && !v) return 'Scegli una risposta per andare avanti.';
+    if (t === 'multi' && v.length === 0) return 'Segna almeno una risposta per andare avanti.';
+  }
+  return '';
+}
+
+function raccogli() {
+  const r = {};
+  domande.forEach(s => { if (s.dataset.k !== 'contatti') r[s.dataset.k] = valore(s); });
+  const o = document.querySelector('input[name="orario"]:checked');
+  if (o && !slotScelto()) r.orario = o.value;
+  return r;
+}
+
+// ── Agenda di Marco: quarti d'ora liberi nei prossimi 2 giorni; se non ce ne sono, fascia preferita ──
+let slotCaricati = false;
+function slotScelto() { const c = document.querySelector('input[name="slot"]:checked'); return c ? c.value : null; }
+function giornoIt(d) {
+  const g = ['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'][d.getDay()];
+  return g + ' ' + d.getDate() + '/' + String(d.getMonth() + 1).padStart(2, '0');
+}
+async function caricaSlot() {
+  if (slotCaricati) return; slotCaricati = true;
+  const lista = $('slot-lista'), aiuto = $('slot-aiuto');
+  const oggi = new Date(); const al = new Date(oggi); al.setDate(al.getDate() + 2);
+  const f = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  let slots = [];
+  try { slots = await rpc('slot_liberi_marco', { p_dal: f(oggi), p_al: f(al) }); } catch (e) { slots = []; }
+  if (!slots || slots.length === 0) {
+    $('blocco-slot').classList.add('nascosto'); $('blocco-orario').classList.remove('nascosto'); return;
+  }
+  aiuto.textContent = 'Quindici minuti, nei prossimi due giorni.';
+  let ultimoGiorno = '';
+  slots.forEach(s => {
+    const d = new Date(s.inizio);
+    const g = giornoIt(d);
+    if (g !== ultimoGiorno) { const h = document.createElement('p'); h.className = 'aiuto'; h.style.margin = '8px 0 0'; h.style.fontWeight = '700'; h.style.color = 'var(--inchiostro)'; h.textContent = g; lista.appendChild(h); ultimoGiorno = g; }
+    const hh = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    const l = document.createElement('label');
+    l.innerHTML = '<input type="radio" name="slot" value="' + s.inizio + '"> ' + hh;
+    lista.appendChild(l);
+  });
+}
+
+async function rpc(fn, args) {
+  const r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  });
+  if (!r.ok) {
+    let msg = 'Qualcosa non ha funzionato. Riprova tra un attimo, oppure scrivici su WhatsApp.';
+    try { const j = await r.json(); if (j && j.message) msg = j.message; } catch (e) {}
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+async function invia() {
+  const err = $('err');
+  const nome = $('nome').value.trim(), cognome = $('cognome').value.trim();
+  const telRaw = $('telefono').value.replace(/\D/g, '');
+  const email = $('email').value.trim();
+  if (!nome) { err.textContent = 'Scrivi il tuo nome: Marco ti chiama per nome.'; $('nome').focus(); return; }
+  if (telRaw.length < 9) { err.textContent = 'Scrivi il numero a cui Marco ti chiama (almeno 9 cifre).'; $('telefono').focus(); return; }
+  if (email && email.indexOf('@') < 0) { err.textContent = 'L\'email non sembra valida: controllala o lasciala vuota.'; $('email').focus(); return; }
+  if (!$('consenso').checked) { err.textContent = 'Spunta il consenso per essere ricontattato: senza, Marco non può chiamarti.'; return; }
+  const slot = slotScelto();
+  const fasciaVisibile = !$('blocco-orario').classList.contains('nascosto');
+  if (!slot && !fasciaVisibile) { err.textContent = 'Scegli il quarto d\'ora in cui vuoi essere chiamato/a.'; return; }
+  if (!slot && fasciaVisibile && !document.querySelector('input[name="orario"]:checked')) { err.textContent = 'Scegli la fascia in cui preferisci essere chiamato/a.'; return; }
+
+  const btn = $('avanti');
+  btn.disabled = true; btn.textContent = 'Un attimo…';
+  try {
+    await rpc('invia_questionario_arrampicatore', {
+      p_nome: nome, p_cognome: cognome || null,
+      p_telefono: '+39 ' + telRaw, p_email: email || null,
+      p_risposte: raccogli(), p_pagina: 'arrampichi-gia.html',
+      p_slot: slot || null
+    });
+    if (slot) { const d = new Date(slot); $('grazie-testo').textContent = 'Ti chiama lui ' + giornoIt(d) + ' alle ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ', al numero che hai scritto.'; }
+    else { $('grazie-testo').textContent = 'Ti chiama lui nei prossimi giorni, nella fascia che hai scelto.'; }
+    inviato = true;
+    mostra(schermi.findIndex(s => s.dataset.k === 'grazie'));
+  } catch (e) {
+    err.textContent = e.message;
+    btn.disabled = false; btn.textContent = 'Invia a Marco';
+  }
+}
+
+$('avanti').addEventListener('click', () => {
+  const s = schermi[i];
+  if (s.dataset.k === 'contatti') { invia(); return; }
+  const e = controlla(s);
+  if (e) { $('err').textContent = e; return; }
+  mostra(i + 1);
+});
+$('indietro').addEventListener('click', () => { if (i > 0) mostra(i - 1); });
+document.querySelectorAll('[data-avanti]').forEach(b => b.addEventListener('click', () => { iniziato = true; mostra(i + 1); }));
+
+// Scelta singola: si va avanti da soli dopo un attimo (una domanda, una risposta)
+schermi.forEach(s => {
+  if (s.dataset.tipo === 'single') {
+    s.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', () => setTimeout(() => { if (schermi[i] === s) mostra(i + 1); }, 220)));
+  }
+});
+
+// Vuoi uscire senza inviare?
+window.addEventListener('beforeunload', e => { if (iniziato && !inviato) { e.preventDefault(); e.returnValue = ''; } });
+
+mostra(0);
+</script>
+</body>
+</html>
