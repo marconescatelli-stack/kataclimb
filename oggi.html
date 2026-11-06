@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.44 · 2026-11-06 · CERCA UNA PERSONA + AGGIUNGI UNA NOTA (Marco 6 nov): campo "Cerca una persona" in cima alle viste staff (cerca_persona_staff, funzione propria cercaPersona; salaCerca intatta); nella scheda, sotto nome e contatti, bottone AGGIUNGI UNA NOTA e diario (htmlNote): il riquadro di htmlRicontatto e il diario escono dal Quadro commerciale, stessa ricSalva e stessa RPC istruttore_azione_lead. La bozza sta in ric e sopravvive ai ridisegni della scheda; nota non salvata -> dialogoUscita. Senza fascicolo contatti il bottone avvisa e non scrive; scheda ridotta: niente bottone. La ricerca generale apre la scheda con origine propria 'cerca' ('ricerca' resta alla sola ricerca di sala): con 'cerca' schedaSala e' spenta anche nella vista monitor, quindi niente blocco del turno, guida, caricaVeterano, _salaUsata, e all'uscita mai "Hai seguito…?", neanche col turno aperto. Nessun SQL. CUMULA v2.43. -->
 <!-- KC-BUILD: oggi v2.42 · 2026-11-04 · "CHI SEGUI STASERA?" + CARD "IN BREVE" (decisione di Marco 4 nov; DB Brief_allievo_inizio_turno gia' applicato: brief_allievi(uuid[]), monitor_scegli_seguiti(uuid[])). (A) Apertura del turno di sala, passo obbligato e senza salta: con il turno aperto e nessuno scelto, finestra a tutto schermo "Chi segui stasera?" con la lista di sala_papabili_oggi (foto, nome, motivo, ora) a spunte e "Cerca per nome e aggiungi" (cerca_persona_staff); AVANTI solo con almeno una spunta -> monitor_scegli_seguiti -> card "In breve" una sotto l'altra -> INIZIA IL TURNO -> console come prima. Ricaricando con le persone gia' scelte non si richiede la scelta: si rivedono le card una volta per sessione (sessionStorage) e poi la console. Chi si aggiunge dopo vede la card in cima alla sua scheda prima di scrivere la nota. (B) Istruttore: sulle lezioni di oggi il bottone IN BREVE · N con le card dei prenotati (prenotazioni_corso e prenotazioni_prima_lezione -> persone -> brief_allievi); scheda allievo: la card in cima. (C) Card uguale ovunque: foto, nome, corso con fatte/totali, ultima volta in sala, ricordo in corsivo 🔒; riassunto 🔒 con autore e data; lavoro fatto fino a 3 righe (note di sala 🔒, voci del quadro 👤); Sensibilità 🔒 "solo staff, non dirlo così all'allievo"; Da proseguire 👤 con "Kata N"; vuota = "Prima volta che la seguiamo: parti da zero e scrivi la prima nota a fine serata." Nessuna modifica a DB. CUMULA v2.41 (sotto). -->
 <!-- KC-BUILD: oggi v2.43 · 2026-11-05 · TESSERA ARRAMPICATORI (Marco 5 nov): nella zona La cura, dopo Chiamate, tessera 'Arrampicatori · CHI ARRAMPICA GIÀ' -> commerciale.html?coda=arrampicatori, numero da conta_coda_arrampicatori() (RPC dedicata, DB Questionario_arrampicatori_2026-11-05 gia' applicato; conta_code_lead non toccata). Nient'altro toccato. CUMULA v2.41 (sotto). -->
 <!-- KC-BUILD: oggi v2.41 · 2026-11-04 · SCHEDA ALLIEVO: CHI VEDE COSA, RICORDO, ETÀ, RICONTATTI (richiesta dello staff 4 nov e Marco; DB Scheda_allievo_ricordo_eta_ricontatti gia' applicato: get_scheda_allievo con persona.eta/eta_fonte e lead.ricordo/eta_stimata/intenzione, salva_ricordo_lead, istruttore_azione_lead con messaggio_inviato/messaggio_risposto e p_intenzione). (A) In cima alla scheda la legenda fissa 🔒 Solo staff · 👤 Anche l'allievo (lo legge sul suo profilo) · 🌐 Tutti (community); ogni blocco ha la sua: testa con i contatti, Sala con Monitor, Osservazioni, Quadro commerciale 🔒; Percorso 👤; Kata validati e in attesa 🌐 (la community li mostra gia'), Kata da rifare 👤; voci del quadro 👤 o 🔒 dal tipo; nelle osservazioni gia' scritte 👤 o 🔒 per campo. Moduli di scrittura: osservazione in due riquadri distinti con l'etichetta sul bordo (🔒 criticita', da implementare, scale, note · 👤 temi affrontati, trasformazione, per l'allievo + "Questo l'allievo lo legge sul suo profilo."), quadro con 👤/🔒 sul bordo dei due blocchi e la stessa riga sotto quello dell'allievo. (B) Quadro commerciale: "Come lo riconosco" (300 caratteri) -> salva_ricordo_lead. (C) Pill dell'eta' accanto al nome ("34 anni" dalla nascita, "~34 anni" stimata, "età ?"); senza data di nascita si tocca e si scrive (4-99) -> salva_ricordo_lead p_eta_stimata. La stessa pill nella lista Da richiamare (persone.data_nascita e lead_data.eta_stimata, letture). (D) Ricontatti: sei scelte (Chiamato ha risposto, Chiamato non risponde, Messaggio inviato, Ha risposto al messaggio, Richiama tra 1/3/7, Nota) con al massimo tre righe: cosa ho detto/scritto (obbligatoria), cosa ha risposto (non per messaggio inviato), intenzione Si iscrive / Ci pensa / Più avanti / No; p_testo "Ho scritto: … · Ha risposto: … · Intenzione: …"; non risponde passa da solo l'intenzione non_risponde; pill dell'intenzione in cima al blocco (verde, giallo, grigio). WHATSAPP generico invariato. Nessuna modifica a DB. CUMULA v2.40 (sotto). -->
@@ -526,6 +527,8 @@ body{font-size:17px}
 .eta-mod{display:flex;gap:6px;align-items:center;margin-top:6px} .eta-mod input{width:80px;font:inherit;font-size:16px;color:#fff;background:#0E0E10;border:1px solid #3A3A40;border-radius:10px;padding:8px}
 .int-pill{display:inline-block;font-size:13px;font-weight:800;padding:2px 10px;border-radius:999px}
 .int-verde{background:#30D158;color:#000} .int-giallo{background:#FFD60A;color:#000} .int-grigio{background:#4A4A52;color:#F2F2F7}
+.cerca-p{grid-column:1/-1} .cerca-p .frm input{font-size:16px} #cerca-ris:not(:empty){background:var(--tile);border:1px solid var(--velo);border-radius:var(--r);padding:4px 12px;margin-top:6px} /* v2.44 */
+.nota-apri{width:100%} .sch-note .frm.ric{margin-top:10px} .sch-note h3{margin-top:14px} /* v2.44 */
 .frm.ric .ric-az{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .frm.ric .ric-az .btn{font-size:13px;padding:10px 8px;text-align:left}
 .frm.ric .ric-f{display:flex;flex-direction:column;gap:8px;margin-top:10px}
@@ -1023,6 +1026,7 @@ function renderIstruttore(){
   const c=document.getElementById('console');
   c.innerHTML=`
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'ISTRUTTORE')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+  ${htmlCercaPersona()}
   <div class="avviso-ar full" id="avv-turno" hidden></div>
 
   <div class="zona mono">Il tempo</div>
@@ -1213,6 +1217,7 @@ function renderSegreteria(){
     ?`<a class="t t-switch" href="/oggi.html?vista=allievo"><span class="et mono">La tua console</span><div class="big">ALLIEVO</div><span class="cmd mono">VEDI ›</span></a>`:'';
   c.innerHTML=`
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'SEGRETERIA')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+  ${htmlCercaPersona()}
 
   <div class="zona mono">Il tempo</div>
 
@@ -1944,7 +1949,7 @@ function apriScheda(pid,sala,origine){
   quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
   ric={az:null,int:null,giorni:1}; _etaAperta=false; // v2.41
   schedaBrief=null; // v2.42
-  schedaSala=!!sala || vista==='monitor'; // v2.18: in testa il campo "Su cosa avete lavorato?"
+  schedaSala=(!!sala || vista==='monitor') && origine!=='cerca'; // v2.18: in testa il campo "Su cosa avete lavorato?"; v2.44 'cerca' = ricerca generale, fuori dal turno
   /* v2.24: la guida riparte da capo a ogni scheda; "ricerca" = aperta da CHI STAI SEGUENDO */
   guida=guidaNuova(); schedaDaRicerca=origine==='ricerca'; schedaVeterano=false;
   if(schedaSala){ _salaUsata=true; disegnaAvvisoTurno(); }
@@ -1961,6 +1966,7 @@ function nascondiScheda(){
   document.body.style.overflow=''; document.body.classList.remove('sch-on');
   schedaPid=null; schedaDati=null; ossAperta=false; schedaSala=false;
   quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
+  ric={az:null,int:null,giorni:1}; cercaSvuota(); // v2.44
   if(guida)fotoLibera();
   guida=guidaNuova(); schedaDaRicerca=false; schedaVeterano=false; ossSporca=false; _esciOk=false;
 }
@@ -1994,7 +2000,7 @@ document.addEventListener('click',e=>{
 },true);
 /* uscita dalla pagina (ricarica, chiusura): solo con testo scritto e non salvato; il testo lo decide il browser */
 window.addEventListener('beforeunload',e=>{
-  if(_esciOk || !(guidaIniziata() || (ossAperta && ossSporca)))return;
+  if(_esciOk || !(guidaIniziata() || (ossAperta && ossSporca) || ricSporco()))return;
   e.preventDefault(); e.returnValue='';
 });
 
@@ -2159,11 +2165,6 @@ function htmlCommerciale(d){
   const L=d.lead; if(!L)return '';
   const kv=(l,v)=>v?`<div class="kv"><b>${l}</b>${esc(v)}</div>`:'';
   const chips=(d.modulo||[]).flatMap(m=>String(m.note||'').split('|').map(x=>x.trim()).filter(Boolean));
-  const diario=(d.diario||[]).map(r=>{
-    const tipo=DIARIO_TIPO[r.tipo]||esc(r.tipo||'');
-    const es=r.esito?' · '+esc(DIARIO_ESITO[r.esito]||r.esito):'';
-    return `<div class="dr${r.mia?' mia':''}"><div class="dh">${ggmmTs(r.data)} · ${esc(r.autore||'—')} · ${tipo}${es}</div>${r.testo?esc(r.testo):''}</div>`;
-  }).join('');
   const pross=L.prossima_azione_il?`Prossimo richiamo: ${ggmmTs(L.prossima_azione_il)}`:'';
   const tent=L.tentativi_contatto?`Tentativi di contatto: ${L.tentativi_contatto}`:'';
   return `<section class="sch-sez"><h3>Quadro commerciale ${visPill('staff')}</h3>
@@ -2177,43 +2178,56 @@ function htmlCommerciale(d){
     ${chips.length?`<div class="kv"><b>Dal modulo di richiesta</b></div><div class="chips" style="display:flex;flex-wrap:wrap;gap:6px">${chips.map(c=>`<span class="chip dato">${esc(c)}</span>`).join('')}</div>`:''}
     ${kv('Lavoro',L.lavoro)}${kv('Esperienza sportiva',L.esperienza_sport)}${kv('Perché ora',L.motivo_ora)}${kv('Cosa lo frena',L.freno)}
     ${pross||tent?`<div class="kv"><b>Richiami</b>${esc([pross,tent].filter(Boolean).join(' · '))}</div>`:''}
-    <div class="diario">${diario||`<p class="sch-vuoto">Il diario è ancora vuoto.</p>`}</div>
-    ${htmlRicontatto()}
     <div class="sch-az" id="sch-az">
       <button class="btn wa" style="grid-column:1/-1" onclick="azioneLead('whatsapp')">WHATSAPP</button>
     </div></section>`;
 }
+/* ── v2.44 NOTE IN TESTA ALLA SCHEDA: bottone, riquadro dei ricontatti e diario. Scheda ridotta: niente (decide il DB). ── */
+function htmlNote(d){
+  if(d.ridotta)return '';
+  const diario=(d.diario||[]).map(r=>{
+    const tipo=DIARIO_TIPO[r.tipo]||esc(r.tipo||'');
+    const es=r.esito?' · '+esc(DIARIO_ESITO[r.esito]||r.esito):'';
+    return `<div class="dr${r.mia?' mia':''}"><div class="dh">${ggmmTs(r.data)} · ${esc(r.autore||'—')} · ${tipo}${es}</div>${r.testo?esc(r.testo):''}</div>`;
+  }).join('');
+  return `<section class="sch-sez sch-note"><button class="btn prim nota-apri" onclick="ricApri()">📝 AGGIUNGI UNA NOTA</button>
+    ${htmlRicontatto()}
+    ${d.lead?`<h3>Diario ${visPill('staff')}</h3><div class="diario">${diario||`<p class="sch-vuoto">Il diario è ancora vuoto.</p>`}</div>`:''}</section>`;
+}
+function ricApri(){
+  if(!schedaDati?.lead?.id){ dialogo('<p>Questa persona non ha ancora un fascicolo contatti: scrivi a Marco.</p>',['HO CAPITO',null]); return; }
+  if(!ric.az)ric={az:'nota',int:null,giorni:1};
+  disegnaScheda(); document.getElementById('ric-detto')?.focus();
+}
+const ricSporco=()=>!!ric.az && !!((ric.detto||'').trim()||(ric.risp||'').trim());
 /* ── v2.41 RICONTATTI: cosa ho detto o scritto, cosa ha risposto, che intenzione ha (istruttore_azione_lead) ── */
 const RIC_AZIONI=[['chiamata_ok','📞 Chiamato, ha risposto'],['non_risponde','📞 Chiamato, non risponde'],['messaggio_inviato','💬 Messaggio inviato'],
   ['messaggio_risposto','💬 Ha risposto al messaggio'],['richiama','🗓 Richiama tra…'],['nota','📝 Nota']];
 let ric={az:null,int:null,giorni:1};
 function htmlRicontatto(){
-  const a=ric.az;
+  const a=ric.az; if(!a)return '';
+  const vd=esc(ric.detto||''), vr=esc(ric.risp||''); // v2.44 la bozza sta in ric: i ridisegni della scheda non la perdono
   const bt=RIC_AZIONI.map(([k,l])=>`<button type="button" class="btn${a===k?' prim':''}" onclick="ricScegli('${k}')">${l}</button>`).join('');
   let f='';
   if(['chiamata_ok','messaggio_inviato','messaggio_risposto'].includes(a)){
     const scritto=a!=='chiamata_ok';
-    f=`<input id="ric-detto" maxlength="300" placeholder="${scritto?'Cosa gli ho scritto':'Cosa gli ho detto'}" aria-label="${scritto?'Cosa gli ho scritto':'Cosa gli ho detto'}">
-      ${a==='messaggio_inviato'?'':'<input id="ric-risp" maxlength="300" placeholder="Cosa ha risposto (facoltativo)" aria-label="Cosa ha risposto">'}
+    f=`<input id="ric-detto" maxlength="300" value="${vd}" oninput="ric.detto=this.value" placeholder="${scritto?'Cosa gli ho scritto':'Cosa gli ho detto'}" aria-label="${scritto?'Cosa gli ho scritto':'Cosa gli ho detto'}">
+      ${a==='messaggio_inviato'?'':`<input id="ric-risp" maxlength="300" value="${vr}" oninput="ric.risp=this.value" placeholder="Cosa ha risposto (facoltativo)" aria-label="Cosa ha risposto">`}
       <div class="ric-int">${['si_iscrive','ci_pensa','piu_avanti','no'].map(k=>`<button type="button" class="btn${ric.int===k?' on':''}" onclick="ricIntenzione('${k}')">${esc(INTENZIONE[k][0])}</button>`).join('')}</div>`;
   }else if(a==='richiama'){
     f=`<div class="ric-int">${[1,3,7].map(g=>`<button type="button" class="btn${ric.giorni===g?' on':''}" onclick="ricGiorni(${g})">tra ${g} ${g===1?'giorno':'giorni'}</button>`).join('')}</div>
-      <input id="ric-detto" maxlength="300" placeholder="Nota (facoltativa)" aria-label="Nota">`;
+      <input id="ric-detto" maxlength="300" value="${vd}" oninput="ric.detto=this.value" placeholder="Nota (facoltativa)" aria-label="Nota">`;
   }else if(a==='nota'){
-    f=`<textarea id="ric-detto" maxlength="1000" placeholder="Cosa serve sapere" aria-label="Nota"></textarea>`;
+    f=`<textarea id="ric-detto" maxlength="1000" oninput="ric.detto=this.value" placeholder="Cosa ti ha detto, chi è, cosa serve sapere a chi la accoglie" aria-label="Nota">${vd}</textarea>`;
   }else if(a==='non_risponde'){
     f='<p class="aiuto">Si segna il tentativo e il richiamo domani.</p>';
   }
-  return `<div class="frm ric"><label>Registra un ricontatto</label><div class="ric-az">${bt}</div>
-    ${a?`<div class="ric-f">${f}</div><div class="sch-btns"><button class="btn" onclick="ric={az:null,int:null,giorni:1};disegnaScheda()">ANNULLA</button><button class="btn prim" id="ric-ok" onclick="ricSalva(this)">SALVA</button></div>`:''}</div>`;
+  return `<div class="frm ric"><div class="ric-az">${bt}</div>
+    <div class="ric-f">${f}</div><div class="sch-btns"><button class="btn" onclick="ric={az:null,int:null,giorni:1};disegnaScheda()">ANNULLA</button><button class="btn prim" id="ric-ok" onclick="ricSalva(this)">SALVA</button></div></div>`;
 }
-function ricGiorni(g){ const d=document.getElementById('ric-detto'), v=d?d.value:''; ric.giorni=g; disegnaScheda(); const d2=document.getElementById('ric-detto'); if(d2)d2.value=v; }
-function ricScegli(k){ ric={az:k,int:null,giorni:1}; disegnaScheda(); document.getElementById('ric-detto')?.focus(); }
-function ricIntenzione(k){
-  const d=document.getElementById('ric-detto'), r=document.getElementById('ric-risp'), vd=d?d.value:'', vr=r?r.value:'';
-  ric.int=ric.int===k?null:k; disegnaScheda(); // ridisegno: i testi gia' scritti si rimettono
-  const d2=document.getElementById('ric-detto'), r2=document.getElementById('ric-risp'); if(d2)d2.value=vd; if(r2)r2.value=vr;
-}
+function ricGiorni(g){ ric.giorni=g; disegnaScheda(); }
+function ricScegli(k){ ric={...ric,az:k,int:null,giorni:1}; disegnaScheda(); document.getElementById('ric-detto')?.focus(); }
+function ricIntenzione(k){ ric.int=ric.int===k?null:k; disegnaScheda(); }
 async function ricSalva(btn){
   const L=schedaDati&&schedaDati.lead; if(!L||!ric.az)return;
   const a=ric.az, detto=(document.getElementById('ric-detto')?.value||'').trim(), risp=(document.getElementById('ric-risp')?.value||'').trim();
@@ -2230,7 +2244,7 @@ async function ricSalva(btn){
   const{error}=await sb.rpc('istruttore_azione_lead',{p_lead_id:L.id,p_azione:a,p_testo:testo,p_giorni:giorni,p_intenzione:intenzione});
   if(error){ btn.disabled=false; erroreChiaro('Non registrato',error); return; }
   toast({chiamata_ok:'Chiamata registrata.',non_risponde:'Non risponde: richiamo domani.',messaggio_inviato:'Messaggio registrato: richiamo fra 2 giorni.',
-    messaggio_risposto:'Risposta registrata.',richiama:giorni===1?'Richiamo domani.':`Richiamo fra ${giorni} giorni.`,nota:'Nota salvata.'}[a]);
+    messaggio_risposto:'Risposta registrata.',richiama:giorni===1?'Richiamo domani.':`Richiamo fra ${giorni} giorni.`,nota:'Nota salvata. La legge tutto lo staff.'}[a]);
   ric={az:null,int:null,giorni:1};
   await caricaScheda(); loadAllievi();
 }
@@ -2301,6 +2315,7 @@ function disegnaScheda(){
       :`<p class="sch-vuoto">${scrive?'Ancora nessuna osservazione: scrivi la prima dopo la lezione.':'Ancora nessuna osservazione degli istruttori.'}</p>`)
      +(scrive?`<div class="sch-btns"><button class="btn prim" onclick="ossAperta=true;ossSporca=false;disegnaScheda()">NUOVA OSSERVAZIONE</button></div>`:'');
   const corpo=document.getElementById('sch-corpo');
+  const af=document.activeElement, fid=['ric-detto','ric-risp'].includes(af?.id)?af.id:null, fpos=fid?af.selectionStart:0; // v2.44 si ridisegna anche mentre si scrive
   corpo.innerHTML=`
     ${htmlLegendaVis()}
     ${schedaBrief?`<section class="sch-sez br-in-scheda"><h3>In breve</h3>${htmlBrief(schedaBrief)}</section>`:''}
@@ -2313,11 +2328,13 @@ function disegnaScheda(){
       ${banner}
     </section>
     ${schedaSala?htmlSalaScheda(d):''}
+    ${htmlNote(d)}
     ${d.soloSala?'':`<section class="sch-sez"><h3>Percorso ${visPill('allievo')}</h3>${htmlPercorso(d)}</section>
     ${htmlQuadro(d)}
     <section class="sch-sez"><h3>Osservazioni ${visPill('staff')}</h3><p class="aiuto vis-nota">Scale e note interne le legge solo lo staff; quello che porta ${visPill('allievo')} lo legge anche l’allievo.</p>${ossHtml}</section>
     ${htmlCommerciale(d)}`}`;
   applicaFoto(corpo);
+  if(fid){ const el=document.getElementById(fid); if(el){ el.focus({preventScroll:true}); el.setSelectionRange(fpos,fpos); } }
 }
 
 /* ════════════════════════ v2.36 QUADRO DELL'ALLIEVO (consegna 31 ott 2026, decisioni di Marco) ════════════════════════
@@ -2704,6 +2721,7 @@ function renderMonitor(){
   const oggi=new Date();
   document.getElementById('console').innerHTML=`
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'MONITOR')}</b> · Sala con Monitor · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
+  ${htmlCercaPersona()}
   <div class="avviso-ar full" id="avv-turno" hidden></div>
 
   <div class="zona mono">Il turno</div>
@@ -2877,6 +2895,34 @@ function salaCerca(q){
   },300);
 }
 
+/* ── v2.44 CERCA UNA PERSONA: tutte le viste staff, stessa logica di salaCerca con id e gettone propri ── */
+let _cercaTimer=null, _cercaTok=0;
+function htmlCercaPersona(){
+  return `<div class="cerca-p"><div class="frm"><input id="cerca-q" type="search" autocomplete="off" placeholder="🔎 Cerca una persona" aria-label="Cerca una persona" oninput="cercaPersona(this.value)"></div><div id="cerca-ris"></div></div>`;
+}
+function cercaPersona(q){
+  clearTimeout(_cercaTimer);
+  const box=document.getElementById('cerca-ris'); if(!box)return;
+  q=(q||'').trim();
+  if(q.length<2){ _cercaTok++; box.innerHTML=''; return; }
+  _cercaTimer=setTimeout(async()=>{
+    const tok=++_cercaTok;
+    const{data,error}=await sb.rpc('cerca_persona_staff',{p_q:q});
+    if(tok!==_cercaTok)return;
+    if(error){ box.innerHTML=`<div class="vuota-all">Non riesco a cercare ora.</div>`; return; }
+    const L=data||[];
+    if(!L.length){ box.innerHTML=`<div class="vuota-all">Nessuno con questo nome.</div>`; return; }
+    box.innerHTML=L.map(x=>`<button class="all-riga" onclick="apriScheda('${esc(x.persona_id)}',false,'cerca')">
+      ${avatarHtml(x.nome,x.cognome,x.foto_path)}<span class="txt"><b>${esc((x.nome||'')+' '+(x.cognome||''))}</b></span></button>`).join('');
+    applicaFoto(box);
+  },300);
+}
+function cercaSvuota(){
+  clearTimeout(_cercaTimer); _cercaTok++;
+  const q=document.getElementById('cerca-q'), box=document.getElementById('cerca-ris');
+  if(q)q.value=''; if(box)box.innerHTML='';
+}
+
 /* ── v2.24 dialogo della pagina: testo + due bottoni grandi. Il primo e' sempre la strada giusta. ── */
 let _dlgFn=[null,null];
 function dialogo(testoHtml,primo,secondo){
@@ -3004,12 +3050,13 @@ async function caricaVeterano(pid){
   }catch(e){ console.warn('[veterano]',e?.message||e); }
 }
 
-/* Perche' uscire costa qualcosa, in ordine: guida iniziata · osservazione non salvata · cercato in turno e non segnato */
+/* Perche' uscire costa qualcosa, in ordine: guida iniziata · osservazione non salvata · nota non salvata · cercato in turno e non segnato */
 function motivoUscita(){
   if(document.getElementById('scheda').hidden || !schedaPid)return null;
   if(guidaIniziata())return 'guida';
   if(quadroAperto && (quadroFine || quadroSporco))return 'quadro'; // v2.36
   if(ossAperta && ossSporca)return 'oss';
+  if(ricSporco())return 'nota'; // v2.44
   if(schedaSala && schedaDaRicerca && turnoAperto() && !giaSegnato(schedaPid) && guida.passo!=='fatto')return 'ricerca';
   return null;
 }
@@ -3027,6 +3074,9 @@ function dialogoUscita(onEsci){
     dialogo(`<p>Non hai salvato l'osservazione su ${N}. Se esci si perde.</p>`,
       ['SALVA ADESSO',()=>{ const b=document.querySelector('#oss-form .btn.prim'); if(b){ b.scrollIntoView({behavior:'smooth',block:'center'}); salvaOss(b); } }],
       ['Esci senza salvare',esci]);
+  else if(m==='nota')
+    dialogo('<p>Sei sicuro? La nota non è salvata.</p>',
+      ['SALVA ADESSO',()=>{ const b=document.getElementById('ric-ok'); if(b)ricSalva(b); }],['Esci senza salvare',esci]);
   else
     dialogo(`<p>Hai seguito ${N} oggi? Se sì, rispondi alle due domande e premi SEGNA. Se non segni, non risulta.</p>`,
       ['SEGNA ADESSO',()=>disegnaGuida(true)],["L'ho solo cercato/a, esci",esci]);
