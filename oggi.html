@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.49 · 2026-11-06 · PACCHETTO INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): nel turno, accanto a chi ha un pacchetto valido oggi, ✓ Ingresso (segna_ingresso_pacchetto) in griglia e nella ricerca di sala, perche' i veterani in griglia non ci sono; "✓ segnato" se oggi c'e' gia'. Vista allievo: card Il tuo pacchetto ingressi. get_ingressi_persona solo per le persone in lista, con cache. CUMULA v2.48. -->
 <!-- KC-BUILD: oggi v2.48 · 2026-11-06 · MONITOR 5 € ANCHE EXPERT E SALA VETERANI (decisione Marco 6 nov): caricaVeterano non decide piu' da sola, chiede al DB monitor_seguito_a_5(persona, oggi), la stessa regola del conto.
      Il riepilogo prima di SEGNA dice "l'ora resta a 5 € (veterano, Expert o Sala Veterani)"; RIGA_COMPENSO e la regola nei turni lo dicono anche loro. Nessun SQL qui: il DB e' gia' aggiornato. CUMULA v2.47. -->
 <!-- KC-BUILD: oggi v2.47 · 2026-11-06 · CARICA I KATA (Marco 6 nov): in testa a "I suoi Kata" il bottone CARICA UN KATA verso monitor.html?u=&da=oggi&pid= (solo con account nel portale, un solo codice di caricamento); tessera Carica i Kata al posto di Monitor nella console istruttore e nuova nella console monitor, mai in segreteria/creator. Tornando da monitor.html ?scheda= si toglie dall'URL con replaceState; con torna= resta, serve al ricaricamento. La scheda resta su origine 'cerca': con 'kata' un monitor rientrerebbe nella logica del turno. Nessun SQL. CUMULA v2.46. -->
@@ -609,6 +610,11 @@ body{font-size:17px}
 .sg-griglia{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
 .sg-t{position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 6px 12px; background:#141414; border:1px solid #3A3A40; border-radius:14px;
   color:var(--bianco); font:inherit; text-align:center; cursor:pointer; min-width:0}
+.sg-w{display:flex; flex-direction:column; gap:6px; min-width:0} .sg-w .sg-t{flex:1} /* v2.49 */
+.sg-ing:empty{display:none}
+.sg-ing .btn{width:100%; font-size:13px; padding:8px 6px}
+.sg-ing-ok{display:block; text-align:center; font-size:13px; font-weight:700; color:var(--cordata)}
+#sala-ris .sg-ing{margin:2px 0 8px}
 .sg-t .av{width:64px; height:64px; font-size:20px}
 .sg-t .sg-nofoto{width:64px; height:64px; border-radius:50%; border:2px dashed #6A6A72; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; line-height:1}
 .sg-t .sg-nofoto small{font-size:13px; color:#C9C9CE; margin-top:2px; line-height:1.1}
@@ -809,7 +815,7 @@ async function init(){
   if(vista==='segreteria'){ renderSegreteria(); loadSegAdesso(); loadSegSala(); loadSegCode(); if(segPuoConti()){ loadSegPaga(); loadSegSistema(); } loadIstrValida(); loadRendiconto(); loadDiario(); loadAllievi(); if(['creator','admin'].includes(profilo.role))loadCompensi(); loadEventi(); loadTurniTutti(); loadFineCorso(); }
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); loadFineCorso(); }
   else if(vista==='monitor'){ renderMonitor(); loadMonitor(); loadEventi(); }
-  else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); loadDaSaldare(); }
+  else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); loadDaSaldare(); loadPacchetti(); }
 
   /* v2.45 apertura diretta della scheda: solo staff, altrimenti il parametro si ignora */
   const qs=new URLSearchParams(window.location.search), sPid=qs.get('scheda')||'';
@@ -832,6 +838,7 @@ function renderAllievo(){
   <p class="saluto">CIAO <b>${esc((profilo.nome||'').toUpperCase()||'KATACLIMBER')}</b> · <span>${GIORNI_FULL[oggi.getDay()]} ${oggi.getDate()} ${MESI[oggi.getMonth()]}</span></p>
 
   <div class="full" id="t-saldare" hidden></div>
+  <div class="full" id="t-pacchetti" hidden></div>
 
   <div class="zona mono">Il tempo</div>
 
@@ -942,7 +949,34 @@ async function loadDaSaldare(){
     <a class="saldare-b" href="${SALDARE_WA}" target="_blank" rel="noopener">Scrivi alla segreteria</a>
   </div>`).join('');
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sb&&uid&&vista==='allievo')loadDaSaldare();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sb&&uid&&vista==='allievo'){loadDaSaldare();loadPacchetti();}});
+
+/* v2.49 "Il tuo pacchetto ingressi": niente card se non ce ne sono o sono scaduti. Si passa il tipo del pacchetto
+   toccato: senza, con due pacchetti la RPC scalerebbe quello che scade prima. */
+async function loadPacchetti(){
+  const el=document.getElementById('t-pacchetti');
+  if(!el||vista!=='allievo')return;
+  let L=[];
+  try{const{data,error}=await sb.rpc('get_ingressi_persona');if(error)throw error;L=(data&&data.pacchetti)||[];}
+  catch(e){console.warn('[pacchetti]',e.message||e);el.hidden=true;return;}
+  const oggi=isoLocal(new Date());
+  L=L.filter(p=>!p.scadenza||String(p.scadenza)>=oggi);
+  el.hidden=!L.length;
+  el.innerHTML=L.map(p=>`<div class="saldare">
+    <div class="saldare-p">Il tuo pacchetto ingressi</div>
+    <div class="saldare-t">${esc(p.label||'')}</div>
+    <div class="saldare-c">restano ${p.restano} su ${p.inclusi}${p.scadenza?' · valido fino al '+String(p.scadenza).slice(0,10).split('-').reverse().join('/'):''}</div>
+    ${p.valido_oggi?`<button class="saldare-b" style="border:0;cursor:pointer" onclick="segnaMioIngresso('${esc(String(p.tipo).replace('pacchetto_ingressi_',''))}',${Number(p.restano)})">Segna il mio ingresso di oggi</button>`:''}
+  </div>`).join('');
+}
+function segnaMioIngresso(tipo,restano){
+  dialogo(`<p>Sei sicuro? Segni l'ingresso di oggi, il pacchetto scende a ${restano-1}</p>`,['SEGNA',async()=>{
+    const{data,error}=await sb.rpc('segna_ingresso_pacchetto',{p_tipo:tipo});
+    if(error){ erroreChiaro('Ingresso non segnato',error); return; }
+    toast('Ingresso segnato: restano '+(data||{}).restano);
+    loadPacchetti();
+  }],['Annulla',null]);
+}
 
 /* ── ADESSO allievo: motore compiti v1 — 4 stati ── */
 async function loadAdesso(){
@@ -2926,8 +2960,9 @@ function salaCerca(q){
     if(!L.length){ box.innerHTML=`<div class="vuota-all">Nessuno con questo nome.</div>`; return; }
     L.forEach(x=>{_salaPersone[x.persona_id]={nome:x.nome,cognome:x.cognome,foto_path:x.foto_path};});
     box.innerHTML=L.map(x=>`<button class="all-riga" onclick="apriScheda('${esc(x.persona_id)}',true,'ricerca')">
-      ${avatarHtml(x.nome,x.cognome,x.foto_path)}<span class="txt"><b>${esc((x.nome||'')+' '+(x.cognome||''))}</b></span></button>`).join('');
+      ${avatarHtml(x.nome,x.cognome,x.foto_path)}<span class="txt"><b>${esc((x.nome||'')+' '+(x.cognome||''))}</b></span></button><div class="sg-ing" data-ing="${esc(x.persona_id)}"></div>`).join('');
     applicaFoto(box);
+    ingressiCarica(L.map(x=>x.persona_id)); // v2.49
   },300);
 }
 
@@ -3049,15 +3084,45 @@ function disegnaGriglia(){
       const nome=esc(((x.nome||'')+' '+(x.cognome||'')).trim()||'—');
       const viso=x.foto_path?avatarHtml(x.nome,x.cognome,x.foto_path)
         :`<span class="sg-nofoto" aria-hidden="true">📷<small>manca la foto</small></span>`;
-      return `<button class="sg-t${x.segnato_oggi?' on':''}" onclick="apriScheda('${esc(x.persona_id)}',true,'ricerca')"
+      return `<div class="sg-w"><button class="sg-t${x.segnato_oggi?' on':''}" onclick="apriScheda('${esc(x.persona_id)}',true,'ricerca')"
           aria-label="${nome}${x.segnato_oggi?', segnato alle '+hhmm(x.segnato_alle):''}${x.foto_path?'':', manca la foto'}">
         ${x.segnato_oggi?'<span class="sg-ok" aria-hidden="true">✓</span>':''}${viso}
         <span class="sg-nome">${nome}</span>
         ${m==='prenotato'&&x.ora?`<span class="sg-ora">alle ${esc(oraBreve(x.ora))}</span>`:''}
         ${x.segnato_oggi?`<span class="sg-alle">segnato alle ${hhmm(x.segnato_alle)}</span>`:''}
-      </button>`;}).join('')}</div>`;
+      </button><div class="sg-ing" data-ing="${esc(x.persona_id)}"></div></div>`;}).join('')}</div>`;
   }).join('');
   applicaFoto(el);
+  ingressiCarica(papabili.map(x=>x.persona_id)); // v2.49
+}
+
+/* ── v2.49 INGRESSO DA PACCHETTO NEL TURNO: get_ingressi_persona solo per chi e' in lista, una volta per persona ── */
+const _ingPersone={}; // persona_id -> {pacchetti,ingressi}; null = lettura non riuscita
+async function ingressiCarica(ids){
+  const nuovi=[...new Set(ids)].filter(id=>!(id in _ingPersone));
+  await Promise.all(nuovi.map(async id=>{
+    _ingPersone[id]=null;
+    const{data,error}=await sb.rpc('get_ingressi_persona',{p_persona_id:id});
+    if(error)console.warn('[ingressi]',error.message); else _ingPersone[id]=data;
+  }));
+  document.querySelectorAll('[data-ing]').forEach(el=>{ el.innerHTML=htmlIngresso(el.dataset.ing); }); // la griglia puo' essere stata ridisegnata
+}
+function htmlIngresso(pid){
+  const d=_ingPersone[pid]; if(!d)return '';
+  const oggi=isoLocal(new Date()), pk=d.pacchetti||[];
+  const qui=(d.ingressi||[]).filter(i=>!i.annullato&&i.data===oggi), mio=qui.find(i=>i.pacchetto_id);
+  if(!mio && !pk.some(p=>p.valido_oggi))return '';
+  if(qui.length){ const p=mio&&pk.find(x=>x.pacchetto_id===mio.pacchetto_id);
+    return `<span class="sg-ing-ok">✓ segnato${p?' · restano '+p.restano:''}</span>`; }
+  return `<button class="btn prim" onclick="segnaIngressoSala('${esc(pid)}',this)">✓ Ingresso</button>`;
+}
+async function segnaIngressoSala(pid,btn){
+  btn.disabled=true;
+  const{data,error}=await sb.rpc('segna_ingresso_pacchetto',{p_persona_id:pid});
+  if(error){ btn.disabled=false; erroreChiaro('Ingresso non segnato',error); return; }
+  toast('Ingresso segnato: restano '+(data||{}).restano);
+  delete _ingPersone[pid];
+  ingressiCarica([pid]);
 }
 
 /* ── v2.24 la guida a passi nella scheda in sala ── */
