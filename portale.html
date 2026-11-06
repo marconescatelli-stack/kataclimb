@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.155 · 2026-11-06 · INGRESSI E PACCHETTI 10 INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): modale con terza scheda Ingresso singolo (registra_ingresso_singolo); pacchetto = "10 ingressi · validita' 3 mesi" e mai rinnovo (abbEsistente); blocco 🎫 con usati/restano, ✓ Ingresso di oggi (segna_ingresso_pacchetto) e tendina Ingressi (get_ingressi_persona, annulla_ingresso), anche per chi ha solo ingressi; area personale: card Il tuo pacchetto ingressi. Solo RPC. CUMULA v3.154. -->
 <!-- KC-BUILD: portale v3.154 · 2026-11-02 · VIDEO KATA: MEMORIA 20 s, VALIDAZIONE 15 s (decisione Marco 2 nov: chi impara deve poter caricare, chi certifica deve essere immediato). KATA_MAX_DURATION unica → KATA_MAX_DURATION_MEMORIA 20 / KATA_MAX_DURATION_VALIDAZIONE 15 + kataMaxDur(slot). Nient'altro. CUMULA v3.153 (sotto). -->
 <!-- KC-BUILD: portale v3.153 · 2026-11-02 · LEZIONE NON SVOLTA OVUNQUE (consegna 2 nov, punto 3): Turni -> voce della lezione: "lezione non svolta" in grigio e solo "Riporta a previsto" (niente Segna assente/presente/Sostituisci); Compensi lezioni dei corsi: sotto le lezioni pagate "N lezioni non svolte (0 €, non sono assenze)" in grigio; Il mio mese: "N lezioni non svolte: la lezione non c'era, non conta come assenza." in grigio (conteggio da impegni_staff del mese). Mai come assenza ne' in arancio. Nessuna modifica a DB. CUMULA v3.152 (sotto). -->
 <!-- KC-BUILD: portale v3.152 · 2026-11-02 · NON C'ERA LEZIONE (richiesta della segreteria 2 nov, approvata da Marco; DB impegni_lezione_non_svolta gia' live). Segreteria -> ⚠ Da sistemare -> Presenze da confermare: quarto bottone NON C'ERA LEZIONE con sotto "Nessun allievo o corso non attivo: non è un'assenza, non si paga e non cerca il sostituto"; kcGuida "Sei sicuro? Non c'era lezione" -> impegno_presenza(id,'non_svolta') su tutta la lezione -> "Fatto: lezione segnata come non svolta (N istruttori)"; l'errore "c'è già qualcuno segnato presente" resta nella finestra. Suggerito (etichetta "suggerito"): NON C'ERA LEZIONE se Prima Lezione o corso a lezioni (Open, Advance, Intro Corda, Evo Corda) senza prenotazioni non cancellate per quello slot e quella data; altrimenti PRESENTE. Riga di aiuto del riquadro: Prima Lezione con l'istruttore presente e nessun allievo = PRESENTE (vuota, 5 €/h). Turni: lo stato si legge "lezione non svolta" in grigio (nella voce e nei nomi), la lezione con tutti gli impegni non svolti e' grigia "lezione non svolta", non rossa scoperta. Nessuna modifica a DB. CUMULA v3.151 (sotto). -->
@@ -280,7 +281,7 @@ textarea.input{min-height:60px;resize:vertical}
 .abb-giorno{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer}
 .abb-err{color:#B91C1C;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;margin-top:10px}
 .abb-stato{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;color:#fff}
-.abb-stato.scaduto{background:#B91C1C}.abb-stato.in_scadenza{background:#CA8A04}.abb-stato.in_pausa{background:#0284C7}.abb-stato.attivo{background:#15803D}.abb-stato.senza_scadenza{background:#57534E}
+.abb-stato.scaduto,.abb-stato.esaurito{background:#B91C1C}.abb-stato.in_scadenza{background:#CA8A04}.abb-stato.in_pausa{background:#0284C7}.abb-stato.attivo{background:#15803D}.abb-stato.senza_scadenza{background:#57534E}
 
 /* ═══ Rank badge (gemma KataClimb) — v3.27 ═══ */
 .rank-badge{width:44px;height:44px;flex-shrink:0;display:block;user-select:none;-webkit-user-drag:none}
@@ -1530,6 +1531,8 @@ fill="#1d4ed8" stroke="none">
     <div id="nav-profilo-view" class="screen active">
       <!-- v3.149 — Da saldare: crediti aperti dell'allievo e dei figli (renderMieiCrediti, get_miei_crediti) -->
       <div id="my-da-saldare"></div>
+      <!-- v3.155 — pacchetto ingressi dell'allievo (renderMieiPacchetti, get_ingressi_persona) -->
+      <div id="my-pacchetti"></div>
       <!-- Profile + Progression -->
       <div class="card fu" style="margin-bottom:22px;padding-bottom:14px" id="my-profile-prog">
         <!-- v3.56 Home Duolingo: streak row -->
@@ -2324,12 +2327,46 @@ fill="#1d4ed8" stroke="none">
 <!-- Modal Registra pagamento manuale (segreteria) · v3.127 — due schede: Abbonamento | Corso -->
 <div id="mo-pagamento-manuale" class="mo hidden">
   <div class="mo-box" style="max-width:480px">
-    <h3>Abbonamento o corso</h3>
+    <h3>Abbonamento, corso o ingresso</h3>
     <p id="pagamento-info" style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600"></p>
 
     <div class="abb-tabs" role="tablist">
       <button type="button" id="pm-tab-abb" role="tab" onclick="pmScheda('abb')">Abbonamento</button>
       <button type="button" id="pm-tab-corso" role="tab" onclick="pmScheda('corso')">Corso</button>
+      <button type="button" id="pm-tab-ing" role="tab" onclick="pmScheda('ing')">Ingresso singolo</button>
+    </div>
+
+    <!-- ═══ Scheda INGRESSO SINGOLO (v3.155, RPC registra_ingresso_singolo) ═══ -->
+    <div id="pm-pane-ing" class="hidden">
+      <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px">Ingresso</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;font-size:14px;flex-wrap:wrap">
+        <label style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:10px;border:1.5px solid var(--border);border-radius:8px"><input type="radio" name="ing-tipo" value="veterani" onchange="ingTipoCambiato()"> Sala Veterani</label>
+        <label style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:10px;border:1.5px solid var(--border);border-radius:8px"><input type="radio" name="ing-tipo" value="corda" onchange="ingTipoCambiato()"> Corda</label>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Data</div>
+          <input type="date" id="ing-data" class="input" style="font-size:14px;padding:9px 12px">
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Importo (€)</div>
+          <input type="number" id="ing-importo" class="input" min="0" step="1" inputmode="decimal" style="font-size:16px;padding:9px 12px">
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px">Come ha pagato</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;font-size:14px;flex-wrap:wrap">
+        <label style="flex:1;min-width:88px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:10px;border:1.5px solid var(--border);border-radius:8px"><input type="radio" name="ing-metodo" value="contanti"> 💵 Contanti</label>
+        <label style="flex:1;min-width:88px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:10px;border:1.5px solid var(--border);border-radius:8px"><input type="radio" name="ing-metodo" value="pos"> 💳 POS</label>
+        <label style="flex:1;min-width:88px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:10px;border:1.5px solid var(--border);border-radius:8px"><input type="radio" name="ing-metodo" value="bonifico"> 🏦 Bonifico</label>
+        <label style="flex:1;min-width:88px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:10px;border:1.5px solid var(--border);border-radius:8px"><input type="radio" name="ing-metodo" value=""> Da pagare</label>
+      </div>
+      <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px">Nota (opzionale)</div>
+      <textarea id="ing-nota" class="input" maxlength="300" style="font-size:14px"></textarea>
+      <div id="ing-msg"></div>
+      <div style="display:flex;gap:7px;margin-top:14px">
+        <button class="btn btn-dark" id="ing-conferma" style="flex:1" onclick="confermaIngressoSingolo()">Conferma</button>
+        <button class="btn btn-g" style="flex:1" onclick="closeModal('mo-pagamento-manuale')">Annulla</button>
+      </div>
     </div>
 
     <!-- ═══ Scheda ABBONAMENTO (v3.127, RPC proponi_abbonamento / registra_abbonamento) ═══ -->
@@ -6723,6 +6760,7 @@ function openPagamentoManualeModal(){
   // v3.127 — scheda Abbonamento: di default per i lead bambino/ragazzo, altrimenti Corso
   pmScheda((l.fascia==='bambino'||l.fascia==='ragazzo')?'abb':'corso');
   abbApriScheda(l);
+  ingApriScheda(); // v3.155
   openModal('mo-pagamento-manuale');
 }
 
@@ -6816,7 +6854,7 @@ let currentLeadAbb=null;     // {personaId, righe (get_scadenzario_abbonamenti),
 let abbStoricoAperto=false;
 const ABB_GIORNI=['','lun','mar','mer','gio','ven','sab','dom'];
 const ABB_METODO_LBL={contanti:'contanti',bonifico:'bonifico',pos:'POS',stripe:'Stripe'};
-const ABB_STATO_LBL={scaduto:'scaduto',in_scadenza:'in scadenza',in_pausa:'in pausa',attivo:'attivo',senza_scadenza:'senza scadenza'};
+const ABB_STATO_LBL={scaduto:'scaduto',esaurito:'esaurito',in_scadenza:'in scadenza',in_pausa:'in pausa',attivo:'attivo',senza_scadenza:'senza scadenza'};
 
 function abbIso(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
 function abbIsoOggi(){return abbIso(new Date())}
@@ -6852,6 +6890,7 @@ function abbSlotTesto(s){return ABB_GIORNI[s.giorno_settimana]+' '+String(s.ora_
 // Abbonamento attivo dello stesso tipo (come registra_abbonamento: status 'attiva', scadenza piu' lontana)
 function abbEsistente(tipo){
   if(!currentLeadAbb||currentLeadAbb.personaId!==abbPersonaId)return null;
+  if((abbTipo(tipo)||{}).periodicita==='pacchetto')return null; // v3.155 ogni pacchetto e' una riga nuova, mai un rinnovo
   const r=currentLeadAbb.righe.filter(x=>x.tipo_abbonamento===tipo);
   if(!r.length)return null;
   return r.sort((a,b)=>(b.data_fine||'9999').localeCompare(a.data_fine||'9999'))[0];
@@ -6868,10 +6907,13 @@ function abbDalEffettivo(es){
 function pmScheda(k){
   document.getElementById('pm-pane-abb').classList.toggle('hidden',k!=='abb');
   document.getElementById('pm-pane-corso').classList.toggle('hidden',k!=='corso');
+  document.getElementById('pm-pane-ing').classList.toggle('hidden',k!=='ing');
   document.getElementById('pm-tab-abb').classList.toggle('on',k==='abb');
   document.getElementById('pm-tab-corso').classList.toggle('on',k==='corso');
+  document.getElementById('pm-tab-ing').classList.toggle('on',k==='ing');
   document.getElementById('pm-tab-abb').setAttribute('aria-selected',k==='abb');
   document.getElementById('pm-tab-corso').setAttribute('aria-selected',k==='corso');
+  document.getElementById('pm-tab-ing').setAttribute('aria-selected',k==='ing');
 }
 
 async function abbApriScheda(lead){
@@ -6952,6 +6994,7 @@ function abbTipoCambiato(){
 function abbGiorniScelti(){return Array.from(document.querySelectorAll('#abb-giorni input[type=checkbox]:checked')).map(x=>x.value)}
 
 function abbSpiegazione(d){
+  if(d.periodicita==='pacchetto')return(d.ingressi_inclusi||10)+' ingressi · validità 3 mesi'; // v3.155
   const mesi=Number(d.mesi)||0;
   let t=mesi+' '+(mesi===1?'mese':'mesi')+' × '+abbEuro(d.quota_mese)+' €';
   if(d.mezzo_primo_mese)t+=' · primo mese a metà (dal 15)';
@@ -7034,6 +7077,94 @@ async function confermaAbbonamento(){
   }finally{btn.disabled=false}
 }
 
+/* ── v3.155 INGRESSI: singolo dalla modale, pacchetto dal blocco 🎫. Solo RPC, errori cosi' come arrivano dal DB ── */
+const ING_PREZZO={veterani:15,corda:20};
+const ING_TIPO_LBL={veterani:'Sala Veterani',corda:'corda'};
+const ING_RUOLO={staff_segreteria:'segreteria',staff_monitor:'monitor',staff_creator:'creator',staff_assistente:'assistente',staff_istruttore_tutor:'istruttore',staff_istruttore_sr:'istruttore',staff_istruttore_jr:'istruttore',allievo:'allievo',staff:'staff'};
+let ingImportoManuale=false, abbIngressiAperto=false;
+function ingApriScheda(){
+  ingImportoManuale=false;
+  document.querySelectorAll('input[name="ing-tipo"],input[name="ing-metodo"]').forEach(x=>{x.checked=false});
+  document.getElementById('ing-data').value=abbIsoOggi();
+  document.getElementById('ing-importo').value='';
+  document.getElementById('ing-importo').oninput=()=>{ingImportoManuale=true};
+  document.getElementById('ing-nota').value='';
+  document.getElementById('ing-conferma').disabled=false;
+  abbMsg('ing-msg','');
+}
+function ingTipoCambiato(){
+  const t=document.querySelector('input[name="ing-tipo"]:checked');
+  if(t&&!ingImportoManuale)document.getElementById('ing-importo').value=ING_PREZZO[t.value];
+}
+async function confermaIngressoSingolo(){
+  if(!currentLeadDetail)return;
+  const l=currentLeadDetail;
+  abbMsg('ing-msg','');
+  if(!abbPersonaId)return abbMsg('ing-msg','Persona non trovata per questo contatto.');
+  const tEl=document.querySelector('input[name="ing-tipo"]:checked');
+  if(!tEl)return abbMsg('ing-msg','Scegli Sala Veterani o corda');
+  const raw=String(document.getElementById('ing-importo').value||'').trim().replace(',','.');
+  if(raw==='')return abbMsg('ing-msg','Scrivi l\'importo (0 se gratuito)');
+  const importo=Number(raw);
+  if(!isFinite(importo)||importo<0)return abbMsg('ing-msg','Importo non valido');
+  const mEl=document.querySelector('input[name="ing-metodo"]:checked');
+  if(!mEl)return abbMsg('ing-msg','Scegli come ha pagato (o «Da pagare»)');
+  const data=document.getElementById('ing-data').value||abbIsoOggi();
+  const btn=document.getElementById('ing-conferma');
+  btn.disabled=true;
+  try{
+    const{data:r,error}=await sb.rpc('registra_ingresso_singolo',{p_persona_id:abbPersonaId,p_tipo:tEl.value,p_importo:importo,
+      p_metodo:mEl.value||null,p_data:data,p_note:document.getElementById('ing-nota').value.trim()||null});
+    if(error)throw error;
+    closeModal('mo-pagamento-manuale');
+    toast('Ingresso singolo '+ING_TIPO_LBL[tEl.value]+' del '+abbGMA(data)+' · '+abbEuro(importo)+' € '+((r||{}).pagato?abbMetodo(mEl.value):'da pagare'));
+    currentLeadAbb=null;
+    if(currentLeadDetail&&currentLeadDetail.id===l.id)showLeadDetail(l.id);
+  }catch(e){
+    abbMsg('ing-msg',e.message||String(e));
+    console.error('[registra_ingresso_singolo]',e);
+  }finally{btn.disabled=false}
+}
+async function segnaIngressoFascicolo(tipo){
+  if(!currentLeadDetail||!currentLeadAbb)return;
+  const lead=currentLeadDetail,pid=currentLeadAbb.personaId;
+  try{
+    const{data,error}=await sb.rpc('segna_ingresso_pacchetto',{p_persona_id:pid,p_tipo:tipo});
+    if(error)throw error;
+    toast('Ingresso segnato · restano '+(data||{}).restano);
+    await loadLeadAbbonamenti(lead,pid);
+  }catch(e){
+    toast(e.message||String(e));
+    console.error('[segna_ingresso_pacchetto]',e);
+  }
+}
+async function annullaIngressoFascicolo(id){
+  if(!questIdOk(id)||!currentLeadDetail||!currentLeadAbb)return;
+  const motivo=prompt('Sei sicuro? L\'ingresso resta a registro come annullato. Scrivi il motivo:');
+  if(motivo===null)return;
+  const lead=currentLeadDetail,pid=currentLeadAbb.personaId;
+  try{
+    const{error}=await sb.rpc('annulla_ingresso',{p_ingresso_id:id,p_motivo:motivo.trim()||null});
+    if(error)throw error;
+    toast('Ingresso annullato.');
+    await loadLeadAbbonamenti(lead,pid);
+  }catch(e){
+    toast(e.message||String(e));
+    console.error('[annulla_ingresso]',e);
+  }
+}
+function htmlIngressiTendina(a){
+  const L=a.ingressi||[];
+  if(!L.length)return'';
+  return`<details style="margin-top:10px" ${abbIngressiAperto?'open':''} ontoggle="abbIngressiAperto=this.open">
+    <summary style="cursor:pointer;font-size:14px;font-weight:700;color:var(--text)">Ingressi (${L.length})</summary>
+    ${L.map(i=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--text);padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="${i.annullato?'text-decoration:line-through':''}"><strong>${abbGMA(i.data)}</strong> · ${escHtml(ING_TIPO_LBL[i.tipo]||i.tipo)} · ${i.pacchetto_id?'da pacchetto':(i.importo!=null?abbEuro(i.importo)+' € ':'')+abbMetodo(i.metodo)} · ${escHtml(ING_RUOLO[i.segnato_ruolo]||i.segnato_ruolo||'')}</span>
+      ${i.annullato?`<span style="color:var(--text2)">annullato${i.annullato_motivo?': '+escHtml(i.annullato_motivo):''}</span>`:(isStaff()&&questIdOk(i.ingresso_id)?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="annullaIngressoFascicolo('${i.ingresso_id}')">Annulla</button>`:'')}
+    </div>`).join('')}
+  </details>`;
+}
+
 /* ── Fascicolo: blocco 🎫 Abbonamenti (solo lettura) ── */
 async function loadLeadAbbonamenti(lead,personaId){
   try{
@@ -7042,26 +7173,28 @@ async function loadLeadAbbonamenti(lead,personaId){
     const righe=(sc.data||[]).filter(r=>r.persona_id===personaId);
     const ids=righe.map(r=>r.iscrizione_id);
     const vuoto=Promise.resolve({data:[]});
-    const[sl,pz,pg]=await Promise.all([
+    const[sl,pz,pg,gi]=await Promise.all([
       ids.length?sb.from('iscrizioni_minori_slot').select('iscrizione_id,slot_id').in('iscrizione_id',ids):vuoto,
       ids.length?sb.from('abbonamenti_pause').select('id,iscrizione_id,dal,al,giorni,motivo,attiva').in('iscrizione_id',ids).eq('attiva',true).order('dal'):vuoto,
-      sb.from('abbonamenti_pagamenti').select('id,iscrizione_id,tipo_abbonamento,dal,al,importo_eur,metodo,note,registrato_il').eq('persona_id',personaId).order('registrato_il',{ascending:false})
+      sb.from('abbonamenti_pagamenti').select('id,iscrizione_id,tipo_abbonamento,dal,al,importo_eur,metodo,note,registrato_il').eq('persona_id',personaId).order('registrato_il',{ascending:false}),
+      sb.rpc('get_ingressi_persona',{p_persona_id:personaId}) // v3.155
     ]);
     if(sl.error)console.warn('[loadLeadAbbonamenti] slot:',sl.error.message);
     if(pz.error)console.warn('[loadLeadAbbonamenti] pause:',pz.error.message);
     if(pg.error)console.warn('[loadLeadAbbonamenti] pagamenti:',pg.error.message);
+    if(gi.error)console.warn('[loadLeadAbbonamenti] ingressi:',gi.error.message);
     try{await abbCaricaCataloghi()}catch(_){}
     if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
     const slotByIscr={};
     (sl.data||[]).forEach(x=>{(slotByIscr[x.iscrizione_id]=slotByIscr[x.iscrizione_id]||[]).push(x.slot_id)});
-    currentLeadAbb={personaId,righe,slotByIscr,pause:pz.data||[],pagamenti:pg.data||[]};
+    currentLeadAbb={personaId,righe,slotByIscr,pause:pz.data||[],pagamenti:pg.data||[],ingressi:(gi.data||{}).ingressi||[]};
     renderLeadDetail();
   }catch(e){console.warn('[loadLeadAbbonamenti]',e.message||e)}
 }
 
 function renderAbbonamentiBlock(){
   const a=currentLeadAbb;
-  if(!a||(!a.righe.length&&!a.pagamenti.length))return'';
+  if(!a||(!a.righe.length&&!a.pagamenti.length&&!a.ingressi.length))return''; // v3.155 anche chi ha solo ingressi singoli
   const labelDi=tipo=>(abbTipo(tipo)||{}).label||(a.righe.find(r=>r.tipo_abbonamento===tipo)||{}).label||tipo;
   const righe=[...a.righe].sort((x,y)=>(x.data_fine||'9999').localeCompare(y.data_fine||'9999'));
   const rows=righe.map(r=>{
@@ -7071,13 +7204,14 @@ function renderAbbonamentiBlock(){
     return`<div class="ld-prenot-row" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
       <div style="min-width:0;flex:1">
         <div style="font-weight:700;font-size:15px">${escHtml(r.label)}</div>
-        <div style="font-size:13px;color:var(--text)">${[r.giorni?escHtml(r.giorni):'',r.data_fine?'fino al '+abbGMA(r.data_fine):'senza scadenza',r.in_pausa_fino?'in pausa fino al '+abbGMA(r.in_pausa_fino):''].filter(Boolean).join(' · ')}</div>
+        <div style="font-size:13px;color:var(--text)">${r.ingressi_inclusi!=null?`usati ${r.ingressi_usati??0} su ${r.ingressi_inclusi} · restano ${r.ingressi_inclusi-(r.ingressi_usati??0)} · fino al ${abbGMA(r.data_fine)}`:[r.giorni?escHtml(r.giorni):'',r.data_fine?'fino al '+abbGMA(r.data_fine):'senza scadenza',r.in_pausa_fino?'in pausa fino al '+abbGMA(r.in_pausa_fino):''].filter(Boolean).join(' · ')}</div>
         <div style="font-size:13px;color:var(--text2)">${escHtml(ult)}</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span class="abb-stato ${escHtml(r.stato)}">${ABB_STATO_LBL[r.stato]||escHtml(r.stato)}</span>
         <span style="font-size:13px;font-weight:700;color:${r.pagato?'#15803D':'#B91C1C'}">${r.pagato?'pagato':'da pagare'}</span>
         ${isSegreteriaPiena()&&abbTipoConGiorni(r.tipo_abbonamento)&&r.stato!=='scaduto'&&questIdOk(r.iscrizione_id)?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="openCambiaGiorniModal('${r.iscrizione_id}')">📅 Cambia giorni</button>`:''}
+        ${isStaff()&&r.ingressi_inclusi!=null&&r.stato!=='scaduto'&&r.stato!=='esaurito'?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="segnaIngressoFascicolo('${escHtml(String(r.tipo_abbonamento).replace('pacchetto_ingressi_',''))}')">✓ Ingresso di oggi</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -7107,6 +7241,7 @@ function renderAbbonamentiBlock(){
     ${rows||'<div style="font-size:14px;color:var(--text)">Nessun abbonamento attivo.</div>'}
     ${pausaHtml}
     ${storico}
+    ${htmlIngressiTendina(a)}
   </div>`;
 }
 
@@ -8749,6 +8884,7 @@ function renderApp(){
   renderMioDiarioDidattico(); // v3.137
   renderMioMeseStaff(); // v3.141
   renderMieiCrediti(); // v3.149
+  renderMieiPacchetti(); // v3.155
   // v3.56 Home Duolingo: streak + hero (async, non blocca render)
   refreshHomeDuolingo();
   // Avatar — v3.126: foto pubblica (foto_url), altrimenti foto di riconoscimento privata, altrimenti iniziali
@@ -12998,7 +13134,32 @@ async function renderMieiCrediti(){
     </div>`;
   }).join('');
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&typeof profile!=='undefined'&&profile)renderMieiCrediti();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&typeof profile!=='undefined'&&profile){renderMieiCrediti();renderMieiPacchetti();}});
+
+/* ── v3.155 Area personale: "Il tuo pacchetto ingressi". Niente card se non ce ne sono o sono scaduti.
+   Si passa il tipo del pacchetto toccato: senza, con due pacchetti la RPC scalerebbe quello che scade prima. ── */
+async function renderMieiPacchetti(){
+  const el=document.getElementById('my-pacchetti');if(!el||!sb||!user)return;
+  let L=[];
+  try{const{data,error}=await sb.rpc('get_ingressi_persona');if(error)throw error;L=(data&&data.pacchetti)||[];}
+  catch(e){console.warn('[pacchetti]',e.message||e);el.innerHTML='';return;}
+  const oggi=abbIsoOggi();
+  el.innerHTML=L.filter(p=>!p.scadenza||String(p.scadenza)>=oggi).map(p=>`<div class="card fu" style="margin-bottom:16px;padding:16px;border:2px solid var(--accent);background:#fff;color:#111">
+    <div style="font-size:14px;font-weight:700;color:#111">Il tuo pacchetto ingressi</div>
+    <div style="font-size:18px;font-weight:800;margin-top:2px;color:#111">${escHtml(p.label||'')}</div>
+    <div style="font-size:15px;margin-top:4px;color:#111">restano ${p.restano} su ${p.inclusi}${p.scadenza?' · valido fino al '+abbGMA(p.scadenza):''}</div>
+    ${p.valido_oggi?`<button style="margin-top:12px;font-size:14px;font-weight:700;color:#fff;padding:10px 18px;background:#111;border:0;border-radius:8px;cursor:pointer;font-family:inherit" onclick="segnaMioIngresso('${escHtml(String(p.tipo).replace('pacchetto_ingressi_',''))}',${Number(p.restano)})">Segna il mio ingresso di oggi</button>`:''}
+  </div>`).join('');
+}
+async function segnaMioIngresso(tipo,restano){
+  if(!confirm('Sei sicuro? Segni l\'ingresso di oggi, il pacchetto scende a '+(restano-1)))return;
+  try{
+    const{data,error}=await sb.rpc('segna_ingresso_pacchetto',{p_tipo:tipo});
+    if(error)throw error;
+    toast('Ingresso segnato · restano '+(data||{}).restano);
+    renderMieiPacchetti();
+  }catch(e){toast(e.message||String(e));console.error('[segna_ingresso_pacchetto]',e);}
+}
 
 /* ═══ GESTIONE MANUALE SEGRETERIA — Master §3.3 priorità B punto 4 ═══ */
 
