@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: festa-aggiungi v1 · 2026-11-07 · FESTA ED ESPERIENZA ARRAMPICATA: BAMBINI IN PIÙ DOPO LA PRENOTAZIONE (decisioni Marco 7 nov, DB prenotazioni_festa_aggiunte, stripe-worker v3.98): pagina NUOVA, noindex e fuori sitemap, niente Pixel e niente banner cookie; ci si arriva dal link personale nella mail di conferma della festa (?f=<festa_id>, che fa da chiave). Stile di festa.html. Legge GET /festa-stato (solo data, orario, bambini, prezzo, termine: nessun dato personale) e mostra "Festa del sabato <data>, <orario>" e "Bambini già prenotati: <n>". Aggiunte aperte: scelta del numero da 1 a max_aggiungibili, totale n × €/bambino, bottone "Paga <totale> € e aggiungi" → POST /festa-aggiungi → Stripe; sotto la frase di Marco sul numero e sul termine. Aggiunte chiuse (dal giorno dopo data − 4 giorni): "Il numero dei bambini è chiuso dal <termine>…" e bottone WhatsApp di Marco. Uscita a metà: "Sei sicuro?" (beforeunload). Errori del Worker mostrati con il loro messaggio. Ritorno da Stripe con annulla: stessa pagina. -->
+<!-- KC-BUILD: festa-aggiungi v1 · 2026-11-07 · FESTA ED ESPERIENZA ARRAMPICATA: BAMBINI IN PIÙ DOPO LA PRENOTAZIONE (decisioni Marco 7 nov, DB prenotazioni_festa_aggiunte, stripe-worker v3.98): pagina NUOVA, noindex e fuori sitemap, niente Pixel e niente banner cookie; ci si arriva dal link personale nella mail di conferma della festa (?f=<festa_id>, che fa da chiave). Stile di festa.html. Legge GET /festa-stato (solo data, orario, bambini, prezzo, termine: nessun dato personale) e mostra "Festa del sabato <data>, <orario>" e "Bambini già prenotati: <n>". Aggiunte aperte: scelta del numero da 1 a max_aggiungibili, totale n × €/bambino, bottone "Paga <totale> € e aggiungi" → POST /festa-aggiungi → Stripe; sotto la frase di Marco sul numero e sul termine. Aggiunte chiuse (dal giorno dopo data − 4 giorni): "Si potevano aggiungere bambini fino al <termine>: gli istruttori sono già stati organizzati…" e bottone WhatsApp di Marco. Uscita a metà: "Sei sicuro?" (beforeunload). Errori del Worker mostrati con il loro messaggio. Ritorno da Stripe con annulla: stessa pagina. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -158,7 +158,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       $('chiuso-txt').textContent = 'La festa ha già il numero massimo di bambini. Per un gruppo più grande scrivi a Marco su WhatsApp.';
       $('chiusa').hidden = false;
     } else {
-      $('chiuso-txt').textContent = 'Il numero dei bambini è chiuso dal ' + termine + ': gli istruttori sono già stati organizzati. Per qualsiasi cosa scrivi a Marco su WhatsApp.';
+      $('chiuso-txt').textContent = 'Si potevano aggiungere bambini fino al ' + dataLabel(stato.termine, false) + ': gli istruttori sono già stati organizzati. Per qualsiasi cosa scrivi a Marco su WhatsApp.';
       $('chiusa').hidden = false;
     }
   }
