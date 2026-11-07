@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.52 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): lo staff vede chi manca. Al caricamento (solo viste staff) una chiamata a domande_iscrizione_mancanti(p_anno null = anno corrente; la RPC risponde solo a is_staff) -> insieme di persona_id; lettura fallita o non permessa = nessuna pill, nessun errore a schermo. Pill arancio "Domanda da completare" accanto al nome nelle card In breve della lezione (htmlBrief), nella griglia di sala (disegnaGriglia) e negli elenchi allievi (disegnaElenco). Scheda allievo (disegnaScheda): in alto "Domanda da completare · Fagli inquadrare il QR in Accademia."; nuova sezione "Chi lo accompagna" (solo staff) per i minori (meno di 18 anni da persone.data_nascita) o per chi ha accompagnatori registrati: foto, nome, legame, telefono (tel:), da accompagnatori attivi (ritirato_at IS NULL, RLS accompagnatori_staff_select) + persone (foto_riconoscimento_path, nome, cognome, telefono). Adulto che accompagna: "Accompagna: {Nome Cognome}" toccabile, apre la scheda del figlio (apriSchedaAccompagnato, chiede prima se c'e' qualcosa da non perdere). Foto dal bucket privato riconoscimento con URL firmati (applicaFoto, come le foto di riconoscimento). Funzioni nuove: loadDomandeMancanti, domandaManca, domandaPill, caricaAccompagnatori, htmlChiAccompagna, htmlAccompagna, apriSchedaAccompagnato. Nessuna scrittura nuova. CUMULA v2.51. -->
 <!-- KC-BUILD: oggi v2.51 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. i due slot festa_sabato hanno una riga in slot_copertura (1 istruttore), quindi v_segreteria_da_sistemare li segnava ogni sabato come "Lezione senza istruttore: chi la fa?". In Da sistemare (loadSegSistema) la voce lezione_scoperta di uno slot festa_sabato resta solo se quel sabato c'e' una festa prenotata su quello slot (prenotazioni_festa stato prenotato); lettura fallita = voce festa tolta. La tessera Da coprire fa lo stesso tramite kc-da-coprire.js v1.1. Audit: le letture di corsi_attivi_settimanali di questa pagina sono filtrate per istruttore_id o per id, nessuna puo' proporre lo slot festa. Nessuna scrittura nuova. CUMULA v2.50. -->
 <!-- KC-BUILD: oggi v2.50 · 2026-11-06 · DA SISTEMARE SOLO ALLA SEGRETERIA (Marco 6 nov): segPuoSistemare = staff_segreteria. Tessera, pannello e caricamento di Da sistemare non ci sono per il creator; Da pagare resta a creator e segreteria. Per la segreteria la pagina non cambia. Nessun SQL. CUMULA v2.49. -->
 <!-- KC-BUILD: oggi v2.49 · 2026-11-06 · PACCHETTO INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): nel turno, accanto a chi ha un pacchetto valido oggi, ✓ Ingresso (segna_ingresso_pacchetto) in griglia e nella ricerca di sala, perche' i veterani in griglia non ci sono; "✓ segnato" se oggi c'e' gia'. Vista allievo: card Il tuo pacchetto ingressi. get_ingressi_persona solo per le persone in lista, con cache. CUMULA v2.48. -->
@@ -534,6 +535,20 @@ body{font-size:17px}
 .eta-pill{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.12);color:#F2F2F7;margin-top:4px;border:0;font-family:inherit}
 .eta-pill.mod{cursor:pointer;border:1px dashed rgba(255,255,255,.35)}
 .all-riga .eta-pill{margin:0 0 0 6px;vertical-align:1px}
+/* v2.52 domanda di iscrizione da completare e accompagnatori */
+.dom-pill,.all-riga .txt span.dom-pill{display:inline-block;font-size:13px;font-weight:800;padding:2px 9px;border-radius:999px;background:#FFB340;color:#1C1C1E;line-height:1.35;white-space:normal;text-align:center}
+.all-riga .txt b .dom-pill{margin:0 0 0 6px;vertical-align:1px}
+.br-nome+.dom-pill{margin-left:6px;vertical-align:2px}
+.br-in-scheda .dom-pill{display:none} /* in scheda c'e' gia' la riga in alto */
+.dom-riga{clear:both;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:rgba(255,179,64,.1);border:1px solid rgba(255,179,64,.5);font-size:15px;color:#F2F2F7;line-height:1.35}
+.acc-r{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--velo)}
+.acc-r:first-of-type{border-top:0}
+.acc-r .txt{flex:1;min-width:0}
+.acc-r .txt b{display:block;font-size:16px}
+.acc-r .txt span{display:block;font-size:14px;color:#C9C9CE}
+.acc-r .tel{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--bianco);font-weight:700}
+.acc-di{font-size:15px;margin-top:12px;color:#E5E5EA}
+.acc-di .lnk{font-size:15px}
 .eta-mod{display:flex;gap:6px;align-items:center;margin-top:6px} .eta-mod input{width:80px;font:inherit;font-size:16px;color:#fff;background:#0E0E10;border:1px solid #3A3A40;border-radius:10px;padding:8px}
 .int-pill{display:inline-block;font-size:13px;font-weight:800;padding:2px 10px;border-radius:999px}
 .int-verde{background:#30D158;color:#000} .int-giallo{background:#FFD60A;color:#000} .int-grigio{background:#4A4A52;color:#F2F2F7}
@@ -818,6 +833,8 @@ async function init(){
   else if(vista==='istruttore'){ renderIstruttore(); loadIstrLezioni(); loadAllievi(); loadMonitor(); loadEventi(); loadFineCorso(); }
   else if(vista==='monitor'){ renderMonitor(); loadMonitor(); loadEventi(); }
   else { renderAllievo(); loadAdesso(); loadSentiero(); loadEventi(); mostraDichiarazione(); loadManovra(); loadDaSaldare(); loadPacchetti(); }
+
+  if(vista!=='allievo' && (pdata.staff_role||SEG_ROLES.includes(profilo.role))) loadDomandeMancanti(); // v2.52 solo staff
 
   /* v2.45 apertura diretta della scheda: solo staff, altrimenti il parametro si ignora */
   const qs=new URLSearchParams(window.location.search), sPid=qs.get('scheda')||'';
@@ -2002,7 +2019,7 @@ function disegnaElenco(){
     if(a.n_osservazioni>0)b.push(`<i>📝 ${a.n_osservazioni}</i>`);
     return `<button class="all-riga" onclick="apriScheda('${esc(a.persona_id)}')">
       ${avatarHtml(a.nome,a.cognome,a.foto_path)}
-      <span class="txt"><b>${esc((a.nome||'')+' '+(a.cognome||''))}${filtroAll==='richiamare'&&etaAllievi[a.persona_id]?` <span class="eta-pill">${esc(etaTesto(etaAllievi[a.persona_id].eta,etaAllievi[a.persona_id].fonte))}</span>`:''}</b><span>${esc(sottoRiga(a))}</span></span>
+      <span class="txt"><b>${esc((a.nome||'')+' '+(a.cognome||''))}${domandaPill(a.persona_id)}${filtroAll==='richiamare'&&etaAllievi[a.persona_id]?` <span class="eta-pill">${esc(etaTesto(etaAllievi[a.persona_id].eta,etaAllievi[a.persona_id].fonte))}</span>`:''}</b><span>${esc(sottoRiga(a))}</span></span>
       <span class="bdg">${b.join('')}</span></button>`;
   }).join('');
   applicaFoto(p);
@@ -2025,6 +2042,7 @@ function apriScheda(pid,sala,origine){
   quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
   ric={az:null,int:null,giorni:1}; _etaAperta=false; // v2.41
   schedaBrief=null; // v2.42
+  schedaAcc=null; // v2.52
   schedaSala=(!!sala || vista==='monitor') && origine!=='cerca'; // v2.18: in testa il campo "Su cosa avete lavorato?"; v2.44 'cerca' = ricerca generale, fuori dal turno
   /* v2.24: la guida riparte da capo a ogni scheda; "ricerca" = aperta da CHI STAI SEGUENDO */
   guida=guidaNuova(); schedaDaRicerca=origine==='ricerca'; schedaVeterano=false;
@@ -2043,6 +2061,7 @@ function nascondiScheda(){
   schedaPid=null; schedaDati=null; ossAperta=false; schedaSala=false;
   quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
   ric={az:null,int:null,giorni:1}; cercaSvuota(); // v2.44
+  schedaAcc=null; // v2.52
   if(guida)fotoLibera();
   guida=guidaNuova(); schedaDaRicerca=false; schedaVeterano=false; ossSporca=false; _esciOk=false;
   if(schedaTorna)location.replace(schedaTorna); // v2.45
@@ -2094,6 +2113,7 @@ async function caricaScheda(){
     s.scrollTop=top;
     if(!schedaDati.soloSala)caricaQuadro(pid); // v2.36 Kata e traccia del quadro
     caricaBriefScheda(pid); // v2.42 card In breve in cima
+    caricaAccompagnatori(pid); // v2.52 Chi lo accompagna / Accompagna
   }catch(e){
     if(pid!==schedaPid)return;
     console.error('[scheda]',e);
@@ -2104,6 +2124,7 @@ async function caricaScheda(){
       const n=_salaPersone[pid]||{};
       schedaDati={persona:{id:pid,nome:n.nome,cognome:n.cognome,foto_path:n.foto_path},riga:{},osservazioni:[],iscrizioni:[],ridotta:true,soloSala:true};
       disegnaScheda();
+      caricaAccompagnatori(pid); // v2.52
       return;
     }
     corpo.innerHTML=`<p class="sch-vuoto">${esc(e?.message||'Non riesco ad aprire la scheda ora.')}</p>`;
@@ -2399,12 +2420,15 @@ function disegnaScheda(){
     ${schedaBrief?`<section class="sch-sez br-in-scheda"><h3>In breve</h3>${htmlBrief(schedaBrief)}</section>`:''}
     <section class="sch-sez">
       <div class="sch-vis">${visPill('staff')}</div>
+      ${domandaManca(schedaPid)?'<div class="dom-riga"><span class="dom-pill">Domanda da completare</span><span>Fagli inquadrare il QR in Accademia.</span></div>':''}
       <div class="sch-testa">${avatarHtml(P.nome||R.nome,P.cognome||R.cognome,P.foto_path||R.foto_path,true)}
         <div><h2>${esc((P.nome||R.nome||'')+' '+(P.cognome||R.cognome||''))}</h2>${htmlEtaScheda(d)}${tel?`<div class="tel">${esc(tel)}</div>`:''}${schedaDaAgenda?`<p class="sch-da">Aperta dall'agenda · ← torna alla lezione</p>`:''}</div></div>
       ${tel?`<div class="sch-btns"><a class="btn" href="tel:${esc(telNum(tel))}">📞 CHIAMA</a><button class="btn wa" onclick="apriWaScheda()">💬 WHATSAPP</button></div>`:''}
       ${stato?`<p class="sch-stato">${esc(stato)}</p>`:''}
       ${banner}
+      ${htmlAccompagna()}
     </section>
+    ${htmlChiAccompagna()}
     ${schedaSala?htmlSalaScheda(d):''}
     ${htmlNote(d)}
     ${d.soloSala?'':`<section class="sch-sez"><h3>Percorso ${visPill('allievo')}</h3>${htmlPercorso(d)}</section>
@@ -3102,7 +3126,7 @@ function disegnaGriglia(){
       return `<div class="sg-w"><button class="sg-t${x.segnato_oggi?' on':''}" onclick="apriScheda('${esc(x.persona_id)}',true,'ricerca')"
           aria-label="${nome}${x.segnato_oggi?', segnato alle '+hhmm(x.segnato_alle):''}${x.foto_path?'':', manca la foto'}">
         ${x.segnato_oggi?'<span class="sg-ok" aria-hidden="true">✓</span>':''}${viso}
-        <span class="sg-nome">${nome}</span>
+        <span class="sg-nome">${nome}</span>${domandaPill(x.persona_id)}
         ${m==='prenotato'&&x.ora?`<span class="sg-ora">alle ${esc(oraBreve(x.ora))}</span>`:''}
         ${x.segnato_oggi?`<span class="sg-alle">segnato alle ${hhmm(x.segnato_alle)}</span>`:''}
       </button><div class="sg-ing" data-ing="${esc(x.persona_id)}"></div></div>`;}).join('')}</div>`;
@@ -3649,7 +3673,7 @@ function htmlBrief(c){
   const vuota=!R&&!lav.length&&!sens.length&&!pros.length;
   return `<div class="br-card">
     <div class="br-testa">${avatarHtml(c.nome,c.cognome,c.foto_path)}
-      <div><b class="br-nome">${nome}</b>
+      <div><b class="br-nome">${nome}</b>${domandaPill(c.persona_id)}
         ${corso?`<div class="br-sub">${corso}</div>`:''}
         ${c.ultima_sala?`<div class="br-sub">ultima volta in sala: ${esc(ggmm(c.ultima_sala))}</div>`:''}
         ${c.ricordo?`<div class="br-ric"><i>${esc(briefCorto(c.ricordo))}</i> ${visPill('staff')}</div>`:''}</div></div>
@@ -3777,6 +3801,77 @@ async function caricaBriefScheda(pid){
     schedaBrief=(data||[])[0]||null;
     if(!document.getElementById('scheda').hidden)disegnaScheda();
   }catch(e){ console.warn('[in breve scheda]',e?.message||e); }
+}
+
+/* ════════════════════════ v2.52 DOMANDA DI ISCRIZIONE ONLINE (consegna Marco 7 nov, DB iscrizione_online_2026_11_07) ════════════════════════
+   domande_iscrizione_mancanti(p_anno default anno corrente, solo staff: is_staff) una volta al caricamento -> insieme di persona_id.
+   Lettura fallita o non permessa = nessuna pill e nessun errore visibile.
+   Chi lo accompagna: accompagnatori (RLS accompagnatori_staff_select = is_staff) attivi = ritirato_at IS NULL,
+   anagrafica e foto da persone (persone_staff_all); foto nel bucket privato riconoscimento con URL firmato (applicaFoto). */
+let domandeMancanti=null; // Set di persona_id, null = non letto
+async function loadDomandeMancanti(){
+  try{
+    const{data,error}=await sb.rpc('domande_iscrizione_mancanti',{p_anno:null});
+    if(error)throw error;
+    domandeMancanti=new Set((data||[]).map(r=>r.persona_id).filter(Boolean));
+  }catch(e){ console.warn('[domande iscrizione]',e?.message||e); domandeMancanti=null; return; }
+  if(!domandeMancanti.size)return;
+  /* ridisegno di quello che e' gia' a schermo */
+  try{
+    if(papabili)disegnaGriglia();
+    if(filtroAll)disegnaElenco();
+    if(brief&&brief.modo==='card'&&!document.getElementById('brief-ov').hidden)briefMostra();
+    if(schedaDati&&!document.getElementById('scheda').hidden)disegnaScheda();
+  }catch(e){ console.warn('[domande iscrizione] ridisegno:',e?.message||e); }
+}
+const domandaManca=pid=>!!(pid&&domandeMancanti&&domandeMancanti.has(pid));
+const domandaPill=pid=>domandaManca(pid)?'<span class="dom-pill" title="Domanda di iscrizione da completare">Domanda da completare</span>':'';
+
+let schedaAcc=null; // {pid, minore, chi:[{legame,p}], accompagna:[{legame,p}]}
+async function caricaAccompagnatori(pid){
+  try{
+    const[ra,rb]=await Promise.all([
+      sb.from('accompagnatori').select('adulto_persona_id,legame,created_at').eq('minore_persona_id',pid).is('ritirato_at',null).order('created_at'),
+      sb.from('accompagnatori').select('minore_persona_id,legame,created_at').eq('adulto_persona_id',pid).is('ritirato_at',null).order('created_at')
+    ]);
+    if(ra.error)throw ra.error;
+    if(rb.error)throw rb.error;
+    const A=ra.data||[], B=rb.data||[];
+    const ids=[...new Set([pid,...A.map(x=>x.adulto_persona_id),...B.map(x=>x.minore_persona_id)].filter(Boolean))];
+    const{data:pp,error:pe}=await sb.from('persone').select('id,nome,cognome,telefono,data_nascita,foto_riconoscimento_path').in('id',ids);
+    if(pe)throw pe;
+    const P={}; (pp||[]).forEach(x=>{P[x.id]=x;});
+    const eta=etaDaNascita((P[pid]||{}).data_nascita);
+    const acc={pid,minore:eta!=null&&eta<18,
+      chi:A.map(x=>({legame:x.legame,p:P[x.adulto_persona_id]})).filter(x=>x.p),
+      accompagna:B.map(x=>({legame:x.legame,p:P[x.minore_persona_id]})).filter(x=>x.p)};
+    if(pid!==schedaPid)return;
+    schedaAcc=acc;
+  }catch(e){ console.warn('[accompagnatori]',e?.message||e); return; }
+  if(!document.getElementById('scheda').hidden&&schedaDati)disegnaScheda();
+}
+/* sezione per i minori (o per chi ha accompagnatori registrati) */
+function htmlChiAccompagna(){
+  const A=schedaAcc; if(!A||A.pid!==schedaPid)return '';
+  if(!A.minore&&!A.chi.length)return '';
+  const righe=A.chi.map(({legame,p})=>{
+    const nome=((p.nome||'')+' '+(p.cognome||'')).trim()||'—';
+    return `<div class="acc-r">${avatarHtml(p.nome,p.cognome,p.foto_riconoscimento_path)}
+      <div class="txt"><b>${esc(nome)}</b>${legame?`<span>${esc(legame)}</span>`:''}
+        ${p.telefono?`<a class="tel" href="tel:${esc(telNum(p.telefono))}">${esc(p.telefono)}</a>`:'<span>telefono non indicato</span>'}</div></div>`;
+  }).join('');
+  return `<section class="sch-sez"><h3>Chi lo accompagna ${visPill('staff')}</h3>${righe||'<p class="sch-vuoto">Nessun accompagnatore indicato dalla famiglia.</p>'}</section>`;
+}
+/* adulto che accompagna: "Accompagna: {Figlio}", tocca e apre la sua scheda */
+function htmlAccompagna(){
+  const A=schedaAcc; if(!A||A.pid!==schedaPid||!A.accompagna.length)return '';
+  return `<p class="acc-di">Accompagna: ${A.accompagna.map(({p})=>
+    `<button class="lnk" onclick="apriSchedaAccompagnato('${esc(p.id)}')">${esc(((p.nome||'')+' '+(p.cognome||'')).trim()||'—')}</button>`).join(', ')}</p>`;
+}
+function apriSchedaAccompagnato(pid){
+  const vai=()=>{ if(guida)fotoLibera(); apriScheda(pid,false,'cerca'); };
+  if(motivoUscita()){ dialogoUscita(vai); return; }
+  vai();
 }
 
 /* ── Compensi monitor (rendiconto, solo creator/admin) ── */
