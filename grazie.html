@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: grazie v11 · 2026-11-07 · ISCRIZIONE FATTA A DICEMBRE VALIDA FINO AL 31 DICEMBRE DELL'ANNO DOPO (stripe-worker v3.97): con la Lezione Privata Bambini e l'iscrizione la pagina dice la scadenza vera dal parametro &valida=AAAA-MM-GG della success_url ("vale fino al 31 dicembre 2027"); senza il parametro (sessioni create prima del v3.97) resta "31 dicembre". CUMULA grazie v10 -->
 <!-- KC-BUILD: grazie v10 · 2026-11-07 · NUMERO DI MARCO (correzione Marco 7 nov): il WhatsApp +39 331 874 3953 è il numero personale di Marco, non della segreteria: i testi che lo legavano alla segreteria ora dicono "a Marco" (link invariato). Righe 284, 319, 1025, 1027, 1032. Nient'altro toccato. CUMULA grazie v9 -->
 <!-- KC-BUILD: grazie v9 · 2026-11-07 · LEZIONE PRIVATA BAMBINI CON ISCRIZIONE (stripe-worker v3.95, aggiunta Marco 7 nov): con tipo=prima_lezione_privata e importo oltre 25 € (lezione + iscrizione annuale 40 €) la pagina dice l'importo pagato, che l'iscrizione vale fino al 31 dicembre con l'assicurazione e "Dalla prossima lezione il prezzo è 25 € a lezione."; a 25 € resta il testo della v8. Nient'altro toccato. CUMULA grazie v8 · 2026-11-07 · FESTA ED ESPERIENZA ARRAMPICATA e LEZIONE PRIVATA BAMBINI (stripe-worker v3.94): con tipo=festa_sabato la pagina dice "La festa è prenotata" con l'importo vero (&importo=) e i passi giusti (mail di conferma con data, orario e condizioni; spostare o annullare su WhatsApp; come arrivare) al posto della Prima Lezione e del portale; con tipo=prima_lezione_privata dice "Lezione Privata Bambini". Etichette nuove in KC_TIPO_LABEL. Nessun altro testo, flusso foto o Pixel toccato. CUMULA grazie v7 · 2026-10-18 · + LEGAMI-K 20–22 nov 2026 (legami_nov26_weekend|legami_nov26_advance), stesso flusso dell'Essence. CUMULA v6 · 2026-10-18 · ESSENCE-K 21–22 NOV 2026 (saldo entro 7 giorni dall'acconto) (stripe-worker v3.86): tipo=essence_nov26_weekend|essence_nov26_open → «posto bloccato» (acconto 150 €) o «quota saldata», foto del viso obbligatoria come per le tappe. CUMULA grazie v5 · 2026-10-18 · INTENSIVI E TAPPE (stripe-worker v3.85): con tipo=intensivo_sabato_* la pagina dice «posto bloccato» al posto della Prima Lezione e chiede la foto del viso come documentazione OBBLIGATORIA (niente «Più tardi»); stesso flusso fotocamera v4 e stesso endpoint /foto-riconoscimento esteso dal Worker agli eventi. Prima Lezione Adulti invariata. -->
 <html lang="it">
@@ -325,9 +326,12 @@ h1 .accent{color:var(--sky)}
   if (tipo === 'prima_lezione_privata') {
     // v9 · importo oltre il prezzo della lezione = c'era anche l'iscrizione annuale (stripe-worker v3.95)
     var impP = parseFloat(qs.get('importo') || '');
+    var vm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(qs.get('valida') || ''); // v11: scadenza vera dal Worker v3.97
+    var MESI_IT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    var finoA = vm ? (parseInt(vm[3], 10) + ' ' + MESI_IT[parseInt(vm[2], 10) - 1] + ' ' + vm[1]) : '31 dicembre';
     var plead = document.getElementById('g-lead');
     if (plead) plead.innerHTML = impP > 25
-      ? 'Il pagamento di <strong>' + impP + ' €</strong> è andato a buon fine. La <strong>Lezione Privata Bambini</strong> è prenotata e l\'iscrizione annuale all\'Accademia vale fino al 31 dicembre, assicurazione compresa. Dalla prossima lezione il prezzo è 25 € a lezione.'
+      ? 'Il pagamento di <strong>' + impP + ' €</strong> è andato a buon fine. La <strong>Lezione Privata Bambini</strong> è prenotata e l\'iscrizione annuale all\'Accademia vale fino al ' + finoA + ', assicurazione compresa. Dalla prossima lezione il prezzo è 25 € a lezione.'
       : 'Il pagamento è andato a buon fine. La <strong>Lezione Privata Bambini</strong> è prenotata.';
   }
   if (ESSENCE[tipo]) {

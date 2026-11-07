@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: prima-lezione-privata v4.1 · 2026-11-07 · ISCRIZIONE FATTA A DICEMBRE VALIDA FINO AL 31 DICEMBRE DELL'ANNO DOPO (decisione Marco 7 nov, trigger DB tesseramento_dicembre_anno_dopo, stripe-worker v3.97): nel riquadro "Oggi paghi" la riga dell'iscrizione dice la scadenza vera dal preventivo del Worker (iscrizione_valida_fino), per esempio a dicembre "vale fino al 31 dicembre 2027"; mai "31 dicembre" fisso. + A DICEMBRE NIENTE SCONTO (cambio regola Marco 7 nov): tolto il caso "Questa lezione: compresa … (−25 €)"; con sconto 0 la riga dice solo "Questa lezione: 25 €" (dicembre: 40 + 25 = 65 €, iscrizione fino al 31/12 dell'anno dopo). CUMULA v4 -->
 <!-- KC-BUILD: prima-lezione-privata v4 · 2026-11-07 · QUESTIONARIO PER CLAUDIA E "RICHIAMATEMI" (decisione Marco 7 nov, stripe-worker v3.96, DB note_accompagnamento fino a 3000 caratteri): il campo unico f-note diventa il riquadro "Per Claudia, l'istruttrice che seguirà vostro figlio" con cinque domande facoltative (textarea da 500 caratteri con contatore: difficoltà o diagnosi, in gruppo, a suo agio / lo agita, benefici sperati, altro) e la spunta "Preferisco parlarne a voce con Claudia: richiamatemi" (la chiama Claudia al numero lasciato; il suo numero non compare). Consenso dati sulla salute come prima, obbligatorio solo se almeno una risposta è scritta (stesso messaggio); la spunta da sola non lo chiede. Al Worker un testo unico in note_istruttore con le sole risposte scritte ("Difficoltà o diagnosi: … / In gruppo: … / A suo agio / lo agita: … / Benefici sperati: … / Altro: …") e richiamami true|false. Riga sopra il calendario "Gli orari sono pochi e si riempiono in fretta: appena sapete quando potete venire, prenotate subito.". NUMERO DI MARCO (correzione 7 nov): +39 331 874 3953 è di Marco, non della segreteria: condizioni "scrivendo a Marco su WhatsApp" e tutti gli "scrivete alla segreteria su WhatsApp" diventano "a Marco". Finestra 21 giorni invariata. CUMULA v3.1 -->
 <!-- KC-BUILD: prima-lezione-privata v3.1 · 2026-11-07 · COSA PAGHI ORA E COSA DOPO (aggiunta Marco 7 nov): quando serve l'iscrizione il riquadro sopra il bottone diventa "Oggi paghi: • Iscrizione annuale all'Accademia: 40 € (vale fino al 31 dicembre, assicurazione compresa) • Questa lezione: X € invece di 25 €, grazie allo sconto di fine anno sull'iscrizione (−N €) · Totale: Y € · Dalla prossima lezione il prezzo è 25 € a lezione."; a dicembre "Questa lezione: compresa, invece di 25 €"; senza sconto (gennaio–settembre) "Questa lezione: 25 €". Cifre sempre dal preventivo del Worker. Tolti i due paragrafi e la riga di dettaglio della v3. CUMULA v3 -->
 <!-- KC-BUILD: prima-lezione-privata v3 · 2026-11-07 · ISCRIZIONE ANNUALE DALLA SECONDA LEZIONE (decisioni Marco 7 nov, DB sconti_iscrizione_fine_anno, stripe-worker v3.95): quando il genitore ha scritto email, nome e cognome del figlio (all'uscita dai campi, e comunque prima del pagamento) la pagina chiede a POST /privata-preventivo il totale: prima volta 25 €; dalla seconda lezione, senza tesseramento attivo dell'anno, iscrizione annuale 40 € + lezione con lo sconto di fine anno (cifre dal Worker/DB, mai scritte nel codice). Riepilogo e bottone ("Paga 45 € e prenota") col totale vero; se serve l'iscrizione, riquadro sopra il bottone con il testo di Marco e il dettaglio "Iscrizione annuale 40 € · Lezione 25 € − sconto N € = X € · Totale Y €". Preventivo che non risponde: avviso con WhatsApp e bottone fermo finché non si riprova. Il Worker ricalcola sempre lui al pagamento. CUMULA v2 -->
@@ -416,16 +417,17 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     $('riepilogo').innerHTML = `<b>Lezione Privata Bambini</b> · ${labelData(s.dataISO)} · <b>${oraRange(s.ora_inizio, s.ora_fine)}</b>${s.istruttore ? ' · con ' + s.istruttore : ''} · `
       + (prev && prev.serve_iscrizione ? `lezione ${prev.lezione} € + iscrizione annuale ${prev.iscrizione} € = <b>${prev.totale} €</b>` : `${totale()} €`);
   }
+  // v4.1: '2027-12-31' → '31 dicembre 2027' (scadenza vera dal Worker)
+  const MESI_IT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  function dataLunga(iso){ const p = String(iso || '').slice(0, 10).split('-').map(Number); return (p[0] && p[1] && p[2]) ? `${p[2]} ${MESI_IT[p[1] - 1]} ${p[0]}` : '31 dicembre'; }
   function disegnaTotale(){
     const box = $('iscrizione-box');
     if (prev && prev.serve_iscrizione) {
       // v3.1: cosa si paga oggi e cosa dopo (testo di Marco)
-      $('isc-riga-iscr').textContent = `Iscrizione annuale all'Accademia: ${prev.iscrizione} € (vale fino al 31 dicembre, assicurazione compresa)`;
-      $('isc-riga-lez').textContent = prev.sconto <= 0
-        ? `Questa lezione: ${prev.lezione} €`
-        : prev.lezione > 0
-          ? `Questa lezione: ${prev.lezione} € invece di ${prev.lezione_pieno} €, grazie allo sconto di fine anno sull'iscrizione (−${prev.sconto} €)`
-          : `Questa lezione: compresa, invece di ${prev.lezione_pieno} €, grazie allo sconto di fine anno sull'iscrizione (−${prev.sconto} €)`;
+      $('isc-riga-iscr').textContent = `Iscrizione annuale all'Accademia: ${prev.iscrizione} € (vale fino al ${dataLunga(prev.iscrizione_valida_fino)}, assicurazione compresa)`;
+      $('isc-riga-lez').textContent = prev.sconto > 0
+        ? `Questa lezione: ${prev.lezione} € invece di ${prev.lezione_pieno} €, grazie allo sconto di fine anno sull'iscrizione (−${prev.sconto} €)`
+        : `Questa lezione: ${prev.lezione} €`;   // v4.1: a dicembre niente sconto, la lezione compresa non esiste più
       $('isc-totale').textContent = `Totale: ${prev.totale} €`;
       $('isc-dopo').textContent = `Dalla prossima lezione il prezzo è ${prev.lezione_pieno} € a lezione.`;
       box.classList.add('show');
