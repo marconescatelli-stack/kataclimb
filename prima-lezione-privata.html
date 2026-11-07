@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: prima-lezione-privata v4 · 2026-11-07 · QUESTIONARIO PER CLAUDIA E "RICHIAMATEMI" (decisione Marco 7 nov, stripe-worker v3.96, DB note_accompagnamento fino a 3000 caratteri): il campo unico f-note diventa il riquadro "Per Claudia, l'istruttrice che seguirà vostro figlio" con cinque domande facoltative (textarea da 500 caratteri con contatore: difficoltà o diagnosi, in gruppo, a suo agio / lo agita, benefici sperati, altro) e la spunta "Preferisco parlarne a voce con Claudia: richiamatemi" (la chiama Claudia al numero lasciato; il suo numero non compare). Consenso dati sulla salute come prima, obbligatorio solo se almeno una risposta è scritta (stesso messaggio); la spunta da sola non lo chiede. Al Worker un testo unico in note_istruttore con le sole risposte scritte ("Difficoltà o diagnosi: … / In gruppo: … / A suo agio / lo agita: … / Benefici sperati: … / Altro: …") e richiamami true|false. Riga sopra il calendario "Gli orari sono pochi e si riempiono in fretta: appena sapete quando potete venire, prenotate subito.". NUMERO DI MARCO (correzione 7 nov): +39 331 874 3953 è di Marco, non della segreteria: condizioni "scrivendo a Marco su WhatsApp" e tutti gli "scrivete alla segreteria su WhatsApp" diventano "a Marco". Finestra 21 giorni invariata. CUMULA v3.1 -->
 <!-- KC-BUILD: prima-lezione-privata v3.1 · 2026-11-07 · COSA PAGHI ORA E COSA DOPO (aggiunta Marco 7 nov): quando serve l'iscrizione il riquadro sopra il bottone diventa "Oggi paghi: • Iscrizione annuale all'Accademia: 40 € (vale fino al 31 dicembre, assicurazione compresa) • Questa lezione: X € invece di 25 €, grazie allo sconto di fine anno sull'iscrizione (−N €) · Totale: Y € · Dalla prossima lezione il prezzo è 25 € a lezione."; a dicembre "Questa lezione: compresa, invece di 25 €"; senza sconto (gennaio–settembre) "Questa lezione: 25 €". Cifre sempre dal preventivo del Worker. Tolti i due paragrafi e la riga di dettaglio della v3. CUMULA v3 -->
 <!-- KC-BUILD: prima-lezione-privata v3 · 2026-11-07 · ISCRIZIONE ANNUALE DALLA SECONDA LEZIONE (decisioni Marco 7 nov, DB sconti_iscrizione_fine_anno, stripe-worker v3.95): quando il genitore ha scritto email, nome e cognome del figlio (all'uscita dai campi, e comunque prima del pagamento) la pagina chiede a POST /privata-preventivo il totale: prima volta 25 €; dalla seconda lezione, senza tesseramento attivo dell'anno, iscrizione annuale 40 € + lezione con lo sconto di fine anno (cifre dal Worker/DB, mai scritte nel codice). Riepilogo e bottone ("Paga 45 € e prenota") col totale vero; se serve l'iscrizione, riquadro sopra il bottone con il testo di Marco e il dettaglio "Iscrizione annuale 40 € · Lezione 25 € − sconto N € = X € · Totale Y €". Preventivo che non risponde: avviso con WhatsApp e bottone fermo finché non si riprova. Il Worker ricalcola sempre lui al pagamento. CUMULA v2 -->
 <!-- KC-BUILD: prima-lezione-privata v2 · 2026-11-07 · LEZIONE PRIVATA BAMBINI (decisioni Marco 7 nov, DB feste_sabato_e_private_bambini): stesso file e stesso link, nuovo nome "Lezione Privata Bambini" (titolo, hero, riepilogo; via "Prima Lezione Privata Speciale"), sottotitolo "Un bambino, un'istruttrice, un'ora tutta per lui, nei giorni in cui la sala e' tranquilla.". La riga orari sotto l'hero si CALCOLA dagli slot letti dal DB (giorni con le stesse fasce raggruppati, istruttori senza doppioni: oggi "Martedì e venerdì · 17:00–18:00 e 18:00–19:00 · con Claudia"), non e' piu' scritta a mano. Si prenota FINO AL GIORNO PRIMA: il calendario parte da domani, tolta la regola delle 4 ore (CUTOFF_OGGI_MIN, stato 'taglio', badge CHIUSO); al click su Paga una data diventata oggi o passata fa ripartire la scelta. Finestra 21 giorni (era 14). Riquadro condizioni sopra il bottone di pagamento. Prezzo 25 € invariato. Checkout -> stripe-worker v3.94 (stesso prodotto prima_lezione_privata). CUMULA v1 -->
@@ -83,6 +84,14 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .terms input{width:20px;height:20px;margin-top:1px;flex-shrink:0}
 .terms a{color:var(--sky-dark)}
 #riga-salute{display:none}
+.claudia{background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 14px;margin:6px 0 14px}
+.claudia h4{font-size:16px;font-weight:900;margin-bottom:4px}
+.claudia .csub{font-size:14px;color:var(--ink2);line-height:1.5;margin-bottom:12px}
+.claudia .fgroup textarea{min-height:70px}
+.claudia .richiamo{display:flex;gap:10px;align-items:flex-start;margin-top:4px;font-size:15px;font-weight:700}
+.claudia .richiamo input{width:20px;height:20px;margin-top:1px;flex-shrink:0}
+.claudia .richiamo-nota{font-size:13px;color:var(--ink2);margin:4px 0 0 30px}
+.pochi{background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r);padding:10px 12px;font-size:14px;color:#78350F;margin-bottom:14px;font-weight:600}
 .paga-btn{width:100%;background:var(--sky);color:#fff;border:none;border-radius:var(--r-pill);padding:16px;font-family:inherit;font-size:17px;font-weight:900;cursor:pointer}
 .paga-btn:disabled{opacity:.6;cursor:default}
 .paga-btn .sp{display:none;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:8px}
@@ -130,16 +139,17 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     <div class="info-item"><span class="ic">📝</span><span><b>Qui sotto potete raccontarci</b> quello che è utile sapere per accompagnarlo al meglio.</span></div>
     <div class="info-item"><span class="ic">👟</span><span><b>Serve solo abbigliamento comodo e calzini.</b> Scarpette, imbrago e tutto il materiale li mettiamo noi.</span></div>
     <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b> — Via Cassia 1634, La Storta, Roma.</span></div>
-    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivete alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
+    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivete a Marco su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
   </div>
 </section>
 
 <section class="section" id="calendario">
   <h2>Scegli il giorno</h2>
   <p class="sub">Vi aspettiamo in Accademia 10 minuti prima dell'orario.</p>
+  <p class="pochi">Gli orari sono pochi e si riempiono in fretta: appena sapete quando potete venire, prenotate subito.</p>
 
   <div id="slot-loading"><span class="sp"></span> Carico le date disponibili…</div>
-  <div id="slot-err">Le date non si sono caricate. Ricarica la pagina; se si ripete scrivete alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
+  <div id="slot-err">Le date non si sono caricate. Ricarica la pagina; se si ripete scrivete a Marco su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
   <div class="nota" id="avviso-calendario" style="display:none"></div>
 
   <div class="slot-list" id="slot-list"></div>
@@ -156,10 +166,16 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     <div class="fgroup"><label for="f-fnascita">Data di nascita*</label><input id="f-fnascita" type="date"></div>
     <div class="eta-warn" id="eta-warn"></div>
 
-    <div class="fgroup">
-      <label for="f-note">C'è qualcosa che è utile che l'istruttrice sappia per accompagnarlo al meglio? <small>(facoltativo)</small></label>
-      <textarea id="f-note" maxlength="1000" placeholder="Per esempio: cosa lo mette a suo agio, cosa lo agita, come preferisce che gli si parli, eventuali indicazioni del medico o del terapista."></textarea>
-      <div class="conta" id="conta-note">0 / 1000</div>
+    <div class="claudia" id="claudia">
+      <h4>Per Claudia, l'istruttrice che seguirà vostro figlio</h4>
+      <p class="csub">Queste risposte le leggono solo Claudia e lo staff dell'Accademia. Restano nella scheda di vostro figlio, così ogni volta sappiamo come accompagnarlo. Tutte facoltative.</p>
+      <div class="fgroup"><label for="q-diagnosi">Ci sono difficoltà o una diagnosi che è utile conoscere?</label><textarea id="q-diagnosi" class="q" data-etichetta="Difficoltà o diagnosi" maxlength="500"></textarea><div class="conta">0 / 500</div></div>
+      <div class="fgroup"><label for="q-gruppo">Come sta in gruppo con gli altri bambini?</label><textarea id="q-gruppo" class="q" data-etichetta="In gruppo" maxlength="500"></textarea><div class="conta">0 / 500</div></div>
+      <div class="fgroup"><label for="q-agio">Cosa lo mette a suo agio? Cosa lo agita?</label><textarea id="q-agio" class="q" data-etichetta="A suo agio / lo agita" maxlength="500"></textarea><div class="conta">0 / 500</div></div>
+      <div class="fgroup"><label for="q-benefici">Quali benefici sperate che gli porti l'arrampicata?</label><textarea id="q-benefici" class="q" data-etichetta="Benefici sperati" maxlength="500"></textarea><div class="conta">0 / 500</div></div>
+      <div class="fgroup"><label for="q-altro">Altro che volete dirci</label><textarea id="q-altro" class="q" data-etichetta="Altro" maxlength="500"></textarea><div class="conta">0 / 500</div></div>
+      <label class="richiamo"><input type="checkbox" id="f-richiamami"><span>Preferisco parlarne a voce con Claudia: richiamatemi</span></label>
+      <p class="richiamo-nota">Claudia vi chiama al numero che ci avete lasciato, prima della lezione.</p>
     </div>
     <label class="terms" id="riga-salute">
       <input type="checkbox" id="f-salute">
@@ -179,7 +195,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       <span>In qualità di genitore/esercente la responsabilità genitoriale, accetto i <a href="/Termini_Prima_Lezione.pdf" target="_blank" rel="noopener">Termini della Prima Lezione</a> e acconsento alla creazione del profilo riservato di mio figlio/a sul portale KataClimb (non visibile al pubblico né alla Comunità).</span>
     </label>
 
-    <div class="condizioni"><b>Come funziona:</b> si prenota fino al giorno prima. Si può spostare o annullare la lezione fino al giorno prima scrivendo alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>; dopo, la lezione è persa.</div>
+    <div class="condizioni"><b>Come funziona:</b> si prenota fino al giorno prima. Si può spostare o annullare la lezione fino al giorno prima scrivendo a Marco su <a href="https://wa.me/393318743953">WhatsApp</a>; dopo, la lezione è persa.</div>
 
     <div class="iscrizione-box" id="iscrizione-box">
       <p><b>Oggi paghi:</b></p>
@@ -190,7 +206,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       <p class="dett" id="isc-totale"></p>
       <p id="isc-dopo"></p>
     </div>
-    <div id="prev-err">Non riusciamo a calcolare il totale: riprova tra un minuto o scrivi alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>. <a href="#" id="prev-riprova">Riprova</a></div>
+    <div id="prev-err">Non riusciamo a calcolare il totale: riprova tra un minuto o scrivi a Marco su <a href="https://wa.me/393318743953">WhatsApp</a>. <a href="#" id="prev-riprova">Riprova</a></div>
 
     <button class="paga-btn" id="paga-btn"><span class="sp"></span><span id="paga-label">Paga 25 € e prenota</span></button>
     <div id="form-err"></div>
@@ -316,7 +332,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     list.innerHTML = '';
     const visibili = slotDate.filter(s => statoRiga(s) !== 'via');
     if (!visibili.length) {
-      list.innerHTML = `<p style="color:var(--ink2);font-size:14px">In questo momento non ci sono date libere: scrivete alla segreteria su ${WA} e troviamo insieme il giorno.</p>`;
+      list.innerHTML = `<p style="color:var(--ink2);font-size:14px">In questo momento non ci sono date libere: scrivete a Marco su ${WA} e troviamo insieme il giorno.</p>`;
       return;
     }
     for (const s of visibili) {
@@ -331,7 +347,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       if (chiuso) {
         const nota = document.createElement('div');
         nota.className = 'slot-nota';
-        nota.innerHTML = `Questa data è già prenotata: scegliete un'altra data o scrivete alla segreteria su ${WA}.`;
+        nota.innerHTML = `Questa data è già prenotata: scegliete un'altra data o scrivete a Marco su ${WA}.`;
         div.appendChild(nota);
       } else {
         div.addEventListener('click', () => seleziona(s));
@@ -365,21 +381,29 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     const eta = etaAllaData(nascita, selezione.dataISO);
     if (eta >= ETA_MIN && eta <= ETA_MAX) return true;
     warn.innerHTML = eta > ETA_MAX
-      ? `Alla data scelta avrà <b>${eta} anni</b>: per i maggiorenni c'è la Prima Lezione Adulti. Scrivete alla segreteria su ${WA}.`
-      : `Alla data scelta avrà <b>${eta} anni</b>: scrivete alla segreteria su ${WA}, troviamo insieme la formula giusta.`;
+      ? `Alla data scelta avrà <b>${eta} anni</b>: per i maggiorenni c'è la Prima Lezione Adulti. Scrivete a Marco su ${WA}.`
+      : `Alla data scelta avrà <b>${eta} anni</b>: scrivete a Marco su ${WA}, troviamo insieme la formula giusta.`;
     warn.classList.add('show');
     return false;
   }
   $('f-fnascita').addEventListener('change', verificaEta);
 
   // la casella del consenso compare solo quando c'è qualcosa scritto
-  function aggiornaNote(){
-    const n = $('f-note').value.trim().length;
-    $('conta-note').textContent = `${$('f-note').value.length} / 1000`;
+  // v4: le risposte del questionario diventano un testo unico, solo con le domande compilate
+  const domande = () => [...document.querySelectorAll('#claudia textarea.q')];
+  function testoNote(){
+    return domande().filter(t => t.value.trim()).map(t => `${t.dataset.etichetta}: ${t.value.trim()}`).join('\n');
+  }
+  function aggiornaNote(e){
+    if (e && e.target && e.target.classList.contains('q')) {
+      const c = e.target.parentNode.querySelector('.conta');
+      if (c) c.textContent = `${e.target.value.length} / 500`;
+    }
+    const n = domande().some(t => t.value.trim());
     $('riga-salute').style.display = n ? 'flex' : 'none';
     if (!n) $('f-salute').checked = false;
   }
-  $('f-note').addEventListener('input', aggiornaNote);
+  domande().forEach(t => t.addEventListener('input', aggiornaNote));
 
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   // v3: totale dal Worker (prima volta 25 €; dalla seconda iscrizione 40 € + lezione con lo sconto di fine anno)
@@ -464,7 +488,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     const figlio_nome    = $('f-fnome').value.trim();
     const figlio_cognome = $('f-fcognome').value.trim();
     const figlio_nascita = $('f-fnascita').value;
-    const note           = $('f-note').value.trim();
+    const note           = testoNote();
+    const richiamami     = $('f-richiamami').checked;
     const nome     = $('f-nome').value.trim();
     const cognome  = $('f-cognome').value.trim();
     const email    = $('f-email').value.trim().toLowerCase();
@@ -494,15 +519,16 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
           figlio_nome, figlio_cognome, figlio_nascita,
           note_istruttore: note,
           consenso_salute: (note && $('f-salute').checked) ? 'si' : 'no',
+          richiamami,
           accept_terms: true,
           consent: 'no',
         }),
       });
       const data = await res.json();
       if (res.ok && data.url) { window.location.href = data.url; return; }
-      erroreForm(data.message || `Il pagamento non si è aperto. Riprovate tra un minuto; se si ripete scrivete alla segreteria su ${WA}.`);
+      erroreForm(data.message || `Il pagamento non si è aperto. Riprovate tra un minuto; se si ripete scrivete a Marco su ${WA}.`);
     } catch (e) {
-      erroreForm(`Connessione instabile: riprovate. Se si ripete scrivete alla segreteria su ${WA}.`);
+      erroreForm(`Connessione instabile: riprovate. Se si ripete scrivete a Marco su ${WA}.`);
     }
     btn.disabled = false; btn.classList.remove('loading'); $('paga-label').textContent = etichettaPaga();
   });

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: festa v1.1 · 2026-11-07 · NUMERO DI MARCO (correzione Marco 7 nov): il WhatsApp +39 331 874 3953 è il numero personale di Marco, non della segreteria: i testi che lo legavano alla segreteria ora dicono "a Marco" (link invariato). Righe 111, 163, 268, 280, 410, 413, 434. NON toccata la frase del preventivo ("la segreteria prepara un preventivo … su WhatsApp"): decide Marco. + Riga sopra i sabati (passo 2): "Gli orari sono pochi e si riempiono in fretta: appena sapete quando potete venire, prenotate subito." CUMULA festa v1 -->
 <!-- KC-BUILD: festa v1 · 2026-11-07 · FESTA ED ESPERIENZA ARRAMPICATA (decisioni Marco 7 nov 2026, DB feste_sabato_e_private_bambini): pagina NUOVA, noindex e fuori sitemap; ci si arriva dal link che manda la segreteria e dal calendario pubblico (orari.html, ?d=YYYY-MM-DD). NIENTE Meta Pixel e niente banner cookie. Stile di prima-lezione-privata.html. Cinque passi, uno alla volta: (1) durata — due schede dagli slot corsi_attivi_settimanali tipo festa_sabato (90 min = 15 €/bambino, 60 min = 10 €/bambino, almeno 8 bambini; la durata si calcola dallo slot); (2) sabato — i sabati da oggi+7 a oggi+84, giorni_chiusi esclusi, occupati dalla RPC pubblica feste_sabati_occupati in grigio con GIÀ PRENOTATO, ?d= preseleziona; (3) bambini — numero 1–20 (con l'ora almeno 8, avviso che rimanda all'ora e mezza), eta' (testo), festeggiato facoltativo, frase di Marco sul numero; (4) genitore — nome, cognome, email, telefono, note facoltative, Termini (stesso PDF della Prima Lezione); (5) riepilogo con totale n × prezzo e bottone "Paga <totale> € e prenota". Riquadro condizioni sempre visibile sotto i passi. Uscire a meta' compilazione chiede conferma (beforeunload). Checkout -> stripe-worker v3.94 prodotto festa_sabato; errori del Worker mostrati con il loro messaggio, sabato appena preso (409) riporta al passo 2 con le date ricaricate. Ritorno da Stripe con annulla (?cancelled=1&f=<id>): POST /festa-annulla libera subito il sabato e i dati scritti tornano nei campi (sessionStorage, solo in questa scheda). -->
 <html lang="it">
 <head>
@@ -65,6 +66,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .fgroup input:focus,.fgroup textarea:focus{outline:none;border-color:var(--ink)}
 .fsplit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .frase{font-size:14px;color:var(--ink2);line-height:1.5;margin:-4px 0 14px}
+.pochi{background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r);padding:10px 12px;font-size:14px;color:#78350F;margin-bottom:14px;font-weight:600}
 .avviso{display:none;background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r);padding:10px 12px;font-size:14px;color:#78350F;margin-bottom:14px}
 .avviso.show{display:block}
 .terms{display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-size:14px;color:var(--ink2)}
@@ -108,7 +110,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
 <section class="section">
   <div id="carica"><span class="sp"></span> Carico i sabati disponibili…</div>
-  <div id="carica-err">I sabati non si sono caricati. Ricaricate la pagina; se si ripete scrivete alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
+  <div id="carica-err">I sabati non si sono caricati. Ricaricate la pagina; se si ripete scrivete a Marco su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
 
   <div id="wizard" style="display:none">
     <div class="passi" id="passi"><span></span><span></span><span></span><span></span><span></span></div>
@@ -123,6 +125,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     <div class="passo" data-p="2">
       <h2>Quale sabato?</h2>
       <p class="sub" id="sub-sabato">Si prenota almeno una settimana prima.</p>
+      <p class="pochi">Gli orari sono pochi e si riempiono in fretta: appena sapete quando potete venire, prenotate subito.</p>
       <div class="avviso" id="avviso-sabato"></div>
       <div class="sab-grid" id="sabati"></div>
     </div>
@@ -160,7 +163,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       <b>Come funziona:</b>
       <ul>
         <li>si prenota almeno una settimana prima</li>
-        <li>si può spostare o annullare fino a una settimana prima; con un gruppo fino a 8 bambini, fino a 4 giorni prima, scrivendo alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a></li>
+        <li>si può spostare o annullare fino a una settimana prima; con un gruppo fino a 8 bambini, fino a 4 giorni prima, scrivendo a Marco su <a href="https://wa.me/393318743953">WhatsApp</a></li>
         <li>oltre questi termini la quota resta all'Accademia</li>
       </ul>
       Per un'altra data o un altro orario la segreteria prepara un preventivo: dal lunedì al venerdì, dalle 17:00 alle 20:30, su <a href="https://wa.me/393318743953">WhatsApp</a>.
@@ -265,7 +268,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
         <div class="t1">${esc(labelData(iso))}</div>
         <span class="badge ${preso ? 'no' : 'ok'}">${preso ? 'GIÀ PRENOTATO' : 'LIBERO'}</span>
       </button>`;
-    }).join('') : `<p style="color:var(--ink2);font-size:14px">In questo momento non ci sono sabati prenotabili online: scrivete alla segreteria su ${WA}.</p>`;
+    }).join('') : `<p style="color:var(--ink2);font-size:14px">In questo momento non ci sono sabati prenotabili online: scrivete a Marco su ${WA}.</p>`;
     $('sabati').querySelectorAll('.scelta:not(.off)').forEach(b => b.addEventListener('click', () => {
       scelta.data = b.dataset.data; sporco = true; $('avviso-sabato').classList.remove('show'); salvaBozza(); disegnaSabati(); vai(3);
     }));
@@ -277,7 +280,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     av.classList.remove('show');
     if ($('f-n').value === '') return false;
     if (!Number.isInteger(n) || n < 1 || n > MAX_BAMBINI) {
-      av.innerHTML = `Si prenota online da 1 a ${MAX_BAMBINI} bambini. Per un gruppo più grande scrivete alla segreteria su ${WA}.`;
+      av.innerHTML = `Si prenota online da 1 a ${MAX_BAMBINI} bambini. Per un gruppo più grande scrivete a Marco su ${WA}.`;
       av.classList.add('show'); return false;
     }
     if (x && x.durata === 60 && n < MIN_ORA) {
@@ -407,10 +410,10 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
         $('avviso-sabato').textContent = data.message || 'Questo sabato non è più disponibile: scegliete un altro sabato.';
         $('avviso-sabato').classList.add('show');
       } else {
-        errore(esc(data.message || 'Il pagamento non si è aperto. Riprovate tra un minuto.') + ` Se serve, scrivete alla segreteria su ${WA}.`);
+        errore(esc(data.message || 'Il pagamento non si è aperto. Riprovate tra un minuto.') + ` Se serve, scrivete a Marco su ${WA}.`);
       }
     } catch (e) {
-      errore(`Connessione instabile: riprovate. Se si ripete scrivete alla segreteria su ${WA}.`);
+      errore(`Connessione instabile: riprovate. Se si ripete scrivete a Marco su ${WA}.`);
     }
     btn.disabled = false; btn.classList.remove('loading');
     $('avanti-label').textContent = passo === 5 ? `Paga ${totale()} € e prenota` : 'Avanti';
@@ -431,7 +434,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       await caricaSabati();
       $('carica').style.display = 'none';
       if (!durate.length) {
-        $('carica-err').innerHTML = `In questo momento la festa non si prenota online: scrivete alla segreteria su ${WA}.`;
+        $('carica-err').innerHTML = `In questo momento la festa non si prenota online: scrivete a Marco su ${WA}.`;
         $('carica-err').style.display = 'block';
         return;
       }

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: iscrizione v1.1 · 2026-11-07 · NUMERO DI MARCO (correzione Marco 7 nov): il WhatsApp +39 331 874 3953 è il numero personale di Marco, non della segreteria: i testi che lo legavano alla segreteria ora dicono "a Marco" (link invariato). Righe 730, 827. CUMULA iscrizione v1 -->
 <!-- KC-BUILD: iscrizione v1 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE, BLOCCO 1a (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): pagina NUOVA che richiede il login (noindex, fuori sitemap; nessuna RPC aperta ad anon). Niente piu' fogli firmati: la persona inserisce lei i dati. Senza sessione: card "Entra con il tuo account" che porta al portale e ricorda di tornare qui (localStorage kc_dopo_login, 1 ora). Con sessione: rpc iscrizione_stato -> "Tu" e i figli (MODELLO FAMIGLIA) con "Domanda {anno} inviata il …" o "Da compilare →"; un solo nome da compilare = si entra direttamente; figlio maggiorenne (dalla data di nascita) fermato prima di iniziare con il testo della RPC. Passi, uno alla volta con "Passo X di N": (1) i dati, controlli mentre si scrive (codice fiscale 16 caratteri nel formato della RPC, in maiuscolo da solo; CAP 5 cifre; provincia 2 lettere; data non futura), errori in rosso sotto il campo; (2) per un minore i dati di chi lo iscrive + "Sono il genitore"/"Sono il tutore legale" + dichiarazione obbligatoria (dati.genitore), precompilati dall'account; (3) la foto, obbligatoria: componente di grazie.html (fotocamera, controllo del viso MediaPipe nel telefono, ritaglio 800x800, ripiego da file) -> upload nel bucket privato riconoscimento persone/<persona_id>/<timestamp>.jpg -> rpc iscrizione_registra_foto; foto gia' presente = anteprima con "Va bene questa"/"Rifalla"; (4) per un figlio, chi lo accompagna: elenco con foto, chi compila aggiunto per primo se manca, aggiungi (nome, cognome, telefono, legame) -> rpc accompagnatore_aggiungi -> foto subito, togli con dialogo -> accompagnatore_ritira; ogni accompagnatore deve avere la foto; (5) domanda e consensi con i testi esatti di Marco; (6) riepilogo -> rpc iscrizione_salva, errori della RPC mostrati come arrivano; (7) fatto, con "Compila per {Figlio} →" se manca qualcuno. Uscire a meta' chiede "Sei sicuro? I dati non salvati andranno persi" con il dialogo della pagina (beforeunload per chiusura/ricarica). -->
 <html lang="it">
 <head>
@@ -727,7 +728,7 @@ h2{font-size:clamp(20px,5vw,25px);font-weight:900;line-height:1.2;letter-spacing
       card.stato = 'anteprima'; render(card);
       errore(card, (e && e.message && /[a-zà-ù]{3} [a-zà-ù]{3}/i.test(e.message) && !/fetch|network|jwt|row-level|policy/i.test(e.message))
         ? e.message
-        : 'La foto non si è salvata. Controlla la connessione e tocca di nuovo «Usa questa foto». Se si ripete scrivi alla segreteria su ' + WA_TESTO + '.');
+        : 'La foto non si è salvata. Controlla la connessione e tocca di nuovo «Usa questa foto». Se si ripete scrivi a Marco su ' + WA_TESTO + '.');
     }
   }
 
@@ -824,7 +825,7 @@ h2{font-size:clamp(20px,5vw,25px);font-weight:900;line-height:1.2;letter-spacing
       return '<div class="card"><div class="persona"><div><div class="n">' + tit + '</div>'
         + (maggiorenneDiAltri(x) && !x.domanda_anno ? '<div class="s">' + esc(testoMaggiorenne(x)) + '</div>' : '')
         + '</div>' + dx + '</div></div>';
-    }).join('') : '<div class="avviso">Su questo account non troviamo nessuno da iscrivere. Se pensi che sia un errore scrivi alla segreteria su ' + WA + '.</div>';
+    }).join('') : '<div class="avviso">Su questo account non troviamo nessuno da iscrivere. Se pensi che sia un errore scrivi a Marco su ' + WA + '.</div>';
     $('elenco').querySelectorAll('[data-apri]').forEach(function(b){ b.addEventListener('click', function(){ apri(b.getAttribute('data-apri')); }); });
     mostra('v-elenco');
   }

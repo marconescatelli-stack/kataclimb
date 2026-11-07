@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: proposta-advance · 2026-11-07 · NUMERO DI MARCO (correzione Marco 7 nov): il WhatsApp +39 331 874 3953 è il numero personale di Marco, non della segreteria: i testi che lo legavano alla segreteria ora dicono "a Marco" (link invariato). Messaggi d'errore righe 367, 372, 373. CUMULA 2026-11-06 -->
 <!-- KC-BUILD: proposta-advance · 2026-11-06 · PAGAMENTO ONLINE DEL CORSO ADVANCE KATACLIMB (decisione Marco 6 nov): con ?u=<persona_id> compaiono tre bottoni (1 volta a settimana prima rata 140 € · 1 volta a settimana intero 280 € · 2 volte a settimana 190 €) verso stripe-worker v3.93 GET /advance-checkout?u=&mode=mese1|intero|2xsett (mint-on-click, come proposta-open). Senza ?u resta solo la segreteria. Messaggi per ?pagato=, ?annullato=1 e ?errore= (account, open, open_in_corso, gia, parametri, server, stripe) via textContent. Seconda rata da 140 € sempre in segreteria. Card prezzi: 1 volta a settimana anche 280 € in una volta. Resto invariato. CUMULA 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Advance di KataClimb" -> "Il percorso Advance KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO ADVANCE" -> "IL TUO PERCORSO ADVANCE KATACLIMB IN ACCADEMIA RCC"; (2) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
 <html lang="it">
 <head>
@@ -364,13 +365,13 @@ const KC_WORKER = 'https://stripe-worker.marconescatelli.workers.dev';
   if (errore) {
     const restano = qs.get('restano');
     const testi = {
-      account:       'Non troviamo il tuo accesso al portale: scrivi alla segreteria su WhatsApp e ti iscriviamo noi.',
+      account:       'Non troviamo il tuo accesso al portale: scrivi a Marco su WhatsApp e ti iscriviamo noi.',
       open:          'Il Corso Advance KataClimb si apre dopo il Corso Open KataClimb. Per qualsiasi dubbio scrivi alla segreteria.',
       open_in_corso: `Hai ancora ${restano || 'qualche'} ${restano === '1' ? 'lezione' : 'lezioni'} del Corso Open KataClimb da fare: puoi pagare l'Advance da qui dopo l'ultima, oppure in Accademia.`,
       gia:           'Risulti già iscritto al Corso Advance KataClimb: trovi le lezioni nell\'agenda del portale.',
       parametri:     'Il link non è completo: usa quello che ti abbiamo mandato per email, oppure scrivi alla segreteria.',
-      server:        'Il pagamento non si è aperto: riprova tra un minuto. Se si ripete scrivi alla segreteria su WhatsApp.',
-      stripe:        'Il pagamento non si è aperto: riprova tra un minuto. Se si ripete scrivi alla segreteria su WhatsApp.',
+      server:        'Il pagamento non si è aperto: riprova tra un minuto. Se si ripete scrivi a Marco su WhatsApp.',
+      stripe:        'Il pagamento non si è aperto: riprova tra un minuto. Se si ripete scrivi a Marco su WhatsApp.',
     };
     msg('msg-info', testi[errore] || testi.server);
     if (errore === 'gia' || errore === 'open' || errore === 'account') return;

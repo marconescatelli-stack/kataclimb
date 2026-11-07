@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: manovra-sosta v1.1 · 2026-11-07 · NUMERO DI MARCO (correzione Marco 7 nov): il WhatsApp +39 331 874 3953 è il numero personale di Marco, non della segreteria: i testi che lo legavano alla segreteria ora dicono "a Marco" (link invariato). Righe 114, 168, 170, 192, 198, 224, 237, 243, 251. CUMULA manovra-sosta v1 -->
 <!-- KC-BUILD: manovra-sosta v1 · 2026-10-26 · CORSO MANOVRA IN SOSTA KATACLIMB (decisioni Marco 25 ott 2026, DB manovra_sosta_2026-10-25): pagina per chi ha concluso il Corso Evo Corda KataClimb (puo_iscriversi_manovra). Parte indoor in Accademia, 1 lezione, 25 € pagati online -> si entra in lista_manovra_sosta (lo scrive il webhook di stripe-worker). Con almeno 2 persone Mello sceglie giorno e ora (massimo 4), dopo 2 settimane si fa anche con una persona. Poi abile / non abile; chi e' abile fa la parte su roccia con Marco (uscita normale, 75 €, serve il Livello 2: non si compra da qui). Stati: non loggato -> entra dal portale; loggato senza Evo Corda concluso -> spiegazione, nessun pagamento; riga piu' recente in lista -> In lista dal / Prenotato il ... alle ... con ... / Svolto + esito; altrimenti (o dopo non abile, annullato, rimborsato) Paga 25 €. Checkout: POST stripe-worker /create-checkout-session {prodotto:'manovra_sosta'} con Authorization Bearer (il Worker ricontrolla idoneita' e doppio acquisto). Ritorno ?pagato=1 (attende la riga dal webhook, 6 tentativi) e ?annullato=1. Noindex, mobile first, freccia indietro P-NAV-BACK. -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
@@ -111,7 +112,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   <div class="info-list">
     <div class="info-item"><span class="ic">👤</span><span><b>Mello</b> in Accademia, <b>Marco</b> su roccia.</span></div>
     <div class="info-item"><span class="ic">📍</span><span><b>Accademia ArrampiKata RCC</b>, Via Cassia 1634, La Storta, Roma.</span></div>
-    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivi alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
+    <div class="info-item"><span class="ic">💬</span><span>Domande? Scrivi a Marco su <a href="https://wa.me/393318743953">WhatsApp</a>.</span></div>
   </div>
 </section>
 
@@ -165,9 +166,9 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.url) { location.href = data.url; return; }
-      err.innerHTML = esc(data.message || data.error || 'Il pagamento non si è aperto.') + ` Se si ripete scrivi alla segreteria su ${WA}.`;
+      err.innerHTML = esc(data.message || data.error || 'Il pagamento non si è aperto.') + ` Se si ripete scrivi a Marco su ${WA}.`;
     } catch (e) {
-      err.innerHTML = `Connessione instabile: riprova. Se si ripete scrivi alla segreteria su ${WA}.`;
+      err.innerHTML = `Connessione instabile: riprova. Se si ripete scrivi a Marco su ${WA}.`;
     }
     err.style.display = 'block';
     btn.disabled = false; btn.classList.remove('loading'); $('paga-label').textContent = 'Paga 25 € ed entra in lista';
@@ -189,13 +190,13 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       }
       stato('ok', `<h3>Prenotato ${esc(quando)}${chi}</h3>
         <p>Ti aspettiamo in Accademia 10 minuti prima.</p>
-        <p>Se non puoi venire scrivi subito alla segreteria su ${WA}.</p>`);
+        <p>Se non puoi venire scrivi subito a Marco su ${WA}.</p>`);
       return;
     }
     if (r.stato === 'svolto' && r.esito === 'abile') {
       stato('ok', `<h3>Svolto${r.data_lezione ? ' ' + esc(giorno(r.data_lezione)) : ''}: abile</h3>
         <p>Il prossimo passo è la parte su roccia con Marco: un'uscita normale (75 €), serve il Livello 2.</p>
-        <p>Per organizzarla scrivi alla segreteria su ${WA}.</p>`);
+        <p>Per organizzarla scrivi a Marco su ${WA}.</p>`);
       return;
     }
     if (r.stato === 'svolto') {
@@ -221,7 +222,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       sb.rpc('puo_iscriversi_manovra', { p_user: uid }),
     ]);
     if (rl.error || rp.error) {
-      stato('', `<h3>Non riesco a leggere i tuoi dati</h3><p>Ricarica la pagina. Se si ripete scrivi alla segreteria su ${WA}.</p>`);
+      stato('', `<h3>Non riesco a leggere i tuoi dati</h3><p>Ricarica la pagina. Se si ripete scrivi a Marco su ${WA}.</p>`);
       console.error('[manovra]', rl.error || rp.error);
       return;
     }
@@ -234,13 +235,13 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       return;
     }
     if (qp.has('pagato')) {
-      stato('stato', `<h3>Pagamento ricevuto</h3><p>Il tuo posto in lista non è ancora comparso qui. Ti arriva comunque la mail; se entro un'ora non vedi niente scrivi alla segreteria su ${WA}.</p>`);
+      stato('stato', `<h3>Pagamento ricevuto</h3><p>Il tuo posto in lista non è ancora comparso qui. Ti arriva comunque la mail; se entro un'ora non vedi niente scrivi a Marco su ${WA}.</p>`);
       return;
     }
     if (!rp.data) {
       stato('', `<h3>Si apre dopo il Corso Evo Corda KataClimb</h3>
         <p>Il ${NOME} si apre dopo aver concluso il Corso Evo Corda KataClimb. Quando l'avrai concluso trovi qui il pulsante per iscriverti.</p>
-        <p>Pensi di averlo già concluso? Scrivi alla segreteria su ${WA}.</p>`);
+        <p>Pensi di averlo già concluso? Scrivi a Marco su ${WA}.</p>`);
       return;
     }
     bottonePaga('Entra in lista', 'Paghi la lezione in Accademia e sei in lista. La conferma con giorno e ora ti arriva per mail.');
@@ -248,7 +249,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
   carica(qp.has('pagato') ? 6 : 0).catch(e => {
     console.error('[manovra]', e);
-    stato('', `<h3>Qualcosa non va</h3><p>Ricarica la pagina. Se si ripete scrivi alla segreteria su ${WA}.</p>`);
+    stato('', `<h3>Qualcosa non va</h3><p>Ricarica la pagina. Se si ripete scrivi a Marco su ${WA}.</p>`);
   });
 </script>
 </body>
