@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.110 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. (1) gli slot festa_sabato non sono lezioni: caricaSlot e la ricerca (cercaCarica) li escludono (.neq tipo_corso festa_sabato). Prima, nella vista Tutti i corsi comparivano ogni sabato come blocchi "Da assegnare" e il tocco apriva un tab festa_sabato con i bottoni di prenotazione. (2) Solo staff, nella vista 📋 Tutti i corsi e nel tab Bambini e Ragazzi: la festa prenotata (prenotazioni_festa stato prenotato, settimana a schermo) compare nella fascia del suo slot (ora_inizio–ora_fine dello slot) come "🎉 Festa · N bambini · genitore · telefono" (card rosa tra le lezioni in ordine di ora; nella griglia Tutti una riga "🎉 Feste"). Al tocco, modale di sola lettura con quando, bambini, eta' dei bambini, festeggiato, genitore, telefono (link tel:), durata, importo in €, note. Tutti i campi scritti dai genitori passano da escF. Se la lettura fallisce (RLS, rete) la festa non compare e il resto dell'agenda resta com'e'. Nessuna scrittura. CUMULA v3.109. -->
 <!-- KC-BUILD: agenda v3.109 · 2026-11-06 · IL TOCCO SUL NOME APRE LA SCHEDA (Marco 5–6 nov, sostituisce la consegna v1 del 5 nov): per tutto lo staff (isStaff) ogni nome prenotato o iscritto apre oggi.html?scheda=<persona_id>&torna=agenda&data=&tipo= nella stessa scheda del browser. persona_id: iscritti, abbonati e Manovra in Sosta dalla riga (v_lista_manovra_sosta ha persona_id, non user_id); Prima Lezione e Scuole dalla lettura della foto v3.95; corsi a credito da profile_data, una lettura in batch con cache (idrataNomi). Persona non trovata: nome senza tocco e console.warn. apriCardLead resta nel file ma non e' piu' legata ai nomi. Nessun SQL. CUMULA v3.108. -->
 <!-- KC-BUILD: agenda v3.108 · 2026-11-04 · RICORDO DOPO LA PRIMA LEZIONE (consegna 4 nov, scheda allievo B): dopo P (fatto) su una Prima Lezione, il portale chiede subito "Come lo riconosci tra un mese?" (300 caratteri, 🔒 solo staff, precompilato se c'e' gia') con Salta come scelta visibile -> salva_ricordo_lead(lead_id, p_ricordo). Se la lettura fallisce non chiede niente: la presenza resta salvata. Nessuna modifica a DB. CUMULA v3.107 (sotto). -->
 <!-- KC-BUILD: agenda v3.107 · 2026-11-02 · LEZIONE NON SVOLTA (consegna 2 nov, punto 3; DB impegni_staff.stato non_svolta): nello Staff della lezione lo stato non_svolta si legge "lezione non svolta" in un chip grigio, mai come assenza. Nessuna modifica a DB. CUMULA v3.106 (sotto). -->
@@ -346,6 +347,20 @@
     .slot.mia-prenot .slot-details { display:block!important; }
     .slot.mia-prenot .slot-toggle { display:none!important; }
   }
+  /* v3.110 FESTE DEL SABATO: card nella fascia dello slot (vista Bambini e Ragazzi) e blocco nella griglia Tutti i corsi */
+  .festa-card { background:#FDF2F8; border:1px solid #DB277755; border-left:5px solid #DB2777; border-radius:12px; padding:.6rem 1.3rem;
+                display:grid; grid-template-columns:200px 1fr; gap:1.2rem; align-items:center; cursor:pointer; font:inherit;
+                text-align:left; width:100%; color:var(--ink); box-shadow:0 1px 4px rgba(44,36,24,.04); }
+  .festa-card:hover { border-color:#DB2777; }
+  .festa-card.passato { opacity:.6; }
+  .festa-card strong { font-size:15px; }
+  .festa-card .festa-cosa { font-size:15px; font-weight:700; line-height:1.35; overflow-wrap:anywhere; }
+  .festa-card .festa-sub { font-size:13px; font-weight:400; color:var(--muted); margin-top:2px; }
+  .gblk.festa { background:#DB2777; font-size:13px; }
+  .festa-det { background:#fff; border-radius:8px; padding:.9rem 1.1rem; font-size:15px; line-height:1.5; }
+  .festa-det div { margin-bottom:.25rem; overflow-wrap:anywhere; }
+  .festa-det b { color:var(--ink); }
+  @media (max-width: 720px) { .festa-card { grid-template-columns:1fr; gap:.25rem; padding:.55rem .7rem; } }
 </style>
 </head>
 <body>
@@ -450,6 +465,17 @@
     <div class="modal-actions">
       <button class="btn-ann" id="prenota-annulla">Annulla</button>
       <button class="btn-ok" id="prenota-conferma">Prenota</button>
+    </div>
+  </div>
+</div>
+
+<!-- v3.110 Modale dettagli festa del sabato (solo staff, sola lettura) -->
+<div id="modal-festa" class="modal-bg">
+  <div class="modal">
+    <h3>🎉 Festa ed Esperienza Arrampicata</h3>
+    <div class="festa-det" id="festa-det"></div>
+    <div class="modal-actions">
+      <button class="btn-ann" id="festa-chiudi">Chiudi</button>
     </div>
   </div>
 </div>
@@ -724,6 +750,13 @@
   const usaTabellaPrima = (t) => isPrimaTipo(t) || t === 'prima_lezione_scuola';
   // v3.102 — Corso Manovra in Sosta KataClimb: slot datati, partecipanti da lista_manovra_sosta (sola lettura qui)
   const isManovra = (t) => t === 'manovra_sosta';
+  // v3.110 — FESTE DEL SABATO (consegna Marco 7 nov): gli slot festa_sabato non sono lezioni. Si vede solo la festa
+  // prenotata (prenotazioni_festa stato prenotato), nella fascia del suo slot, nella vista Tutti i corsi e nel tab
+  // Bambini e Ragazzi, solo allo staff. Lettura fallita (RLS o rete) = nessuna festa, il resto dell'agenda invariato.
+  const FESTA_TIPO = 'festa_sabato';
+  const FESTA_TAB = ['tutti', 'bambini'];
+  let festeSettimana = [];
+  const escF = (v) => v == null ? '' : String(v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const STATI_MANOVRA = ['prenotato', 'svolto'];
   // v3.99/v3.100 — 7b TURNI (impegni_staff, RPC impegno_mi_segno/mi_tolgo): chi si segna su uno slot. Componente generico: oggi gli slot scuola,
   // domani i turni monitor (basta allargare haTurni). TURNI_TARGET = istruttori attesi per lezione scuola
@@ -746,7 +779,7 @@
     prima_lezione_bambini: { label: 'Prima Lezione Bambini 6-11', color: 'var(--prima)' },
     prima_lezione_ragazzi: { label: 'Prima Lezione Ragazzi 12-17', color: 'var(--prima)' },
     prima_lezione_genitori: { label: 'Prima Lezione Genitori', color: 'var(--prima)' },
-    prima_lezione_privata: { label: 'Prima Lezione Privata Speciale', color: 'var(--prima)' },
+    prima_lezione_privata: { label: 'Lezione Privata Bambini', color: 'var(--prima)' },
     open:          { label: 'Open KataClimb',    color: 'var(--open)' },
     advance:       { label: 'Advance KataClimb', color: 'var(--advance)' },
     intro_corda:   { label: 'Intro KataClimb',   color: 'var(--intro)' },
@@ -772,7 +805,7 @@
   // e al toast dello spostamento Prima Lezione. Corpo invariato.
   function labelSlot(tipo, fascia) {
     if (tipo === 'prima_lezione_genitori') return 'Prima Lezione Genitori';
-    if (tipo === 'prima_lezione_privata') return 'Prima Lezione Privata Speciale'; // v3.101
+    if (tipo === 'prima_lezione_privata') return 'Lezione Privata Bambini'; // v3.101 · v3.110 nome
     if (tipo === 'prima_lezione_scuola') return 'Prima Lezione · Scuole'; // nomi decisi da Marco 21 ott: gruppo misto, niente fascia
     if (tipo === 'scuola_mini') return 'Mini percorso · Scuole';
     if (isManovra(tipo)) return 'Corso Manovra in Sosta KataClimb'; // v3.102
@@ -896,7 +929,7 @@
   /* ═══ v3.106 CERCA NELL'AGENDA — solo letture, sempre per intervallo di date ═══ */
   const CERCA_NOME = {
     prima_lezione: 'Prima Lezione Adulti', prima_lezione_bambini: 'Prima Lezione Bambini (6–11)', prima_lezione_ragazzi: 'Prima Lezione Ragazzi (12–17)',
-    prima_lezione_genitori: 'Prima Lezione Genitori', prima_lezione_privata: 'Prima Lezione Privata Speciale',
+    prima_lezione_genitori: 'Prima Lezione Genitori', prima_lezione_privata: 'Lezione Privata Bambini', festa_sabato: 'Festa ed Esperienza Arrampicata',
     prima_lezione_scuola: 'Prima Lezione · Scuole', scuola_mini: 'Mini percorso · Scuole',
     open: 'Corso Open KataClimb', advance: 'Corso Advance KataClimb', intro_corda: 'Corso Intro Corda KataClimb', evo_corda: 'Corso Evo Corda KataClimb',
     fly: 'Corso Fly KataClimb', evo_ragazzi: 'Corso Evo Ragazzi', expert: 'Corso Expert', giovani: 'Corso Giovani KataClimb (18–24)',
@@ -931,7 +964,7 @@
     const staff = viewMode !== 'allievo';
     const D = { passate, da, a, oggi: isoD(oggi), staff, slot: [], pren: [], imp: [], iscritti: {}, chiuse: new Set() };
     const [rs, rc] = await Promise.all([
-      sb.from('corsi_attivi_settimanali').select('id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, fascia, data_evento, lead_scuola_id').eq('status', 'attivo'),
+      sb.from('corsi_attivi_settimanali').select('id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, fascia, data_evento, lead_scuola_id').eq('status', 'attivo').neq('tipo_corso', FESTA_TIPO), // v3.110 niente slot festa nei risultati
       sb.from('slot_chiusure').select('slot_id, data').gte('data', da).lte('data', a)
     ]);
     if (rs.error) throw rs.error;
@@ -1183,7 +1216,7 @@
       prima_lezione_bambini: 'Prima Lezione Bambini 6-11',
       prima_lezione_ragazzi: 'Prima Lezione Ragazzi 12-17',
       prima_lezione_genitori: 'Prima Lezione Genitori',
-      prima_lezione_privata: 'Prima Lezione Privata Speciale'
+      prima_lezione_privata: 'Lezione Privata Bambini'
     };
     for (const t of PRIMA_FAMILY) {
       if (!tipiConfig[t]) {
@@ -1479,6 +1512,7 @@
       render();
     };
     document.getElementById('prenota-annulla').onclick = () => closeModal('modal-prenota');
+    document.getElementById('festa-chiudi').onclick = () => closeModal('modal-festa'); // v3.110
     document.getElementById('prenota-conferma').onclick = onPrenotaConferma;
     document.getElementById('disdici-annulla').onclick = () => closeModal('modal-disdici');
     document.getElementById('disdici-conferma').onclick = onDisdiciConferma;
@@ -1562,7 +1596,8 @@
   async function caricaSlot() {
     let q = sb.from('corsi_attivi_settimanali')
       .select('id, giorno_settimana, ora_inizio, ora_fine, tipo_corso, fascia, capienza_max, istruttore_id, istruttori(nome), data_evento, lead_scuola_id')
-      .eq('status', 'attivo');
+      .eq('status', 'attivo')
+      .neq('tipo_corso', FESTA_TIPO); // v3.110 — lo slot festa non e' una lezione prenotabile: la festa prenotata arriva da caricaFesteSettimana
 
     // v3.59 — vista "Tutti" (solo segreteria desktop): nessun filtro tipo → tutti i corsi insieme
     if (currentTipo !== 'tutti') {
@@ -1584,6 +1619,57 @@
     const { data, error } = await q.order('giorno_settimana').order('ora_inizio');
     if (error) throw error;
     return data || [];
+  }
+
+  // v3.110 — feste del sabato prenotate nella settimana (solo staff, solo nelle viste FESTA_TAB)
+  async function caricaFesteSettimana(lun, dom) {
+    if (viewMode === 'allievo' || !FESTA_TAB.includes(currentTipo)) return [];
+    try {
+      const { data, error } = await sb.from('prenotazioni_festa')
+        .select('id, slot_id, data, durata_min, n_bambini, eta_bambini, festeggiato, nome, cognome, telefono, importo, note, corsi_attivi_settimanali(ora_inizio, ora_fine)')
+        .eq('stato', 'prenotato').gte('data', isoD(lun)).lte('data', isoD(dom));
+      if (error) throw error;
+      return (data || []).filter(f => f.corsi_attivi_settimanali && f.corsi_attivi_settimanali.ora_inizio).map(f => {
+        const ini = f.corsi_attivi_settimanali.ora_inizio, fin = f.corsi_attivi_settimanali.ora_fine;
+        return { ...f, ini: String(ini).slice(0, 5), fin: String(fin || '').slice(0, 5),
+          dtInizio: slotDateTime(f.data, ini), dtFine: slotDateTime(f.data, fin || ini) };
+      }).sort((a, b) => a.dtInizio - b.dtInizio);
+    } catch (err) {
+      console.warn('[feste]', err?.message || err);
+      return [];
+    }
+  }
+  const festaGenitore = (f) => ((f.nome || '') + ' ' + (f.cognome || '')).trim();
+  // "🎉 Festa · <n> bambini · <genitore> · <telefono>"
+  const festaRiga = (f) => ['🎉 Festa', f.n_bambini + ' bambini', festaGenitore(f), f.telefono].filter(Boolean).map(escF).join(' · ');
+  function festaData(f) { const [a, m, g] = String(f.data).split('-').map(Number); return new Date(a, m - 1, g); }
+  function renderFestaCard(f, i, now) {
+    const d = festaData(f);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'festa-card' + (f.dtFine < now ? ' passato' : '');
+    b.dataset.festa = i;
+    b.innerHTML = `<div><strong>${GIORNI_BR[(d.getDay() + 6) % 7]} ${d.getDate()} ${MESI_BR[d.getMonth()]}</strong>
+        <div class="ora">${escF(f.ini)}–${escF(f.fin)}</div></div>
+      <div><div class="festa-cosa">${festaRiga(f)}</div><div class="festa-sub">Festa ed Esperienza Arrampicata · tocca per i dettagli</div></div>`;
+    b.addEventListener('click', () => apriFesta(i));
+    return b;
+  }
+  function apriFesta(i) {
+    const f = festeSettimana[i]; if (!f) return;
+    const d = festaData(f), tel = String(f.telefono || '').replace(/[^\d+]/g, '');
+    const riga = (l, v) => (v == null || v === '') ? '' : `<div><b>${l}:</b> ${v}</div>`;
+    document.getElementById('festa-det').innerHTML =
+        riga('Quando', `${GIORNI[(d.getDay() + 6) % 7]} ${d.getDate()} ${MESI_BR[d.getMonth()]} · ${escF(f.ini)}–${escF(f.fin)}`)
+      + riga('Bambini', escF(f.n_bambini))
+      + riga('Età dei bambini', escF(f.eta_bambini))
+      + riga('Festeggiato', escF(f.festeggiato))
+      + riga('Genitore', escF(festaGenitore(f)))
+      + riga('Telefono', f.telefono ? (tel ? `<a href="tel:${escF(tel)}">${escF(f.telefono)}</a>` : escF(f.telefono)) : '')
+      + riga('Durata', f.durata_min ? escF(f.durata_min) + ' minuti' : '')
+      + riga('Importo', f.importo != null ? escF(Number(f.importo).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })) : '')
+      + riga('Note', escF(f.note));
+    openModal('modal-festa');
   }
 
   // v3.102 — Corso Manovra in Sosta KataClimb: chi e' prenotato (o ha gia' fatto la lezione) negli slot della settimana.
@@ -1781,10 +1867,12 @@
     renderEventiSettimana(lun, dom); // v3.65: eventi Accademia della settimana (read-only, non blocca)
 
     try {
-      const [slots, prenot] = await Promise.all([
+      const [slots, prenot, feste] = await Promise.all([
         caricaSlot(),
-        caricaPrenotSettimana(lun, dom)
+        caricaPrenotSettimana(lun, dom),
+        caricaFesteSettimana(lun, dom) // v3.110 — mai errore: lettura fallita = []
       ]);
+      festeSettimana = feste;
 
       if (!slots.length) {
         const tipoLab = TIPO_LABELS[currentTipo]?.label || currentTipo;
@@ -1831,10 +1919,15 @@
         return;
       }
 
+      // v3.110 — feste del sabato nella fascia giusta: ognuna prima della prima lezione che inizia dopo di lei
+      let fi = 0;
+      const metteFeste = (fino) => { while (fi < festeSettimana.length && (fino == null || festeSettimana[fi].dtInizio <= fino)) { grid.appendChild(renderFestaCard(festeSettimana[fi], fi, now)); fi++; } };
       for (const lez of lezioni) {
+        metteFeste(lez.dtInizio);
         const card = renderSlot(lez, cfg, now);
         grid.appendChild(card);
       }
+      metteFeste(null);
 
       avvisoSettimanaSenzaPrenotabili(grid, lezioni, now); // v3.98 — vista allievo
 
@@ -1944,8 +2037,23 @@
         html += '</div>';
       }
     }
+    // v3.110 — riga delle feste del sabato prenotate (solo se ce ne sono nella settimana)
+    if (festeSettimana.length) {
+      html += '<div class="gt-ist">🎉 Feste</div>';
+      for (let d = 0; d < 7; d++) {
+        html += '<div class="gt-cell">';
+        festeSettimana.forEach((f, i) => {
+          if ((festaData(f).getDay() + 6) % 7 !== d) return;
+          html += `<button class="gblk festa${f.dtFine < now ? ' passato' : ''}" data-festa="${i}" title="${festaRiga(f)}">`
+                + `<span class="gblk-t">${festaRiga(f)}</span>`
+                + `<span class="gblk-o">${escF(f.ini)}–${escF(f.fin)}</span></button>`;
+        });
+        html += '</div>';
+      }
+    }
     html += '</div>';
     grid.innerHTML = html;
+    grid.querySelectorAll('.gblk[data-festa]').forEach(btn => btn.addEventListener('click', () => apriFesta(+btn.dataset.festa)));
 
     // Clic su un blocco → apre la vista del corso specifico (drill-in)
     const sel = document.getElementById('tipo-select');

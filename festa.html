@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<!-- KC-BUILD: festa v1 · 2026-11-07 · FESTA ED ESPERIENZA ARRAMPICATA (decisioni Marco 7 nov 2026, DB feste_sabato_e_private_bambini): pagina NUOVA, noindex e fuori sitemap; ci si arriva dal link che manda la segreteria e dal calendario pubblico (orari.html, ?d=YYYY-MM-DD). NIENTE Meta Pixel e niente banner cookie. Stile di prima-lezione-privata.html. Cinque passi, uno alla volta: (1) durata — due schede dagli slot corsi_attivi_settimanali tipo festa_sabato (90 min = 15 €/bambino, 60 min = 10 €/bambino, almeno 8 bambini; la durata si calcola dallo slot); (2) sabato — i sabati da oggi+7 a oggi+84, giorni_chiusi esclusi, occupati dalla RPC pubblica feste_sabati_occupati in grigio con GIÀ PRENOTATO, ?d= preseleziona; (3) bambini — numero 1–20 (con l'ora almeno 8, avviso che rimanda all'ora e mezza), eta' (testo), festeggiato facoltativo, frase di Marco sul numero; (4) genitore — nome, cognome, email, telefono, note facoltative, Termini (stesso PDF della Prima Lezione); (5) riepilogo con totale n × prezzo e bottone "Paga <totale> € e prenota". Riquadro condizioni sempre visibile sotto i passi. Uscire a meta' compilazione chiede conferma (beforeunload). Checkout -> stripe-worker v3.94 prodotto festa_sabato; errori del Worker mostrati con il loro messaggio, sabato appena preso (409) riporta al passo 2 con le date ricaricate. Ritorno da Stripe con annulla (?cancelled=1&f=<id>): POST /festa-annulla libera subito il sabato e i dati scritti tornano nei campi (sessionStorage, solo in questa scheda). -->
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Festa ed Esperienza Arrampicata · Accademia RCC · KataClimb</title>
+<meta name="description" content="Festa ed Esperienza Arrampicata all'Accademia RCC, La Storta Roma: il sabato mattina la sala e la struttura sono tutte per il vostro gruppo, con i nostri istruttori.">
+<link rel="icon" href="/favicon-192x192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --bg2:#F4F4F5; --bg3:#0A0A0A;
+  --ink:#0A0A0A; --ink2:#404040; --ink3:#737373;
+  --ink-on-dark:#FFFFFF; --ink-on-dark2:#D4D4D4;
+  --border:#E5E5E5; --border2:#D4D4D4;
+  --sky:#0EA5E9; --sky-dark:#0284C7;
+  --yellow:#FACC15; --red:#EF4444;
+  --r:8px; --r-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.55}
+@keyframes spin{to{transform:rotate(360deg)}}
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);gap:12px}
+.header .logo{height:32px;width:auto;display:block}
+.header .logo-rcc{height:28px}
+.cancel-banner{display:none;margin:16px 16px 0;padding:12px 16px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r);font-size:14px;color:#78350F}
+.cancel-banner.show{display:block}
+.hero{background:#0A0A0A;color:#fff;text-align:center;padding:36px 22px 40px}
+.hero h1{font-size:clamp(28px,7vw,42px);font-weight:900;line-height:1.1;letter-spacing:-.025em;margin:0 auto 14px;max-width:680px}
+.hero h1 em{font-style:normal;color:var(--yellow)}
+.hero p{color:var(--ink-on-dark2);font-size:17px;max-width:560px;margin:0 auto}
+.section{max-width:720px;margin:0 auto;padding:32px 16px}
+.passi{display:flex;gap:6px;margin-bottom:8px}
+.passi span{flex:1;height:5px;border-radius:3px;background:var(--border)}
+.passi span.on{background:var(--ink)}
+.passo-n{font-size:13px;font-weight:700;color:var(--ink2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.passo{display:none}
+.passo.show{display:block}
+.passo h2{font-size:clamp(22px,5vw,28px);font-weight:900;letter-spacing:-.02em;margin-bottom:6px}
+.passo .sub{color:var(--ink2);font-size:15px;margin-bottom:18px}
+#carica{display:flex;align-items:center;gap:10px;color:var(--ink2);font-size:14px;padding:18px 0}
+#carica .sp{width:18px;height:18px;border:2.5px solid var(--border2);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
+#carica-err{display:none;color:#B91C1C;font-size:14px;padding:12px 0}
+#carica-err a{color:inherit;font-weight:700}
+.scelte{display:flex;flex-direction:column;gap:10px}
+.scelta{border:1.5px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;background:#fff;text-align:left;font:inherit;color:inherit;width:100%}
+.scelta.sel{border-color:var(--ink);box-shadow:0 0 0 3px rgba(10,10,10,.12)}
+.scelta.off{background:#F4F4F5;border-color:var(--border2);cursor:default;color:var(--ink2)}
+.scelta .t1{font-weight:900;font-size:16px;text-transform:none}
+.scelta .t2{margin-top:4px;font-size:14px;color:var(--ink2)}
+.sab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sab-grid .scelta .t1{text-transform:capitalize}
+.badge{display:inline-block;margin-top:8px;font-size:13px;font-weight:900;padding:3px 10px;letter-spacing:.04em;border-radius:var(--r-pill)}
+.badge.ok{background:#DCFCE7;color:#14532D}
+.badge.no{background:#E5E5E5;color:#404040}
+.fgroup{margin-bottom:14px}
+.fgroup label{display:block;font-size:14px;font-weight:700;margin-bottom:5px}
+.fgroup label small{font-weight:400;color:var(--ink2);font-size:13px}
+.fgroup input,.fgroup textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:16px;background:#fff}
+.fgroup textarea{min-height:90px;resize:vertical;line-height:1.45}
+.fgroup input:focus,.fgroup textarea:focus{outline:none;border-color:var(--ink)}
+.fsplit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.frase{font-size:14px;color:var(--ink2);line-height:1.5;margin:-4px 0 14px}
+.avviso{display:none;background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r);padding:10px 12px;font-size:14px;color:#78350F;margin-bottom:14px}
+.avviso.show{display:block}
+.terms{display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-size:14px;color:var(--ink2)}
+.terms input{width:20px;height:20px;margin-top:1px;flex-shrink:0}
+.terms a{color:var(--sky-dark)}
+.riep{background:var(--bg2);border-radius:12px;padding:16px;font-size:15px}
+.riep .r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border)}
+.riep .r:last-child{border-bottom:none}
+.riep .r span:first-child{color:var(--ink2)}
+.riep .r span:last-child{text-align:right;font-weight:600;overflow-wrap:anywhere}
+.riep .tot{font-size:18px;font-weight:900}
+.condizioni{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:var(--r);padding:12px 14px;font-size:14px;line-height:1.5;color:#0C4A6E;margin:22px 0 0}
+.condizioni ul{margin:6px 0 8px 18px}
+.condizioni a{color:inherit;font-weight:700}
+.nav{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;border:none;border-radius:var(--r-pill);padding:15px;font-family:inherit;font-size:16px;font-weight:900;cursor:pointer;background:var(--ink);color:#fff}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.sec{flex:0 0 auto;background:#fff;color:var(--ink);border:1.5px solid var(--ink);padding:15px 20px}
+.btn .sp{display:none;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:8px}
+.btn.loading .sp{display:inline-block}
+#errore{display:none;color:#B91C1C;font-size:14px;margin-top:12px;text-align:center}
+#errore a{color:inherit;font-weight:700}
+.footer{background:var(--bg3);color:var(--ink-on-dark2);text-align:center;padding:28px 20px;font-size:13px;margin-top:44px}
+.footer a{color:#fff}
+@media (max-width:420px){.fsplit{grid-template-columns:1fr;gap:0}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <img src="/logo-rcc.png" alt="Accademia RCC" class="logo logo-rcc">
+  <img src="/kataclimb-logo.svg" alt="KataClimb" class="logo">
+</header>
+
+<div class="cancel-banner" id="cancel-banner">Pagamento annullato, nessun addebito. I dati che avevate scritto sono ancora qui: potete riprovare quando volete.</div>
+
+<section class="hero">
+  <h1>Festa ed Esperienza <em>Arrampicata</em></h1>
+  <p>Il sabato mattina la sala e la struttura sono tutte per il vostro gruppo, con i nostri istruttori.</p>
+</section>
+
+<section class="section">
+  <div id="carica"><span class="sp"></span> Carico i sabati disponibili…</div>
+  <div id="carica-err">I sabati non si sono caricati. Ricaricate la pagina; se si ripete scrivete alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>.</div>
+
+  <div id="wizard" style="display:none">
+    <div class="passi" id="passi"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="passo-n" id="passo-n"></div>
+
+    <div class="passo" data-p="1">
+      <h2>Quanto dura la festa?</h2>
+      <p class="sub">Scegliete la formula: il prezzo è a bambino.</p>
+      <div class="scelte" id="durate"></div>
+    </div>
+
+    <div class="passo" data-p="2">
+      <h2>Quale sabato?</h2>
+      <p class="sub" id="sub-sabato">Si prenota almeno una settimana prima.</p>
+      <div class="avviso" id="avviso-sabato"></div>
+      <div class="sab-grid" id="sabati"></div>
+    </div>
+
+    <div class="passo" data-p="3">
+      <h2>I bambini</h2>
+      <p class="sub" id="sub-bambini"></p>
+      <div class="fgroup"><label for="f-n">Quanti bambini?*</label><input id="f-n" type="number" inputmode="numeric" min="1" max="20" step="1"></div>
+      <p class="frase">Il numero dei bambini è importante: in base a quanti sono reclutiamo gli istruttori, così da offrire a ogni bambino l'esperienza migliore. Più bambini ci sono, più hanno bisogno di essere seguiti.</p>
+      <div class="avviso" id="avviso-n"></div>
+      <div class="fgroup"><label for="f-eta">Età dei bambini*</label><input id="f-eta" maxlength="100" placeholder="Per esempio: 7–9 anni"></div>
+      <div class="fgroup"><label for="f-festeggiato">Nome del festeggiato <small>(facoltativo)</small></label><input id="f-festeggiato" maxlength="100" autocomplete="off"></div>
+    </div>
+
+    <div class="passo" data-p="4">
+      <h2>Il genitore</h2>
+      <p class="sub">Chi prenota e paga: qui arriva la conferma.</p>
+      <div class="fsplit">
+        <div class="fgroup"><label for="f-nome">Nome*</label><input id="f-nome" maxlength="100" autocomplete="given-name"></div>
+        <div class="fgroup"><label for="f-cognome">Cognome*</label><input id="f-cognome" maxlength="100" autocomplete="family-name"></div>
+      </div>
+      <div class="fgroup"><label for="f-email">Email*</label><input id="f-email" type="email" inputmode="email" maxlength="200" autocomplete="email"></div>
+      <div class="fgroup"><label for="f-telefono">Telefono*</label><input id="f-telefono" type="tel" inputmode="tel" maxlength="40" autocomplete="tel"></div>
+      <div class="fgroup"><label for="f-note">Note <small>(facoltative)</small></label><textarea id="f-note" maxlength="1000" placeholder="Qualcosa che è utile sapere per preparare la festa."></textarea></div>
+      <label class="terms"><input type="checkbox" id="f-terms"><span>Accetto i <a href="/Termini_Prima_Lezione.pdf" target="_blank" rel="noopener">Termini</a>.</span></label>
+    </div>
+
+    <div class="passo" data-p="5">
+      <h2>Riepilogo</h2>
+      <p class="sub">Controllate i dati: dopo il pagamento il sabato è vostro.</p>
+      <div class="riep" id="riep"></div>
+    </div>
+
+    <div class="condizioni">
+      <b>Come funziona:</b>
+      <ul>
+        <li>si prenota almeno una settimana prima</li>
+        <li>si può spostare o annullare fino a una settimana prima; con un gruppo fino a 8 bambini, fino a 4 giorni prima, scrivendo alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a></li>
+        <li>oltre questi termini la quota resta all'Accademia</li>
+      </ul>
+      Per un'altra data o un altro orario la segreteria prepara un preventivo: dal lunedì al venerdì, dalle 17:00 alle 20:30, su <a href="https://wa.me/393318743953">WhatsApp</a>.
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn sec" id="indietro">Indietro</button>
+      <button type="button" class="btn" id="avanti"><span class="sp"></span><span id="avanti-label">Avanti</span></button>
+    </div>
+    <div id="errore"></div>
+  </div>
+</section>
+
+<footer class="footer">
+  Accademia ArrampiKata RCC · Via Cassia 1634, La Storta, Roma<br>
+  <a href="https://kataclimb.com">kataclimb.com</a>
+</footer>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL  = 'https://wbtougychlhnlcnonqge.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidG91Z3ljaGxobmxjbm9ucWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTQ0MTUsImV4cCI6MjA5MDk5MDQxNX0.QwYWbaOkquJCwOHV6e9w38bLGEO-iNzuH7mwBVgTa9E';
+  const WORKER_URL    = 'https://stripe-worker.marconescatelli.workers.dev';
+  const PRODOTTO      = 'festa_sabato';
+  const GIORNI_MIN    = 7;    // almeno una settimana prima
+  const GIORNI_MAX    = 84;   // entro 12 settimane
+  const MIN_ORA       = 8;    // con l'ora almeno 8 bambini
+  const MAX_BAMBINI   = 20;
+  const EURO          = { 90: 15, 60: 10 };
+  const TESTO_DURATA  = { 90: 'Un\'ora e mezza', 60: 'Un\'ora' };
+  const WA = '<a href="https://wa.me/393318743953">WhatsApp</a>';
+  const BOZZA = 'kc_festa_bozza';
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+  const $ = id => document.getElementById(id);
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const qs = new URLSearchParams(location.search);
+  const dataRichiesta = qs.get('d') || '';
+  const annullata = qs.get('cancelled') === '1';
+  const festaAnnullata = qs.get('f') || '';
+
+  let durate = [];               // [{ slot_id, durata, euro, orario }]
+  let sabati = [];               // ['YYYY-MM-DD']
+  let occupati = new Set();
+  let scelta = { durata: null, data: null };
+  let passo = 1;
+  let sporco = false, pagando = false;
+
+  // date in LOCALE (trappola #134)
+  function isoLocale(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function traGiorni(n){ const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + n); return isoLocale(d); }
+  function labelData(iso, conAnno){
+    return new Date(iso + 'T12:00:00').toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', ...(conAnno ? { year:'numeric' } : {}) });
+  }
+  const hm = t => String(t || '').substring(0, 5);
+  const durataScelta = () => durate.find(x => x.durata === scelta.durata) || null;
+
+  async function caricaDurate(){
+    const { data, error } = await sb.from('corsi_attivi_settimanali')
+      .select('id, giorno_settimana, ora_inizio, ora_fine')
+      .eq('tipo_corso', 'festa_sabato').eq('status', 'attivo');
+    if (error) throw error;
+    durate = (data || []).map(s => {
+      const [hi, mi] = s.ora_inizio.split(':').map(Number), [hf, mf] = s.ora_fine.split(':').map(Number);
+      const durata = (hf * 60 + mf) - (hi * 60 + mi);
+      return { slot_id: s.id, durata, euro: EURO[durata], orario: `${hm(s.ora_inizio)}–${hm(s.ora_fine)}` };
+    }).filter(x => x.euro).sort((a, b) => b.durata - a.durata);
+  }
+  async function caricaSabati(){
+    const dal = traGiorni(GIORNI_MIN), al = traGiorni(GIORNI_MAX);
+    const chiusi = new Set();
+    try { const { data } = await sb.from('giorni_chiusi').select('data').gte('data', dal).lte('data', al); (data || []).forEach(r => chiusi.add(r.data)); }
+    catch (e) { console.warn('giorni_chiusi non caricati', e); }
+    const { data, error } = await sb.rpc('feste_sabati_occupati', { p_dal: dal, p_al: al });
+    if (error) throw error;
+    occupati = new Set((data || []).map(r => r.data));
+    sabati = [];
+    const d = new Date(dal + 'T12:00:00');
+    while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
+    for (; isoLocale(d) <= al; d.setDate(d.getDate() + 7)) {
+      const iso = isoLocale(d);
+      if (!chiusi.has(iso)) sabati.push(iso);
+    }
+  }
+
+  function disegnaDurate(){
+    $('durate').innerHTML = durate.map(x => `
+      <button type="button" class="scelta${scelta.durata === x.durata ? ' sel' : ''}" data-durata="${x.durata}">
+        <div class="t1">${TESTO_DURATA[x.durata]} · ${esc(x.orario)} · ${x.euro} € a bambino${x.durata === 60 ? ` · almeno ${MIN_ORA} bambini` : ''}</div>
+      </button>`).join('');
+    $('durate').querySelectorAll('.scelta').forEach(b => b.addEventListener('click', () => {
+      scelta.durata = +b.dataset.durata; sporco = true; salvaBozza(); disegnaDurate(); vai(2);
+    }));
+  }
+  function disegnaSabati(){
+    const x = durataScelta();
+    $('sub-sabato').textContent = `Si prenota almeno una settimana prima.${x ? ` Orario ${x.orario}.` : ''}`;
+    $('sabati').innerHTML = sabati.length ? sabati.map(iso => {
+      const preso = occupati.has(iso);
+      return `<button type="button" class="scelta${preso ? ' off' : ''}${scelta.data === iso ? ' sel' : ''}" data-data="${iso}"${preso ? ' disabled' : ''}>
+        <div class="t1">${esc(labelData(iso))}</div>
+        <span class="badge ${preso ? 'no' : 'ok'}">${preso ? 'GIÀ PRENOTATO' : 'LIBERO'}</span>
+      </button>`;
+    }).join('') : `<p style="color:var(--ink2);font-size:14px">In questo momento non ci sono sabati prenotabili online: scrivete alla segreteria su ${WA}.</p>`;
+    $('sabati').querySelectorAll('.scelta:not(.off)').forEach(b => b.addEventListener('click', () => {
+      scelta.data = b.dataset.data; sporco = true; $('avviso-sabato').classList.remove('show'); salvaBozza(); disegnaSabati(); vai(3);
+    }));
+  }
+  function controllaBambini(){
+    const x = durataScelta();
+    const n = Number($('f-n').value);
+    const av = $('avviso-n');
+    av.classList.remove('show');
+    if ($('f-n').value === '') return false;
+    if (!Number.isInteger(n) || n < 1 || n > MAX_BAMBINI) {
+      av.innerHTML = `Si prenota online da 1 a ${MAX_BAMBINI} bambini. Per un gruppo più grande scrivete alla segreteria su ${WA}.`;
+      av.classList.add('show'); return false;
+    }
+    if (x && x.durata === 60 && n < MIN_ORA) {
+      av.innerHTML = `Per l'ora servono almeno ${MIN_ORA} bambini: con meno scegliete l'ora e mezza. <a href="#" id="passa-90" style="color:inherit;font-weight:700">Passa all'ora e mezza</a>`;
+      av.classList.add('show');
+      const l = $('passa-90');
+      if (l && durate.some(d => d.durata === 90)) l.addEventListener('click', ev => { ev.preventDefault(); scelta.durata = 90; salvaBozza(); disegnaDurate(); disegnaSabati(); preparaBambini(); controllaBambini(); });
+      else if (l) l.remove();
+      return false;
+    }
+    return true;
+  }
+  function preparaBambini(){
+    const x = durataScelta();
+    $('sub-bambini').textContent = x ? `${TESTO_DURATA[x.durata]} · ${x.euro} € a bambino${x.durata === 60 ? ` · almeno ${MIN_ORA} bambini` : ''}.` : '';
+  }
+  function totale(){ const x = durataScelta(); return x ? x.euro * Number($('f-n').value || 0) : 0; }
+  function disegnaRiep(){
+    const x = durataScelta(), n = Number($('f-n').value);
+    const righe = [
+      ['Formula', `${TESTO_DURATA[x.durata]} · ${x.orario}`],
+      ['Sabato', labelData(scelta.data, true)],
+      ['Bambini', `${n} · ${$('f-eta').value.trim()}`],
+      ...($('f-festeggiato').value.trim() ? [['Festeggiato', $('f-festeggiato').value.trim()]] : []),
+      ['Genitore', `${$('f-nome').value.trim()} ${$('f-cognome').value.trim()}`],
+      ['Contatti', `${$('f-email').value.trim()} · ${$('f-telefono').value.trim()}`],
+      ...($('f-note').value.trim() ? [['Note', $('f-note').value.trim()]] : []),
+      ['Prezzo', `${n} × ${x.euro} €`],
+    ];
+    $('riep').innerHTML = righe.map(([k, v]) => `<div class="r"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join('')
+      + `<div class="r tot"><span>Totale</span><span>${totale()} €</span></div>`;
+  }
+
+  function errore(msg){ const e = $('errore'); e.innerHTML = msg; e.style.display = msg ? 'block' : 'none'; }
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function validaPasso(p){
+    if (p === 1 && !durataScelta()) return 'Scegliete la durata della festa.';
+    if (p === 2 && !scelta.data) return 'Scegliete il sabato.';
+    if (p === 3) {
+      if ($('f-n').value === '') return 'Scrivete quanti bambini vengono.';
+      if (!controllaBambini()) return 'Controllate il numero dei bambini: vedete l\'avviso qui sopra.';
+      if (!$('f-eta').value.trim()) return 'Scrivete l\'età dei bambini: serve agli istruttori per preparare la festa.';
+    }
+    if (p === 4) {
+      if (!$('f-nome').value.trim() || !$('f-cognome').value.trim()) return 'Scrivete nome e cognome del genitore.';
+      if (!emailRe.test($('f-email').value.trim())) return 'Controllate l\'email: lì arriva la conferma.';
+      if ($('f-telefono').value.replace(/\D/g, '').length < 6) return 'Controllate il telefono.';
+      if (!$('f-terms').checked) return 'Per prenotare spuntate l\'accettazione dei Termini.';
+    }
+    return '';
+  }
+  function vai(p, scorri = true){
+    passo = p;
+    errore('');
+    document.querySelectorAll('.passo').forEach(el => el.classList.toggle('show', +el.dataset.p === p));
+    document.querySelectorAll('#passi span').forEach((el, i) => el.classList.toggle('on', i < p));
+    $('passo-n').textContent = `Passo ${p} di 5`;
+    $('indietro').style.visibility = p > 1 ? 'visible' : 'hidden';
+    if (p === 2) disegnaSabati();
+    if (p === 3) { preparaBambini(); controllaBambini(); }
+    if (p === 5) disegnaRiep();
+    $('avanti-label').textContent = p === 5 ? `Paga ${totale()} € e prenota` : 'Avanti';
+    $('avanti').style.display = (p === 1 || p === 2) && !(p === 1 ? durataScelta() : scelta.data) ? 'none' : '';
+    if (scorri) $('wizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // bozza: torna nei campi se il genitore annulla il pagamento su Stripe (solo questa scheda)
+  const CAMPI = ['f-n', 'f-eta', 'f-festeggiato', 'f-nome', 'f-cognome', 'f-email', 'f-telefono', 'f-note'];
+  function salvaBozza(){
+    try {
+      const b = { durata: scelta.durata, data: scelta.data, terms: $('f-terms').checked };
+      CAMPI.forEach(id => b[id] = $(id).value);
+      sessionStorage.setItem(BOZZA, JSON.stringify(b));
+    } catch (e) {}
+  }
+  function leggiBozza(){
+    try { return JSON.parse(sessionStorage.getItem(BOZZA) || 'null'); } catch (e) { return null; }
+  }
+  CAMPI.forEach(id => $(id).addEventListener('input', () => { sporco = true; salvaBozza(); if (id === 'f-n') controllaBambini(); }));
+  $('f-terms').addEventListener('change', () => { sporco = true; salvaBozza(); });
+
+  window.addEventListener('beforeunload', e => {
+    if (!sporco || pagando) return;
+    e.preventDefault(); e.returnValue = 'Sei sicuro? I dati scritti si perdono.';
+    return e.returnValue;
+  });
+
+  $('indietro').addEventListener('click', () => { if (passo > 1) vai(passo - 1); });
+  $('avanti').addEventListener('click', async () => {
+    const msg = validaPasso(passo);
+    if (msg) { errore(msg); return; }
+    if (passo < 5) { vai(passo + 1); return; }
+    // ricontrollo di tutti i passi prima di pagare
+    for (let p = 1; p <= 4; p++) { const m = validaPasso(p); if (m) { vai(p); errore(m); return; } }
+    if (scelta.data < traGiorni(GIORNI_MIN)) {
+      scelta.data = null; vai(2);
+      $('avviso-sabato').textContent = 'Quel sabato ormai è a meno di una settimana: sceglietene un altro.';
+      $('avviso-sabato').classList.add('show'); return;
+    }
+    const x = durataScelta();
+    const btn = $('avanti');
+    btn.disabled = true; btn.classList.add('loading'); $('avanti-label').textContent = 'Un attimo…';
+    try {
+      const res = await fetch(`${WORKER_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prodotto: PRODOTTO,
+          slot_id: x.slot_id,
+          data: scelta.data,
+          n_bambini: Number($('f-n').value),
+          eta_bambini: $('f-eta').value.trim(),
+          festeggiato: $('f-festeggiato').value.trim(),
+          note: $('f-note').value.trim(),
+          nome: $('f-nome').value.trim(),
+          cognome: $('f-cognome').value.trim(),
+          email: $('f-email').value.trim().toLowerCase(),
+          telefono: $('f-telefono').value.trim(),
+          accept_terms: true,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) { salvaBozza(); pagando = true; window.location.href = data.url; return; }
+      if (data.error === 'occupato' || data.error === 'chiuso' || data.error === 'data_vicina' || data.error === 'data_lontana') {
+        try { await caricaSabati(); } catch (e) {}
+        scelta.data = null; salvaBozza(); vai(2);
+        $('avviso-sabato').textContent = data.message || 'Questo sabato non è più disponibile: scegliete un altro sabato.';
+        $('avviso-sabato').classList.add('show');
+      } else {
+        errore(esc(data.message || 'Il pagamento non si è aperto. Riprovate tra un minuto.') + ` Se serve, scrivete alla segreteria su ${WA}.`);
+      }
+    } catch (e) {
+      errore(`Connessione instabile: riprovate. Se si ripete scrivete alla segreteria su ${WA}.`);
+    }
+    btn.disabled = false; btn.classList.remove('loading');
+    $('avanti-label').textContent = passo === 5 ? `Paga ${totale()} € e prenota` : 'Avanti';
+  });
+
+  (async () => {
+    try {
+      if (annullata) {
+        $('cancel-banner').classList.add('show');
+        // il sabato tenuto per il pagamento annullato torna subito libero
+        if (/^[0-9a-f-]{36}$/i.test(festaAnnullata)) {
+          try {
+            await fetch(`${WORKER_URL}/festa-annulla`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ festa_id: festaAnnullata }) });
+          } catch (e) { console.warn('festa-annulla non riuscito', e); }
+        }
+      }
+      await caricaDurate();
+      await caricaSabati();
+      $('carica').style.display = 'none';
+      if (!durate.length) {
+        $('carica-err').innerHTML = `In questo momento la festa non si prenota online: scrivete alla segreteria su ${WA}.`;
+        $('carica-err').style.display = 'block';
+        return;
+      }
+      $('wizard').style.display = '';
+      const b = annullata ? leggiBozza() : null;
+      if (b) {
+        CAMPI.forEach(id => { if (typeof b[id] === 'string') $(id).value = b[id]; });
+        $('f-terms').checked = !!b.terms;
+        if (durate.some(x => x.durata === b.durata)) scelta.durata = b.durata;
+        if (b.data && sabati.includes(b.data) && !occupati.has(b.data)) scelta.data = b.data;
+      }
+      if (dataRichiesta && sabati.includes(dataRichiesta) && !occupati.has(dataRichiesta)) scelta.data = dataRichiesta;
+      disegnaDurate();
+      if (b && scelta.durata && scelta.data) { sporco = true; vai(5); }
+      else vai(1, false);
+      if (dataRichiesta && !scelta.data && sabati.length) {
+        $('avviso-sabato').textContent = occupati.has(dataRichiesta)
+          ? 'Il sabato del link è già prenotato: sceglietene un altro.'
+          : 'Il sabato del link non si prenota online: sceglietene un altro, oppure scrivete alla segreteria.';
+        $('avviso-sabato').classList.add('show');
+      }
+    } catch (e) {
+      console.error(e);
+      $('carica').style.display = 'none';
+      $('carica-err').style.display = 'block';
+    }
+  })();
+</script>
+</body>
+</html>

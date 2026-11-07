@@ -1,6 +1,11 @@
 /* ════════════════════════════════════════════════════════════════════════
- * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.0 (1 nov 2026)
+ * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.1 (7 nov 2026)
  * ════════════════════════════════════════════════════════════════════════
+ * KC-BUILD: kc-da-coprire v1.1 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato.
+ *   gli slot festa_sabato hanno una riga in slot_copertura (1 istruttore), quindi v_copertura_lezioni li restituisce
+ *   OGNI sabato come scoperti. Qui una riga festa_sabato resta solo se in quella data c'e' una festa prenotata
+ *   (prenotazioni_festa stato prenotato) su quello slot; se la lettura delle feste non riesce, nessuna riga festa.
+ *   Titolo "Festa del sabato · N bambini". Nient'altro cambia. CUMULA v1.0 (sotto).
  * UNA sola funzione per la bacheca "📌 Da coprire" di turni.html e per la tessera di oggi.html:
  * stesso conto, stesse voci (decisione di Marco 31 ott 2026).
  *
@@ -22,9 +27,10 @@
   const NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb',
     open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb',fly:'Corso Fly KataClimb',
     giovani:'Corso Giovani KataClimb (18–24)',senior:'Corso Senior KataClimb (over 60)',manovra_sosta:'Corso Manovra in Sosta KataClimb',
-    prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Prima Lezione Privata Speciale',prima_lezione_genitori:'Prima Lezione Genitori',
+    prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Lezione Privata Bambini',festa_sabato:'Festa ed Esperienza Arrampicata',prima_lezione_genitori:'Prima Lezione Genitori',
     prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)',
-    prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
+    prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'}; // v1.1 festa_sabato: nome completo nella riga sopra
+  const FESTA='festa_sabato'; // v1.1
   const pad2=n=>String(n).padStart(2,'0');
   const iso=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
   const hm=t=>t?String(t).slice(0,5):'';
@@ -41,7 +47,7 @@
     const oggi=new Date(), oggiIso=iso(oggi), fine=new Date(oggi); fine.setDate(fine.getDate()+GIORNI-1);
     const fineIso=iso(fine), adessoHm=pad2(oggi.getHours())+':'+pad2(oggi.getMinutes());
     const urg=new Date(oggi); urg.setDate(urg.getDate()+URGENTE_GIORNI); const urgIso=iso(urg);
-    const [rm,rc,rr,rs,rl,rd,rn,rp]=await Promise.all([
+    const [rm,rc,rr,rs,rl,rd,rn,rp,rf]=await Promise.all([
       sb.from('impegni_staff').select('id,user_id,data,ora_inizio,stato').eq('tipo','monitor').neq('stato','ritirato').gte('data',oggiIso).lte('data',fineIso),
       sb.from('v_copertura_lezioni').select('*').gte('data',oggiIso).lte('data',fineIso),
       sb.from('richieste_supporto').select('id,slot_id,data,chiesto_da,note,stato').eq('stato','aperta').gte('data',oggiIso).lte('data',fineIso),
@@ -50,8 +56,13 @@
       sb.from('impegni_staff').select('id,user_id,slot_id,data,ruolo,stato,compenso_tipo').eq('tipo','lezione').in('stato',['previsto','presente']).gte('data',oggiIso).lte('data',fineIso),
       sb.from('v_staff_disponibilita').select('id,user_id,persona,staff_role,tipo,slot_id,data,ora_inizio,ora_fine,nota').lte('data',fineIso),
       sb.from('v_staff_indisponibilita').select('id,user_id,persona,data,ora_inizio,ora_fine,motivo').gte('data',oggiIso).lte('data',fineIso),
-      sb.from('profiles').select('user_id,nome,cognome,staff_role').not('staff_role','is',null)
+      sb.from('profiles').select('user_id,nome,cognome,staff_role').not('staff_role','is',null),
+      /* v1.1 feste del sabato prenotate: solo queste rendono "da coprire" uno slot festa_sabato */
+      sb.from('prenotazioni_festa').select('slot_id,data,n_bambini').eq('stato','prenotato').gte('data',oggiIso).lte('data',fineIso)
     ]);
+    if(rf.error)console.warn('[da coprire] prenotazioni_festa:',rf.error.message);
+    const feste=rf.error?[]:(rf.data||[]);
+    const festaDi=(slot,data)=>feste.find(f=>f.slot_id===slot&&f.data===data)||null;
     for(const r of [rm,rc,rs,rl]) if(r.error) throw r.error;
     ['richieste_supporto','v_staff_disponibilita','v_staff_indisponibilita','profiles'].forEach((n,i)=>{const r=[rr,rd,rn,rp][i]; if(r.error)console.warn('[da coprire] '+n+':',r.error.message);});
     const nomi={}; (rp.data||[]).forEach(p=>{nomi[p.user_id]=((p.nome||'')+' '+(p.cognome||'')).trim()||'—';});
@@ -81,12 +92,15 @@
     /* lezioni dei corsi: scoperte o con richiesta di supporto aperta */
     const viste=new Set();
     (rc.data||[]).forEach(c=>{
+      const festa=c.tipo_corso===FESTA?festaDi(c.slot_id,c.data):null; // v1.1
+      if(c.tipo_corso===FESTA&&!festa)return;
       const req=c.supporto_richiesto_id?(richieste.find(r=>r.id===c.supporto_richiesto_id)||{id:c.supporto_richiesto_id}):null;
       if((c.coperta&&!req)||finita(c.data,c.ora_fine))return;
       if(req)viste.add(req.id);
       const seg=impLez.filter(x=>x.slot_id===c.slot_id&&x.data===c.data).map(x=>({user_id:x.user_id,nome:nome(x.user_id),ruolo:x.compenso_tipo==='ora'?'assistente':'istruttore'}));
       const ni=Number(c.istruttori||0),na=Number(c.assistenti||0),mi=Number(c.istruttori_min||0),ma=Number(c.assistenti_min||0);
-      voci.push(arricchisci({tipo:'lezione',data:c.data,ini:hm(c.ora_inizio),fin:hm(c.ora_fine),slot_id:c.slot_id,titolo:nomeCorso(c.tipo_corso,c.fascia),
+      voci.push(arricchisci({tipo:'lezione',data:c.data,ini:hm(c.ora_inizio),fin:hm(c.ora_fine),slot_id:c.slot_id,
+        titolo:nomeCorso(c.tipo_corso,c.fascia)+(festa?` · ${festa.n_bambini} bambini`:''),
         tipo_corso:c.tipo_corso,segnati:seg,conta:`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:''),coperta:!!c.coperta,
         richiesta:req?{id:req.id,chiesto_da:req.chiesto_da,chi:req.chiesto_da?nome(req.chiesto_da):'',note:req.note||''}:null}));
     });

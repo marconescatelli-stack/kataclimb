@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: orari v0.41 · 2026-11-07 · CALENDARIO PUBBLICO: FESTE E LEZIONI PRIVATE (Marco 7 nov). Sotto la griglia dei corsi e la legenda, nuovo blocco #cal-pren "Feste e lezioni private": le prossime 4 settimane (oggi → oggi+27, date LOCALI, mai toISOString) raggruppate per giorno, una scheda per giorno nello stile della pagina. Fonte unica: RPC pubblica calendario_pubblico_prenotazioni(p_dal,p_al) via fetch con la chiave anon già in pagina (CFG); la RPC non restituisce mai nomi, età o note e la pagina scrive solo attività + stato. Testi: "🎉 Festa ed Esperienza Arrampicata · PRENOTATO" / "🎉 Festa ed Esperienza Arrampicata · LIBERO · Prenota" (→ /festa.html?d=AAAA-MM-GG) / "Lezione privata · PRENOTATO" / "Lezione privata · LIBERO · Chiedi alla segreteria" (→ WhatsApp segreteria 393318743953 con giorno e orario precompilati). Le righe di oggi già finite non si mostrano; attività o stati sconosciuti si scartano; tutto il testo passa da escape. Se la RPC non risponde, va in errore o torna vuota il blocco resta hidden e il resto della pagina non cambia. Testi ≥13px. Griglia, schede corso, Eventi, Metodo e CTA NON toccati. CUMULA v0.40 (riga sotto). -->
 <!-- KC-BUILD: orari v0.40 · 2026-10-13 · LA GRIGLIA INTERA NELLO SCHERMO DEL TELEFONO (Marco 13 ott: la lista giorno per giorno della v0.38 non va bene, vuole la griglia come su desktop, Lun→Dom tutta visibile senza scorrere né di lato né in basso). Sotto i 760px la lista verticale #sett-mob è SOSTITUITA da #sett-mini: clone della griglia .ov-grid (fonte unica, stesse posizioni grid-column/grid-row), colonne in proporzione (Lun–Ven corso + striscia Monitor verticale, Sab e Dom più strette), font in vw (7–10px: deroga CONSAPEVOLE alla regola dei 13px, chiesta da Marco per avere tutto in una schermata). Nei blocchi: nome COMPLETO del corso (Prima Lezione -> "Prima Lezione Adulti") + orario; istruttore/età/prezzo nella scheda-modale che si apre toccando il corso. Giorno di oggi col nome su fondo scuro. Sopra i 760px nessun cambiamento. CUMULA v0.39 · 2026-10-09 · AUDIT v2.0 GIRO 1: "33 Kata in 5 soglie" -> "33 Kata in 6 soglie" nella sezione Metodo. Nient'altro. CUMULA v0.38 · 2026-10-09 · LA SETTIMANA INTERA SUL TELEFONO (Marco 8 ott: per vedere ven/sab/dom bisognava scorrere di lato la griglia da 1010px). Sotto i 760px la griglia tabellare (.ov-scroll) sparisce e al suo posto c'e' #sett-mob: Lunedi' -> Domenica in verticale, una scheda per giorno con nome del giorno + orario di apertura (dal .ap della griglia), i blocchi in ordine di fascia oraria uno sotto l'altro (anche quelli in contemporanea), stesso nome completo, orario, istruttore e colore, cliccabili sulla stessa scheda-modale (apriCorso via data-c, anche da tastiera); la nota della domenica in coda. FONTE UNICA: #sett-mob e' generato in JS leggendo .ov-day/.ov-cell/.ov-b e le loro posizioni grid-column/grid-row (colonna = giorno, riga = fascia), i blocchi sono clonati: si cambia un orario nella griglia e cambia anche il telefono. Testi >=13px. Il giorno di oggi ha il bordo scuro e l'etichetta "oggi" (ordine Lun->Dom invariato). Su telefono sparisce .ov-hint. Sopra i 760px nessun cambiamento. Schede corso, Eventi, Metodo, CTA e meta NON toccati. CUMULA v0.37 · 2026-10-07 · GIMMY ANCHE IL VENERDI' (decisione Marco 7 ott, DB già allineato: Prima Lezione Adulti ven 19-20 riattivata 72578616, nuovo Open ven 21-22 e1b5ad5e): griglia Ven 19-20 Evo+Prima (Gimmy), Ven 21-22 Open (Gimmy); schede Open e Prima aggiornate. Il venerdì ha ora DUE orari di Prima (19 Gimmy, 20 Mello): supera la regola del 28 set. Nient'altro toccato. -->
 <!-- KC-BUILD: orari v0.36 · 2026-10-07 · ISTRUTTORI IN GRIGLIA (richiesta Marco 7 ott): sotto ogni corso e ogni Monitor il nome di chi tiene la lezione, separato da una linea sottile (classe .i). Nomi presi da corsi_attivi_settimanali.istruttore_id (letto il 7 ott): Claudia e Mattia sui minori, Mello su Expert/Advance/Fly/Open/Evo/Giovani/Senior/Prima Genitori/Prima gio-ven, Gimmy il martedì (Prima 18-19 e 21-22, Open 20-21), Claudia su Intro lun. Monitor: il nome del turno passa dalla riga orario a sotto, come i corsi. Sabato: Monitor "a turno" e Lab "a rotazione" (a DB istruttore NULL). Griglia sempre STATICA: ogni cambio istruttore a DB va riportato a mano anche qui. Nient'altro toccato. -->
 <!-- KC-BUILD: orari v0.35 · 2026-10-06 · PUPI ANCHE IL MERCOLEDI' (decisione Marco 6 ott, DB già allineato: slot corso + Prima Lezione bambini mer 17-18, Claudia e Mattia): nella griglia la cella Mer 17-18 mostra Pupi sopra Evo Ragazzi; scheda Pupi ora 'Lun, Mer e Gio 17:00–18:00'. Nient'altro toccato. -->
@@ -197,6 +198,25 @@ a.fascia:hover{filter:brightness(1.15)}
 .mod .m-info{margin-top:18px;text-align:center;font-size:14px;color:var(--testo2)}
 .mod .m-chiudi{display:block;margin:14px auto 0;background:none;border:none;font:inherit;font-size:14px;color:var(--testo2);cursor:pointer;text-decoration:underline}
 
+/* ── v0.41 FESTE E LEZIONI PRIVATE (prossime 4 settimane, da RPC calendario_pubblico_prenotazioni) ── */
+.cal-pren{margin-top:30px}
+.cal-pren[hidden]{display:none}
+.cal-pren-t{font-size:clamp(22px,4vw,30px);line-height:1.05;border-left:5px solid var(--oro);padding-left:14px}
+.cal-pren-sotto{color:var(--testo2);font-size:15px;margin:6px 0 14px}
+.cal-pren-giorni{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.cal-g{background:var(--carta);border:1px solid var(--linea);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cal-g h4{font-family:'Anton',sans-serif;font-weight:400;font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);padding:0 2px 2px}
+.cal-g h4 .oggi{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;background:var(--ink);color:#fff;border-radius:99px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+.cal-r{border-radius:8px;padding:8px 10px 9px 12px;border-left:3px solid var(--c);background:var(--fondo);font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.cal-r.festa{--c:var(--evorag)} .cal-r.privata{--c:var(--intro)}
+.cal-r .ora{display:block;font-size:13px;font-weight:700;color:var(--testo2)}
+.cal-r .att{font-weight:700;color:var(--ink)}
+.cal-r .st{font-size:13px;font-weight:800;letter-spacing:.06em}
+.cal-r.libero .st{color:var(--advance)}
+.cal-r.prenotato .st{color:var(--ink)}
+.cal-r a.az{display:inline-block;font-size:13px;font-weight:700;background:var(--ink);color:#fff;text-decoration:none;border-radius:99px;padding:3px 11px;margin-top:2px}
+.cal-r a.az:hover{filter:brightness(1.25)}
+
 footer{border-top:1px solid var(--linea);padding:26px 0 40px;color:var(--testo2);font-size:14px}
 footer a{color:var(--testo2)}
 </style>
@@ -309,6 +329,13 @@ footer a{color:var(--testo2)}
       <span><i style="background:var(--lab)"></i>Lab</span>
       <span><i style="background:var(--oro)"></i>Prima Lezione</span>
       <span><i style="background:var(--roccia)"></i>In falesia</span>
+    </div>
+
+    <!-- v0.41 Feste e lezioni private: compare solo se la RPC risponde con almeno una riga -->
+    <div class="cal-pren" id="cal-pren" hidden>
+      <h3 class="display cal-pren-t">Feste e lezioni private</h3>
+      <p class="cal-pren-sotto">Le prossime 4 settimane in Accademia.</p>
+      <div class="cal-pren-giorni" id="cal-pren-giorni"></div>
     </div>
 
       </div>
@@ -428,6 +455,60 @@ fetch(CFG.SB_URL+'/rest/v1/rpc/get_eventi_calendario',{method:'POST',headers:{'a
   const le=document.getElementById('lista-eventi'),ve=document.getElementById('vuoto-eventi');
   if(tutti.length){tutti.forEach(e=>le.appendChild(cardEv(e)));le.hidden=false}else ve.hidden=false;
 }).catch(()=>{document.getElementById('vuoto-eventi').hidden=false});
+
+/* ── v0.41 Feste e lezioni private: prossime 4 settimane da RPC pubblica calendario_pubblico_prenotazioni.
+   La RPC non restituisce MAI nomi, eta' o note: qui si scrivono solo attivita' e stato. Se la RPC fallisce
+   o torna vuota, #cal-pren resta hidden e il resto della pagina non cambia. Date LOCALI (mai toISOString). ── */
+(function calendarioPrenotazioni(){
+  const box=document.getElementById('cal-pren'),giorni=document.getElementById('cal-pren-giorni');
+  if(!box||!giorni)return;
+  const GIORNI_L=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+  const MESI_L=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  const WA='https://wa.me/393318743953';
+  const TIPI={'Festa ed Esperienza Arrampicata':{cls:'festa',nome:'🎉 Festa ed Esperienza Arrampicata'},'Lezione privata':{cls:'privata',nome:'Lezione privata'}};
+  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const isoLoc=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const ora=t=>/^\d{2}:\d{2}/.test(String(t||''))?String(t).slice(0,5):'';
+  const ora3=t=>{const o=ora(t);return o?String(parseInt(o,10))+o.slice(2):''};
+  const adesso=new Date();
+  const dal=isoLoc(adesso),al=isoLoc(new Date(adesso.getFullYear(),adesso.getMonth(),adesso.getDate()+27));
+  const oraAdesso=String(adesso.getHours()).padStart(2,'0')+':'+String(adesso.getMinutes()).padStart(2,'0');
+  function labGiorno(iso){const [y,m,g]=iso.split('-').map(Number);const d=new Date(y,m-1,g);return GIORNI_L[d.getDay()]+' '+g+' '+MESI_L[m-1]}
+  fetch(CFG.SB_URL+'/rest/v1/rpc/calendario_pubblico_prenotazioni',{method:'POST',
+    headers:{'apikey':CFG.SB_KEY,'Authorization':'Bearer '+CFG.SB_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({p_dal:dal,p_al:al})})
+  .then(r=>{if(!r.ok)throw new Error('rpc '+r.status);return r.json()})
+  .then(righe=>{
+    if(!Array.isArray(righe))return;
+    const ok=righe.filter(r=>r&&TIPI[r.attivita]&&(r.stato==='libero'||r.stato==='prenotato')
+      &&/^\d{4}-\d{2}-\d{2}$/.test(String(r.data))&&r.data>=dal&&r.data<=al&&ora(r.ora_inizio)
+      &&!(r.data===dal&&ora(r.ora_fine)&&ora(r.ora_fine)<=oraAdesso))
+      .sort((a,b)=>(a.data+ora(a.ora_inizio))<(b.data+ora(b.ora_inizio))?-1:1);
+    if(!ok.length)return;
+    const perGiorno=new Map();
+    ok.forEach(r=>{if(!perGiorno.has(r.data))perGiorno.set(r.data,[]);perGiorno.get(r.data).push(r)});
+    let html='';
+    perGiorno.forEach((lista,data)=>{
+      html+='<div class="cal-g"><h4>'+esc(labGiorno(data))+(data===dal?'<span class="oggi">oggi</span>':'')+'</h4>';
+      lista.forEach(r=>{
+        const t=TIPI[r.attivita],libero=r.stato==='libero';
+        const fascia=ora(r.ora_fine)?ora3(r.ora_inizio)+'–'+ora3(r.ora_fine):ora3(r.ora_inizio);
+        let az='';
+        if(libero&&t.cls==='festa')az=' · <a class="az" href="/festa.html?d='+encodeURIComponent(r.data)+'">Prenota</a>';
+        if(libero&&t.cls==='privata'){
+          const msg='Ciao! Vorrei chiedere la Lezione privata di '+labGiorno(r.data)+', '+fascia+'.';
+          az=' · <a class="az" href="'+WA+'?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">Chiedi alla segreteria</a>';
+        }
+        html+='<div class="cal-r '+t.cls+' '+(libero?'libero':'prenotato')+'"><span class="ora">'+esc(fascia)+'</span>'
+          +'<span class="att">'+esc(t.nome)+'</span> · <span class="st">'+(libero?'LIBERO':'PRENOTATO')+'</span>'+az+'</div>';
+      });
+      html+='</div>';
+    });
+    giorni.innerHTML=html;
+    box.hidden=false;
+  })
+  .catch(()=>{box.hidden=true});
+})();
 
 /* ── Schede corso (descrizioni BOZZA, da validare) ── */
 const CORSI={

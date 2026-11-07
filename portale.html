@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.158 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. Segreteria → 🗓 Turni. Lo slot festa_sabato (sabato 10:30–12:00 o 11:00–12:00, gia' in slot_copertura con 1 istruttore) entra nella settimana SOLO nel sabato in cui c'e' una festa prenotata su quello slot (prenotazioni_festa stato prenotato), come lezione dei corsi "🎉 Festa del sabato · N bambini" con copertura "Istruttori n/1" (rossa finche' nessuno e' segnato). Al click, sopra le persone, i dettagli della festa (genitore, telefono, festeggiato, eta' dei bambini, durata, importo, note; tutto con escHtml) e lo stesso Aggiungi persona di ogni lezione (impegno_mi_segno con p_slot_id e p_data, accettato dal DB per lo slot festa). Slot festa senza riga in slot_copertura: letto a parte con 1 istruttore richiesto. Lettura delle feste fallita = nessuno slot festa in settimana (prima comparivano entrambi gli slot ogni sabato come scoperti). TU_NOME_CORSO festa_sabato = Festa del sabato (anche nei compensi). Console segreteria → ⚠ Da sistemare (dsCarica e conto della tessera): la voce "lezione senza istruttore" che v_segreteria_da_sistemare mette ogni sabato sugli slot festa resta solo se quel sabato c'e' una festa prenotata su quello slot (dsSoloFestePrenotate). Audit letture corsi_attivi_settimanali: nessun altro punto del portale puo' proporre lo slot festa come Prima Lezione, corso, abbonamento o spostamento (tutte filtrate per tipo_corso, per id, per scuola o per slot_ammessi). Nessuna scrittura nuova, nessuna modifica a RPC o tabelle. CUMULA v3.157. -->
 <!-- KC-BUILD: portale v3.157 · 2026-11-06 · SCADENZA DEL CORSO NEL FASCICOLO (richiesta della segreteria, 6 nov): loadLeadIscrizioni legge data_inizio_validita, data_fine_validita, inizio_da_prima_presenza; nel blocco Percorso, per i corsi attivi e sospesi, riga "scade il gg/mm/aaaa" col relativo, "la scadenza parte dalla prima presenza" o "senza scadenza"; sospesa si legge "sospeso"; nomi completi nella pill. Nessun SQL. CUMULA v3.156. -->
 <!-- KC-BUILD: portale v3.156 · 2026-11-06 · INGRESSI GIA' FATTI (Marco 6 nov): riga pacchetto del blocco 🎫, bottone ＋ Ingressi già fatti e modale per segnare i giorni passati, uno alla volta in ordine di data (segna_ingresso_pacchetto con p_data). Se una chiamata fallisce ci si ferma: errore del DB col suo giorno, in lista solo i giorni non segnati. Il bottone c'e' anche sui pacchetti scaduti, finche' restano ingressi. Nessun SQL. CUMULA v3.155. -->
 <!-- KC-BUILD: portale v3.155 · 2026-11-06 · INGRESSI E PACCHETTI 10 INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): modale con terza scheda Ingresso singolo (registra_ingresso_singolo); pacchetto = "10 ingressi · validita' 3 mesi" e mai rinnovo (abbEsistente); blocco 🎫 con usati/restano, ✓ Ingresso di oggi (segna_ingresso_pacchetto) e tendina Ingressi (get_ingressi_persona, annulla_ingresso), anche per chi ha solo ingressi; area personale: card Il tuo pacchetto ingressi. Solo RPC. CUMULA v3.154. -->
@@ -11608,8 +11609,23 @@ const TU_NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12
   /* v3.141 corsi adulti e Prime Lezioni */
   open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb',fly:'Corso Fly KataClimb',
   giovani:'Corso Giovani KataClimb (18–24)',senior:'Corso Senior KataClimb (over 60)',lab:'Lab',manovra_sosta:'Corso Manovra in Sosta KataClimb',
-  prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Prima Lezione Privata Speciale',prima_lezione_genitori:'Prima Lezione Genitori',
+  prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Lezione Privata Bambini',festa_sabato:'Festa ed Esperienza Arrampicata',prima_lezione_genitori:'Prima Lezione Genitori',
   prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)'};
+/* v3.158 FESTE DEL SABATO (consegna Marco 7 nov): lo slot festa_sabato entra nella settimana SOLO nel sabato in cui c'e'
+   una festa prenotata (prenotazioni_festa stato prenotato) su quello slot, come lezione con copertura "Istruttori n/1".
+   Si aggiunge chi la fa con lo stesso Aggiungi persona (impegno_mi_segno con p_slot_id e p_data). Se la lettura delle
+   feste non riesce, gli slot festa non compaiono (mai lezioni fantasma ogni sabato). Campi scritti dai genitori: sempre escHtml. */
+const TU_FESTA='festa_sabato';
+const TU_FESTA_COL='id,slot_id,data,durata_min,n_bambini,eta_bambini,festeggiato,nome,cognome,telefono,importo,note';
+function tuFestaDettagli(f){
+  if(!f)return '';
+  const gen=((f.nome||'')+' '+(f.cognome||'')).trim();
+  const r=(l,v)=>v==null||v===''?'':`<div class="sc-sub" style="font-size:14px;color:var(--text);margin-top:3px"><b>${l}:</b> ${escHtml(v)}</div>`;
+  return `<div style="border:1px solid #DB277755;border-left:5px solid #DB2777;background:#FDF2F8;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+    <div style="font-size:15px;font-weight:700">🎉 Festa · ${escHtml(f.n_bambini)} bambini</div>
+    ${r('Genitore',gen)}${r('Telefono',f.telefono)}${r('Festeggiato',f.festeggiato)}${r('Età dei bambini',f.eta_bambini)}
+    ${r('Durata',f.durata_min?f.durata_min+' minuti':'')}${r('Importo',f.importo!=null?tuEur(f.importo):'')}${r('Note',f.note)}</div>`;
+}
 function tuNomeCorso(tipo,fascia){if(tipo==='bambini')return fascia==='ragazzi'?TU_NOME_CORSO.ragazzi:TU_NOME_CORSO.bambini;return TU_NOME_CORSO[tipo]||String(tipo||'Lezione').replace(/_/g,' ')}
 /* stessa regola di v_copertura_lezioni: istruttore = compenso lezione o percentuale (v3.148), assistente = ora, contano previsto e presente */
 function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
@@ -11738,19 +11754,29 @@ async function tuCaricaSettimana(){
       if(r.error)console.warn('[turni] corsi:',r.error.message);
       corsi=(r.data||[]).map(c=>({...c,...cop.find(x=>x.slot_id===c.id)}));
     }
+    /* v3.158 feste del sabato prenotate nella settimana; lettura fallita = nessuno slot festa */
+    let feste=[];
+    const rf=await sb.from('prenotazioni_festa').select(TU_FESTA_COL).eq('stato','prenotato').gte('data',da).lte('data',a);
+    if(rf.error)console.warn('[turni] feste:',rf.error.message);else feste=rf.data||[];
+    const festaSenzaSlot=[...new Set(feste.map(f=>f.slot_id))].filter(id=>id&&!corsi.some(c=>c.id===id));
+    if(festaSenzaSlot.length){ // slot festa senza riga in slot_copertura: richiesto comunque 1 istruttore
+      const rs=await sb.from('corsi_attivi_settimanali').select('id,tipo_corso,fascia,giorno_settimana,ora_inizio,ora_fine').in('id',festaSenzaSlot);
+      if(rs.error)console.warn('[turni] slot feste:',rs.error.message);
+      (rs.data||[]).forEach(c=>corsi.push({...c,slot_id:c.id,istruttori_min:1,assistenti_min:0}));
+    }
     tuImpTutti=res[1].data||[];
     const slot=res[0].data||[],imp=tuImpTutti.filter(i=>i.stato!=='ritirato');
     const leadIds=[...new Set(slot.map(s=>s.lead_scuola_id))];
     const enti={};
     if(leadIds.length){const{data:ll}=await sb.from('lead_data').select('id,ente').in('id',leadIds);(ll||[]).forEach(l=>{enti[l.id]=l.ente||''})}
-    tuDati={slot,imp,enti,corsi,richieste:res[3].data||[]};
+    tuDati={slot,imp,enti,corsi,richieste:res[3].data||[],feste};
   }catch(e){box.innerHTML=`<p class="sc-vuoto ko">Turni non letti: ${escHtml(scErr(e))}</p>`;return}
   tuDisegnaSettimana();
 }
 
 function tuDisegnaSettimana(){
   const box=document.getElementById('tu-griglia');
-  const {slot,imp,enti,corsi,richieste}=tuDati;
+  const {slot,imp,enti,corsi,richieste,feste}=tuDati;
   tuVoci=[];
   let html='';
   for(let g=0;g<7;g++){
@@ -11763,8 +11789,12 @@ function tuDisegnaSettimana(){
     });
     /* v3.139 lezioni dei corsi: giorno_settimana 1=lun … 7=dom, g parte da lunedi' */
     (corsi||[]).filter(c=>Number(c.giorno_settimana)===g+1).forEach(c=>{
-      voci.push({tipo:'corso',data:di,slot:c,ini:scOra(c.ora_inizio),fin:scOra(c.ora_fine),titolo:tuNomeCorso(c.tipo_corso,c.fascia),
-        imin:Number(c.istruttori_min||0),amin:Number(c.assistenti_min||0),
+      /* v3.158 slot festa: solo con una festa prenotata in quel sabato, almeno 1 istruttore richiesto */
+      const festa=c.tipo_corso===TU_FESTA?(feste||[]).find(f=>f.slot_id===c.id&&f.data===di)||null:null;
+      if(c.tipo_corso===TU_FESTA&&!festa)return;
+      voci.push({tipo:'corso',data:di,slot:c,ini:scOra(c.ora_inizio),fin:scOra(c.ora_fine),
+        titolo:festa?`🎉 Festa ed Esperienza Arrampicata · ${festa.n_bambini} bambini`:tuNomeCorso(c.tipo_corso,c.fascia),festa,
+        imin:festa?Math.max(1,Number(c.istruttori_min||0)):Number(c.istruttori_min||0),amin:Number(c.assistenti_min||0),
         req:(richieste||[]).find(r=>r.slot_id===c.id&&r.data===di)||null,
         seg:imp.filter(i=>i.tipo==='lezione'&&i.slot_id===c.id&&i.data===di)});
     });
@@ -11834,7 +11864,7 @@ function tuApriVoce(k){
   const d=new Date(v.data+'T00:00:00');
   scModal(`${v.tipo==='monitor'?'🟢':'📅'} ${v.titolo}`,
     `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}${conta}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
-     ${supp}${righe}${aggiungi}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
+     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${righe}${aggiungi}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
     aggiungi?async()=>{
       if(v.tipo!=='monitor'&&tuEMonitor(scVal('tu-add-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
       const args=v.tipo==='corso'
@@ -12705,11 +12735,22 @@ function dsConto(n){
   if(n===null)dsTessera('seg-t-ds','—','', 'Non riesco a leggere ora');
   else dsTessera('seg-t-ds',String(n),n?'rosso':'verde',n?'Presenze, turni e lezioni da sistemare':'Tutto a posto');
 }
+/* v3.158 FESTE DEL SABATO: v_segreteria_da_sistemare mette "lezione senza istruttore" su ogni slot di slot_copertura,
+   quindi anche sui due slot festa_sabato ogni sabato. La voce di uno slot festa resta solo se quel sabato c'e' una festa
+   prenotata su quello slot (prenotazioni_festa stato prenotato); lettura fallita = voce festa tolta. */
+async function dsSoloFestePrenotate(rows){
+  const fv=(rows||[]).filter(r=>r.tipo==='lezione_scoperta'&&r.tipo_corso==='festa_sabato');
+  if(!fv.length)return rows||[];
+  const{data,error}=await sb.from('prenotazioni_festa').select('slot_id,data').eq('stato','prenotato').in('data',[...new Set(fv.map(r=>r.data))]);
+  if(error)console.warn('[da sistemare] feste:',error.message);
+  const ok=new Set((error?[]:data||[]).map(f=>f.slot_id+'|'+f.data));
+  return rows.filter(r=>!(r.tipo==='lezione_scoperta'&&r.tipo_corso==='festa_sabato')||ok.has(r.slot_id+'|'+r.data));
+}
 async function dsCaricaConto(){
   try{
-    const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('tipo,impegno_id');
+    const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('tipo,impegno_id,tipo_corso,slot_id,data'); // v3.158 + tipo_corso, slot_id, data per le feste
     if(error)throw error;
-    dsConto((data||[]).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id))).length);
+    dsConto((await dsSoloFestePrenotate(data||[])).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id))).length);
   }catch(e){console.warn('[da sistemare] conto:',e.message||e);dsConto(null);}
 }
 async function dsCaricaPaga(){
@@ -12740,7 +12781,7 @@ async function dsCarica(){
   try{
     const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('*').order('ordine').order('data').order('ora_inizio');
     if(error)throw error;
-    dsRighe=(data||[]).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id)));
+    dsRighe=(await dsSoloFestePrenotate(data||[])).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id))); // v3.158
     await dsContorno();
     await dsCaricaPren(); // v3.152
   }catch(e){dsRighe=null;el.innerHTML='';scMsg('ds-msg','Non riesco a leggere le voci da sistemare: '+scErr(e));dsConto(null);return;}
