@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.160 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE · + RITORNO DOPO IL LOGIN: iscrizione.html senza sessione lascia kc_dopo_login in localStorage; dopo il login (fresco o con sessione gia' aperta, prima dell'atterraggio su Oggi) kcDopoLogin() riporta a /iscrizione.html, una volta sola, entro un'ora, solo indirizzi della lista KC_DOPO_LOGIN_OK · (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): (1) PROFILO: in cima alla vista profilo striscia "Completa la domanda di iscrizione: due minuti dal telefono." con bottone scuro a /iscrizione.html (renderPromemoriaDomanda). Compare se in iscrizione_stato una persona dell'account (io o figlio) ha domanda_anno = null E ha un tesseramento dell'anno (stato diverso da annullato) o un corso attiva/sospesa in iscrizioni_corso (user_id dei figli da miei_figli; per il creator il corso non conta, come in domande_iscrizione_mancanti). Sparisce a domanda inviata (si rilegge a ogni apertura del profilo e al ritorno sulla pagina). RPC che fallisce: nessuna striscia, nessun errore. (2) SEGRETERIA → 🗓 Turni, sotto Sconti applicati: nuova sezione "📋 Iscritti per l'ente" (solo creator e segreteria: tuPuo; la RPC controlla comunque is_segreteria_piena): select dell'anno (corrente e due precedenti), bottone "Esporta iscritti per l'ente" → rpc export_iscritti_ente(p_anno) → file Iscritti_{anno}_Accademia_RCC.csv (UTF-8 con BOM, separatore ";", si apre in Excel; nessuna libreria xlsx nel repo) con le 20 colonne nell'ordine della RPC e intestazioni in italiano; CAP e telefono scritti come testo (="…") per non perdere gli zeri iniziali in Excel; booleani Sì/No; data di nascita GG/MM/AAAA. Sotto il bottone "{N} domande · {M} iscritti senza domanda": N = conteggio domande_iscrizione dell'anno (= righe dell'export), M = righe di domande_iscrizione_mancanti(p_anno). Solo letture. CUMULA v3.159 (sotto). -->
 <!-- KC-BUILD: portale v3.159 · 2026-11-07 · SCONTI APPLICATI (consegna Marco 7 nov, DB sconti_iscrizione_fine_anno, stripe-worker v3.95): in Segreteria → 🗓 Turni, sotto Costi staff del mese, nuova sezione "🏷 Sconti applicati" da sconti_applicati (solo creator e segreteria: tuPuo, e la tabella la legge solo is_segreteria): selettore mese, righe data · bambino · genitore · prodotto (nome completo da TU_NOME_CORSO) · prezzo pieno · sconto · pagato · iscrizione 40 €, totale sconti del mese, Esporta CSV. Bambino e genitore dalle due FK verso persone. Solo letture. CUMULA v3.158 (sotto). -->
 <!-- KC-BUILD: portale v3.158 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. Segreteria → 🗓 Turni. Lo slot festa_sabato (sabato 10:30–12:00 o 11:00–12:00, gia' in slot_copertura con 1 istruttore) entra nella settimana SOLO nel sabato in cui c'e' una festa prenotata su quello slot (prenotazioni_festa stato prenotato), come lezione dei corsi "🎉 Festa del sabato · N bambini" con copertura "Istruttori n/1" (rossa finche' nessuno e' segnato). Al click, sopra le persone, i dettagli della festa (genitore, telefono, festeggiato, eta' dei bambini, durata, importo, note; tutto con escHtml) e lo stesso Aggiungi persona di ogni lezione (impegno_mi_segno con p_slot_id e p_data, accettato dal DB per lo slot festa). Slot festa senza riga in slot_copertura: letto a parte con 1 istruttore richiesto. Lettura delle feste fallita = nessuno slot festa in settimana (prima comparivano entrambi gli slot ogni sabato come scoperti). TU_NOME_CORSO festa_sabato = Festa del sabato (anche nei compensi). Console segreteria → ⚠ Da sistemare (dsCarica e conto della tessera): la voce "lezione senza istruttore" che v_segreteria_da_sistemare mette ogni sabato sugli slot festa resta solo se quel sabato c'e' una festa prenotata su quello slot (dsSoloFestePrenotate). Audit letture corsi_attivi_settimanali: nessun altro punto del portale puo' proporre lo slot festa come Prima Lezione, corso, abbonamento o spostamento (tutte filtrate per tipo_corso, per id, per scuola o per slot_ammessi). Nessuna scrittura nuova, nessuna modifica a RPC o tabelle. CUMULA v3.157. -->
 <!-- KC-BUILD: portale v3.157 · 2026-11-06 · SCADENZA DEL CORSO NEL FASCICOLO (richiesta della segreteria, 6 nov): loadLeadIscrizioni legge data_inizio_validita, data_fine_validita, inizio_da_prima_presenza; nel blocco Percorso, per i corsi attivi e sospesi, riga "scade il gg/mm/aaaa" col relativo, "la scadenza parte dalla prima presenza" o "senza scadenza"; sospesa si legge "sospeso"; nomi completi nella pill. Nessun SQL. CUMULA v3.156. -->
@@ -1533,6 +1534,8 @@ fill="#1d4ed8" stroke="none">
 
     <!-- ═══ MY PROFILE VIEW ═══ -->
     <div id="nav-profilo-view" class="screen active">
+      <!-- v3.160 — Promemoria domanda di iscrizione (renderPromemoriaDomanda, iscrizione_stato) -->
+      <div id="my-domanda-isc"></div>
       <!-- v3.149 — Da saldare: crediti aperti dell'allievo e dei figli (renderMieiCrediti, get_miei_crediti) -->
       <div id="my-da-saldare"></div>
       <!-- v3.155 — pacchetto ingressi dell'allievo (renderMieiPacchetti, get_ingressi_persona) -->
@@ -1823,6 +1826,17 @@ fill="#1d4ed8" stroke="none">
           </div>
           <p class="sc-nota" style="margin-top:0">Sconto di fine anno sulla lezione pagata insieme all'iscrizione annuale (sempre 40 €). Una volta sola per bambino e per anno.</p>
           <div id="tu-sconti"></div>
+        </div>
+        <!-- v3.160 — Iscritti per l'ente (export_iscritti_ente, domande_iscrizione_mancanti) -->
+        <div class="sc-sez" id="tu-ente-wrap">
+          <div class="tu-nav">
+            <h3>📋 Iscritti per l'ente</h3>
+            <label class="sc-sub" for="tu-anno-ente">Anno</label>
+            <select id="tu-anno-ente" class="input sc-in" style="width:auto" onchange="tuCaricaEnte()"></select>
+            <button id="tu-ente-btn" class="btn sc-scuro sc-piccolo" onclick="tuEsportaEnte()">Esporta iscritti per l'ente</button>
+          </div>
+          <p id="tu-ente-n" class="sc-nota" style="margin-top:0;font-size:14px;color:var(--text)"></p>
+          <p class="sc-nota" style="margin-top:0">Un file con una riga per ogni domanda di iscrizione inviata nell'anno, da mandare all'ente. Si apre con Excel.</p>
         </div>
       </div>
 
@@ -4182,6 +4196,7 @@ async function handleAuth(){
       }
     }
     await loadAll();
+     if(kcDopoLogin())return; // v3.160 — ritorno a iscrizione.html dopo il login
      // v3.90 — stesso atterraggio del percorso init: dopo il LOGIN fresco, allievo/creator -> console Oggi
      // (era il buco del collaudo Marco: da incognito/telefono il login fresco saltava il redirect)
      {const _qp2=new URLSearchParams(window.location.search);
@@ -8999,6 +9014,7 @@ function renderApp(){
   renderQuestionariPersona(profile.persona_id,document.getElementById('my-questionari-diario'),{modo:'diario'});
   renderMioDiarioDidattico(); // v3.137
   renderMioMeseStaff(); // v3.141
+  renderPromemoriaDomanda(); // v3.160
   renderMieiCrediti(); // v3.149
   renderMieiPacchetti(); // v3.155
   // v3.56 Home Duolingo: streak + hero (async, non blocca render)
@@ -10586,6 +10602,14 @@ function kcAccessoDaLinkEmail(session,hash0){
   return Date.now()/1000-quando<120;
 }
 
+/* v3.160 — iscrizione.html senza sessione lascia kc_dopo_login {url,t}: dopo il login (fresco o da sessione
+   gia' aperta) si torna li', una volta sola ed entro un'ora. Solo indirizzi della lista: niente rimandi liberi. */
+const KC_DOPO_LOGIN_OK=['/iscrizione.html'];
+function kcDopoLogin(){
+  let d=null;try{d=JSON.parse(localStorage.getItem('kc_dopo_login')||'null');localStorage.removeItem('kc_dopo_login')}catch(e){return false}
+  if(!d||!KC_DOPO_LOGIN_OK.includes(d.url)||!(Date.now()-Number(d.t)<3600000))return false;
+  window.location.replace(d.url);return true;
+}
 async function init(){
   try{
     sb=window.supabase.createClient(CFG.SB_URL,CFG.SB_KEY);
@@ -10666,6 +10690,7 @@ async function init(){
     if(session){
       user=session.user;
       await loadAll();
+      if(kcDopoLogin())return; // v3.160 — ritorno a iscrizione.html dopo il login
       // v3.86 — atterraggio allievo: URL nudo (niente ?nav/?lead_id) + corso attivo + non staff -> console Oggi.
       // La barra di oggi.html rientra con ?nav=profilo: il parametro disinnesca il redirect (niente loop).
       const _qp=new URLSearchParams(window.location.search);
@@ -11722,8 +11747,8 @@ function tuNum(n){return Number(n||0).toLocaleString('it-IT',{maximumFractionDig
 async function tuCaricaTutto(){
   if(!tuLunedi)tuLunedi=tuLun(new Date());
   const tasks=[tuCaricaSettimana(),tuCaricaDaChiudere()];
-  if(tuPuo())tasks.push(tuCaricaCompensi(),tuCaricaCompLez(),tuCaricaCosti(),tuCaricaSconti());
-  else{document.getElementById('tu-compensi-wrap').classList.add('hidden');document.getElementById('tu-complez-wrap').classList.add('hidden');document.getElementById('tu-costi-wrap').classList.add('hidden');document.getElementById('tu-sconti-wrap').classList.add('hidden')}
+  if(tuPuo())tasks.push(tuCaricaCompensi(),tuCaricaCompLez(),tuCaricaCosti(),tuCaricaSconti(),tuCaricaEnte());
+  else{document.getElementById('tu-compensi-wrap').classList.add('hidden');document.getElementById('tu-complez-wrap').classList.add('hidden');document.getElementById('tu-costi-wrap').classList.add('hidden');document.getElementById('tu-sconti-wrap').classList.add('hidden');document.getElementById('tu-ente-wrap').classList.add('hidden')}
   document.getElementById('tu-solo-lettura').classList.toggle('hidden',tuPuo());
   document.getElementById('tu-nonci-btn').classList.toggle('hidden',!tuPuo()); // v3.143
   await Promise.all(tasks);
@@ -12166,6 +12191,63 @@ function tuEsportaCsvSconti(){
   const blob=new Blob(['\ufeff'+righe.join('\r\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sconti_applicati_'+mese+'.csv';
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+/* ── v3.160 Iscritti per l'ente (creator e segreteria; export_iscritti_ente controlla is_segreteria_piena).
+   File CSV UTF-8 con BOM e ";" (come gli altri Esporta CSV): nel repo non c'è una libreria xlsx.
+   Colonne nell'ordine della RPC, intestazioni in italiano. N = domande_iscrizione dell'anno (= righe dell'export),
+   M = righe di domande_iscrizione_mancanti. ── */
+const TU_ENTE_LBL={cognome:'Cognome',nome:'Nome',data_nascita:'Data di nascita',luogo_nascita:'Luogo di nascita',cittadinanza:'Cittadinanza',
+  codice_fiscale:'Codice fiscale',residenza_indirizzo:'Indirizzo di residenza',residenza_citta:'Città di residenza',residenza_prov:'Provincia',
+  residenza_cap:'CAP',telefono:'Telefono',email:'Email',minore:'Minorenne',genitore_ruolo:'Genitore o tutore (ruolo)',
+  genitore_cognome:'Cognome genitore o tutore',genitore_nome:'Nome genitore o tutore',genitore_codice_fiscale:'Codice fiscale genitore o tutore',
+  consenso_foto_social:'Consenso foto e video sui social',domanda_del:'Domanda inviata il',tesserato:'Tesserato nell\'anno'};
+const TU_ENTE_ORDINE=Object.keys(TU_ENTE_LBL);
+const TU_ENTE_TESTO=['residenza_cap','telefono']; // in Excel resterebbero numeri senza zeri iniziali
+function tuEnteEtichetta(k){return TU_ENTE_LBL[k]||String(k).replace(/_/g,' ').replace(/^./,c=>c.toUpperCase())}
+function tuEnteAnno(){
+  const sel=document.getElementById('tu-anno-ente');
+  if(sel&&!sel.options.length){const y=new Date().getFullYear();sel.innerHTML=[y,y-1,y-2].map(a=>`<option value="${a}">${a}</option>`).join('');sel.value=String(y);}
+  return Number(sel&&sel.value)||new Date().getFullYear();
+}
+function tuEnteCsv(righe){
+  const cols=righe.length?[...TU_ENTE_ORDINE.filter(k=>k in righe[0]),...Object.keys(righe[0]).filter(k=>!TU_ENTE_ORDINE.includes(k))]:TU_ENTE_ORDINE;
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const val=(k,v)=>{
+    if(v===null||v===undefined||v==='')return '';
+    if(typeof v==='boolean')return v?'Sì':'No';
+    if(k==='data_nascita'){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(v));if(m)return q(m[3]+'/'+m[2]+'/'+m[1]);}
+    if(TU_ENTE_TESTO.includes(k))return '"=""'+String(v).replace(/"/g,'""""')+'"""';
+    return q(v);
+  };
+  return '\ufeff'+[cols.map(k=>q(tuEnteEtichetta(k))).join(';')].concat(righe.map(r=>cols.map(k=>val(k,r[k])).join(';'))).join('\r\n');
+}
+async function tuCaricaEnte(){
+  const box=document.getElementById('tu-ente-n');if(!box)return;
+  const anno=tuEnteAnno();
+  box.textContent='Carico…';
+  const[d,m]=await Promise.all([
+    sb.from('domande_iscrizione').select('id',{count:'exact',head:true}).eq('anno',anno),
+    sb.rpc('domande_iscrizione_mancanti',{p_anno:anno})
+  ]);
+  if(tuEnteAnno()!==anno)return; // anno cambiato nel frattempo
+  if(d.error||m.error){box.textContent='Numeri non letti: '+scErr(d.error||m.error);return}
+  const n=d.count||0,mm=(m.data||[]).length;
+  box.textContent=`${n} ${n===1?'domanda':'domande'} · ${mm} ${mm===1?'iscritto':'iscritti'} senza domanda`;
+}
+async function tuEsportaEnte(){
+  const anno=tuEnteAnno(),btn=document.getElementById('tu-ente-btn');
+  if(btn)btn.disabled=true;
+  try{
+    const{data,error}=await sb.rpc('export_iscritti_ente',{p_anno:anno});
+    if(error){const msg=String(error.message||'');toast(/solo segreteria/i.test(msg)?'Esportazione riservata alla segreteria.':'Esportazione non riuscita: '+scErr(error));return}
+    const righe=data||[];
+    if(!righe.length){toast('Nessuna domanda di iscrizione per il '+anno);return}
+    const blob=new Blob([tuEnteCsv(righe)],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Iscritti_'+anno+'_Accademia_RCC.csv';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+    toast(righe.length+(righe.length===1?' iscritto esportato':' iscritti esportati'));
+  }catch(e){toast('Esportazione non riuscita: '+(e.message||e));console.error('[export_iscritti_ente]',e);}
+  finally{if(btn)btn.disabled=false;}
 }
 function tuEsportaCsvCosti(){
   if(!tuCosti.length){toast('Nessun costo da esportare');return}
@@ -13322,7 +13404,7 @@ async function renderMieiCrediti(){
     </div>`;
   }).join('');
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&typeof profile!=='undefined'&&profile){renderMieiCrediti();renderMieiPacchetti();}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&typeof profile!=='undefined'&&profile){renderMieiCrediti();renderMieiPacchetti();renderPromemoriaDomanda();}});
 
 /* ── v3.155 Area personale: "Il tuo pacchetto ingressi". Niente card se non ce ne sono o sono scaduti.
    Si passa il tipo del pacchetto toccato: senza, con due pacchetti la RPC scalerebbe quello che scade prima. ── */
@@ -13338,6 +13420,42 @@ async function renderMieiPacchetti(){
     <div style="font-size:15px;margin-top:4px;color:#111">restano ${p.restano} su ${p.inclusi}${p.scadenza?' · valido fino al '+abbGMA(p.scadenza):''}</div>
     ${p.valido_oggi?`<button style="margin-top:12px;font-size:14px;font-weight:700;color:#fff;padding:10px 18px;background:#111;border:0;border-radius:8px;cursor:pointer;font-family:inherit" onclick="segnaMioIngresso('${escHtml(String(p.tipo).replace('pacchetto_ingressi_',''))}',${Number(p.restano)})">Segna il mio ingresso di oggi</button>`:''}
   </div>`).join('');
+}
+/* ── v3.160 Area personale: promemoria "Completa la domanda di iscrizione" ──
+   Persone dell'account da iscrizione_stato (io e figli). Striscia se almeno una ha domanda_anno = null
+   e nell'anno della RPC ha un tesseramento (stato <> 'annullato') o un corso attiva/sospesa: stessi criteri
+   di domande_iscrizione_mancanti (per il creator il corso non conta). user_id dei figli da miei_figli.
+   Qualunque errore: niente striscia e niente messaggio. */
+async function promemoriaDomandaServe(){
+  const{data:st,error}=await sb.rpc('iscrizione_stato');if(error)throw error;
+  const anno=Number(st&&st.anno)||new Date().getFullYear();
+  const senza=((st&&st.persone)||[]).filter(p=>p&&p.persona_id&&!p.domanda_anno&&(p.ruolo==='io'||p.ruolo==='figlio'));
+  if(!senza.length)return false;
+  const pids=senza.map(p=>p.persona_id);
+  const{data:tess,error:e1}=await sb.from('tesseramenti').select('persona_id').in('persona_id',pids).eq('anno',anno).neq('stato','annullato');
+  if(e1)throw e1;
+  if((tess||[]).length)return true;
+  const uid={};
+  senza.forEach(p=>{if(p.ruolo==='io'&&user&&!(profile&&profile.role==='creator'))uid[p.persona_id]=user.id;});
+  if(senza.some(p=>p.ruolo==='figlio')){
+    const{data:fg,error:e2}=await sb.rpc('miei_figli');if(e2)throw e2;
+    (fg||[]).forEach(f=>{if(f.user_id&&pids.includes(f.persona_id))uid[f.persona_id]=f.user_id;});
+  }
+  const uids=[...new Set(Object.values(uid))];
+  if(!uids.length)return false;
+  const{data:isc,error:e3}=await sb.from('iscrizioni_corso').select('id').in('user_id',uids).in('status',['attiva','sospesa']).limit(1);
+  if(e3)throw e3;
+  return (isc||[]).length>0;
+}
+async function renderPromemoriaDomanda(){
+  const el=document.getElementById('my-domanda-isc');if(!el||!sb||!user)return;
+  let serve=false;
+  try{serve=await promemoriaDomandaServe();}
+  catch(e){console.warn('[promemoria domanda]',e.message||e);serve=false;}
+  el.innerHTML=serve?`<div class="card fu" style="margin-bottom:16px;padding:14px 16px;border:2px solid var(--accent);background:#fff;color:#111;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="font-size:15px;font-weight:700;color:#111;flex:1;min-width:200px">Completa la domanda di iscrizione: due minuti dal telefono.</div>
+      <a href="/iscrizione.html" style="display:inline-block;font-size:14px;color:#fff;text-decoration:none;padding:10px 18px;background:#111;border-radius:8px;font-weight:700">Compila la domanda</a>
+    </div>`:'';
 }
 async function segnaMioIngresso(tipo,restano){
   if(!confirm('Sei sicuro? Segni l\'ingresso di oggi, il pacchetto scende a '+(restano-1)))return;
