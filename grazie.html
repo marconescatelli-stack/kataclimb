@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: grazie v12 · 2026-11-07 · FESTA: BAMBINI IN PIÙ (stripe-worker v3.98): con tipo=festa_aggiunta la pagina dice "Bambini aggiunti. Ora sono <totale> 🎉" (totale dal parametro &totale= della success_url; senza, "Bambini aggiunti, grazie!") con l'importo pagato e i passi giusti. Etichetta in KC_TIPO_LABEL. CUMULA grazie v11 -->
 <!-- KC-BUILD: grazie v11 · 2026-11-07 · ISCRIZIONE FATTA A DICEMBRE VALIDA FINO AL 31 DICEMBRE DELL'ANNO DOPO (stripe-worker v3.97): con la Lezione Privata Bambini e l'iscrizione la pagina dice la scadenza vera dal parametro &valida=AAAA-MM-GG della success_url ("vale fino al 31 dicembre 2027"); senza il parametro (sessioni create prima del v3.97) resta "31 dicembre". CUMULA grazie v10 -->
 <!-- KC-BUILD: grazie v10 · 2026-11-07 · NUMERO DI MARCO (correzione Marco 7 nov): il WhatsApp +39 331 874 3953 è il numero personale di Marco, non della segreteria: i testi che lo legavano alla segreteria ora dicono "a Marco" (link invariato). Righe 284, 319, 1025, 1027, 1032. Nient'altro toccato. CUMULA grazie v9 -->
 <!-- KC-BUILD: grazie v9 · 2026-11-07 · LEZIONE PRIVATA BAMBINI CON ISCRIZIONE (stripe-worker v3.95, aggiunta Marco 7 nov): con tipo=prima_lezione_privata e importo oltre 25 € (lezione + iscrizione annuale 40 €) la pagina dice l'importo pagato, che l'iscrizione vale fino al 31 dicembre con l'assicurazione e "Dalla prossima lezione il prezzo è 25 € a lezione."; a 25 € resta il testo della v8. Nient'altro toccato. CUMULA grazie v8 · 2026-11-07 · FESTA ED ESPERIENZA ARRAMPICATA e LEZIONE PRIVATA BAMBINI (stripe-worker v3.94): con tipo=festa_sabato la pagina dice "La festa è prenotata" con l'importo vero (&importo=) e i passi giusti (mail di conferma con data, orario e condizioni; spostare o annullare su WhatsApp; come arrivare) al posto della Prima Lezione e del portale; con tipo=prima_lezione_privata dice "Lezione Privata Bambini". Etichette nuove in KC_TIPO_LABEL. Nessun altro testo, flusso foto o Pixel toccato. CUMULA grazie v7 · 2026-10-18 · + LEGAMI-K 20–22 nov 2026 (legami_nov26_weekend|legami_nov26_advance), stesso flusso dell'Essence. CUMULA v6 · 2026-10-18 · ESSENCE-K 21–22 NOV 2026 (saldo entro 7 giorni dall'acconto) (stripe-worker v3.86): tipo=essence_nov26_weekend|essence_nov26_open → «posto bloccato» (acconto 150 €) o «quota saldata», foto del viso obbligatoria come per le tappe. CUMULA grazie v5 · 2026-10-18 · INTENSIVI E TAPPE (stripe-worker v3.85): con tipo=intensivo_sabato_* la pagina dice «posto bloccato» al posto della Prima Lezione e chiede la foto del viso come documentazione OBBLIGATORIA (niente «Più tardi»); stesso flusso fotocamera v4 e stesso endpoint /foto-riconoscimento esteso dal Worker agli eventi. Prima Lezione Adulti invariata. -->
@@ -307,6 +308,23 @@ h1 .accent{color:var(--sky)}
     legami_nov26_advance:  'LEGAMI-K + Corso Advance KataClimb · 20 e 22 novembre 2026'
   };
   // v8 · Festa ed Esperienza Arrampicata (sabato) e Lezione Privata Bambini
+  // v12 · bambini in più per una festa già prenotata
+  if (tipo === 'festa_aggiunta') {
+    var impA = parseFloat(qs.get('importo') || ''), tot = parseInt(qs.get('totale') || '', 10);
+    document.title = 'Bambini aggiunti · Accademia RCC';
+    var ah1 = document.getElementById('g-h1');
+    if (ah1) ah1.innerHTML = tot > 0 ? 'Bambini aggiunti.<br>Ora sono <span class="accent">' + tot + '</span> 🎉' : 'Bambini aggiunti,<br><span class="accent">grazie!</span>';
+    var alead = document.getElementById('g-lead');
+    if (alead) alead.innerHTML = 'Il pagamento è andato a buon fine' + (impA > 0 ? ' (<strong>' + impA + ' €</strong>)' : '') + '. In base al numero dei bambini organizziamo gli istruttori della festa.';
+    var ast = document.getElementById('g-steps');
+    if (ast) ast.innerHTML =
+      '<h2>Cosa succede ora</h2><ol>' +
+      '<li><div><div class="step-title">Email di conferma</div><div class="step-desc">Tra pochi minuti ricevete una email con il nuovo numero dei bambini e l\'importo pagato.</div></div></li>' +
+      '<li><div><div class="step-title">Altri bambini?</div><div class="step-desc">Dallo stesso link potete aggiungerne ancora fino a 4 giorni prima della festa. Se poi qualcuno non viene, la quota resta all\'Accademia.</div></div></li>' +
+      '<li><div><div class="step-title">Per qualsiasi cosa</div><div class="step-desc">Scrivete a Marco su <a href="https://wa.me/393318743953">WhatsApp</a>.</div></div></li>' +
+      '</ol>';
+    return;
+  }
   if (tipo === 'festa_sabato') {
     var impF = parseFloat(qs.get('importo') || '');
     document.title = 'Festa prenotata · Accademia RCC';
@@ -431,6 +449,7 @@ h1 .accent{color:var(--sky)}
     prima_famiglia:         'Prima Lezione in Famiglia',
     prima_lezione_privata:  'Lezione Privata Bambini',
     festa_sabato:           'Festa ed Esperienza Arrampicata',
+    festa_aggiunta:         'Festa ed Esperienza Arrampicata · bambini in più',
     pacchetto_intero:       'Pacchetto Open intero',
     pacchetto_meta_open:    'Pacchetto ½ Open + Prima Lezione',
     saldo_open_intero:      'Pacchetto Open intero',

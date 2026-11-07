@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.111 · 2026-11-07 · FESTA: BAMBINI IN PIÙ (consegna Marco 7 nov, DB prenotazioni_festa_aggiunte, stripe-worker v3.98): la card della festa mostra il numero di bambini aggiornato (prenotazioni_festa.n_bambini, che il Worker aumenta a ogni aggiunta pagata); nei dettagli la riga "Bambini aggiunti" con le aggiunte pagate e la data ("+5 il 12/11 · 75 €"). Le aggiunte si leggono insieme alla festa (relazione festa_id); se quella lettura non riesce si rilegge la festa come prima, senza aggiunte. Niente altro. CUMULA v3.110 -->
 <!-- KC-BUILD: agenda v3.110 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. (1) gli slot festa_sabato non sono lezioni: caricaSlot e la ricerca (cercaCarica) li escludono (.neq tipo_corso festa_sabato). Prima, nella vista Tutti i corsi comparivano ogni sabato come blocchi "Da assegnare" e il tocco apriva un tab festa_sabato con i bottoni di prenotazione. (2) Solo staff, nella vista 📋 Tutti i corsi e nel tab Bambini e Ragazzi: la festa prenotata (prenotazioni_festa stato prenotato, settimana a schermo) compare nella fascia del suo slot (ora_inizio–ora_fine dello slot) come "🎉 Festa · N bambini · genitore · telefono" (card rosa tra le lezioni in ordine di ora; nella griglia Tutti una riga "🎉 Feste"). Al tocco, modale di sola lettura con quando, bambini, eta' dei bambini, festeggiato, genitore, telefono (link tel:), durata, importo in €, note. Tutti i campi scritti dai genitori passano da escF. Se la lettura fallisce (RLS, rete) la festa non compare e il resto dell'agenda resta com'e'. Nessuna scrittura. CUMULA v3.109. -->
 <!-- KC-BUILD: agenda v3.109 · 2026-11-06 · IL TOCCO SUL NOME APRE LA SCHEDA (Marco 5–6 nov, sostituisce la consegna v1 del 5 nov): per tutto lo staff (isStaff) ogni nome prenotato o iscritto apre oggi.html?scheda=<persona_id>&torna=agenda&data=&tipo= nella stessa scheda del browser. persona_id: iscritti, abbonati e Manovra in Sosta dalla riga (v_lista_manovra_sosta ha persona_id, non user_id); Prima Lezione e Scuole dalla lettura della foto v3.95; corsi a credito da profile_data, una lettura in batch con cache (idrataNomi). Persona non trovata: nome senza tocco e console.warn. apriCardLead resta nel file ma non e' piu' legata ai nomi. Nessun SQL. CUMULA v3.108. -->
 <!-- KC-BUILD: agenda v3.108 · 2026-11-04 · RICORDO DOPO LA PRIMA LEZIONE (consegna 4 nov, scheda allievo B): dopo P (fatto) su una Prima Lezione, il portale chiede subito "Come lo riconosci tra un mese?" (300 caratteri, 🔒 solo staff, precompilato se c'e' gia') con Salta come scelta visibile -> salva_ricordo_lead(lead_id, p_ricordo). Se la lettura fallisce non chiede niente: la presenza resta salvata. Nessuna modifica a DB. CUMULA v3.107 (sotto). -->
@@ -1625,9 +1626,11 @@
   async function caricaFesteSettimana(lun, dom) {
     if (viewMode === 'allievo' || !FESTA_TAB.includes(currentTipo)) return [];
     try {
-      const { data, error } = await sb.from('prenotazioni_festa')
-        .select('id, slot_id, data, durata_min, n_bambini, eta_bambini, festeggiato, nome, cognome, telefono, importo, note, corsi_attivi_settimanali(ora_inizio, ora_fine)')
-        .eq('stato', 'prenotato').gte('data', isoD(lun)).lte('data', isoD(dom));
+      const COLS = 'id, slot_id, data, durata_min, n_bambini, eta_bambini, festeggiato, nome, cognome, telefono, importo, note, corsi_attivi_settimanali(ora_inizio, ora_fine)';
+      const leggi = (cols) => sb.from('prenotazioni_festa').select(cols).eq('stato', 'prenotato').gte('data', isoD(lun)).lte('data', isoD(dom));
+      // v3.111 — con le aggiunte pagate; se la lettura delle aggiunte non riesce, la festa come prima
+      let { data, error } = await leggi(COLS + ', prenotazioni_festa_aggiunte(n_aggiunti,importo,stato,pagato_at)');
+      if (error) { console.warn('[feste] aggiunte non lette:', error.message); ({ data, error } = await leggi(COLS)); }
       if (error) throw error;
       return (data || []).filter(f => f.corsi_attivi_settimanali && f.corsi_attivi_settimanali.ora_inizio).map(f => {
         const ini = f.corsi_attivi_settimanali.ora_inizio, fin = f.corsi_attivi_settimanali.ora_fine;
@@ -1662,6 +1665,10 @@
     document.getElementById('festa-det').innerHTML =
         riga('Quando', `${GIORNI[(d.getDay() + 6) % 7]} ${d.getDate()} ${MESI_BR[d.getMonth()]} · ${escF(f.ini)}–${escF(f.fin)}`)
       + riga('Bambini', escF(f.n_bambini))
+      + riga('Bambini aggiunti', (f.prenotazioni_festa_aggiunte || []).filter(a => a.stato === 'pagato')
+          .sort((x, y) => String(x.pagato_at).localeCompare(String(y.pagato_at)))
+          .map(a => { const g = a.pagato_at ? new Date(a.pagato_at) : null;
+            return `+${escF(a.n_aggiunti)}${g ? ` il ${String(g.getDate()).padStart(2, '0')}/${String(g.getMonth() + 1).padStart(2, '0')}` : ''} · ${escF(Number(a.importo).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }))}`; }).join('<br>'))
       + riga('Età dei bambini', escF(f.eta_bambini))
       + riga('Festeggiato', escF(f.festeggiato))
       + riga('Genitore', escF(festaGenitore(f)))
