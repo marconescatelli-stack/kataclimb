@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: prima-lezione-privata v3.1 · 2026-11-07 · COSA PAGHI ORA E COSA DOPO (aggiunta Marco 7 nov): quando serve l'iscrizione il riquadro sopra il bottone diventa "Oggi paghi: • Iscrizione annuale all'Accademia: 40 € (vale fino al 31 dicembre, assicurazione compresa) • Questa lezione: X € invece di 25 €, grazie allo sconto di fine anno sull'iscrizione (−N €) · Totale: Y € · Dalla prossima lezione il prezzo è 25 € a lezione."; a dicembre "Questa lezione: compresa, invece di 25 €"; senza sconto (gennaio–settembre) "Questa lezione: 25 €". Cifre sempre dal preventivo del Worker. Tolti i due paragrafi e la riga di dettaglio della v3. CUMULA v3 -->
 <!-- KC-BUILD: prima-lezione-privata v3 · 2026-11-07 · ISCRIZIONE ANNUALE DALLA SECONDA LEZIONE (decisioni Marco 7 nov, DB sconti_iscrizione_fine_anno, stripe-worker v3.95): quando il genitore ha scritto email, nome e cognome del figlio (all'uscita dai campi, e comunque prima del pagamento) la pagina chiede a POST /privata-preventivo il totale: prima volta 25 €; dalla seconda lezione, senza tesseramento attivo dell'anno, iscrizione annuale 40 € + lezione con lo sconto di fine anno (cifre dal Worker/DB, mai scritte nel codice). Riepilogo e bottone ("Paga 45 € e prenota") col totale vero; se serve l'iscrizione, riquadro sopra il bottone con il testo di Marco e il dettaglio "Iscrizione annuale 40 € · Lezione 25 € − sconto N € = X € · Totale Y €". Preventivo che non risponde: avviso con WhatsApp e bottone fermo finché non si riprova. Il Worker ricalcola sempre lui al pagamento. CUMULA v2 -->
 <!-- KC-BUILD: prima-lezione-privata v2 · 2026-11-07 · LEZIONE PRIVATA BAMBINI (decisioni Marco 7 nov, DB feste_sabato_e_private_bambini): stesso file e stesso link, nuovo nome "Lezione Privata Bambini" (titolo, hero, riepilogo; via "Prima Lezione Privata Speciale"), sottotitolo "Un bambino, un'istruttrice, un'ora tutta per lui, nei giorni in cui la sala e' tranquilla.". La riga orari sotto l'hero si CALCOLA dagli slot letti dal DB (giorni con le stesse fasce raggruppati, istruttori senza doppioni: oggi "Martedì e venerdì · 17:00–18:00 e 18:00–19:00 · con Claudia"), non e' piu' scritta a mano. Si prenota FINO AL GIORNO PRIMA: il calendario parte da domani, tolta la regola delle 4 ore (CUTOFF_OGGI_MIN, stato 'taglio', badge CHIUSO); al click su Paga una data diventata oggi o passata fa ripartire la scelta. Finestra 21 giorni (era 14). Riquadro condizioni sopra il bottone di pagamento. Prezzo 25 € invariato. Checkout -> stripe-worker v3.94 (stesso prodotto prima_lezione_privata). CUMULA v1 -->
 <!-- KC-BUILD: prima-lezione-privata v1 · 2026-10-22 · PRIMA LEZIONE PRIVATA SPECIALE (decisioni Marco 22 ott 2026): pagina RISERVATA (noindex, fuori sitemap, nessun link dal sito), il link lo manda la segreteria su WhatsApp. Un bambino per volta, 25 €, lo slot e' quello di corsi_attivi_settimanali con tipo_corso='prima_lezione_privata' (martedi' 18:00-19:00 con Claudia, capienza 1). Stesso flusso dei minori (inizia-minori v14): paga il genitore, arrampica il figlio, scheda genitore + figlio + consenso Termini, prenotazione in agenda a nome del figlio. In piu': campo FACOLTATIVO 'cosa e' utile che l'istruttrice sappia' (max 1000 caratteri) con consenso SEPARATO ed esplicito al trattamento dei dati sulla salute, obbligatorio solo se il campo e' compilato; il testo va al Worker (tabella note_accompagnamento), NON nei metadati Stripe. NIENTE Meta Pixel e niente banner cookie: pagina privata con possibili dati sulla salute, consent='no' al Worker (CAPI non parte). Deep-link ?d=YYYY-MM-DD preseleziona la data. Checkout -> stripe-worker v3.87 prodotto prima_lezione_privata. Stesse regole di inizia-minori: finestra 14 giorni, oggi fino a 4 ore prima, giorni_chiusi, slot_chiusure = PIENO a mano, conteggi_prima_lezione. -->
@@ -92,6 +93,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .iscrizione-box.show{display:block}
 .iscrizione-box p+p{margin-top:8px}
 .iscrizione-box .dett{font-weight:700}
+.iscrizione-box ul{margin:6px 0 0 20px}
+.iscrizione-box li+li{margin-top:4px}
 #prev-err{display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--r);padding:10px 12px;font-size:14px;color:#991B1B;margin:0 0 14px}
 #prev-err a{color:inherit;font-weight:700}
 .condizioni{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:var(--r);padding:12px 14px;font-size:14px;line-height:1.5;color:#0C4A6E;margin:0 0 14px}
@@ -179,9 +182,13 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     <div class="condizioni"><b>Come funziona:</b> si prenota fino al giorno prima. Si può spostare o annullare la lezione fino al giorno prima scrivendo alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>; dopo, la lezione è persa.</div>
 
     <div class="iscrizione-box" id="iscrizione-box">
-      <p>Dalla seconda lezione serve l'iscrizione annuale all'Accademia: 40 €, vale fino al 31 dicembre e comprende l'assicurazione.</p>
-      <p>Se ti iscrivi tra ottobre e dicembre, la lezione che paghi insieme all'iscrizione costa meno: ottobre 10 €, novembre 5 €, dicembre 0 € (invece di 25 €). Lo sconto vale solo per quella lezione: le successive costano 25 €.</p>
-      <p class="dett" id="iscrizione-dett"></p>
+      <p><b>Oggi paghi:</b></p>
+      <ul>
+        <li id="isc-riga-iscr"></li>
+        <li id="isc-riga-lez"></li>
+      </ul>
+      <p class="dett" id="isc-totale"></p>
+      <p id="isc-dopo"></p>
     </div>
     <div id="prev-err">Non riusciamo a calcolare il totale: riprova tra un minuto o scrivi alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>. <a href="#" id="prev-riprova">Riprova</a></div>
 
@@ -388,9 +395,15 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   function disegnaTotale(){
     const box = $('iscrizione-box');
     if (prev && prev.serve_iscrizione) {
-      $('iscrizione-dett').textContent = prev.sconto > 0
-        ? `Iscrizione annuale ${prev.iscrizione} € · Lezione ${prev.lezione_pieno} € − sconto ${prev.sconto} € = ${prev.lezione} € · Totale ${prev.totale} €`
-        : `Iscrizione annuale ${prev.iscrizione} € · Lezione ${prev.lezione_pieno} € · Totale ${prev.totale} €`;
+      // v3.1: cosa si paga oggi e cosa dopo (testo di Marco)
+      $('isc-riga-iscr').textContent = `Iscrizione annuale all'Accademia: ${prev.iscrizione} € (vale fino al 31 dicembre, assicurazione compresa)`;
+      $('isc-riga-lez').textContent = prev.sconto <= 0
+        ? `Questa lezione: ${prev.lezione} €`
+        : prev.lezione > 0
+          ? `Questa lezione: ${prev.lezione} € invece di ${prev.lezione_pieno} €, grazie allo sconto di fine anno sull'iscrizione (−${prev.sconto} €)`
+          : `Questa lezione: compresa, invece di ${prev.lezione_pieno} €, grazie allo sconto di fine anno sull'iscrizione (−${prev.sconto} €)`;
+      $('isc-totale').textContent = `Totale: ${prev.totale} €`;
+      $('isc-dopo').textContent = `Dalla prossima lezione il prezzo è ${prev.lezione_pieno} € a lezione.`;
       box.classList.add('show');
     } else box.classList.remove('show');
     $('prev-err').style.display = prevErrore ? 'block' : 'none';
