@@ -13136,7 +13136,7 @@ async function dsAzione(az,i){
    annulla_credito, sempre da kcGuida. Solo segreteria piena (stessa regola di is_segreteria_piena nel DB). */
 const CR_METODI=[['contanti','contanti'],['pos','bancomat'],['bonifico','bonifico']];
 const CR_MET_FRASE={contanti:'in contanti',pos:'con bancomat',bonifico:'con bonifico',stripe:'con Stripe'};
-const CR_WA='https://wa.me/393318743953'; // stesso WhatsApp della segreteria della home (heroCtaAction)
+const CR_WA='https://wa.me/393318743953'; // stesso WhatsApp della home (heroCtaAction): è il numero di Marco, non della segreteria
 let crRighe=[],crById={},crExtra={},crLead={},crListino=null,crFasc=null;
 const crPuo=()=>isSegreteriaPiena();
 function crEuro(n){const v=Number(n||0);return v.toLocaleString('it-IT',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2})+' €'}
