@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.161 · 2026-11-07 · ISCRIZIONE VALIDA FINO ALLA SCADENZA (decisione Marco 7 nov, trigger DB tesseramento_dicembre_anno_dopo; DB domande_iscrizione_mancanti/export_iscritti_ente/tg_tesseramento_da_iscrizione gia' sistemati dalla chat): tesserato = stato attivo e data_scadenza >= oggi, mai "dell'anno". (1) Promemoria della domanda (promemoriaDomandaServe): tesseramento attivo con scadenza da oggi in poi al posto di anno = anno corrente. (2) Segreteria → Iscrizione ASD: dopo registra_tesseramento la scadenza si rilegge da get_tesseramenti (la RPC restituisce quella calcolata prima del trigger) e la nota del fascicolo dice la scadenza vera, mai "31/12/{anno}" scritto a mano. (3) Fascicolo, blocco Tesseramento ASD: "Iscrizione attiva fino al 31/12/2027" (verde) se attivo e non scaduto, altrimenti "Scaduta il …" o "Annullata" (rosso). CUMULA v3.160 -->
 <!-- KC-BUILD: portale v3.160 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE · + RITORNO DOPO IL LOGIN: iscrizione.html senza sessione lascia kc_dopo_login in localStorage; dopo il login (fresco o con sessione gia' aperta, prima dell'atterraggio su Oggi) kcDopoLogin() riporta a /iscrizione.html, una volta sola, entro un'ora, solo indirizzi della lista KC_DOPO_LOGIN_OK · (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): (1) PROFILO: in cima alla vista profilo striscia "Completa la domanda di iscrizione: due minuti dal telefono." con bottone scuro a /iscrizione.html (renderPromemoriaDomanda). Compare se in iscrizione_stato una persona dell'account (io o figlio) ha domanda_anno = null E ha un tesseramento dell'anno (stato diverso da annullato) o un corso attiva/sospesa in iscrizioni_corso (user_id dei figli da miei_figli; per il creator il corso non conta, come in domande_iscrizione_mancanti). Sparisce a domanda inviata (si rilegge a ogni apertura del profilo e al ritorno sulla pagina). RPC che fallisce: nessuna striscia, nessun errore. (2) SEGRETERIA → 🗓 Turni, sotto Sconti applicati: nuova sezione "📋 Iscritti per l'ente" (solo creator e segreteria: tuPuo; la RPC controlla comunque is_segreteria_piena): select dell'anno (corrente e due precedenti), bottone "Esporta iscritti per l'ente" → rpc export_iscritti_ente(p_anno) → file Iscritti_{anno}_Accademia_RCC.csv (UTF-8 con BOM, separatore ";", si apre in Excel; nessuna libreria xlsx nel repo) con le 20 colonne nell'ordine della RPC e intestazioni in italiano; CAP e telefono scritti come testo (="…") per non perdere gli zeri iniziali in Excel; booleani Sì/No; data di nascita GG/MM/AAAA. Sotto il bottone "{N} domande · {M} iscritti senza domanda": N = conteggio domande_iscrizione dell'anno (= righe dell'export), M = righe di domande_iscrizione_mancanti(p_anno). Solo letture. CUMULA v3.159 (sotto). -->
 <!-- KC-BUILD: portale v3.159 · 2026-11-07 · SCONTI APPLICATI (consegna Marco 7 nov, DB sconti_iscrizione_fine_anno, stripe-worker v3.95): in Segreteria → 🗓 Turni, sotto Costi staff del mese, nuova sezione "🏷 Sconti applicati" da sconti_applicati (solo creator e segreteria: tuPuo, e la tabella la legge solo is_segreteria): selettore mese, righe data · bambino · genitore · prodotto (nome completo da TU_NOME_CORSO) · prezzo pieno · sconto · pagato · iscrizione 40 €, totale sconti del mese, Esporta CSV. Bambino e genitore dalle due FK verso persone. Solo letture. CUMULA v3.158 (sotto). -->
 <!-- KC-BUILD: portale v3.158 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. Segreteria → 🗓 Turni. Lo slot festa_sabato (sabato 10:30–12:00 o 11:00–12:00, gia' in slot_copertura con 1 istruttore) entra nella settimana SOLO nel sabato in cui c'e' una festa prenotata su quello slot (prenotazioni_festa stato prenotato), come lezione dei corsi "🎉 Festa del sabato · N bambini" con copertura "Istruttori n/1" (rossa finche' nessuno e' segnato). Al click, sopra le persone, i dettagli della festa (genitore, telefono, festeggiato, eta' dei bambini, durata, importo, note; tutto con escHtml) e lo stesso Aggiungi persona di ogni lezione (impegno_mi_segno con p_slot_id e p_data, accettato dal DB per lo slot festa). Slot festa senza riga in slot_copertura: letto a parte con 1 istruttore richiesto. Lettura delle feste fallita = nessuno slot festa in settimana (prima comparivano entrambi gli slot ogni sabato come scoperti). TU_NOME_CORSO festa_sabato = Festa del sabato (anche nei compensi). Console segreteria → ⚠ Da sistemare (dsCarica e conto della tessera): la voce "lezione senza istruttore" che v_segreteria_da_sistemare mette ogni sabato sugli slot festa resta solo se quel sabato c'e' una festa prenotata su quello slot (dsSoloFestePrenotate). Audit letture corsi_attivi_settimanali: nessun altro punto del portale puo' proporre lo slot festa come Prima Lezione, corso, abbonamento o spostamento (tutte filtrate per tipo_corso, per id, per scuola o per slot_ammessi). Nessuna scrittura nuova, nessuna modifica a RPC o tabelle. CUMULA v3.157. -->
@@ -5824,7 +5825,10 @@ async function submitTesseramento(){
     const{data:res,error}=await sb.rpc('registra_tesseramento',{p_user_id:userId,p_anno:anno,p_data_inizio:data,p_assicurazione:assic});
     if(error)throw new Error(error.message);
     if(res&&res.ok===false)throw new Error(res.msg||'errore');
-    const fuRow={lead_id:currentLeadDetail.id,tipo:'nota',esito:'appuntamento_preso',testo:`Tesseramento ASD registrato: anno ${anno}, scade 31/12/${anno}${assic?' (con assicurazione)':''}.`};
+    // v3.161 — scadenza vera dal DB (il trigger allunga quella di dicembre al 31/12 dell'anno dopo)
+    let scadVera='';
+    try{const{data:tt}=await sb.rpc('get_tesseramenti',{p_user_id:userId});const t=(tt||[]).find(x=>Number(x.anno)===Number(anno));if(t&&t.data_scadenza){const p=String(t.data_scadenza).slice(0,10).split('-');scadVera=p[2]+'/'+p[1]+'/'+p[0];}}catch(_){}
+    const fuRow={lead_id:currentLeadDetail.id,tipo:'nota',esito:'appuntamento_preso',testo:`Tesseramento ASD registrato: anno ${anno}${scadVera?`, iscrizione attiva fino al ${scadVera}`:''}${assic?' (con assicurazione)':''}.`};
     if(typeof user!=='undefined'&&user&&user.id)fuRow.created_by=user.id;
     try{await sb.from('crm_follow_ups').insert(fuRow);}catch(_){}
     closeModal('mo-tess');
@@ -6567,17 +6571,18 @@ function renderLeadDetail(){
   // v3.71 — blocco TESSERAMENTO ASD (= assicurazione), annualità
   let tessBlock='';
   if(currentLeadTesseramenti&&currentLeadTesseramenti.length){
-    const oggi=new Date();oggi.setHours(0,0,0,0);
+    const _o=new Date(), oggiIso=_o.getFullYear()+'-'+String(_o.getMonth()+1).padStart(2,'0')+'-'+String(_o.getDate()).padStart(2,'0');
     const rows=currentLeadTesseramenti.map(t=>{
-      const scad=new Date(t.data_scadenza);
-      const attivo=(t.stato==='attivo');
+      // v3.161 — attiva = stato attivo e scadenza da oggi in poi; data dal DB senza fusi orari
+      const sIso=String(t.data_scadenza||'').slice(0,10), sp=sIso.split('-');
+      const scadStr=sp.length===3?`${sp[2]}/${sp[1]}/${sp[0]}`:'—';
+      const attivo=(t.stato==='attivo'&&sIso>=oggiIso);
       const col=attivo?'#15803D':'#B91C1C';
-      const lbl=attivo?`attiva ${t.anno}`:`scaduta ${t.anno}`;
-      const scadStr=scad.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+      const lbl=attivo?`Iscrizione attiva fino al ${scadStr}`:(t.stato==='annullato'?`Annullata (${t.anno})`:`Scaduta il ${scadStr}`);
       const ass=t.assicurazione?' · 🛡️ assicurazione':'';
       return`<div class="ld-prenot-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <span style="font-weight:700;color:${col}">${lbl}</span>
-        <span style="font-size:13px;color:var(--text2)">scade ${scadStr}${ass}</span>
+        <span style="font-size:13px;color:var(--text2)">anno ${t.anno}${ass}</span>
       </div>`;
     }).join('');
     tessBlock=`<div class="ld-section">
@@ -13432,7 +13437,8 @@ async function promemoriaDomandaServe(){
   const senza=((st&&st.persone)||[]).filter(p=>p&&p.persona_id&&!p.domanda_anno&&(p.ruolo==='io'||p.ruolo==='figlio'));
   if(!senza.length)return false;
   const pids=senza.map(p=>p.persona_id);
-  const{data:tess,error:e1}=await sb.from('tesseramenti').select('persona_id').in('persona_id',pids).eq('anno',anno).neq('stato','annullato');
+  const _o=new Date(), oggiIso=_o.getFullYear()+'-'+String(_o.getMonth()+1).padStart(2,'0')+'-'+String(_o.getDate()).padStart(2,'0'); // v3.161
+  const{data:tess,error:e1}=await sb.from('tesseramenti').select('persona_id').in('persona_id',pids).eq('stato','attivo').gte('data_scadenza',oggiIso); // v3.161 valido fino alla scadenza
   if(e1)throw e1;
   if((tess||[]).length)return true;
   const uid={};
