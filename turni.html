@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.9 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. gli slot festa_sabato hanno una riga in slot_copertura (1 istruttore) e v_copertura_lezioni li restituiva OGNI sabato come lezioni scoperte. In LEZIONI DEI CORSI una riga festa_sabato resta solo se in quella data c'e' una festa prenotata (prenotazioni_festa stato prenotato) su quello slot; se la lettura delle feste non riesce, nessuna riga festa. Nome "Festa del sabato · N bambini" (NOME_CORSO festa_sabato). La bacheca Da coprire fa lo stesso in kc-da-coprire.js v1.1. MI SEGNO, sostituzioni e supporto invariati (impegno_mi_segno accetta lo slot festa con la data). Nessuna scrittura nuova. CUMULA v1.8 (sotto). -->
 <!-- KC-BUILD: turni v1.8 · 2026-11-02 · LEZIONE NON SVOLTA (consegna 2 nov, punto 3; DB impegni_staff.stato non_svolta): nelle lezioni dei corsi, nelle scuole e in I miei impegni lo stato non_svolta si legge "lezione non svolta" in grigio, mai come assenza ne' in arancio/rosso. Nessuna modifica a DB. CUMULA v1.7 (sotto). -->
 <!-- KC-BUILD: turni v1.7 · 2026-11-01 · SONO DISPONIBILE (consegna 31 ott, punto 2b; DB staff_disponibilita gia' live dal 1/11: sono_disponibile, ritiro_disponibilita, v_staff_disponibilita, disponibilita' chiusa da sola quando la persona viene segnata o segna "non ci sono"). Sulle voci della bacheca, sui turni monitor senza nessuno della griglia e sulle lezioni scoperte (corsi, supporto richiesto, scuole sotto 3): riga verde "Disponibili: …" (o "Nessuno disponibile ancora"), bottone SONO DISPONIBILE accanto a MI SEGNO; se lo sei gia': "Sei disponibile ✓", NON PIÙ DISPONIBILE (ritiro_disponibilita) e MI SEGNO per prenderlo davvero; segreteria e creator: ASSEGNA accanto a ogni disponibile -> "Sei sicuro? Assegni il turno a …" -> impegno_mi_segno con p_user_id (lezione: p_tipo lezione e p_slot_id; ruolo dal ruolo della persona). Chi ha segnato "non ci sono" non vede il bottone. Nessuna modifica a DB. CUMULA v1.6 (sotto). -->
 <!-- KC-BUILD: turni v1.6 · 2026-11-01 · BACHECA "📌 DA COPRIRE" (consegna 31 ott, decisione di Marco): in cima alla pagina, prima di tutte le altre sezioni (ancora #da-coprire, per arrivarci da Oggi), una sola lista delle cose scoperte dei prossimi 14 giorni in ordine di data e ora: turni monitor senza nessuno (lun-ven 19-22, sab 14-18), lezioni dei corsi scoperte (v_copertura_lezioni coperta = false, con "Istruttori 0/1 · Assistenti 0/1"), richieste di supporto aperte (chi l'ha chiesta e la nota), lezioni delle scuole con meno di 3 persone. Per ogni voce: giorno, orario, nome completo del corso o Sala con Monitor, chi e' gia' segnato, la riga grigia "Non disponibili: …"; MI SEGNO (impegno_mi_segno) o ACCETTO IO (accetta_supporto) se c'e' la richiesta; se hai segnato "non ci sono": niente bottone e "Hai segnato che non ci sei"; rosso entro 3 giorni, arancio dopo; vuota = "Tutto coperto nelle prossime 2 settimane ✓" in verde. Dopo il clic la bacheca si ricalcola subito. Il calcolo sta in kc-da-coprire.js (kcDaCoprire), lo stesso per la tessera di Oggi: un solo conto; le fasce dei turni monitor della griglia vengono dallo stesso file. I monitor vedono solo i turni monitor. Nessuna modifica a DB. CUMULA v1.5 (sotto). -->
@@ -220,8 +221,8 @@ const NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–
   /* v1.2 corsi adulti e Prime Lezioni */
   open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb',fly:'Corso Fly KataClimb',
   giovani:'Corso Giovani KataClimb (18–24)',senior:'Corso Senior KataClimb (over 60)',lab:'Lab',manovra_sosta:'Corso Manovra in Sosta KataClimb',
-  prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Prima Lezione Privata Speciale',prima_lezione_genitori:'Prima Lezione Genitori',
-  prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)'};
+  prima_lezione:'Prima Lezione Adulti',prima_lezione_privata:'Lezione Privata Bambini',festa_sabato:'Festa ed Esperienza Arrampicata',prima_lezione_genitori:'Prima Lezione Genitori',
+  prima_lezione_bambini:'Prima Lezione Bambini (6–11)',prima_lezione_ragazzi:'Prima Lezione Ragazzi (12–17)'}; // v1.9 festa_sabato: nome completo nella riga sopra
 function nomeCorsoLez(tipo,fascia){
   if(tipo==='bambini')return fascia==='ragazzi'?NOME_CORSO.ragazzi:NOME_CORSO.bambini;
   return NOME_CORSO[tipo]||NOME_LEZ[tipo]||String(tipo||'Lezione').replace(/_/g,' ');
@@ -560,13 +561,22 @@ async function togliNonCi(id,btn){
 
 /* ── v1.1 Lezioni dei corsi: v_copertura_lezioni (prossimi 28 giorni) + chi e' segnato + richieste di supporto ── */
 async function caricaCorsi(oggiIso){
-  const[rc,rr]=await Promise.all([
+  const[rc,rr,rf]=await Promise.all([
     sb.from('v_copertura_lezioni').select('*').gte('data',oggiIso).order('data').order('ora_inizio'),
-    sb.from('richieste_supporto').select('id, slot_id, data, chiesto_da, note, stato').eq('stato','aperta').gte('data',oggiIso)
+    sb.from('richieste_supporto').select('id, slot_id, data, chiesto_da, note, stato').eq('stato','aperta').gte('data',oggiIso),
+    sb.from('prenotazioni_festa').select('slot_id, data, n_bambini').eq('stato','prenotato').gte('data',oggiIso) // v1.9
   ]);
   if(rc.error)throw rc.error;
   if(rr.error)console.warn('[turni] richieste supporto:',rr.error.message);
-  copertura=rc.data||[]; richieste=rr.data||[];
+  if(rf.error)console.warn('[turni] feste:',rf.error.message);
+  /* v1.9 slot festa_sabato: solo nei sabati con una festa prenotata su quello slot */
+  const feste=rf.error?[]:(rf.data||[]);
+  copertura=(rc.data||[]).map(c=>{
+    if(c.tipo_corso!=='festa_sabato')return c;
+    const f=feste.find(x=>x.slot_id===c.slot_id&&x.data===c.data);
+    return f?{...c,n_bambini:f.n_bambini}:null;
+  }).filter(Boolean);
+  richieste=rr.data||[];
 }
 function chiaveCorso(c){ return c.slot_id+'|'+c.data; }
 function disegnaCorsi(){
@@ -623,7 +633,7 @@ function htmlCorso(c,i){
   return `<div class="box ${c.coperta?'coperta':'scoperta'}">
     <div class="r1"><span class="tit">${esc(giornoLungo(c.data))} · ${esc(ora(c.ora_inizio))}–${esc(ora(c.ora_fine))}</span>
       <span class="conta ${c.coperta?'ok':'zero'}">${conta}</span></div>
-    <div class="det">${esc(nomeCorsoLez(c.tipo_corso,c.fascia))}${c.coperta?'':' · <span class="stato-ko">scoperta</span>'}</div>
+    <div class="det">${esc(nomeCorsoLez(c.tipo_corso,c.fascia))}${c.n_bambini?' · '+esc(c.n_bambini)+' bambini':''}${c.coperta?'':' · <span class="stato-ko">scoperta</span>'}</div>
     <div class="chips">${chips}</div>${rigaNonDisp(c.data,c.ora_inizio,c.ora_fine)}${supp}${rigaD}
     ${az?`<div class="az">${az}</div>`:''}
   </div>`;

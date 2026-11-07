@@ -1,12 +1,13 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: prima-lezione-privata v2 · 2026-11-07 · LEZIONE PRIVATA BAMBINI (decisioni Marco 7 nov, DB feste_sabato_e_private_bambini): stesso file e stesso link, nuovo nome "Lezione Privata Bambini" (titolo, hero, riepilogo; via "Prima Lezione Privata Speciale"), sottotitolo "Un bambino, un'istruttrice, un'ora tutta per lui, nei giorni in cui la sala e' tranquilla.". La riga orari sotto l'hero si CALCOLA dagli slot letti dal DB (giorni con le stesse fasce raggruppati, istruttori senza doppioni: oggi "Martedì e venerdì · 17:00–18:00 e 18:00–19:00 · con Claudia"), non e' piu' scritta a mano. Si prenota FINO AL GIORNO PRIMA: il calendario parte da domani, tolta la regola delle 4 ore (CUTOFF_OGGI_MIN, stato 'taglio', badge CHIUSO); al click su Paga una data diventata oggi o passata fa ripartire la scelta. Finestra 21 giorni (era 14). Riquadro condizioni sopra il bottone di pagamento. Prezzo 25 € invariato. Checkout -> stripe-worker v3.92 (stesso prodotto prima_lezione_privata). CUMULA v1 -->
 <!-- KC-BUILD: prima-lezione-privata v1 · 2026-10-22 · PRIMA LEZIONE PRIVATA SPECIALE (decisioni Marco 22 ott 2026): pagina RISERVATA (noindex, fuori sitemap, nessun link dal sito), il link lo manda la segreteria su WhatsApp. Un bambino per volta, 25 €, lo slot e' quello di corsi_attivi_settimanali con tipo_corso='prima_lezione_privata' (martedi' 18:00-19:00 con Claudia, capienza 1). Stesso flusso dei minori (inizia-minori v14): paga il genitore, arrampica il figlio, scheda genitore + figlio + consenso Termini, prenotazione in agenda a nome del figlio. In piu': campo FACOLTATIVO 'cosa e' utile che l'istruttrice sappia' (max 1000 caratteri) con consenso SEPARATO ed esplicito al trattamento dei dati sulla salute, obbligatorio solo se il campo e' compilato; il testo va al Worker (tabella note_accompagnamento), NON nei metadati Stripe. NIENTE Meta Pixel e niente banner cookie: pagina privata con possibili dati sulla salute, consent='no' al Worker (CAPI non parte). Deep-link ?d=YYYY-MM-DD preseleziona la data. Checkout -> stripe-worker v3.87 prodotto prima_lezione_privata. Stesse regole di inizia-minori: finestra 14 giorni, oggi fino a 4 ore prima, giorni_chiusi, slot_chiusure = PIENO a mano, conteggi_prima_lezione. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Prima Lezione Privata Speciale · Accademia RCC · KataClimb</title>
-<meta name="description" content="Prima Lezione Privata Speciale all'Accademia RCC, La Storta Roma: un bambino, un'istruttrice, un'ora tutta per lui.">
+<title>Lezione Privata Bambini · Accademia RCC · KataClimb</title>
+<meta name="description" content="Lezione Privata Bambini all'Accademia RCC, La Storta Roma: un bambino, un'istruttrice, un'ora tutta per lui.">
 <link rel="icon" href="/favicon-192x192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -86,6 +87,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .paga-btn.loading .sp{display:inline-block}
 #form-err{display:none;color:#B91C1C;font-size:14px;margin-top:10px;text-align:center}
 #form-err a{color:inherit;font-weight:700}
+.condizioni{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:var(--r);padding:12px 14px;font-size:14px;line-height:1.5;color:#0C4A6E;margin:0 0 14px}
+.condizioni a{color:inherit;font-weight:700}
 .privacy-note{font-size:13px;color:var(--ink2);margin-top:12px;line-height:1.5}
 .footer{background:var(--bg3);color:var(--ink-on-dark2);text-align:center;padding:28px 20px;font-size:13px;margin-top:44px}
 .footer a{color:#fff}
@@ -101,12 +104,12 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 <div class="cancel-banner" id="cancel-banner">Pagamento annullato, nessun addebito. Quando volete, la data è ancora qui sotto.</div>
 
 <section class="hero">
-  <h1>Prima Lezione <em>Privata Speciale</em></h1>
-  <p>Un bambino, un'istruttrice, un'ora tutta per lui all'Accademia RCC. Il ritmo lo dà lui.</p>
+  <h1>Lezione Privata <em>Bambini</em></h1>
+  <p>Un bambino, un'istruttrice, un'ora tutta per lui, nei giorni in cui la sala è tranquilla.</p>
 </section>
 
 <div class="card-prezzo">
-  <div class="riga" id="riga-orario">Martedì · 18:00 – 19:00</div>
+  <div class="riga" id="riga-orario">Martedì e venerdì</div>
   <div class="prezzo">25 €</div>
 </div>
 
@@ -166,6 +169,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       <span>In qualità di genitore/esercente la responsabilità genitoriale, accetto i <a href="/Termini_Prima_Lezione.pdf" target="_blank" rel="noopener">Termini della Prima Lezione</a> e acconsento alla creazione del profilo riservato di mio figlio/a sul portale KataClimb (non visibile al pubblico né alla Comunità).</span>
     </label>
 
+    <div class="condizioni"><b>Come funziona:</b> si prenota fino al giorno prima. Si può spostare o annullare la lezione fino al giorno prima scrivendo alla segreteria su <a href="https://wa.me/393318743953">WhatsApp</a>; dopo, la lezione è persa.</div>
+
     <button class="paga-btn" id="paga-btn"><span class="sp"></span><span id="paga-label">Paga 25 € e prenota</span></button>
     <div id="form-err"></div>
     <p class="privacy-note">Il profilo di vostro figlio/a resta riservato: lo vedete voi e gli istruttori.</p>
@@ -187,8 +192,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   const WORKER_URL    = 'https://stripe-worker.marconescatelli.workers.dev';
   const PRODOTTO      = 'prima_lezione_privata';
   const PREZZO        = 25;
-  const GIORNI_AVANTI = 14;
-  const CUTOFF_OGGI_MIN = 240;
+  const GIORNI_AVANTI = 21;   // v2: tre settimane, a partire da domani
   const ETA_MIN = 4, ETA_MAX = 17;
   const WA = '<a href="https://wa.me/393318743953">WhatsApp</a>';
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -239,28 +243,39 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     return res.data || [];
   }
 
-  function mancanoOggi(oraInizio){
-    const hm = String(oraInizio).split(':');
-    const inizio = new Date(); inizio.setHours(+hm[0], +hm[1] || 0, 0, 0);
-    return inizio.getTime() - Date.now();
-  }
+  // v2: si prenota fino al giorno prima, oggi non più
   function statoRiga(s){
-    const oggiIso = isoLocale(new Date());
-    if (s.dataISO < oggiIso) return 'via';
-    if (s.dataISO !== oggiIso) return null;
-    const m = mancanoOggi(s.ora_inizio);
-    if (m <= 0) return 'via';
-    return m < CUTOFF_OGGI_MIN * 60000 ? 'taglio' : null;
+    return s.dataISO <= isoLocale(new Date()) ? 'via' : null;
   }
   function pieno(s){
     if (slotChiusi.has(s.key)) return true;
     return s.capienza_max != null && (occupati[s.key] || 0) >= s.capienza_max;
   }
 
+  // v2: "Martedì e venerdì · 17:00–18:00 e 18:00–19:00 · con Claudia", calcolata dagli slot
+  const GIORNI = ['', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+  const elenco = xs => xs.length < 2 ? (xs[0] || '') : `${xs.slice(0, -1).join(', ')} e ${xs[xs.length - 1]}`;
+  function rigaOrari(slots){
+    const fasce = {};
+    [...slots].sort((a, b) => a.ora_inizio.localeCompare(b.ora_inizio)).forEach(s => {
+      (fasce[s.giorno_settimana] = fasce[s.giorno_settimana] || []).push(`${s.ora_inizio.substring(0,5)}–${(s.ora_fine || '').substring(0,5)}`);
+    });
+    const gruppi = {};
+    Object.keys(fasce).map(Number).sort((a, b) => a - b).forEach(g => {
+      const k = elenco(fasce[g]);
+      (gruppi[k] = gruppi[k] || []).push(GIORNI[g]);
+    });
+    const parti = Object.entries(gruppi).map(([ore, giorni]) => `${elenco(giorni)} · ${ore}`);
+    if (!parti.length) return '';
+    const testo = parti.join('; ');
+    const istr = [...new Set(slots.map(s => s.istruttori && s.istruttori.nome).filter(Boolean))];
+    return testo.charAt(0).toUpperCase() + testo.slice(1) + (istr.length ? ` · con ${elenco(istr)}` : '');
+  }
+
   function generaDate(slots){
     const out = [];
     const oggi = new Date(); oggi.setHours(0,0,0,0);
-    for (let offset = 0; offset <= GIORNI_AVANTI; offset++) {
+    for (let offset = 1; offset <= GIORNI_AVANTI; offset++) {
       const d = new Date(oggi); d.setDate(oggi.getDate() + offset);
       const iso = isoLocale(d);
       if (giorniChiusi.has(iso)) continue;
@@ -284,21 +299,18 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       return;
     }
     for (const s of visibili) {
-      const taglio = statoRiga(s) === 'taglio';
-      const esaurito = !taglio && pieno(s);
-      const chiuso = taglio || esaurito;
+      const esaurito = pieno(s);
+      const chiuso = esaurito;
       const div = document.createElement('div');
       div.className = 'slot-card' + (chiuso ? ' off' : '') + (!chiuso && selezione && selezione.key === s.key ? ' sel' : '');
       div.innerHTML = `
         <div class="data">${labelData(s.dataISO)}</div>
         <div class="riga2"><b>${oraRange(s.ora_inizio, s.ora_fine)}</b>${s.istruttore ? ' · con ' + s.istruttore : ''} · <b>${PREZZO} €</b></div>
-        <span class="slot-badge ${chiuso ? 'full' : 'ok'}">${taglio ? 'CHIUSO' : (esaurito ? 'GIÀ PRENOTATO' : 'LIBERO')}</span>`;
+        <span class="slot-badge ${chiuso ? 'full' : 'ok'}">${esaurito ? 'GIÀ PRENOTATO' : 'LIBERO'}</span>`;
       if (chiuso) {
         const nota = document.createElement('div');
         nota.className = 'slot-nota';
-        if (esaurito) nota.innerHTML = `Questa data è già prenotata: scegliete un'altra data o scrivete alla segreteria su ${WA}.`;
-        else if (window.kcAvvisi) window.kcAvvisi.mostra(nota, window.kcAvvisi.daCodice('cutoff_oggi', { ore: CUTOFF_OGGI_MIN / 60 }));
-        else nota.textContent = `Per oggi si prenota fino a ${CUTOFF_OGGI_MIN / 60} ore prima dell'inizio: scegliete un'altra data.`;
+        nota.innerHTML = `Questa data è già prenotata: scegliete un'altra data o scrivete alla segreteria su ${WA}.`;
         div.appendChild(nota);
       } else {
         div.addEventListener('click', () => seleziona(s));
@@ -311,7 +323,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     selezione = s;
     $('avviso-calendario').style.display = 'none';
     render();
-    $('riepilogo').innerHTML = `<b>Prima Lezione Privata Speciale</b> · ${labelData(s.dataISO)} · <b>${oraRange(s.ora_inizio, s.ora_fine)}</b>${s.istruttore ? ' · con ' + s.istruttore : ''} · ${PREZZO} €`;
+    $('riepilogo').innerHTML = `<b>Lezione Privata Bambini</b> · ${labelData(s.dataISO)} · <b>${oraRange(s.ora_inizio, s.ora_fine)}</b>${s.istruttore ? ' · con ' + s.istruttore : ''} · ${PREZZO} €`;
     $('form-wrap').classList.add('show');
     verificaEta();
     if (scorri) $('form-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -358,7 +370,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     if (stato) {
       selezione = null; render(); $('form-wrap').classList.remove('show');
       const a = $('avviso-calendario');
-      a.textContent = stato === 'via' ? 'Quella data è passata: sceglietene un\'altra qui sotto.' : `Per oggi si prenota fino a ${CUTOFF_OGGI_MIN / 60} ore prima dell'inizio: scegliete un'altra data.`;
+      a.textContent = 'Quella data non si prenota più (si prenota fino al giorno prima): sceglietene un\'altra qui sotto.';
       a.style.display = ''; a.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -413,7 +425,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
       await caricaGiorniChiusi();
       await caricaSlotChiusure();
       const slots = await caricaSlot();
-      if (slots[0]) $('riga-orario').textContent = `Martedì · ${oraRange(slots[0].ora_inizio, slots[0].ora_fine)}${slots[0].istruttori && slots[0].istruttori.nome ? ' · con ' + slots[0].istruttori.nome : ''}`;
+      const riga = rigaOrari(slots);
+      if (riga) $('riga-orario').textContent = riga;
       slotDate = generaDate(slots);
       await caricaOccupati(slotDate);
       $('slot-loading').style.display = 'none';

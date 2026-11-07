@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.51 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. i due slot festa_sabato hanno una riga in slot_copertura (1 istruttore), quindi v_segreteria_da_sistemare li segnava ogni sabato come "Lezione senza istruttore: chi la fa?". In Da sistemare (loadSegSistema) la voce lezione_scoperta di uno slot festa_sabato resta solo se quel sabato c'e' una festa prenotata su quello slot (prenotazioni_festa stato prenotato); lettura fallita = voce festa tolta. La tessera Da coprire fa lo stesso tramite kc-da-coprire.js v1.1. Audit: le letture di corsi_attivi_settimanali di questa pagina sono filtrate per istruttore_id o per id, nessuna puo' proporre lo slot festa. Nessuna scrittura nuova. CUMULA v2.50. -->
 <!-- KC-BUILD: oggi v2.50 · 2026-11-06 · DA SISTEMARE SOLO ALLA SEGRETERIA (Marco 6 nov): segPuoSistemare = staff_segreteria. Tessera, pannello e caricamento di Da sistemare non ci sono per il creator; Da pagare resta a creator e segreteria. Per la segreteria la pagina non cambia. Nessun SQL. CUMULA v2.49. -->
 <!-- KC-BUILD: oggi v2.49 · 2026-11-06 · PACCHETTO INGRESSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): nel turno, accanto a chi ha un pacchetto valido oggi, ✓ Ingresso (segna_ingresso_pacchetto) in griglia e nella ricerca di sala, perche' i veterani in griglia non ci sono; "✓ segnato" se oggi c'e' gia'. Vista allievo: card Il tuo pacchetto ingressi. get_ingressi_persona solo per le persone in lista, con cache. CUMULA v2.48. -->
 <!-- KC-BUILD: oggi v2.48 · 2026-11-06 · MONITOR 5 € ANCHE EXPERT E SALA VETERANI (decisione Marco 6 nov): caricaVeterano non decide piu' da sola, chiede al DB monitor_seguito_a_5(persona, oggi), la stessa regola del conto.
@@ -1512,13 +1513,24 @@ async function loadSegPaga(){
   }
 }
 
+/* v2.51 FESTE DEL SABATO: v_segreteria_da_sistemare mette "lezione senza istruttore" su ogni slot di slot_copertura,
+   quindi anche sui due slot festa_sabato ogni sabato. La voce di uno slot festa resta solo se quel sabato c'e' una festa
+   prenotata su quello slot (prenotazioni_festa stato prenotato); lettura fallita = voce festa tolta. */
+async function sistSoloFestePrenotate(rows){
+  const fv=(rows||[]).filter(r=>r.tipo==='lezione_scoperta'&&r.tipo_corso==='festa_sabato');
+  if(!fv.length)return rows||[];
+  const{data,error}=await sb.from('prenotazioni_festa').select('slot_id,data').eq('stato','prenotato').in('data',[...new Set(fv.map(r=>r.data))]);
+  if(error)console.warn('[seg-sistema] feste:',error.message);
+  const ok=new Set((error?[]:data||[]).map(f=>f.slot_id+'|'+f.data));
+  return rows.filter(r=>!(r.tipo==='lezione_scoperta'&&r.tipo_corso==='festa_sabato')||ok.has(r.slot_id+'|'+r.data));
+}
 async function loadSegSistema(){
   if(!segPuoSistemare())return;
   if(!document.getElementById('t-sist'))return;
   try{
     const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('*').order('ordine').order('data').order('ora_inizio');
     if(error)throw error;
-    sistRighe=(data||[]).filter(r=>!(r.tipo==='ruolo_da_verificare'&&sistNascoste.has(r.impegno_id)));
+    sistRighe=(await sistSoloFestePrenotate(data||[])).filter(r=>!(r.tipo==='ruolo_da_verificare'&&sistNascoste.has(r.impegno_id))); // v2.51
     await sistCaricaContorno();
     await sistCaricaPren(); // v2.39
   }catch(e){ sistRighe=null; console.error('[seg-sistema]',e); }
@@ -3856,7 +3868,7 @@ function disegnaCompensi(){
    impegno_presenza(id,'inizio'|'fine'). Per il monitor gli stessi bottoni aprono e chiudono anche il turno
    reale (monitor_turno) e l'id del turno si salva sull'impegno (update della propria riga, RLS self). */
 const IMP_LEZ={prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole',
-  prima_lezione_privata:'Prima Lezione Privata Speciale',manovra_sosta:'Corso Manovra in Sosta KataClimb'}; // v2.30
+  prima_lezione_privata:'Lezione Privata Bambini',festa_sabato:'Festa ed Esperienza Arrampicata',manovra_sosta:'Corso Manovra in Sosta KataClimb'}; // v2.30
 const IMP_RUOLO={conduce:'conduci',supporto:'supporto',monitor:'Sala con Monitor'};
 let impegniOggi=[];
 const oraBreve=t=>t?String(t).slice(0,5):'';
