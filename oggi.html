@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.54 · 2026-11-09 · TURNI MONITOR DICHIARATI PRIMA + CAMBIO TURNO (consegna Marco 9 nov, DB sql/monitor/08, attivo da monitor_regola_dal()). (1) Tessera del turno: senza turno aperto dice il turno dichiarato di oggi ("Il tuo turno dichiarato oggi: 19–22. Lo apri da 15 minuti prima.") oppure "Oggi non hai un turno monitor dichiarato" con il link a Turni. (2) Se INIZIO TURNO, SONO QUI o SEGNA rispondono che il turno non è dichiarato, il dialogo spiega cosa fare e ha VAI AI TURNI (non solo "vietato"). (3) Il collegamento turno ↔ impegno lo fa il DB in monitor_turno: tolti gli update diretti di impegni_staff.turno_monitor_id (la RLS ora li blocca sulle righe monitor) e la presenza "inizio" doppia. (4) Tessera "🔁 Cambio turno" accanto a I tuoi impegni: proposte per te con ACCETTO / NO, GRAZIE (monitor_rispondi_cambio, "sei sicuro?") e le tue in attesa. (5) Testi del compenso: si paga il turno dichiarato, 8 € tante ore quante le persone diverse seguite e annotate, mai più delle ore del turno; Compensi del creator: avviso dei turni non dichiarati da controllare (v_compenso_turni_monitor.da_controllare). CUMULA v2.53 (sotto). -->
 <!-- KC-BUILD: oggi v2.53 · 2026-11-07 · NOTE DI ACCOMPAGNAMENTO IN MEMORIA DEL BAMBINO (consegna Marco 7 nov, stripe-worker v3.96): la sezione non esisteva (nessuna pagina leggeva note_accompagnamento). (1) Scheda allievo: sezione "Note di accompagnamento" (solo staff) subito sotto "In breve", con tutte le righe di note_accompagnamento della persona dalla più recente, data e fonte ("Prenotazione Lezione Privata Bambini"), testo a capo come scritto; si carica a ogni apertura della scheda, quindi si vede in ogni lezione. Lettura con la RLS note_accompagnamento_staff_all (is_staff); se non si legge, la sezione non compare. (2) Pill arancio "Da richiamare" accanto al nome (card In breve della lezione, griglia di sala, elenchi allievi, testa della scheda) per chi ha nelle note la frase "📞 Il genitore preferisce parlarne a voce", finché non c'è una Prima Lezione o lezione privata 'fatto' dal giorno della richiesta in poi (note -> lead_data -> prenotazioni_prima_lezione). Caricata una volta al caricamento, solo viste staff, come le domande mancanti. (3) Commento della costante SALDARE_WA: il numero è di Marco, non della segreteria. CUMULA v2.52 -->
 <!-- KC-BUILD: oggi v2.52 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): lo staff vede chi manca. Al caricamento (solo viste staff) una chiamata a domande_iscrizione_mancanti(p_anno null = anno corrente; la RPC risponde solo a is_staff) -> insieme di persona_id; lettura fallita o non permessa = nessuna pill, nessun errore a schermo. Pill arancio "Domanda da completare" accanto al nome nelle card In breve della lezione (htmlBrief), nella griglia di sala (disegnaGriglia) e negli elenchi allievi (disegnaElenco). Scheda allievo (disegnaScheda): in alto "Domanda da completare · Fagli inquadrare il QR in Accademia."; nuova sezione "Chi lo accompagna" (solo staff) per i minori (meno di 18 anni da persone.data_nascita) o per chi ha accompagnatori registrati: foto, nome, legame, telefono (tel:), da accompagnatori attivi (ritirato_at IS NULL, RLS accompagnatori_staff_select) + persone (foto_riconoscimento_path, nome, cognome, telefono). Adulto che accompagna: "Accompagna: {Nome Cognome}" toccabile, apre la scheda del figlio (apriSchedaAccompagnato, chiede prima se c'e' qualcosa da non perdere). Foto dal bucket privato riconoscimento con URL firmati (applicaFoto, come le foto di riconoscimento). Funzioni nuove: loadDomandeMancanti, domandaManca, domandaPill, caricaAccompagnatori, htmlChiAccompagna, htmlAccompagna, apriSchedaAccompagnato. Nessuna scrittura nuova. CUMULA v2.51. -->
 <!-- KC-BUILD: oggi v2.51 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. i due slot festa_sabato hanno una riga in slot_copertura (1 istruttore), quindi v_segreteria_da_sistemare li segnava ogni sabato come "Lezione senza istruttore: chi la fa?". In Da sistemare (loadSegSistema) la voce lezione_scoperta di uno slot festa_sabato resta solo se quel sabato c'e' una festa prenotata su quello slot (prenotazioni_festa stato prenotato); lettura fallita = voce festa tolta. La tessera Da coprire fa lo stesso tramite kc-da-coprire.js v1.1. Audit: le letture di corsi_attivi_settimanali di questa pagina sono filtrate per istruttore_id o per id, nessuna puo' proporre lo slot festa. Nessuna scrittura nuova. CUMULA v2.50. -->
@@ -465,6 +466,7 @@ body{font-size:17px}
 .tab td.pre{white-space:pre-line}
 .tab tfoot td{border-bottom:none; padding-top:10px}
 .tab .arancio{color:#FFB340; font-weight:700}
+.turno-regola.arancio{color:#FFB340; font-weight:700} /* v2.54 turni non dichiarati */
 .tab-tot{font-size:14px; margin-top:10px; color:#E5E5EA}
 .lnk{background:none; border:0; color:var(--bianco); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; text-align:left; padding:0}
 
@@ -2823,7 +2825,7 @@ function disegnaDiario(){
    Solo RPC: monitor_oggi · monitor_turno · cerca_persona_staff · monitor_segna · get_compenso_monitor. */
 let salaOggi=null, schedaSala=false, _salaTimer=null, _salaTok=0;
 const _salaPersone={}; // persona_id -> {nome,cognome,foto_path} dall'ultima ricerca
-const RIGA_COMPENSO="Ogni allievo che segui e segni nella sua scheda vale un'ora a 8 €. Veterani, Expert e Sala Veterani restano a 5 €, come le ore senza nessuno.";
+const RIGA_COMPENSO="Si paga il turno che hai dichiarato: ogni ora 5 €, e diventa 8 € per ogni persona diversa che segui e annoti nella sua scheda, mai più delle ore del turno. Veterani, Expert e Sala Veterani restano a 5 €."; // v2.54
 const hhmm=ts=>{ if(!ts)return ''; const d=new Date(ts); return pad2(d.getHours())+':'+pad2(d.getMinutes()); };
 const numIt=n=>Number(n||0).toLocaleString('it-IT',{maximumFractionDigits:1});
 const euro=n=>Number(n||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
@@ -2921,9 +2923,14 @@ function disegnaTurno(){
       </div>${oggiTxt}`;
     return;
   }
+  /* v2.54 il turno si apre solo su un turno dichiarato: prima di INIZIO TURNO si dice quale, o dove si dichiara */
+  const dich=(impegniOggi||[]).filter(x=>x.tipo==='monitor'&&(x.stato==='previsto'||x.stato==='presente'));
+  const rigaDich=dich.length
+    ?`<p class="turno-oggi">Il tuo turno dichiarato oggi: <b>${dich.map(x=>esc(oraBreve(x.ora_inizio))+'–'+esc(oraBreve(x.ora_fine))).join(', ')}</b>. Lo apri da 15 minuti prima dell'inizio.</p>`
+    :`<p class="turno-oggi">Oggi non hai un turno monitor dichiarato. I turni si dichiarano prima, in <a href="/turni.html#monitor">Turni</a>: senza turno dichiarato il turno non si apre e non si paga.</p>`;
   el.innerHTML=(t?`<p class="turno-stato">Turno ${hhmm(t.inizio)} → ${hhmm(t.fine)}</p><p class="turno-comp" id="turno-comp"></p>`:'')+
     `<p class="turno-dom">Sei in sala? Inizia il turno.</p>
-    <div class="turno-btns"><button class="btn prim grande" onclick="salaTurno('inizio',this)">INIZIO TURNO</button></div>${oggiTxt}`;
+    <div class="turno-btns"><button class="btn prim grande" onclick="salaTurno('inizio',this)">INIZIO TURNO</button></div>${rigaDich}${oggiTxt}`;
 }
 async function salaTurno(az,btn){
   /* v2.24: niente confirm, prima di chiudere il riepilogo di chi hai segnato */
@@ -3056,12 +3063,17 @@ function chiudiDialogo(){ document.getElementById('dlg').hidden=true; _dlgFn=[nu
 function erroreChiaro(cosa,e){
   const m=String(e?.message||e||'errore');
   if(TURNO_CHIUSO_RE.test(m))return turnoChiusoDialogo(); // v2.38
+  if(NON_DICHIARATO_RE.test(m)){ // v2.54: dice cosa fare e porta dove si fa
+    dialogo(`<p><b>${esc(cosa)}</b></p><p>${esc(m)}</p>`,['VAI AI TURNI',()=>{ location.href='/turni.html#monitor'; }],['HO CAPITO',null]);
+    return;
+  }
   dialogo(`<p><b>${esc(cosa)}</b></p><p>${esc(m)}</p>`,['HO CAPITO',null]);
 }
 /* v2.38 turno di oggi chiuso (es. il sabato alle 18, caso del 31/10): invece del solo errore, dove si rimedia.
    Le risposte del DB: monitor_turno 'fine' "Nessun turno aperto oggi", monitor_segna "…di oggi è finita…",
    salva_osservazione "…il tuo turno non è aperto…". L'ora la dice fine_turno_prevista(oggi): sabato 18:00, gli altri giorni 22:00. */
 const TURNO_CHIUSO_RE=/nessun turno aperto oggi|sala con monitor di oggi è finita|turno non è aperto/i;
+const NON_DICHIARATO_RE=/turno monitor dichiarato|lo apri da 15 minuti|tuo turno dichiarato/i; // v2.54 risposte di _monitor_apri_turno e chiudi_altri_turni_aperti
 async function turnoChiusoDialogo(){
   let alle='';
   try{ const{data,error}=await sb.rpc('fine_turno_prevista',{p_data:isoLocal(new Date())}); if(!error&&data)alle=hhmm(data); }catch(_){}
@@ -3945,7 +3957,7 @@ function htmlCompensiTessera(){
     <div id="sala-gg"><div class="vuota-all">…</div></div>
   </div>`;
 }
-let compensi=null;
+let compensi=null, compNonDich=null; // v2.54 turni senza dichiarazione (da_controllare)
 async function loadCompensi(){
   const o=new Date(), da=isoLocal(new Date(o.getFullYear(),o.getMonth(),1)), a=isoLocal(o);
   try{
@@ -3953,6 +3965,10 @@ async function loadCompensi(){
     if(error)throw error;
     compensi=data||[];
   }catch(e){ console.error('[compensi]',e); compensi=null; }
+  try{ // v2.54 la colonna esiste dopo sql/monitor/08: se manca, nessun avviso
+    const{data,error}=await sb.from('v_compenso_turni_monitor').select('turno_id, monitor, data').eq('da_controllare',true).gte('data',da).lte('data',a);
+    compNonDich=error?null:(data||[]);
+  }catch(_){ compNonDich=null; }
   const t=document.getElementById('comp-tot');
   if(t)t.textContent=compensi?euro(compensi.reduce((s,r)=>s+Number(r.importo||0),0)):'—';
   const p=document.getElementById('comp-pann'); if(p && !p.hidden)disegnaCompensi();
@@ -3970,7 +3986,7 @@ async function loadSalaPerGiorno(){
     if(error)throw error;
     L=data||[];
   }catch(e){ console.error('[sala per giorno]',e); el.innerHTML='<div class="vuota-all">Non riesco a leggere i turni ora.</div>'; return; }
-  const piede=`<p class="aiuto">Contano solo i turni aperti con INIZIO TURNO e le persone segnate nella loro scheda.</p>`;
+  const piede=`<p class="aiuto">Contano i turni dichiarati prima e aperti con INIZIO TURNO, con le ore dichiarate, e le persone seguite e annotate nella loro scheda.</p>`; // v2.54
   if(!L.length){ el.innerHTML='<div class="vuota-all">Nessun turno in Sala con Monitor nelle ultime 4 settimane.</div>'+piede; return; }
   /* giorno_settimana come il DB: 1=Lun … 7=Dom; la domenica compare solo se c'e' un turno */
   const G=new Map();
@@ -4001,7 +4017,8 @@ function apriCompensi(){
 }
 function disegnaCompensi(){
   const p=document.getElementById('comp-pann'); if(!p)return;
-  const testa=`<p class="turno-regola">1 ora a 8 € per ogni allievo seguito (veterani, Expert e Sala Veterani a 5 €), le altre ore a 5 €.</p>`;
+  const testa=`<p class="turno-regola">Si pagano le ore del turno dichiarato: 1 ora a 8 € per ogni persona diversa seguita e annotata (veterani, Expert e Sala Veterani a 5 €), le altre a 5 €. I turni prima della regola nuova restano col conto di allora.</p>`
+    +(compNonDich&&compNonDich.length?`<p class="turno-regola arancio">⚠ ${compNonDich.length===1?'1 turno aperto senza dichiarazione':compNonDich.length+' turni aperti senza dichiarazione'} questo mese, da controllare: ${compNonDich.map(r=>esc(r.monitor||'—')+' '+giornoLungo(r.data)).join(', ')}. Valgono 0 €.</p>`:''); // v2.54
   if(!compensi){ p.innerHTML=testa+'<div class="vuota-all">Non riesco a leggere i compensi ora.</div>'; return; }
   if(!compensi.length){ p.innerHTML=testa+'<div class="vuota-all">Nessun turno in Sala con Monitor questo mese.</div>'; return; }
   const tot=new Map();
@@ -4029,7 +4046,11 @@ function htmlImpegniOggi(){
   return `<div class="t full fermo t-imp" id="t-imp" hidden>
     <span class="et mono">📌 I tuoi impegni · oggi</span>
     <div id="imp-corpo"></div>
-  </div>`;
+  </div>
+  <div class="t full fermo t-imp" id="t-cambi" hidden>
+    <span class="et mono">🔁 Cambio turno monitor</span>
+    <div id="cambi-corpo"></div>
+  </div>`; // v2.54 tessera dei cambi turno
 }
 function htmlTesseraTurni(){
   return `<a class="t t-fasc" href="/turni.html">
@@ -4088,6 +4109,57 @@ async function loadImpegniOggi(){
     impegniOggi=L.map(x=>({...x,slot:slot[x.slot_id]||null}));
   }catch(e){ console.error('[impegni]',e); impegniOggi=[]; }
   disegnaImpegniOggi(); disegnaAvvisoTurno(); avviaPromemoriaImpegni();
+  if(document.getElementById('turno-corpo'))disegnaTurno(); // v2.54 la riga del turno dichiarato
+  loadCambiOggi(); // v2.54
+}
+/* ── v2.54 CAMBIO TURNO MONITOR: le proposte per me (a me o a tutti) e le mie in attesa, solo turni non ancora iniziati ── */
+let cambiOggi=[];
+async function loadCambiOggi(){
+  const box=document.getElementById('t-cambi'); if(!box)return;
+  try{
+    const{data,error}=await sb.from('cambi_turno_monitor').select('id, impegno_id, da_user_id, a_user_id, nota').eq('stato','proposta');
+    if(error)throw error;
+    const L=(data||[]).filter(c=>c.da_user_id===uid||c.a_user_id===uid||!c.a_user_id);
+    const ids=[...new Set(L.map(c=>c.impegno_id))], uids=[...new Set(L.flatMap(c=>[c.da_user_id,c.a_user_id]).filter(Boolean))];
+    const imp={}, nomi={};
+    if(ids.length){
+      const[ri,rn]=await Promise.all([
+        sb.from('impegni_staff').select('id, data, ora_inizio, ora_fine, stato').in('id',ids),
+        sb.from('profiles').select('user_id, nome, cognome').in('user_id',uids)]);
+      (ri.data||[]).forEach(i=>{imp[i.id]=i;});
+      (rn.data||[]).forEach(p=>{nomi[p.user_id]=((p.nome||'')+' '+(p.cognome||'')).trim()||'Un collega';});
+    }
+    const ora=new Date(), oraHm=pad2(ora.getHours())+':'+pad2(ora.getMinutes()), oggiIso=isoLocal(ora);
+    cambiOggi=L.map(c=>({...c,imp:imp[c.impegno_id],da:nomi[c.da_user_id]||'Un collega',a:c.a_user_id?(nomi[c.a_user_id]||'un collega'):null}))
+      .filter(c=>c.imp&&c.imp.stato==='previsto'&&(c.imp.data>oggiIso||(c.imp.data===oggiIso&&oraBreve(c.imp.ora_inizio)>oraHm)));
+  }catch(e){ console.warn('[cambi turno]',e?.message||e); cambiOggi=[]; }
+  disegnaCambiOggi();
+}
+function disegnaCambiOggi(){
+  const box=document.getElementById('t-cambi'), el=document.getElementById('cambi-corpo'); if(!box||!el)return;
+  box.hidden=!cambiOggi.length;
+  const quando=c=>{ const d=dLoc(c.imp.data); return `${GIORNI_FULL[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]} · ${oraBreve(c.imp.ora_inizio)}–${oraBreve(c.imp.ora_fine)}`; };
+  el.innerHTML=cambiOggi.map((c,i)=>c.da_user_id===uid
+    ?`<div class="imp"><div class="imp-h">${esc(quando(c))}</div><div class="imp-s">Hai proposto il tuo turno a ${esc(c.a||'tutto lo staff')}: in attesa. Finché non accetta resta tuo.</div></div>`
+    :`<div class="imp"><div class="imp-h">${esc(quando(c))}</div>
+      <div class="imp-s"><b>${esc(c.da)}</b> ${c.a_user_id?'ti propone':'propone a tutto lo staff'} il suo turno di Sala con Monitor${c.nota?': '+esc(c.nota):''}.</div>
+      <div class="sch-btns"><button class="btn prim grande" onclick="rispondiCambioOggi(${i},true,this)">ACCETTO</button>${c.a_user_id?`<button class="btn" onclick="rispondiCambioOggi(${i},false,this)">NO, GRAZIE</button>`:''}</div></div>`).join('')
+    +`<p class="imp-s"><a href="/turni.html#cambi">Tutti i cambi in Turni ›</a></p>`;
+}
+function rispondiCambioOggi(i,accetta,btn){
+  const c=cambiOggi[i]; if(!c)return;
+  const d=dLoc(c.imp.data), cosa=`${GIORNI_FULL[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]} ${oraBreve(c.imp.ora_inizio)}–${oraBreve(c.imp.ora_fine)}`;
+  const vai=async()=>{
+    btn.disabled=true;
+    const{error}=await sb.rpc('monitor_rispondi_cambio',{p_cambio_id:c.id,p_accetta:accetta,p_nota:null});
+    if(error){ btn.disabled=false; erroreChiaro('Cambio non registrato',error); return; }
+    toast(accetta?'Fatto: il turno è tuo. Grazie!':`Fatto: ${c.da.split(' ')[0]} vede che non puoi.`);
+    loadImpegniOggi();
+  };
+  dialogo(accetta
+    ?`<p>Sei sicuro? Prendi il turno di Sala con Monitor di <b>${esc(cosa)}</b> al posto di ${esc(c.da)}.</p><p>Da adesso il turno è tuo: quel giorno lo apri qui su Oggi quando arrivi.</p>`
+    :`<p>Dici di no a ${esc(c.da)} per <b>${esc(cosa)}</b>? Il turno resta suo.</p>`,
+    [accetta?'SÌ, LO PRENDO':'NO, NON POSSO',vai],['Non ancora',null]);
 }
 function disegnaImpegniOggi(){
   const box=document.getElementById('t-imp'), el=document.getElementById('imp-corpo'); if(!box||!el)return;
@@ -4150,33 +4222,21 @@ async function segnaPresenza(x,az,btn,note){
       if(r.error && !(az==='fine' && /nessun turno aperto/i.test(r.error.message||'')))throw r.error;
       turnoId=r.data&&r.data.turno_id||null;
     }
-    const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:id,p_azione:az});
-    if(error)throw error;
-    if(turnoId && turnoId!==x.turno_monitor_id){
-      const u=await sb.from('impegni_staff').update({turno_monitor_id:turnoId}).eq('id',id).select('id');
-      if(u.error)console.warn('[impegni] turno_monitor_id:',u.error.message);
+    /* v2.54 per il monitor il collegamento turno ↔ impegno e la presenza li segna il DB dentro monitor_turno */
+    if(!(x.tipo==='monitor' && az==='inizio')){
+      const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:id,p_azione:az});
+      if(error)throw error;
     }
     toast(az==='inizio'?'Presenza segnata. Buon lavoro!':'Fine segnata. Grazie!');
-  }catch(e){ btn.disabled=false; toast('Non registrato: '+(e?.message||e)); return false; }
+  }catch(e){ btn.disabled=false; if(x.tipo==='monitor')erroreChiaro('Turno non aperto',e); else toast('Non registrato: '+(e?.message||e)); return false; }
   await loadImpegniOggi();
   if(x.tipo==='monitor' && document.getElementById('turno-corpo'))loadMonitor();
   return true;
 }
-/* INIZIO / FINE TURNO dalla tessera del turno: se oggi c'e' un turno monitor segnato, la presenza lo segue */
-async function allineaImpegnoMonitor(az,turnoId){
+/* INIZIO / FINE TURNO dalla tessera del turno. v2.54: il DB fa tutto dentro monitor_turno (all'inizio collega il turno
+   all'impegno dichiarato e segna la presenza, alla fine segna presenza_fine): qui si rileggono solo gli impegni. */
+async function allineaImpegnoMonitor(){
   if(!pdata.staff_role)return;
-  if(!impegniOggi.length)await loadImpegniOggi();
-  const ora=new Date(), hm=pad2(ora.getHours())+':'+pad2(ora.getMinutes());
-  const cand=impegniOggi.filter(x=>x.tipo==='monitor' && x.stato!=='assente' && (az==='inizio'?x.stato==='previsto':(x.stato==='presente'&&!x.presenza_fine)));
-  /* il turno piu' vicino all'ora attuale */
-  const x=cand.sort((a,b)=>Math.abs(minuti(a.ora_inizio)-minuti(hm))-Math.abs(minuti(b.ora_inizio)-minuti(hm)))[0];
-  if(!x)return;
-  const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:x.id,p_azione:az});
-  if(error){ console.warn('[impegni] allinea:',error.message); return; }
-  if(turnoId && turnoId!==x.turno_monitor_id){
-    const u=await sb.from('impegni_staff').update({turno_monitor_id:turnoId}).eq('id',x.id).select('id');
-    if(u.error)console.warn('[impegni] turno_monitor_id:',u.error.message);
-  }
   loadImpegniOggi();
 }
 function minuti(t){ const[h,m]=String(t||'0:0').split(':').map(Number); return (h||0)*60+(m||0); }

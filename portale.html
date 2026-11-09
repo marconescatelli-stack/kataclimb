@@ -24,6 +24,7 @@ try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.docu
 <!-- KC-BUILD: portale v3.161 · 2026-11-07 · ISCRIZIONE VALIDA FINO ALLA SCADENZA (decisione Marco 7 nov, trigger DB tesseramento_dicembre_anno_dopo; DB domande_iscrizione_mancanti/export_iscritti_ente/tg_tesseramento_da_iscrizione gia' sistemati dalla chat): tesserato = stato attivo e data_scadenza >= oggi, mai "dell'anno". (1) Promemoria della domanda (promemoriaDomandaServe): tesseramento attivo con scadenza da oggi in poi al posto di anno = anno corrente. (2) Segreteria → Iscrizione ASD: dopo registra_tesseramento la scadenza si rilegge da get_tesseramenti (la RPC restituisce quella calcolata prima del trigger) e la nota del fascicolo dice la scadenza vera, mai "31/12/{anno}" scritto a mano. (3) Fascicolo, blocco Tesseramento ASD: "Iscrizione attiva fino al 31/12/2027" (verde) se attivo e non scaduto, altrimenti "Scaduta il …" o "Annullata" (rosso). CUMULA v3.160 -->
 <!-- KC-BUILD: portale v3.160 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE · + RITORNO DOPO IL LOGIN: iscrizione.html senza sessione lascia kc_dopo_login in localStorage; dopo il login (fresco o con sessione gia' aperta, prima dell'atterraggio su Oggi) kcDopoLogin() riporta a /iscrizione.html, una volta sola, entro un'ora, solo indirizzi della lista KC_DOPO_LOGIN_OK · (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): (1) PROFILO: in cima alla vista profilo striscia "Completa la domanda di iscrizione: due minuti dal telefono." con bottone scuro a /iscrizione.html (renderPromemoriaDomanda). Compare se in iscrizione_stato una persona dell'account (io o figlio) ha domanda_anno = null E ha un tesseramento dell'anno (stato diverso da annullato) o un corso attiva/sospesa in iscrizioni_corso (user_id dei figli da miei_figli; per il creator il corso non conta, come in domande_iscrizione_mancanti). Sparisce a domanda inviata (si rilegge a ogni apertura del profilo e al ritorno sulla pagina). RPC che fallisce: nessuna striscia, nessun errore. (2) SEGRETERIA → 🗓 Turni, sotto Sconti applicati: nuova sezione "📋 Iscritti per l'ente" (solo creator e segreteria: tuPuo; la RPC controlla comunque is_segreteria_piena): select dell'anno (corrente e due precedenti), bottone "Esporta iscritti per l'ente" → rpc export_iscritti_ente(p_anno) → file Iscritti_{anno}_Accademia_RCC.csv (UTF-8 con BOM, separatore ";", si apre in Excel; nessuna libreria xlsx nel repo) con le 20 colonne nell'ordine della RPC e intestazioni in italiano; CAP e telefono scritti come testo (="…") per non perdere gli zeri iniziali in Excel; booleani Sì/No; data di nascita GG/MM/AAAA. Sotto il bottone "{N} domande · {M} iscritti senza domanda": N = conteggio domande_iscrizione dell'anno (= righe dell'export), M = righe di domande_iscrizione_mancanti(p_anno). Solo letture. CUMULA v3.159 (sotto). -->
 <!-- KC-BUILD: portale v3.159 · 2026-11-07 · SCONTI APPLICATI (consegna Marco 7 nov, DB sconti_iscrizione_fine_anno, stripe-worker v3.95): in Segreteria → 🗓 Turni, sotto Costi staff del mese, nuova sezione "🏷 Sconti applicati" da sconti_applicati (solo creator e segreteria: tuPuo, e la tabella la legge solo is_segreteria): selettore mese, righe data · bambino · genitore · prodotto (nome completo da TU_NOME_CORSO) · prezzo pieno · sconto · pagato · iscrizione 40 €, totale sconti del mese, Esporta CSV. Bambino e genitore dalle due FK verso persone. Solo letture. CUMULA v3.158 (sotto). -->
+<!-- KC-BUILD: portale v3.159 · 2026-11-09 · TURNI MONITOR DICHIARATI PRIMA (consegna Marco 9 nov, DB sql/monitor/08). Segreteria → 🗓 Turni: (1) Sala con Monitor anche il sabato (14–18) e a ore intere: nella voce i turni dichiarati con le ore ("19–20 Claudia, 20–22 Mattia"), verde se tutta la fascia e' coperta, gialla se in parte, rossa se vuota, "dichiarato da …" quando non l'ha fatto la persona. (2) Nella finestra della voce monitor: ANNULLA su ogni turno (monitor_annulla_turno, nota obbligatoria, mai cancellato) al posto di Togli; "Dichiara per conto di" con dalle/alle tra le ore libere e il motivo obbligatorio (caso eccezionale) -> monitor_dichiara_turno. (3) Sezione nuova "⚠ Turni monitor non dichiarati": turni aperti senza turno dichiarato (v_compenso_turni_monitor.da_controllare), valgono 0 € e Marco li controlla. (4) Testo dei compensi monitor con la regola nuova. CUMULA v3.158 (sotto). -->
 <!-- KC-BUILD: portale v3.158 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. Segreteria → 🗓 Turni. Lo slot festa_sabato (sabato 10:30–12:00 o 11:00–12:00, gia' in slot_copertura con 1 istruttore) entra nella settimana SOLO nel sabato in cui c'e' una festa prenotata su quello slot (prenotazioni_festa stato prenotato), come lezione dei corsi "🎉 Festa del sabato · N bambini" con copertura "Istruttori n/1" (rossa finche' nessuno e' segnato). Al click, sopra le persone, i dettagli della festa (genitore, telefono, festeggiato, eta' dei bambini, durata, importo, note; tutto con escHtml) e lo stesso Aggiungi persona di ogni lezione (impegno_mi_segno con p_slot_id e p_data, accettato dal DB per lo slot festa). Slot festa senza riga in slot_copertura: letto a parte con 1 istruttore richiesto. Lettura delle feste fallita = nessuno slot festa in settimana (prima comparivano entrambi gli slot ogni sabato come scoperti). TU_NOME_CORSO festa_sabato = Festa del sabato (anche nei compensi). Console segreteria → ⚠ Da sistemare (dsCarica e conto della tessera): la voce "lezione senza istruttore" che v_segreteria_da_sistemare mette ogni sabato sugli slot festa resta solo se quel sabato c'e' una festa prenotata su quello slot (dsSoloFestePrenotate). Audit letture corsi_attivi_settimanali: nessun altro punto del portale puo' proporre lo slot festa come Prima Lezione, corso, abbonamento o spostamento (tutte filtrate per tipo_corso, per id, per scuola o per slot_ammessi). Nessuna scrittura nuova, nessuna modifica a RPC o tabelle. CUMULA v3.157. -->
 <!-- KC-BUILD: portale v3.157 · 2026-11-06 · SCADENZA DEL CORSO NEL FASCICOLO (richiesta della segreteria, 6 nov): loadLeadIscrizioni legge data_inizio_validita, data_fine_validita, inizio_da_prima_presenza; nel blocco Percorso, per i corsi attivi e sospesi, riga "scade il gg/mm/aaaa" col relativo, "la scadenza parte dalla prima presenza" o "senza scadenza"; sospesa si legge "sospeso"; nomi completi nella pill. Nessun SQL. CUMULA v3.156. -->
 <!-- KC-BUILD: portale v3.156 · 2026-11-06 · INGRESSI GIA' FATTI (Marco 6 nov): riga pacchetto del blocco 🎫, bottone ＋ Ingressi già fatti e modale per segnare i giorni passati, uno alla volta in ordine di data (segna_ingresso_pacchetto con p_data). Se una chiamata fallisce ci si ferma: errore del DB col suo giorno, in lista solo i giorni non segnati. Il bottone c'e' anche sui pacchetti scaduti, finche' restano ingressi. Nessun SQL. CUMULA v3.155. -->
@@ -1780,6 +1781,11 @@ fill="#1d4ed8" stroke="none">
           <p class="sc-nota" style="margin-top:0">Turni di un giorno passato mai chiusi: valgono 0 finché non scrivi l'ora reale di fine.</p>
           <div id="tu-dachiudere"></div>
         </div>
+        <div class="sc-sez">
+          <h3 class="sc-h3">⚠ Turni monitor non dichiarati <span id="tu-nondich-n" class="sc-conta"></span></h3>
+          <p class="sc-nota" style="margin-top:0">Turni aperti sul portale senza un turno dichiarato prima: valgono 0 €. Da controllare con chi li ha aperti.</p>
+          <div id="tu-nondich"></div>
+        </div>
         <div class="sc-sez" id="tu-compensi-wrap">
           <div class="tu-nav">
             <h3>💶 Compensi monitor</h3>
@@ -1787,7 +1793,7 @@ fill="#1d4ed8" stroke="none">
             <input id="tu-mese" type="month" class="input sc-in" style="width:auto" onchange="tuCaricaCompensi()">
             <button class="btn sc-scuro sc-piccolo" onclick="tuEsportaCsv()">Esporta CSV</button>
           </div>
-          <p class="sc-nota" style="margin-top:0">8 € l'ora per ogni persona diversa seguita con la scheda compilata, 5 € le altre ore. Le lezioni dei corsi sono qui sotto.</p>
+          <p class="sc-nota" style="margin-top:0">Si pagano le ore del turno dichiarato: 8 € l'ora per ogni persona diversa seguita e annotata nella scheda (mai più delle ore del turno), 5 € le altre. Veterani, Expert e Sala Veterani a 5 €. I turni prima della regola nuova restano col conto di allora. Le lezioni dei corsi sono qui sotto.</p>
           <div id="tu-compensi"></div>
         </div>
         <div class="sc-sez" id="tu-complez-wrap">
@@ -11641,6 +11647,18 @@ async function msCartaAllievo(){
 const TU_RICHIESTI_LEZ=3, TU_RICHIESTI_MON=1;
 /* v3.138 (Marco 23 ott 2026): tolta la fascia 18-19, sala e monitor partono dalle 19. Nessuna richiesta oggi, non si paga la sala un'ora in piu'. */
 const TU_FASCE=[{ini:'19:00',fin:'22:00'}];
+/* v3.159 (Marco 9 nov 2026) fasce per giorno, g da lunedi' (0) a domenica (6): lun-ven 19-22, sabato 14-18, domenica niente */
+const tuFasceGiorno=g=>g<5?TU_FASCE:g===5?[{ini:'14:00',fin:'18:00'}]:[];
+/* ore intere della fascia non coperte da un turno monitor previsto/presente */
+function tuOreLibere(seg,f){
+  const out=[];let cur=null;
+  for(let h=Number(f.ini.slice(0,2));h<Number(f.fin.slice(0,2));h++){
+    const a=String(h).padStart(2,'0')+':00',b=String(h+1).padStart(2,'0')+':00';
+    const cop=seg.some(i=>(i.stato==='previsto'||i.stato==='presente')&&scOra(i.ora_inizio)<b&&scOra(i.ora_fine)>a);
+    if(!cop){if(cur&&cur.fin===a)cur.fin=b;else{cur={ini:a,fin:b};out.push(cur)}}else cur=null;
+  }
+  return out;
+}
 const TU_NOME_LEZ={prima_lezione_scuola:'Prima Lezione · Scuole',scuola_mini:'Mini percorso · Scuole'};
 const TU_RUOLO={conduce:'Conduce',supporto:'Supporto',monitor:'Monitor'};
 const TU_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
@@ -11754,7 +11772,7 @@ function tuNum(n){return Number(n||0).toLocaleString('it-IT',{maximumFractionDig
 
 async function tuCaricaTutto(){
   if(!tuLunedi)tuLunedi=tuLun(new Date());
-  const tasks=[tuCaricaSettimana(),tuCaricaDaChiudere()];
+  const tasks=[tuCaricaSettimana(),tuCaricaDaChiudere(),tuCaricaNonDich()]; // v3.159
   if(tuPuo())tasks.push(tuCaricaCompensi(),tuCaricaCompLez(),tuCaricaCosti(),tuCaricaSconti(),tuCaricaEnte());
   else{document.getElementById('tu-compensi-wrap').classList.add('hidden');document.getElementById('tu-complez-wrap').classList.add('hidden');document.getElementById('tu-costi-wrap').classList.add('hidden');document.getElementById('tu-sconti-wrap').classList.add('hidden');document.getElementById('tu-ente-wrap').classList.add('hidden')}
   document.getElementById('tu-solo-lettura').classList.toggle('hidden',tuPuo());
@@ -11773,8 +11791,8 @@ async function tuCaricaSettimana(){
     const reqs=[
       sb.from('corsi_attivi_settimanali').select('id,tipo_corso,data_evento,ora_inizio,ora_fine,note,lead_scuola_id')
         .eq('status','attivo').not('lead_scuola_id','is',null).gte('data_evento',da).lte('data_evento',a).order('ora_inizio'),
-      sb.from('impegni_staff').select('id,user_id,tipo,slot_id,data,ora_inizio,ora_fine,ruolo,stato,presenza_inizio,presenza_fine,compenso_tipo,da_piano,note')
-        .gte('data',da).lte('data',a), // v3.141 anche le ritirate: servono a dire chi e' stato sostituito
+      sb.from('impegni_staff').select('id,user_id,tipo,slot_id,data,ora_inizio,ora_fine,ruolo,stato,presenza_inizio,presenza_fine,compenso_tipo,da_piano,note,segnato_da')
+        .gte('data',da).lte('data',a), // v3.141 · v3.159 segnato_da anche le ritirate: servono a dire chi e' stato sostituito
       /* v3.139 lezioni dei corsi con piano di copertura e richieste di supporto aperte */
       sb.from('slot_copertura').select('slot_id,istruttori_min,assistenti_min'),
       sb.from('richieste_supporto').select('id,slot_id,data,chiesto_da,note').eq('stato','aperta').gte('data',da).lte('data',a)
@@ -11844,9 +11862,10 @@ function tuDisegnaSettimana(){
         req:(richieste||[]).find(r=>r.slot_id===c.id&&r.data===di)||null,
         seg:imp.filter(i=>i.tipo==='lezione'&&i.slot_id===c.id&&i.data===di)});
     });
-    if(g<5)TU_FASCE.forEach(f=>{
+    tuFasceGiorno(g).forEach(f=>{ // v3.159 anche il sabato, turni a ore intere
       voci.push({tipo:'monitor',data:di,ini:f.ini,fin:f.fin,richiesti:TU_RICHIESTI_MON,dacoprire:!!f.dacoprire,titolo:'Sala con Monitor',
-        seg:imp.filter(i=>i.tipo==='monitor'&&i.data===di&&scOra(i.ora_inizio)===f.ini)});
+        seg:imp.filter(i=>i.tipo==='monitor'&&i.data===di&&scOra(i.ora_inizio)<f.fin&&scOra(i.ora_fine)>f.ini)
+          .sort((x,y)=>scOra(x.ora_inizio).localeCompare(scOra(y.ora_inizio)))});
     });
     voci.sort((x,y)=>x.ini.localeCompare(y.ini));
     const oggi=di===tuIso(new Date());
@@ -11863,11 +11882,12 @@ function tuDisegnaSettimana(){
             <span class="tu-n">Istruttori ${ni}/${v.imin}${v.amin||na?` · Assistenti ${na}/${v.amin}`:''}</span>
             <span class="tu-n">${nomiC||'Nessuno'}</span>${v.req?'<span class="tu-supp">Supporto richiesto</span>':''}</button>`;
         }
-        const n=v.seg.filter(i=>i.stato!=='assente').length;
-        const col=n>=v.richiesti?'verde':n?'giallo':'rosso';
-        const nomi=v.seg.map(i=>escHtml(tuNome(i.user_id))+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
+        /* v3.159 monitor: coperto = nessuna ora libera nella fascia */
+        const lib=tuOreLibere(v.seg,v),n=v.seg.filter(i=>i.stato!=='assente').length;
+        const col=!lib.length?'verde':n?'giallo':'rosso';
+        const nomi=v.seg.map(i=>`${escHtml(scOra(i.ora_inizio))}–${escHtml(scOra(i.ora_fine))} `+escHtml(tuNome(i.user_id))+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':'')).join(', ');
         return `<button class="tu-voce ${col}${v.dacoprire?' dacoprire':''}" onclick="tuApriVoce(${k})">
-          <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${n}/${v.richiesti}</b></span>
+          <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${!lib.length?'coperta':n?'in parte':'scoperta'}</b></span>
           <span class="tu-t">${escHtml(v.titolo)}${v.dacoprire?' · <span class="sc-warn">da coprire</span>':''}</span>
           <span class="tu-n">${nomi||'Nessuno'}</span></button>`;
       }).join(''):'<p class="sc-vuoto">—</p>')
@@ -11883,13 +11903,15 @@ function tuApriVoce(k){
   const righe=v.seg.length?v.seg.map(i=>{
     const az=[];
     const nsv=i.stato==='non_svolta'; // v3.153 lezione non svolta: si riporta solo a previsto
-    if(puo&&i.stato==='previsto'&&!passato)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('togli','${i.id}',${k})">Togli</button>`);
+    if(puo&&v.tipo==='monitor'&&i.stato!=='ritirato')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAnnullaMonitor('${i.id}',${k})">Annulla</button>`); // v3.159 con la nota, mai cancellato
+    else if(puo&&i.stato==='previsto'&&!passato)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('togli','${i.id}',${k})">Togli</button>`);
     if(puo&&!nsv&&i.stato!=='assente')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('assente','${i.id}',${k})">Segna assente</button>`);
     if(puo&&!nsv&&v.tipo==='corso'&&i.stato!=='presente'&&!futuro)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('presente','${i.id}',${k})">Segna presente</button>`);
     if(puo&&!nsv&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
-    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':''):(TU_RUOLO[i.ruolo]||i.ruolo);
+    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':'')
+      :v.tipo==='monitor'?`Turno ${scOra(i.ora_inizio)}–${scOra(i.ora_fine)}`+(i.segnato_da&&i.segnato_da!==i.user_id?' · dichiarato da '+tuNome(i.segnato_da):''):(TU_RUOLO[i.ruolo]||i.ruolo); // v3.159
     const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
       <div class="sc-sub">${escHtml(ruolo)} · ${nsv?'<span style="color:var(--text2)">lezione non svolta</span>':escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
@@ -11902,7 +11924,8 @@ function tuApriVoce(k){
     ${v.tipo==='corso'?`<label class="sc-lbl" for="tu-add-ruolo">Come</label>
     <select id="tu-add-ruolo" class="input sc-in"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>`
     :v.tipo==='lezione'?`<label class="sc-lbl" for="tu-add-ruolo">Ruolo</label>
-    <select id="tu-add-ruolo" class="input sc-in"><option value="supporto">Supporto</option><option value="conduce">Conduce</option></select>`:''}`:'';
+    <select id="tu-add-ruolo" class="input sc-in"><option value="supporto">Supporto</option><option value="conduce">Conduce</option></select>`
+    :v.tipo==='monitor'?tuFormOreMonitor(v):''}`:'';
   /* v3.139 richiesta di supporto aperta sulla lezione del corso */
   const supp=v.tipo==='corso'&&v.req?`<div class="tu-supp-box">Supporto richiesto${v.req.chiesto_da?' da <b>'+escHtml(tuNome(v.req.chiesto_da))+'</b>':''}${v.req.note?': '+escHtml(v.req.note):''}
     ${puo?` <button class="btn btn-g sc-piccolo" onclick="tuAnnullaSupporto('${v.req.id}',${k})">Annulla richiesta</button>`:''}</div>`:'';
@@ -11917,13 +11940,45 @@ function tuApriVoce(k){
         ?{p_tipo:'lezione',p_slot_id:v.slot.id,p_data:v.data,p_ruolo:scVal('tu-add-ruolo')||'conduce',p_user_id:scVal('tu-add-user')}
         :v.tipo==='lezione'
         ?{p_tipo:'lezione',p_slot_id:v.slot.id,p_ruolo:scVal('tu-add-ruolo')||'supporto',p_user_id:scVal('tu-add-user')}
-        :{p_tipo:'monitor',p_data:v.data,p_ora_inizio:v.ini,p_ora_fine:v.fin,p_user_id:scVal('tu-add-user')};
+        :null;
+      if(v.tipo==='monitor'){ // v3.159 dichiarazione per conto di un collega: caso eccezionale, con il motivo
+        const ini=scVal('tu-mon-ini'),fin=scVal('tu-mon-fin'),mot=(scVal('tu-mon-mot')||'').trim();
+        if(!ini||!fin)throw new Error('Nessuna ora libera da dichiarare in questa fascia.');
+        if(mot.length<3)throw new Error('Scrivi il motivo: dichiarare per un collega è un caso eccezionale e resta scritto.');
+        if(!confirm(`Sei sicuro? Dichiari il turno monitor di ${tuNome(scVal('tu-add-user'))}, ${scD(v.data)} dalle ${ini} alle ${fin}.`))return false;
+        const{error}=await sb.rpc('monitor_dichiara_turno',{p_data:v.data,p_ora_inizio:ini,p_ora_fine:fin,p_user_id:scVal('tu-add-user'),p_note:mot});
+        if(error)throw error;
+        toast('Turno dichiarato');
+        await tuCaricaSettimana();
+        return;
+      }
       const{error}=await sb.rpc('impegno_mi_segno',args);
       if(error)throw error;
       toast('Persona segnata');
       await tuCaricaSettimana();
       if(v.tipo==='corso'&&tuPuo())tuCaricaCompLez();
     }:null,{ok:'Segna'});
+}
+/* v3.159 dalle/alle tra le ore libere non ancora iniziate, e il motivo */
+function tuFormOreMonitor(v){
+  const ora=new Date(),oggi=tuIso(ora),hm=String(ora.getHours()).padStart(2,'0')+':'+String(ora.getMinutes()).padStart(2,'0');
+  const ore=[];tuOreLibere(v.seg,v).forEach(b=>{for(let h=Number(b.ini.slice(0,2));h<Number(b.fin.slice(0,2));h++){const a=String(h).padStart(2,'0')+':00';if(v.data>oggi||(v.data===oggi&&a>hm))ore.push(a)}});
+  if(!ore.length)return '<p class="sc-nota">Nessuna ora libera ancora da dichiarare in questa fascia.</p>';
+  const fini=[];for(let h=Number(ore[0].slice(0,2))+1;h<=Number(v.fin.slice(0,2));h++)fini.push(String(h).padStart(2,'0')+':00');
+  return `<label class="sc-lbl" for="tu-mon-ini">Dalle</label><select id="tu-mon-ini" class="input sc-in">${ore.map(h=>`<option>${h}</option>`).join('')}</select>
+    <label class="sc-lbl" for="tu-mon-fin">Alle</label><select id="tu-mon-fin" class="input sc-in">${fini.map((h,i)=>`<option${i===fini.length-1?' selected':''}>${h}</option>`).join('')}</select>
+    <label class="sc-lbl" for="tu-mon-mot">Motivo (resta scritto)</label><input id="tu-mon-mot" class="input sc-in" maxlength="200" placeholder="es. ha chiamato in Accademia">
+    <p class="sc-nota">Il turno lo dichiara di solito la persona da Turni. Qui solo nei casi eccezionali. Ore sovrapposte a un altro monitor: il portale lo blocca.</p>`;
+}
+async function tuAnnullaMonitor(impegnoId,k){
+  const v=tuVoci[k],i=v&&v.seg.find(x=>x.id===impegnoId);if(!i)return;
+  const nota=prompt(`Annulli il turno monitor di ${tuNome(i.user_id)}, ${scD(i.data)} ${scOra(i.ora_inizio)}–${scOra(i.ora_fine)}?\nScrivi il perché: la nota resta nello storico.`);
+  if(nota===null)return;
+  if(nota.trim().length<3){toast('Serve il motivo, almeno qualche parola.');return}
+  const{error}=await sb.rpc('monitor_annulla_turno',{p_impegno_id:impegnoId,p_nota:nota.trim()});
+  if(error){scMsg('mo-scuole-msg',scErr(error));return}
+  toast('Turno annullato, resta nello storico');
+  await tuRiapri(k);
 }
 /* gli staff_assistente sono sempre pagati a ore: selezionandoli la scelta passa ad Assistente */
 function tuRuoloDaUtente(){
@@ -11958,6 +12013,18 @@ async function tuAzione(az,impegnoId,k){
   await tuRiapri(k);
 }
 
+/* ── v3.159 Turni monitor aperti senza turno dichiarato (dalla regola nuova): 0 €, da controllare ── */
+async function tuCaricaNonDich(){
+  const box=document.getElementById('tu-nondich');if(!box)return;
+  const da=new Date();da.setDate(da.getDate()-60);
+  const{data,error}=await sb.from('v_compenso_turni_monitor').select('turno_id,monitor,data,inizio,fine,persone_seguite').eq('da_controllare',true).gte('data',tuIso(da)).order('data',{ascending:false});
+  if(error){box.innerHTML='<p class="sc-vuoto">Disponibile dopo l’aggiornamento del database.</p>';return}
+  const L=data||[];
+  document.getElementById('tu-nondich-n').textContent=L.length?String(L.length):'';
+  box.innerHTML=L.length?L.map(t=>`<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(t.monitor||'—')}</b>
+    <div class="sc-sub">${escHtml(scDataLunga(t.data))} · aperto alle ${escHtml(scDH(t.inizio).slice(-5))}${t.fine?' · chiuso alle '+escHtml(scDH(t.fine).slice(-5)):' · ancora aperto'} · ${Number(t.persone_seguite||0)} ${Number(t.persone_seguite)===1?'persona seguita':'persone seguite'} · 0 €</div></div></div>`).join('')
+    :'<p class="sc-vuoto">Nessun turno aperto senza dichiarazione negli ultimi 60 giorni.</p>';
+}
 /* ── Turni monitor da chiudere (giorno passato, mai chiusi: valgono 0 finche' la segreteria non li chiude) ── */
 async function tuCaricaDaChiudere(){
   const box=document.getElementById('tu-dachiudere');
