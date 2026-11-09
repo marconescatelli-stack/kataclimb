@@ -931,6 +931,7 @@ function disegnaCambi(){
   if(chiuse.length){
     const esitoTxt=c=>c.stato==='accettata'?`accettato da ${esc(nome(c.risposto_da))} il ${dhm(c.risposto_il)}`
       :c.stato==='rifiutata'?`rifiutato da ${esc(nome(c.risposto_da))} il ${dhm(c.risposto_il)}${c.nota_risposta?' ('+esc(c.nota_risposta)+')':''}`
+      :c.stato==='scaduta'?`nessuno ha accettato prima dell'inizio: è rimasto di ${esc(nome(c.da_user_id))}` // v1.10 sql/monitor/08c
       :`proposta ritirata il ${dhm(c.risposto_il)}`;
     h+=`<div class="sett">Ultimi 14 giorni</div><div class="box">`+chiuse.map(c=>`<div class="storico">${esc(quando(c))}: ${esc(nome(c.da_user_id))} → ${c.a_user_id?esc(nome(c.a_user_id)):'tutto lo staff'} · ${esitoTxt(c)}</div>`).join('')+'</div>';
   }
