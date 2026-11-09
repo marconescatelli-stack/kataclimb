@@ -10,21 +10,23 @@ CREATE FUNCTION pg_temp.come(u uuid) RETURNS void LANGUAGE sql AS
 -- 6. Ottobre e tutto il passato identici: confronto turno per turno con la fotografia presa prima della migrazione
 SELECT pg_temp.come('27b04151-93a7-4ecc-824c-fe337cc631a6');
 INSERT INTO esiti (prova, ok, dettaglio)
-SELECT '6 passato identico (turno per turno)', count(*) = 0, count(*) || ' turni diversi'
-  FROM (SELECT turno_id, ore, persone_seguite, ore_a_8, ore_a_5, compenso_eur, da_chiudere FROM foto_turni
+SELECT '6 passato identico (turno per turno, prima del 9/11)', count(*) = 0, count(*) || ' turni diversi'
+  FROM (SELECT turno_id, ore, persone_seguite, ore_a_8, ore_a_5, compenso_eur, da_chiudere FROM foto_turni WHERE data < monitor_regola_dal()
         EXCEPT
         SELECT turno_id, ore, persone_seguite, ore_a_8, ore_a_5, compenso_eur, da_chiudere FROM v_compenso_turni_monitor) d;
 INSERT INTO esiti (prova, ok, dettaglio)
 SELECT '6 ottobre identico (mese)', count(*) = 0, count(*) || ' righe diverse'
-  FROM (SELECT user_id, mese, turni, ore, ore_a_8, ore_a_5, compenso_eur FROM foto_mesi
+  FROM (SELECT user_id, mese, turni, ore, ore_a_8, ore_a_5, compenso_eur FROM foto_mesi WHERE mese = '2026-10-01'
         EXCEPT
         SELECT user_id, mese, turni, ore, ore_a_8, ore_a_5, compenso_eur FROM v_compenso_monitor_mese) d;
 INSERT INTO esiti (prova, ok, dettaglio)
 SELECT '6 ottobre totale', true, string_agg(monitor || ' ' || compenso_eur, ' · ' ORDER BY monitor)
   FROM v_compenso_monitor_mese WHERE mese = '2026-10-01';
+INSERT INTO esiti (prova, ok, dettaglio)
+SELECT '6 turni di oggi (aperti prima della regola): non dichiarati, 0 €', bool_and(regola = 'non_dichiarato' AND compenso_eur = 0),
+       count(*) || ' turni · ' || string_agg(DISTINCT monitor, ', ')
+  FROM v_compenso_turni_monitor WHERE data = monitor_regola_dal();
 
--- da qui la regola nuova vale già da oggi, solo per provarla (si annulla col ROLLBACK)
-CREATE OR REPLACE FUNCTION public.monitor_regola_dal() RETURNS date LANGUAGE sql IMMUTABLE AS $$ SELECT date '2026-11-09' $$;
 
 -- 1. senza turno dichiarato non si apre (né da INIZIO TURNO né segnando una persona)
 DO $$ BEGIN

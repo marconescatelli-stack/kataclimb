@@ -63,15 +63,27 @@ DO $$ DECLARE v_imp uuid; v_c uuid; e jsonb; r record; BEGIN
   INSERT INTO esiti VALUES (DEFAULT, '5 Claudia si toglie: ritirato → Mattia',
     r.user_id = 'bc680f11-8f0f-4d4f-bc46-1bec466f4d36' AND r.canale = 'push', pg_temp.ev(v_c, 'ritirato'));
 
-  -- 6. proposta a tutti: nessun destinatario Y → nessun avviso proposto
+  -- 6. proposta a tutti → proposto con user_id NULL, a_tutti true, da_user_id = Claudia (worker v3.1)
   v_imp := (monitor_dichiara_turno('2026-11-25', '19:00', '20:00')->>'id')::uuid;
   v_c := (monitor_proponi_cambio(v_imp, NULL, 'chi lo prende?')->>'id')::uuid;
-  INSERT INTO esiti VALUES (DEFAULT, '6 proposta a tutti: nessun avviso (resta su Oggi e Turni)', pg_temp.quanti(v_c) = 0, pg_temp.quanti(v_c) || ' righe');
+  SELECT * INTO r FROM eventi_notifica WHERE dedup_key = 'turno-proposto-' || v_c;
+  INSERT INTO esiti VALUES (DEFAULT, '6 proposta a tutti: proposto con user_id NULL, a_tutti, da_user_id',
+    r.id IS NOT NULL AND r.user_id IS NULL AND r.canale = 'both' AND (r.payload->>'a_tutti')::boolean
+      AND r.payload->>'da_user_id' = '64a7b65e-dd7f-4012-a120-47e8ea486a42' AND r.payload->'a_nome' = 'null'::jsonb,
+    pg_temp.ev(v_c, 'proposto'));
   PERFORM pg_temp.come('bc680f11-8f0f-4d4f-bc46-1bec466f4d36');
   PERFORM monitor_rispondi_cambio(v_c, true, NULL);
   SELECT * INTO r FROM eventi_notifica WHERE dedup_key = 'turno-accettato-' || v_c;
   INSERT INTO esiti VALUES (DEFAULT, '6 a tutti, Mattia accetta: accettato → Claudia con a_nome Mattia',
-    r.user_id = '64a7b65e-dd7f-4012-a120-47e8ea486a42' AND r.payload->>'a_nome' = 'Mattia', pg_temp.ev(v_c, 'accettato'));
+    r.user_id = '64a7b65e-dd7f-4012-a120-47e8ea486a42' AND r.payload->>'a_nome' = 'Mattia' AND r.payload->'a_tutti' IS NULL, pg_temp.ev(v_c, 'accettato'));
+  -- 6b. proposta a tutti ritirata → ritirato con user_id NULL, push, a_tutti
+  PERFORM pg_temp.come('64a7b65e-dd7f-4012-a120-47e8ea486a42');
+  v_imp := (monitor_dichiara_turno('2026-11-26', '19:00', '20:00')->>'id')::uuid;
+  v_c := (monitor_proponi_cambio(v_imp, NULL)->>'id')::uuid;
+  PERFORM monitor_ritira_cambio(v_c);
+  SELECT * INTO r FROM eventi_notifica WHERE dedup_key = 'turno-ritirato-' || v_c;
+  INSERT INTO esiti VALUES (DEFAULT, '6b a tutti ritirata: ritirato con user_id NULL, push, a_tutti',
+    r.id IS NOT NULL AND r.user_id IS NULL AND r.canale = 'push' AND (r.payload->>'a_tutti')::boolean, pg_temp.ev(v_c, 'ritirato'));
 END $$;
 
 -- 7. proposta lasciata aperta su un turno già iniziato (oggi alle 19) → al giro del cron scaduta + turno.cambio.scaduto

@@ -15,7 +15,8 @@
 --
 -- DATA DI ATTIVAZIONE: monitor_regola_dal(). Prima di quella data resta TUTTO come prima (apertura libera,
 -- ore dai minuti, compensi identici: per il passato vale il foglio cartaceo della segreteria).
--- >>> Mettere il giorno DOPO il COMMIT, così gli istruttori hanno il tempo di dichiarare. <<<
+-- Marco, 9 nov 2026: la regola parte da OGGI 9/11. Conseguenza accettata: i turni di stasera, aperti prima che
+-- si potesse dichiarare, risultano non dichiarati (0 €, da controllare); si rettificano con compensi_rettifiche.
 --
 -- Scelta "o equivalente" per il turno ceduto: l'impegno originale passa a stato 'ritirato' con la nota
 -- "ceduto a X, accettato il …" e il passaggio completo resta in cambi_turno_monitor. Uno stato nuovo
@@ -25,7 +26,7 @@
 -- ── 0. Costante leggibile: da quando vale la regola nuova ───────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.monitor_regola_dal()
  RETURNS date LANGUAGE sql IMMUTABLE
-AS $$ SELECT date '2026-11-11' $$;  -- giorno dopo il COMMIT (decisione Marco 9 nov 2026)
+AS $$ SELECT date '2026-11-09' $$;  -- decisione Marco 9 nov 2026: la regola parte da oggi
 COMMENT ON FUNCTION public.monitor_regola_dal() IS
   'Da questa data i turni monitor si pagano solo se dichiarati prima (consegna 9 nov 2026). Prima: regola vecchia, compensi invariati.';
 

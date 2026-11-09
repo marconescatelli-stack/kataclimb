@@ -18,8 +18,9 @@
 --  · Un solo trigger su cambi_turno_monitor invece dell'insert copiato in ogni funzione: copre da solo proposta,
 --    accetta, rifiuta, ritira, chiusura automatica (Claudia si toglie / turno annullato) e scadenza, e le funzioni
 --    della 08 restano quelle già provate. Dentro BEGIN … EXCEPTION WHEN OTHERS THEN NULL: se l'avviso fallisce il cambio vale.
---  · Proposta "a chiunque" (a_user_id nullo): il contratto vuole un destinatario Y, quindi proposto e ritirato NON
---    partono (resta l'avviso su Oggi e Turni). Accettato/rifiutato/scaduto vanno a X come sempre, con a_nome = chi accetta.
+--  · Proposta "a chiunque" (a_user_id nullo) — decisione Marco 9 nov, worker v3.1: proposto e ritirato si accodano con
+--    user_id NULL e nel payload a_tutti: true e da_user_id (chi propone); a_nome nullo. Accettato/rifiutato/scaduto
+--    vanno a X come sempre, con a_nome = chi ha accettato.
 --  · Scaduta: nuovo stato 'scaduta' in cambi_turno_monitor. Le proposte ancora aperte a turno iniziato le chiude
 --    _cambi_turno_scaduti(), chiamata da un blocco nuovo (10) di cron_genera_eventi_mattutini. Il blocco si aggiunge alla
 --    definizione LIVE del cron (sostituzione di testo controllata, sotto), senza ricopiare a mano i 9 blocchi esistenti.
@@ -34,15 +35,15 @@ ALTER TABLE public.cambi_turno_monitor ADD CONSTRAINT cambi_turno_monitor_stato_
 CREATE OR REPLACE FUNCTION public._cambio_turno_avvisa(p_cambio_id uuid, p_tipo text)
  RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $$
-DECLARE c cambi_turno_monitor; i impegni_staff; v_dest uuid; v_canale text; v_a uuid; v_nota text;
+DECLARE c cambi_turno_monitor; i impegni_staff; v_dest uuid; v_canale text; v_a uuid; v_nota text; v_tutti boolean := false;
         v_ora int; v_quando timestamptz; v_oggi date := (now() AT TIME ZONE 'Europe/Rome')::date;
 BEGIN
   SELECT * INTO c FROM cambi_turno_monitor WHERE id = p_cambio_id;
   IF NOT FOUND THEN RETURN NULL; END IF;
   SELECT * INTO i FROM impegni_staff WHERE id = c.impegno_id;
   IF NOT FOUND THEN RETURN NULL; END IF;
-  -- Y: il destinatario della proposta, oppure (proposta a tutti) chi ha risposto
-  v_a := coalesce(c.a_user_id, c.risposto_da);
+  -- Y: il destinatario della proposta, oppure (proposta a tutti) chi l'ha accettata; mai chi ritira
+  v_a := coalesce(c.a_user_id, CASE WHEN p_tipo = 'accettato' THEN c.risposto_da END);
   CASE p_tipo
     WHEN 'proposto'  THEN v_dest := c.a_user_id;  v_canale := 'both'; v_nota := c.nota;
     WHEN 'accettato' THEN v_dest := c.da_user_id; v_canale := 'both';
@@ -51,7 +52,9 @@ BEGIN
     WHEN 'scaduto'   THEN v_dest := c.da_user_id; v_canale := 'both';
     ELSE RETURN NULL;
   END CASE;
-  IF v_dest IS NULL THEN RETURN NULL; END IF;   -- proposta a tutti: niente proposto/ritirato (resta su Oggi e Turni)
+  -- proposta a tutti (worker v3.1): proposto e ritirato senza destinatario, li smista il worker
+  v_tutti := c.a_user_id IS NULL AND p_tipo IN ('proposto','ritirato');
+  IF v_dest IS NULL AND NOT v_tutti THEN RETURN NULL; END IF;
   -- finestra di quiete come tg_lead_richieste_notifica, ma il turno di oggi si avvisa subito
   IF i.data = v_oggi THEN
     v_quando := now();
@@ -71,7 +74,8 @@ BEGIN
       'data',        to_char(i.data, 'YYYY-MM-DD'),
       'ora_inizio',  to_char(i.ora_inizio, 'HH24:MI'),
       'ora_fine',    to_char(i.ora_fine, 'HH24:MI'),
-      'nota',        v_nota),
+      'nota',        v_nota)
+    || CASE WHEN v_tutti THEN jsonb_build_object('a_tutti', true, 'da_user_id', c.da_user_id) ELSE '{}'::jsonb END,
     v_quando,
     'turno-' || p_tipo || '-' || c.id);
 END $$;

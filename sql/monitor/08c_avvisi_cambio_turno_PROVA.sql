@@ -20,7 +20,8 @@ BEGIN;
 --
 -- DATA DI ATTIVAZIONE: monitor_regola_dal(). Prima di quella data resta TUTTO come prima (apertura libera,
 -- ore dai minuti, compensi identici: per il passato vale il foglio cartaceo della segreteria).
--- >>> Mettere il giorno DOPO il COMMIT, così gli istruttori hanno il tempo di dichiarare. <<<
+-- Marco, 9 nov 2026: la regola parte da OGGI 9/11. Conseguenza accettata: i turni di stasera, aperti prima che
+-- si potesse dichiarare, risultano non dichiarati (0 €, da controllare); si rettificano con compensi_rettifiche.
 --
 -- Scelta "o equivalente" per il turno ceduto: l'impegno originale passa a stato 'ritirato' con la nota
 -- "ceduto a X, accettato il …" e il passaggio completo resta in cambi_turno_monitor. Uno stato nuovo
@@ -30,7 +31,7 @@ BEGIN;
 -- ── 0. Costante leggibile: da quando vale la regola nuova ───────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.monitor_regola_dal()
  RETURNS date LANGUAGE sql IMMUTABLE
-AS $$ SELECT date '2026-11-11' $$;  -- giorno dopo il COMMIT (decisione Marco 9 nov 2026)
+AS $$ SELECT date '2026-11-09' $$;  -- decisione Marco 9 nov 2026: la regola parte da oggi
 COMMENT ON FUNCTION public.monitor_regola_dal() IS
   'Da questa data i turni monitor si pagano solo se dichiarati prima (consegna 9 nov 2026). Prima: regola vecchia, compensi invariati.';
 
@@ -679,8 +680,9 @@ GRANT SELECT ON public.cambi_turno_monitor TO authenticated;
 --  · Un solo trigger su cambi_turno_monitor invece dell'insert copiato in ogni funzione: copre da solo proposta,
 --    accetta, rifiuta, ritira, chiusura automatica (Claudia si toglie / turno annullato) e scadenza, e le funzioni
 --    della 08 restano quelle già provate. Dentro BEGIN … EXCEPTION WHEN OTHERS THEN NULL: se l'avviso fallisce il cambio vale.
---  · Proposta "a chiunque" (a_user_id nullo): il contratto vuole un destinatario Y, quindi proposto e ritirato NON
---    partono (resta l'avviso su Oggi e Turni). Accettato/rifiutato/scaduto vanno a X come sempre, con a_nome = chi accetta.
+--  · Proposta "a chiunque" (a_user_id nullo) — decisione Marco 9 nov, worker v3.1: proposto e ritirato si accodano con
+--    user_id NULL e nel payload a_tutti: true e da_user_id (chi propone); a_nome nullo. Accettato/rifiutato/scaduto
+--    vanno a X come sempre, con a_nome = chi ha accettato.
 --  · Scaduta: nuovo stato 'scaduta' in cambi_turno_monitor. Le proposte ancora aperte a turno iniziato le chiude
 --    _cambi_turno_scaduti(), chiamata da un blocco nuovo (10) di cron_genera_eventi_mattutini. Il blocco si aggiunge alla
 --    definizione LIVE del cron (sostituzione di testo controllata, sotto), senza ricopiare a mano i 9 blocchi esistenti.
@@ -695,15 +697,15 @@ ALTER TABLE public.cambi_turno_monitor ADD CONSTRAINT cambi_turno_monitor_stato_
 CREATE OR REPLACE FUNCTION public._cambio_turno_avvisa(p_cambio_id uuid, p_tipo text)
  RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $$
-DECLARE c cambi_turno_monitor; i impegni_staff; v_dest uuid; v_canale text; v_a uuid; v_nota text;
+DECLARE c cambi_turno_monitor; i impegni_staff; v_dest uuid; v_canale text; v_a uuid; v_nota text; v_tutti boolean := false;
         v_ora int; v_quando timestamptz; v_oggi date := (now() AT TIME ZONE 'Europe/Rome')::date;
 BEGIN
   SELECT * INTO c FROM cambi_turno_monitor WHERE id = p_cambio_id;
   IF NOT FOUND THEN RETURN NULL; END IF;
   SELECT * INTO i FROM impegni_staff WHERE id = c.impegno_id;
   IF NOT FOUND THEN RETURN NULL; END IF;
-  -- Y: il destinatario della proposta, oppure (proposta a tutti) chi ha risposto
-  v_a := coalesce(c.a_user_id, c.risposto_da);
+  -- Y: il destinatario della proposta, oppure (proposta a tutti) chi l'ha accettata; mai chi ritira
+  v_a := coalesce(c.a_user_id, CASE WHEN p_tipo = 'accettato' THEN c.risposto_da END);
   CASE p_tipo
     WHEN 'proposto'  THEN v_dest := c.a_user_id;  v_canale := 'both'; v_nota := c.nota;
     WHEN 'accettato' THEN v_dest := c.da_user_id; v_canale := 'both';
@@ -712,7 +714,9 @@ BEGIN
     WHEN 'scaduto'   THEN v_dest := c.da_user_id; v_canale := 'both';
     ELSE RETURN NULL;
   END CASE;
-  IF v_dest IS NULL THEN RETURN NULL; END IF;   -- proposta a tutti: niente proposto/ritirato (resta su Oggi e Turni)
+  -- proposta a tutti (worker v3.1): proposto e ritirato senza destinatario, li smista il worker
+  v_tutti := c.a_user_id IS NULL AND p_tipo IN ('proposto','ritirato');
+  IF v_dest IS NULL AND NOT v_tutti THEN RETURN NULL; END IF;
   -- finestra di quiete come tg_lead_richieste_notifica, ma il turno di oggi si avvisa subito
   IF i.data = v_oggi THEN
     v_quando := now();
@@ -732,7 +736,8 @@ BEGIN
       'data',        to_char(i.data, 'YYYY-MM-DD'),
       'ora_inizio',  to_char(i.ora_inizio, 'HH24:MI'),
       'ora_fine',    to_char(i.ora_fine, 'HH24:MI'),
-      'nota',        v_nota),
+      'nota',        v_nota)
+    || CASE WHEN v_tutti THEN jsonb_build_object('a_tutti', true, 'da_user_id', c.da_user_id) ELSE '{}'::jsonb END,
     v_quando,
     'turno-' || p_tipo || '-' || c.id);
 END $$;
@@ -871,15 +876,27 @@ DO $$ DECLARE v_imp uuid; v_c uuid; e jsonb; r record; BEGIN
   INSERT INTO esiti VALUES (DEFAULT, '5 Claudia si toglie: ritirato → Mattia',
     r.user_id = 'bc680f11-8f0f-4d4f-bc46-1bec466f4d36' AND r.canale = 'push', pg_temp.ev(v_c, 'ritirato'));
 
-  -- 6. proposta a tutti: nessun destinatario Y → nessun avviso proposto
+  -- 6. proposta a tutti → proposto con user_id NULL, a_tutti true, da_user_id = Claudia (worker v3.1)
   v_imp := (monitor_dichiara_turno('2026-11-25', '19:00', '20:00')->>'id')::uuid;
   v_c := (monitor_proponi_cambio(v_imp, NULL, 'chi lo prende?')->>'id')::uuid;
-  INSERT INTO esiti VALUES (DEFAULT, '6 proposta a tutti: nessun avviso (resta su Oggi e Turni)', pg_temp.quanti(v_c) = 0, pg_temp.quanti(v_c) || ' righe');
+  SELECT * INTO r FROM eventi_notifica WHERE dedup_key = 'turno-proposto-' || v_c;
+  INSERT INTO esiti VALUES (DEFAULT, '6 proposta a tutti: proposto con user_id NULL, a_tutti, da_user_id',
+    r.id IS NOT NULL AND r.user_id IS NULL AND r.canale = 'both' AND (r.payload->>'a_tutti')::boolean
+      AND r.payload->>'da_user_id' = '64a7b65e-dd7f-4012-a120-47e8ea486a42' AND r.payload->'a_nome' = 'null'::jsonb,
+    pg_temp.ev(v_c, 'proposto'));
   PERFORM pg_temp.come('bc680f11-8f0f-4d4f-bc46-1bec466f4d36');
   PERFORM monitor_rispondi_cambio(v_c, true, NULL);
   SELECT * INTO r FROM eventi_notifica WHERE dedup_key = 'turno-accettato-' || v_c;
   INSERT INTO esiti VALUES (DEFAULT, '6 a tutti, Mattia accetta: accettato → Claudia con a_nome Mattia',
-    r.user_id = '64a7b65e-dd7f-4012-a120-47e8ea486a42' AND r.payload->>'a_nome' = 'Mattia', pg_temp.ev(v_c, 'accettato'));
+    r.user_id = '64a7b65e-dd7f-4012-a120-47e8ea486a42' AND r.payload->>'a_nome' = 'Mattia' AND r.payload->'a_tutti' IS NULL, pg_temp.ev(v_c, 'accettato'));
+  -- 6b. proposta a tutti ritirata → ritirato con user_id NULL, push, a_tutti
+  PERFORM pg_temp.come('64a7b65e-dd7f-4012-a120-47e8ea486a42');
+  v_imp := (monitor_dichiara_turno('2026-11-26', '19:00', '20:00')->>'id')::uuid;
+  v_c := (monitor_proponi_cambio(v_imp, NULL)->>'id')::uuid;
+  PERFORM monitor_ritira_cambio(v_c);
+  SELECT * INTO r FROM eventi_notifica WHERE dedup_key = 'turno-ritirato-' || v_c;
+  INSERT INTO esiti VALUES (DEFAULT, '6b a tutti ritirata: ritirato con user_id NULL, push, a_tutti',
+    r.id IS NOT NULL AND r.user_id IS NULL AND r.canale = 'push' AND (r.payload->>'a_tutti')::boolean, pg_temp.ev(v_c, 'ritirato'));
 END $$;
 
 -- 7. proposta lasciata aperta su un turno già iniziato (oggi alle 19) → al giro del cron scaduta + turno.cambio.scaduto
