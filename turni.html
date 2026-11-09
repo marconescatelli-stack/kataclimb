@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.10 · 2026-11-09 · TURNI MONITOR DICHIARATI PRIMA + CAMBIO TURNO CON ACCETTAZIONE (consegna Marco 9 nov, DB sql/monitor/08). (1) TURNI MONITOR a ore intere: in ogni giorno l'elenco dei turni dichiarati con le ore (es. 19–20 Claudia, 20–22 Mattia), le ore libere e DICHIARA IL TURNO -> scelta "dalle/alle" solo tra le ore libere non ancora iniziate -> "sei sicuro?" che ricorda di aprire il turno su Oggi -> monitor_dichiara_turno (il DB controlla ore intere, fascia lun-ven 19-22 / sab 14-18, prima dell'inizio, nessuna sovrapposizione). Creator e segreteria scelgono anche "per chi" con il motivo obbligatorio (caso eccezionale, resta scritto chi l'ha fatto) e hanno ANNULLA su ogni turno (monitor_annulla_turno con la nota, mai cancellato); sotto il nome "dichiarato da …" quando non l'ha fatto la persona. (2) PROPONI A UN COLLEGA sui propri turni non ancora iniziati: collega preciso o "a chiunque dello staff", nota facoltativa, "sei sicuro?" (finche' non accetta il turno resta tuo) -> monitor_proponi_cambio. (3) Sezione nuova "🔁 Cambi turno monitor" sotto Da coprire: le proposte per te con ACCETTO / NO, GRAZIE (monitor_rispondi_cambio, con "sei sicuro?"), le tue in attesa con RITIRA LA PROPOSTA (monitor_ritira_cambio), lo storico degli ultimi 14 giorni (chi, a chi, accettato/rifiutato il …). (4) MI TOLGO sul turno monitor solo prima che inizi. Bacheca: le ore libere a blocchi (kc-da-coprire v1.2). CUMULA v1.9 (sotto). -->
 <!-- KC-BUILD: turni v1.9 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. gli slot festa_sabato hanno una riga in slot_copertura (1 istruttore) e v_copertura_lezioni li restituiva OGNI sabato come lezioni scoperte. In LEZIONI DEI CORSI una riga festa_sabato resta solo se in quella data c'e' una festa prenotata (prenotazioni_festa stato prenotato) su quello slot; se la lettura delle feste non riesce, nessuna riga festa. Nome "Festa del sabato · N bambini" (NOME_CORSO festa_sabato). La bacheca Da coprire fa lo stesso in kc-da-coprire.js v1.1. MI SEGNO, sostituzioni e supporto invariati (impegno_mi_segno accetta lo slot festa con la data). Nessuna scrittura nuova. CUMULA v1.8 (sotto). -->
 <!-- KC-BUILD: turni v1.8 · 2026-11-02 · LEZIONE NON SVOLTA (consegna 2 nov, punto 3; DB impegni_staff.stato non_svolta): nelle lezioni dei corsi, nelle scuole e in I miei impegni lo stato non_svolta si legge "lezione non svolta" in grigio, mai come assenza ne' in arancio/rosso. Nessuna modifica a DB. CUMULA v1.7 (sotto). -->
 <!-- KC-BUILD: turni v1.7 · 2026-11-01 · SONO DISPONIBILE (consegna 31 ott, punto 2b; DB staff_disponibilita gia' live dal 1/11: sono_disponibile, ritiro_disponibilita, v_staff_disponibilita, disponibilita' chiusa da sola quando la persona viene segnata o segna "non ci sono"). Sulle voci della bacheca, sui turni monitor senza nessuno della griglia e sulle lezioni scoperte (corsi, supporto richiesto, scuole sotto 3): riga verde "Disponibili: …" (o "Nessuno disponibile ancora"), bottone SONO DISPONIBILE accanto a MI SEGNO; se lo sei gia': "Sei disponibile ✓", NON PIÙ DISPONIBILE (ritiro_disponibilita) e MI SEGNO per prenderlo davvero; segreteria e creator: ASSEGNA accanto a ogni disponibile -> "Sei sicuro? Assegni il turno a …" -> impegno_mi_segno con p_user_id (lezione: p_tipo lezione e p_slot_id; ruolo dal ruolo della persona). Chi ha segnato "non ci sono" non vede il bottone. Nessuna modifica a DB. CUMULA v1.6 (sotto). -->
@@ -134,6 +135,19 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 .esito{margin-top:12px; padding:12px; border-radius:12px; background:rgba(48,209,88,.08); border:1px solid rgba(48,209,88,.45); font-size:15px}
 .esito p+p{margin-top:6px}
 .esito .ko{color:var(--rosso)}
+/* v1.10 turni monitor dichiarati e cambi */
+.tm{display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; font-size:14px; padding:4px 0}
+.tm .o{font-family:'JetBrains Mono',monospace; font-weight:800}
+.tm .da{flex-basis:100%; font-size:13px; color:#C9C9CE}
+.tm .att{flex-basis:100%; font-size:13px; color:var(--fiducia)}
+.libere{font-size:14px; color:var(--arancio); margin-top:4px}
+.dich{margin-top:8px; padding:8px; border:1px solid rgba(255,214,10,.45); border-radius:10px; background:rgba(255,214,10,.06)}
+.dich label{display:block; font-size:13px; color:var(--etichetta); font-weight:700; margin:6px 0 4px}
+.dich select,.dich input{width:100%; font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; border:1px solid #3A3A40; border-radius:10px; padding:8px}
+.dich .riga2{display:flex; gap:6px} .dich .riga2>div{flex:1}
+.cambio .q{font-size:15px; font-weight:700}
+.cambio .s{font-size:14px; color:#C9C9CE; margin-top:2px}
+.storico{font-size:14px; color:#C9C9CE; padding:6px 0; border-top:1px solid var(--velo)}
 </style>
 </head>
 <body>
@@ -168,6 +182,10 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
     <div id="nonci-mie"><p class="vuota">…</p></div>
   </div>
 
+  <div class="zona" id="cambi">🔁 Cambi turno monitor</div>
+  <p class="nota-zona">Chi lascia un turno lo propone a un collega. Il turno passa solo quando il collega accetta, e il passaggio resta scritto.</p>
+  <div id="cambi-box"><p class="vuota">…</p></div>
+
   <div class="zona">Lezioni dei corsi</div>
   <p class="nota-zona">Prossime 4 settimane. Gli impegni del piano fisso sono già segnati: se non ci sei, premi NON CI SONO e il portale chiama il sostituto. Il giorno stesso segna la presenza su Oggi.</p>
   <div id="corsi"><p class="vuota">…</p></div>
@@ -177,7 +195,7 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
   <div id="lezioni"><p class="vuota">…</p></div>
 
   <div class="zona">Turni monitor</div>
-  <p class="nota-zona">Sala con Monitor, da lunedì a sabato, prossime 2 settimane.</p>
+  <p class="nota-zona">Sala con Monitor, prossime 2 settimane. Il turno si dichiara prima, a ore intere (lunedì–venerdì dalle 19 alle 22, sabato dalle 14 alle 18), un monitor alla volta. Quando arrivi apri il turno su Oggi: senza turno dichiarato non si apre e non si paga.</p>
   <div id="monitor"><p class="vuota">…</p></div>
 
   <div class="zona">I miei impegni</div>
@@ -216,6 +234,7 @@ let copertura=[], richieste=[], slotCorsi={}, corsiVoci=[], _suppAperto=null; //
 let impLezTutti=[], piano=[], _sostAperto=null; // v1.2 sostituzioni (righe ritirate solo per i nomi) e piano fisso
 let indisp=[], nonciSel=new Set(), nonciMese=null; // v1.4 quando non ci sono
 let disp=[], dispCtx=[]; // v1.7 sono disponibile: v_staff_disponibilita e i contesti dei bottoni
+let cambi=[], cambiImp={}, _dichAperto=null, _propAperto=null; // v1.10 cambi turno monitor, form aperti
 /* v1.1 nome completo: per i minori conta la fascia (le lezioni delle 18 di lun e gio hanno tipo bambini e fascia ragazzi) */
 const NOME_CORSO={bambini:'Corso Bambini (6–11)',ragazzi:'Corso Ragazzi (12–17)',evo_ragazzi:'Corso Evo Ragazzi',expert:'Corso Expert',genitori:'Corso Genitori KataClimb',
   /* v1.2 corsi adulti e Prime Lezioni */
@@ -272,7 +291,7 @@ async function carica(){
         .order('data_evento').order('ora_inizio'),
       sb.from('impegni_staff').select('id, user_id, slot_id, data, ruolo, stato, compenso_tipo, da_piano, note').eq('tipo','lezione')
         .gte('data',oggiIso).lte('data',fineLez), // v1.2 anche le ritirate: servono a dire chi e' stato sostituito
-      sb.from('impegni_staff').select('id, user_id, data, ora_inizio, ora_fine, stato').eq('tipo','monitor').neq('stato','ritirato')
+      sb.from('impegni_staff').select('id, user_id, data, ora_inizio, ora_fine, stato, segnato_da, note').eq('tipo','monitor').neq('stato','ritirato')
         .gte('data',isoLocal(lunedi)).lte('data',fineMon),
       sb.from('impegni_staff').select('id, tipo, slot_id, data, ora_inizio, ora_fine, ruolo, stato, presenza_inizio, presenza_fine')
         .eq('user_id',uid).neq('stato','ritirato').gte('data',oggiIso).order('data').order('ora_inizio'),
@@ -287,6 +306,7 @@ async function carica(){
     const rp=await sb.from('slot_piano_staff').select('slot_id, user_id, sostituto_user_id').eq('attivo',true); // v1.2
     if(rp.error)console.warn('[turni] piano:',rp.error.message); piano=rp.data||[];
     await caricaCorsi(oggiIso);
+    await caricaCambi(); // v1.10
     nomi={}; (rn.data||[]).forEach(p=>{nomi[p.user_id]=p;});
     const leadIds=[...new Set([...lezioni.map(s=>s.lead_scuola_id)].filter(Boolean))];
     /* gli slot dei miei impegni che non sono tra le lezioni mostrate (oltre le 4 settimane) */
@@ -306,7 +326,8 @@ async function carica(){
     return;
   }
   dispCtx=[]; // v1.7
-  disegnaCorsi(); disegnaLezioni(); disegnaMonitor(lunedi); disegnaMiei(); disegnaNonCi();
+  _lunediMon=lunedi; // v1.10 per ridisegnare la griglia senza ricaricare
+  disegnaCorsi(); disegnaLezioni(); disegnaMonitor(lunedi); disegnaMiei(); disegnaNonCi(); disegnaCambi();
   await caricaBacheca(); // v1.6
 }
 
@@ -419,7 +440,7 @@ async function bachecaSegno(i,btn){
     ?await sb.rpc('impegno_mi_segno',{p_tipo:'monitor',p_data:v.data,p_ora_inizio:v.ini,p_ora_fine:v.fin})
     :await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:v.slot_id,p_data:v.data,p_ruolo:ruolo});
   if(r.error){ btn.disabled=false; toast('Non segnato: '+errTesto(r.error)); return; }
-  toast(v.tipo==='monitor'?'Segnato sul turno monitor. Grazie!':'Segnato. Grazie!');
+  toast(v.tipo==='monitor'?`Turno ${v.ini}–${v.fin} dichiarato. Quel giorno aprilo su Oggi quando arrivi.`:'Segnato. Grazie!');
   carica();
 }
 async function bachecaAccetto(i,btn){
@@ -752,7 +773,15 @@ function disegnaLezioni(){
   }).join('');
 }
 
+/* ── v1.10 TURNI MONITOR DICHIARATI (consegna 9 nov): a ore intere dentro la fascia, prima che inizino, un monitor alla volta.
+   Scritture solo via RPC: monitor_dichiara_turno, impegno_mi_tolgo, monitor_annulla_turno, monitor_proponi_cambio. ── */
+let _lunediMon=null;
+const adessoHm=()=>{ const d=new Date(); return pad2(d.getHours())+':'+pad2(d.getMinutes()); };
+const giaIniziato=x=>x.data<isoLocal(new Date())||(x.data===isoLocal(new Date())&&ora(x.ora_inizio)<=adessoHm());
+const oreTxt=x=>`${ora(x.ora_inizio)}–${ora(x.ora_fine)}`;
+const cambioAperto=impId=>cambi.find(c=>c.impegno_id===impId&&c.stato==='proposta')||null;
 function disegnaMonitor(lunedi){
+  lunedi=lunedi||_lunediMon; if(!lunedi)return;
   const oggiIso=isoLocal(new Date());
   let html='';
   for(let w=0;w<2;w++){
@@ -762,25 +791,175 @@ function disegnaMonitor(lunedi){
       const d=piuGiorni(l,g), di=isoLocal(d), passato=di<oggiIso;
       html+=`<div class="giorno${passato?' passato':''}"><h3>${GIORNI_FULL[d.getDay()]} ${d.getDate()}</h3>`;
       (FASCE_MONITOR_GIORNO[d.getDay()]||[]).forEach(f=>{
-        const seg=impMon.filter(i=>i.data===di && ora(i.ora_inizio)===f.ini);
-        const mio=seg.find(i=>i.user_id===uid);
-        const chi=seg.length?seg.map(i=>esc(nome(i.user_id))+(i.stato==='presente'?' ✓':i.stato==='assente'?' · assente':'')).join(', '):'Nessuno';
-        let btn='';
-        let rigaD='';
+        const seg=impMon.filter(i=>i.data===di&&ora(i.ora_inizio)<f.fin&&ora(i.ora_fine)>f.ini).sort((a,b)=>ora(a.ora_inizio).localeCompare(ora(b.ora_inizio)));
+        const libere=passato?[]:(window.kcOreLibereMonitor?kcOreLibereMonitor(di,impMon,di===oggiIso?adessoHm():null):[]);
+        const righe=seg.map(htmlTurnoMon).join('');
+        let rigaD='', btn='';
         if(!passato){
-          if(mio) btn=mio.stato==='previsto'?`<button class="btn" onclick="miTolgo('${esc(mio.id)}',this)">MI TOLGO</button>`:'';
-          else btn=`<button class="btn prim" onclick="segnaMonitor('${di}','${f.ini}','${f.fin}',this)">MI SEGNO</button>`;
           if(!seg.length){ const D=htmlDisp({tipo:'monitor',data:di,ini:f.ini,fin:f.fin,slot_id:null},{miSegno:false}); rigaD=D.riga; btn+=D.az; } // v1.7
+          if(libere.length && !nonDispDi(uid,di,f.ini,f.fin))btn=`<button class="btn prim" onclick="apriDichiara('${di}')">DICHIARA IL TURNO</button>`+btn;
         }
-        html+=`<div class="fascia${f.dacoprire?' dacoprire':''}">
-          <div class="fh">${f.ini}–${f.fin}${f.dacoprire?'<span class="bdg">da coprire</span>':''}</div>
-          <div class="chi${seg.length?'':' nessuno'}">${chi}</div>${rigaNonDisp(di,f.ini,f.fin)}${rigaD}${btn}</div>`;
+        html+=`<div class="fascia">
+          <div class="fh">${f.ini}–${f.fin}</div>
+          ${righe||`<div class="chi nessuno">Nessun turno dichiarato</div>`}
+          ${libere.length&&seg.length?`<div class="libere">Ore libere: ${libere.map(b=>b.ini+'–'+b.fin).join(', ')}</div>`:''}
+          ${rigaNonDisp(di,f.ini,f.fin)}${rigaD}${btn}${_dichAperto===di?htmlDichiara(di,libere):''}</div>`;
       });
       html+='</div>';
     }
     html+='</div>';
   }
   $('monitor').innerHTML=html;
+}
+function htmlTurnoMon(x){
+  const mio=x.user_id===uid, inizio=giaIniziato(x), c=cambioAperto(x.id);
+  const st=x.stato==='presente'?' ✓':x.stato==='assente'?' · assente':'';
+  let az='';
+  if(mio&&x.stato==='previsto'&&!inizio){
+    az+=`<button class="btn mini" onclick="miTolgo('${esc(x.id)}',this)">MI TOLGO</button>`;
+    if(!c)az+=`<button class="btn mini" onclick="apriProponi('${esc(x.id)}')">PROPONI</button>`;
+  }
+  if(puoAssegnare()&&x.stato!=='ritirato')az+=`<button class="btn mini" onclick="annullaTurnoMon('${esc(x.id)}',this)">ANNULLA</button>`;
+  const da=x.segnato_da&&x.segnato_da!==x.user_id?`<span class="da">dichiarato da ${esc(nome(x.segnato_da))}</span>`:'';
+  const att=c?`<span class="att">Proposto a ${c.a_user_id?esc(nome(c.a_user_id)):'tutto lo staff'}: in attesa</span>`:'';
+  return `<div class="tm"><span class="o">${esc(oreTxt(x))}</span> <span${mio?' class="disp-io"':''}>${esc(nome(x.user_id))}${st}</span>${az}${da}${att}</div>`
+    +(_propAperto===x.id?htmlProponi(x):'');
+}
+/* form DICHIARA: dalle/alle solo tra le ore libere; "per chi" solo per creator e segreteria */
+function apriDichiara(di){ _dichAperto=_dichAperto===di?null:di; _propAperto=null; disegnaMonitor(); }
+function htmlDichiara(di,libere){
+  const starts=[]; libere.forEach(b=>{ for(let h=Number(b.ini.slice(0,2));h<Number(b.fin.slice(0,2));h++)starts.push(pad2(h)+':00'); });
+  if(!starts.length)return '';
+  const perChi=puoAssegnare()?`<label for="dich-chi">Per chi</label><select id="dich-chi" onchange="dichChi()"><option value="">Per me</option>${
+    Object.values(nomi).filter(p=>p.user_id!==uid).sort((a,b)=>nome(a.user_id).localeCompare(nome(b.user_id),'it'))
+      .map(p=>`<option value="${esc(p.user_id)}">${esc(nome(p.user_id))}</option>`).join('')}</select>
+    <div id="dich-mot-box" class="hidden"><label for="dich-mot">Motivo (resta scritto)</label><input id="dich-mot" type="text" maxlength="200" placeholder="es. ha chiamato in Accademia"></div>`:'';
+  return `<div class="dich">${perChi}<div class="riga2"><div><label for="dich-ini">Dalle</label><select id="dich-ini" onchange="dichAlle('${di}')">${starts.map(h=>`<option>${h}</option>`).join('')}</select></div>
+    <div><label for="dich-fin">Alle</label><select id="dich-fin">${opzioniAlle(libere,starts[0])}</select></div></div>
+    <div class="az"><button class="btn prim" onclick="confermaDichiara('${di}',this)">DICHIARO</button><button class="btn" onclick="apriDichiara('${di}')">ANNULLA</button></div></div>`;
+}
+function opzioniAlle(libere,ini){
+  const b=libere.find(x=>x.ini<=ini&&x.fin>ini); if(!b)return '';
+  const out=[]; for(let h=Number(ini.slice(0,2))+1;h<=Number(b.fin.slice(0,2));h++)out.push(pad2(h)+':00');
+  return out.map((h,i)=>`<option${i===out.length-1?' selected':''}>${h}</option>`).join('');
+}
+function dichAlle(di){
+  const libere=kcOreLibereMonitor(di,impMon,di===isoLocal(new Date())?adessoHm():null);
+  $('dich-fin').innerHTML=opzioniAlle(libere,$('dich-ini').value);
+}
+function dichChi(){ $('dich-mot-box').classList.toggle('hidden',!$('dich-chi').value); }
+async function confermaDichiara(di,btn){
+  const ini=$('dich-ini').value, fin=$('dich-fin').value, chi=($('dich-chi')||{}).value||null, mot=(($('dich-mot')||{}).value||'').trim();
+  if(!ini||!fin)return;
+  if(chi&&mot.length<3){ toast('Scrivi il motivo: dichiarare per un collega è un caso eccezionale.'); $('dich-mot').focus(); return; }
+  const per=chi?` per ${nome(chi)}`:'';
+  if(!confirm(`Sei sicuro? Dichiari il turno monitor${per} di ${giornoLungo(di)} dalle ${ini} alle ${fin}.\n\nQuando arriva in sala, apre il turno su Oggi: si paga il turno dichiarato, solo se viene aperto.`))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_dichiara_turno',{p_data:di,p_ora_inizio:ini,p_ora_fine:fin,p_user_id:chi,p_note:chi?mot:null});
+  if(error){ btn.disabled=false; toast('Non dichiarato: '+errTesto(error)); return; }
+  _dichAperto=null;
+  toast(chi?`Fatto: turno ${ini}–${fin} dichiarato per ${nome(chi)}.`:`Fatto: turno ${ini}–${fin} dichiarato. Quel giorno aprilo su Oggi quando arrivi.`);
+  carica();
+}
+/* creator e segreteria annullano: stato ritirato con la nota, mai cancellato */
+async function annullaTurnoMon(id,btn){
+  const x=impMon.find(i=>i.id===id); if(!x)return;
+  const nota=prompt(`Annulli il turno monitor di ${nome(x.user_id)}, ${giornoLungo(x.data)} ${oreTxt(x)}?\nScrivi il perché: la nota resta nello storico.`);
+  if(nota===null)return;
+  if(nota.trim().length<3){ toast('Serve il motivo, almeno qualche parola.'); return; }
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_annulla_turno',{p_impegno_id:id,p_nota:nota.trim()});
+  if(error){ btn.disabled=false; toast('Non annullato: '+errTesto(error)); return; }
+  toast('Turno annullato. Resta nello storico con la nota.');
+  carica();
+}
+
+/* ── v1.10 CAMBIO TURNO: chi lascia propone, chi prende accetta (cambi_turno_monitor) ── */
+function apriProponi(id){ _propAperto=_propAperto===id?null:id; _dichAperto=null; disegnaMonitor();
+  setTimeout(()=>{ const el=$('prop-chi'); if(el)el.scrollIntoView({behavior:'smooth',block:'center'}); },50); }
+function htmlProponi(x){
+  const L=Object.values(nomi).filter(p=>p.user_id!==uid).sort((a,b)=>nome(a.user_id).localeCompare(nome(b.user_id),'it'));
+  const opt=L.map(p=>{ const nd=nonDispDi(p.user_id,x.data,ora(x.ora_inizio),ora(x.ora_fine));
+    return `<option value="${esc(p.user_id)}"${nd?' disabled':''}>${esc(nome(p.user_id))}${nd?' · non disponibile':''}</option>`; }).join('');
+  return `<div class="dich"><label for="prop-chi">A chi lo proponi?</label><select id="prop-chi"><option value="">Scegli un collega</option>${opt}<option value="*">A chiunque dello staff</option></select>
+    <label for="prop-nota">Nota (facoltativa)</label><input id="prop-nota" type="text" maxlength="200" placeholder="es. ho un esame">
+    <div class="az"><button class="btn prim" onclick="confermaProponi('${esc(x.id)}',this)">PROPONI</button><button class="btn" onclick="apriProponi('${esc(x.id)}')">ANNULLA</button></div></div>`;
+}
+async function confermaProponi(id,btn){
+  const x=impMon.find(i=>i.id===id)||miei.find(i=>i.id===id); if(!x)return;
+  const chi=$('prop-chi').value, nota=($('prop-nota').value||'').trim();
+  if(!chi){ toast('Scegli a chi proporlo.'); return; }
+  const a=chi==='*'?null:chi, aChi=a?nome(a):'tutto lo staff';
+  if(!confirm(`Sei sicuro? Proponi il tuo turno di ${giornoLungo(x.data)} ${oreTxt(x)} a ${aChi}.\n\nFinché ${a?'non accetta':'qualcuno non accetta'}, il turno resta tuo.`))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_proponi_cambio',{p_impegno_id:id,p_a_user_id:a,p_nota:nota||null});
+  if(error){ btn.disabled=false; toast('Non proposto: '+errTesto(error)); return; }
+  _propAperto=null;
+  toast(`Proposto a ${aChi}. Il turno resta tuo finché non accetta.`);
+  carica();
+}
+async function caricaCambi(){
+  const da=new Date(); da.setDate(da.getDate()-14);
+  const{data,error}=await sb.from('cambi_turno_monitor')
+    .select('id, impegno_id, da_user_id, a_user_id, stato, nota, creato_il, risposto_il, risposto_da, nota_risposta, nuovo_impegno_id')
+    .gte('creato_il',da.toISOString()).order('creato_il',{ascending:false});
+  if(error){ console.warn('[turni] cambi:',error.message); cambi=[]; cambiImp={}; return; }
+  cambi=data||[]; cambiImp={};
+  const ids=[...new Set(cambi.map(c=>c.impegno_id))];
+  if(ids.length){
+    const{data:ii,error:e2}=await sb.from('impegni_staff').select('id, user_id, data, ora_inizio, ora_fine, stato').in('id',ids);
+    if(e2)console.warn('[turni] cambi impegni:',e2.message);
+    (ii||[]).forEach(i=>{cambiImp[i.id]=i;});
+  }
+}
+const dhm=ts=>{ if(!ts)return ''; const d=new Date(ts); return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+' '+pad2(d.getHours())+':'+pad2(d.getMinutes()); };
+function disegnaCambi(){
+  const el=$('cambi-box'); if(!el)return;
+  const aperta=c=>{ const i=cambiImp[c.impegno_id]; return c.stato==='proposta'&&i&&!giaIniziato(i); };
+  const perMe=cambi.filter(c=>aperta(c)&&c.da_user_id!==uid&&(c.a_user_id===uid||!c.a_user_id));
+  const mie=cambi.filter(c=>aperta(c)&&c.da_user_id===uid);
+  const chiuse=cambi.filter(c=>c.stato!=='proposta');
+  const quando=c=>{ const i=cambiImp[c.impegno_id]; return i?`${maiusc(giornoLungo(i.data))} · ${oreTxt(i)}`:'Turno'; };
+  let h='';
+  h+=perMe.map(c=>`<div class="box parziale cambio"><div class="q">${esc(quando(c))}</div>
+    <div class="s"><b>${esc(nome(c.da_user_id))}</b> ${c.a_user_id?'ti propone':'propone a tutto lo staff'} il suo turno di Sala con Monitor${c.nota?': '+esc(c.nota):''}.</div>
+    <div class="az"><button class="btn prim" onclick="rispondiCambio('${esc(c.id)}',true,this)">ACCETTO</button>${c.a_user_id?`<button class="btn" onclick="rispondiCambio('${esc(c.id)}',false,this)">NO, GRAZIE</button>`:''}</div></div>`).join('');
+  h+=mie.map(c=>`<div class="box cambio"><div class="q">${esc(quando(c))}</div>
+    <div class="s">Hai proposto il tuo turno a <b>${c.a_user_id?esc(nome(c.a_user_id)):'tutto lo staff'}</b>: in attesa. Finché non accetta, il turno resta tuo.</div>
+    <div class="az"><button class="btn" onclick="ritiraCambio('${esc(c.id)}',this)">RITIRA LA PROPOSTA</button></div></div>`).join('');
+  if(!perMe.length&&!mie.length)h+='<p class="vuota">Nessun cambio in corso.</p>';
+  if(chiuse.length){
+    const esitoTxt=c=>c.stato==='accettata'?`accettato da ${esc(nome(c.risposto_da))} il ${dhm(c.risposto_il)}`
+      :c.stato==='rifiutata'?`rifiutato da ${esc(nome(c.risposto_da))} il ${dhm(c.risposto_il)}${c.nota_risposta?' ('+esc(c.nota_risposta)+')':''}`
+      :c.stato==='scaduta'?`nessuno ha accettato prima dell'inizio: è rimasto di ${esc(nome(c.da_user_id))}` // v1.10 sql/monitor/08c
+      :`proposta ritirata il ${dhm(c.risposto_il)}`;
+    h+=`<div class="sett">Ultimi 14 giorni</div><div class="box">`+chiuse.map(c=>`<div class="storico">${esc(quando(c))}: ${esc(nome(c.da_user_id))} → ${c.a_user_id?esc(nome(c.a_user_id)):'tutto lo staff'} · ${esitoTxt(c)}</div>`).join('')+'</div>';
+  }
+  el.innerHTML=h;
+}
+async function rispondiCambio(id,accetta,btn){
+  const c=cambi.find(x=>x.id===id); if(!c)return;
+  const i=cambiImp[c.impegno_id], cosa=i?`${giornoLungo(i.data)} ${oreTxt(i)}`:'questo turno';
+  let nota=null;
+  if(accetta){
+    if(!confirm(`Sei sicuro? Prendi il turno di Sala con Monitor di ${cosa} al posto di ${nome(c.da_user_id)}.\n\nDa adesso il turno è tuo: quel giorno lo apri su Oggi quando arrivi.`))return;
+  }else{
+    nota=prompt(`Dici di no a ${nome(c.da_user_id)} per ${cosa}?\nSe vuoi, scrivi perché (facoltativo).`,'');
+    if(nota===null)return;
+  }
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_rispondi_cambio',{p_cambio_id:id,p_accetta:accetta,p_nota:(nota||'').trim()||null});
+  if(error){ btn.disabled=false; toast('Non registrato: '+errTesto(error)); return; }
+  toast(accetta?'Fatto: il turno è tuo. Grazie!':`Fatto: ${nome(c.da_user_id)} vede che non puoi.`);
+  carica();
+}
+async function ritiraCambio(id,btn){
+  if(!confirm('Ritiri la proposta? Il turno resta tuo.'))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_ritira_cambio',{p_cambio_id:id});
+  if(error){ btn.disabled=false; toast('Non ritirata: '+errTesto(error)); return; }
+  toast('Proposta ritirata: il turno resta tuo.');
+  carica();
 }
 
 function disegnaMiei(){
@@ -791,7 +970,9 @@ function disegnaMiei(){
     const cosa=x.tipo==='monitor'?'Sala con Monitor':(s?titoloLezione(s):'Lezione')+' · '+(RUOLO[x.ruolo]||x.ruolo);
     const st=x.stato==='presente'?'<span class="stato-ok">presente ✓</span>':x.stato==='assente'?'<span class="stato-ko">assente</span>':x.stato==='non_svolta'?'<span class="stato-nonsv">lezione non svolta</span>':(x.data===oggiIso?'oggi: segna la presenza su Oggi':''); // v1.8
     const corso=s&&!s.lead_scuola_id&&!s.data_evento; // v1.1: lezione dei corsi
-    const btn=x.stato!=='previsto'?'':corso
+    const btn=x.stato!=='previsto'?'':x.tipo==='monitor' // v1.10 il turno monitor: via solo prima che inizi, oppure si propone
+      ?(giaIniziato(x)?'':(cambioAperto(x.id)?`<span class="det">proposto, in attesa</span>`:`<button class="btn" onclick="proponiDaMiei('${esc(x.id)}')">PROPONI</button>`)+`<button class="btn" onclick="miTolgo('${esc(x.id)}',this)">MI TOLGO</button>`)
+      :corso
       ?`<button class="btn rosso" onclick="nonCiSono('${esc(x.id)}',this)">NON CI SONO</button>`
       :`<button class="btn" onclick="miTolgo('${esc(x.id)}',this)">MI TOLGO</button>`;
     return `<div class="imp"><div><div class="q">${esc(giornoLungo(x.data))} · ${esc(ora(x.ora_inizio))}–${esc(ora(x.ora_fine))}</div>
@@ -807,12 +988,11 @@ async function segnaLezione(slotId,btn){
   toast(`Segnato. Siete in ${data&&data.segnati||1} su ${RICHIESTI_LEZIONE}.`);
   carica();
 }
-async function segnaMonitor(data,ini,fin,btn){
-  btn.disabled=true;
-  const{error}=await sb.rpc('impegno_mi_segno',{p_tipo:'monitor',p_data:data,p_ora_inizio:ini,p_ora_fine:fin});
-  if(error){ btn.disabled=false; toast('Non segnato: '+errTesto(error)); return; }
-  toast('Segnato sul turno monitor.');
-  carica();
+/* v1.10 PROPONI da I miei impegni: apre il form sul turno nella griglia monitor */
+function proponiDaMiei(id){
+  if(!impMon.some(i=>i.id===id)){ toast('Il turno è oltre le 2 settimane della griglia: proponilo più avanti.'); return; }
+  _propAperto=id; _dichAperto=null; disegnaMonitor();
+  setTimeout(()=>{ const el=$('prop-chi'); if(el)el.scrollIntoView({behavior:'smooth',block:'center'}); },50);
 }
 async function miTolgo(id,btn){
   if(!confirm('Ti togli da questo impegno?'))return;

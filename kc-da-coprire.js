@@ -1,6 +1,11 @@
 /* ════════════════════════════════════════════════════════════════════════
- * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.1 (7 nov 2026)
+ * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.2 (9 nov 2026)
  * ════════════════════════════════════════════════════════════════════════
+ * KC-BUILD: kc-da-coprire v1.2 · 2026-11-09 · TURNI MONITOR DICHIARATI A ORE INTERE (consegna Marco 9 nov, DB sql/monitor/08): un turno monitor puo' coprire
+ *   solo una parte della fascia (es. Claudia 19–20, Mattia 20–22). La voce monitor della bacheca ora e' una per ogni blocco di ORE LIBERE
+ *   (nessun impegno monitor previsto/presente che le copra), e per oggi solo le ore non ancora iniziate (il turno si dichiara prima).
+ *   Prima bastava un turno che iniziasse alle 19 per nascondere tutta la serata. Nuova funzione esportata kcOreLibereMonitor(data, impegni, adessoHm),
+ *   la stessa che usa la griglia di turni.html. CUMULA v1.1 (sotto).
  * KC-BUILD: kc-da-coprire v1.1 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato.
  *   gli slot festa_sabato hanno una riga in slot_copertura (1 istruttore), quindi v_copertura_lezioni li restituisce
  *   OGNI sabato come scoperti. Qui una riga festa_sabato resta solo se in quella data c'e' una festa prenotata
@@ -10,7 +15,7 @@
  * stesso conto, stesse voci (decisione di Marco 31 ott 2026).
  *
  * Voci, prossimi 14 giorni (da oggi), in ordine di data e ora, mai cose gia' finite:
- *   - monitor : turno Sala con Monitor senza nessuno segnato (lun–ven 19–22, sabato 14–18, domenica niente)
+ *   - monitor : ore della Sala con Monitor senza turno dichiarato (lun–ven 19–22, sabato 14–18, domenica niente), a blocchi (v1.2)
  *   - lezione : lezione dei corsi scoperta (v_copertura_lezioni.coperta = false) o con richiesta di supporto aperta
  *   - scuola  : lezione delle scuole con meno di 3 persone segnate
  * Per ogni voce: chi e' gia' segnato, chi ha detto "sono disponibile" (v_staff_disponibilita), chi non c'e'
@@ -41,6 +46,22 @@
   }
   function fasciaMonitor(data){ return FASCE_MONITOR_GIORNO[dLoc(data).getDay()]||null; }
   const si=(a,b)=>!a||!b; // ore nulle = tutto il giorno
+  /* v1.2 ore intere libere della fascia di quel giorno: blocchi contigui [{ini,fin}] senza turno monitor previsto/presente.
+     impegni = righe impegni_staff tipo monitor (data, ora_inizio, ora_fine, stato); adessoHm solo per oggi (ore gia' iniziate escluse). */
+  function oreLibereMonitor(data,impegni,adessoHm){
+    const f=fasciaMonitor(data); if(!f)return [];
+    const h0=Number(f.ini.slice(0,2)), h1=Number(f.fin.slice(0,2)), out=[];
+    const attivi=(impegni||[]).filter(x=>x.data===data&&(x.stato==='previsto'||x.stato==='presente'));
+    let cur=null;
+    for(let h=h0;h<h1;h++){
+      const a=pad2(h)+':00', b=pad2(h+1)+':00';
+      const coperta=attivi.some(x=>hm(x.ora_inizio)<b&&hm(x.ora_fine)>a);
+      const iniziata=!!adessoHm&&a<=adessoHm;
+      if(!coperta&&!iniziata){ if(cur&&cur.fin===a)cur.fin=b; else{ cur={ini:a,fin:b}; out.push(cur); } }
+      else cur=null;
+    }
+    return out;
+  }
   const tocca=(x,data,ini,fin)=>x.data===data&&(si(x.ora_inizio,x.ora_fine)||(hm(x.ora_inizio)<hm(fin)&&hm(x.ora_fine)>hm(ini)));
 
   async function kcDaCoprire(sb,uid,staffRole){
@@ -48,7 +69,7 @@
     const fineIso=iso(fine), adessoHm=pad2(oggi.getHours())+':'+pad2(oggi.getMinutes());
     const urg=new Date(oggi); urg.setDate(urg.getDate()+URGENTE_GIORNI); const urgIso=iso(urg);
     const [rm,rc,rr,rs,rl,rd,rn,rp,rf]=await Promise.all([
-      sb.from('impegni_staff').select('id,user_id,data,ora_inizio,stato').eq('tipo','monitor').neq('stato','ritirato').gte('data',oggiIso).lte('data',fineIso),
+      sb.from('impegni_staff').select('id,user_id,data,ora_inizio,ora_fine,stato').eq('tipo','monitor').neq('stato','ritirato').gte('data',oggiIso).lte('data',fineIso),
       sb.from('v_copertura_lezioni').select('*').gte('data',oggiIso).lte('data',fineIso),
       sb.from('richieste_supporto').select('id,slot_id,data,chiesto_da,note,stato').eq('stato','aperta').gte('data',oggiIso).lte('data',fineIso),
       sb.from('corsi_attivi_settimanali').select('id,tipo_corso,data_evento,ora_inizio,ora_fine,lead_scuola_id').eq('status','attivo')
@@ -80,14 +101,13 @@
       return v;
     }
     const voci=[];
-    /* turni monitor senza nessuno */
+    /* turni monitor: v1.2 un blocco per ogni gruppo di ore libere (per oggi solo quelle non ancora iniziate) */
     for(let i=0;i<GIORNI;i++){
       const d=new Date(oggi); d.setDate(d.getDate()+i);
-      const di=iso(d), f=FASCE_MONITOR_GIORNO[d.getDay()];
-      if(!f||finita(di,f.fin))continue;
-      const seg=(rm.data||[]).filter(x=>x.data===di&&hm(x.ora_inizio)===f.ini&&x.stato!=='assente');
-      if(seg.length)continue;
-      voci.push(arricchisci({tipo:'monitor',data:di,ini:f.ini,fin:f.fin,slot_id:null,titolo:'Sala con Monitor',segnati:[],conta:'0/1',richiesta:null}));
+      const di=iso(d);
+      oreLibereMonitor(di,rm.data||[],di===oggiIso?adessoHm:null).forEach(b=>{
+        voci.push(arricchisci({tipo:'monitor',data:di,ini:b.ini,fin:b.fin,slot_id:null,titolo:'Sala con Monitor',segnati:[],conta:'0/1',richiesta:null}));
+      });
     }
     /* lezioni dei corsi: scoperte o con richiesta di supporto aperta */
     const viste=new Set();
@@ -137,5 +157,6 @@
 
   window.KC_FASCE_MONITOR_GIORNO=FASCE_MONITOR_GIORNO;
   window.kcFasciaMonitor=fasciaMonitor;
+  window.kcOreLibereMonitor=oreLibereMonitor; // v1.2
   window.kcDaCoprire=kcDaCoprire;
 })();
