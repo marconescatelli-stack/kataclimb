@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.58 · 2026-11-10 · NOTE PER L'ALLIEVO SOLO DAGLI ISTRUTTORI (Marco 10 nov, DB sql/monitor/12): solo istruttori jr/sr/tutor e il creator (puoScrivereAllievo, stessa regola di puo_scrivere_allievo nel DB) hanno "Mostra all'allievo" e i campi che legge l'allievo. Per assistenti, monitor e segreteria: (1) nel modulo osservazione il riquadro diventa "🔒 Solo staff" con la riga "Solo gli istruttori scrivono all'allievo: quello che scrivi qui resta per lo staff", senza la casella Mostra all'allievo (il DB la rifiuta comunque); (2) nel report di sala il passo "Cosa porta a casa" diventa "per lo staff" e il riepilogo dice "resta per lo staff" (il DB salva la voce solo per lo staff: decisione di Marco); (3) nel Quadro il blocco "Lo legge" diventa "Resta per lo staff". Il report e il turno contano come prima (8 €). CUMULA v2.57. -->
 <!-- KC-BUILD: oggi v2.57 · 2026-11-10 · OSSERVAZIONI: OGNI RISCRITTURA RESTA (Marco 10 nov, DB sql/monitor/11): salva_osservazione non sovrascrive più l'osservazione dello stesso giorno, ne aggiunge una nuova. Il modulo, se oggi ne hai già scritta una, parte dal suo testo e dice "Oggi ne hai già scritta una alle HH:MM: resta com'è, questa si aggiunge con la sua ora." Dopo il salvataggio: "Osservazione salvata. Quella di prima di oggi resta." Nella scheda ognuna ha giorno, ora e autore (v2.56). CUMULA v2.56 (sotto). -->
 <!-- KC-BUILD: oggi v2.56 · 2026-11-10 · TURNI A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10). (1) I miei turni: ERO IN SALA, SEGNAMI, su qualunque giorno passato (anche oggi, per le ore già iniziate), nessuna scadenza: giorno, dalle, alle (fascia di quel giorno: lun–ven 19–22, sabato 14–18, domenica chiusa) -> "Resta da rivedere dalla segreteria: finché non lo conferma non si paga." -> monitor_dichiara_turno (il DB lo segna a_posteriori, stato da_confermare, lo lega al turno della Sala di quel giorno e avvisa la segreteria). (2) Nell'elenco i turni da rivedere hanno la scritta grigia "da rivedere" (e "respinto" se la segreteria l'ha respinto); il totale del mese dice quanti sono da rivedere. Finché è da rivedere il turno si completa (persone e report) anche oltre le 12 del giorno dopo, e la finestra del turno lo dice. (3) Compensi (creator e segreteria): riga "⏳ N turni da rivedere" con chi, giorno e ore; valgono 0 € finché non si confermano (Portale → Segreteria → Turni, o la griglia di Turni). (4) REPORT SEMPRE LEGGIBILI (Marco 10 nov): nella scheda ogni riga di Sala con Monitor mostra in evidenza l'ora in cui è stata scritta (il DB ora scrive ogni report su una riga sola, con l'ora in testa: _sala_riga), con il nome di chi l'ha scritta e il giorno; le osservazioni di corso mostrano anche l'ora in cui sono state scritte (e "aggiornata alle" se riscritta lo stesso giorno). Nessun report si nasconde per lo stato del turno. CUMULA v2.55 (sotto). -->
 <!-- KC-BUILD: oggi v2.55 · 2026-11-10 · REPORT DEL MONITOR QUANDO SERVE, NON SUBITO (consegna Marco v2 10 nov, DB sql/monitor/09; caso Giammarco 9/11). (1) Nella scheda in sala, oltre al report, AGGIUNGI AL TURNO, SCRIVO DOPO (monitor_aggiungi_seguiti): la persona entra nel turno e finisce in "Da annotare"; il report si scrive quando si vuole toccando il nome. (2) Bozza del report salvata sul telefono a ogni lettera (localStorage per persona) e ripresa quando si riapre la scheda; uscire a meta' non fa piu' perdere niente: "Lo tengo da parte" con AGGIUNGI AL TURNO ED ESCI. (3) Il DB manda il report sul turno di stasera anche se si e' appena chiuso (alle 22, sabato 18): niente piu' errore "la Sala e' finita" a meta' report. Senza nessun turno oggi il report resta nella scheda "fuori turno" e la pagina lo dice (non conta per il compenso). (4) Tessera del turno: "Da annotare" con i nomi da toccare; tessera "📝 Report da scrivere" per i turni chiusi: "Ti mancano N report del turno di ieri sera. Puoi scriverli fino alle 12:00" -> la finestra del turno con quella persona. (5) I miei turni: APRI E AGGIUNGI anche sul turno ancora aperto e fino alle 12 del giorno dopo (monitor_completa_entro), poi solo la segreteria; nella finestra del turno chi e' da annotare ha SCRIVI IL REPORT e si vede a che ora e' stato aggiunto. Dopo "la Sala e' finita" l'elenco si ricarica (il 9/11 era rimasto quello di prima, col turno "in corso" e senza bottone). Nessuna notifica push nuova: il worker non ha un evento adatto. CUMULA v2.54 (sotto). -->
@@ -1847,6 +1848,9 @@ const DIARIO_TIPO={nota:'📝 Nota',chiamata:'📞 Chiamata',whatsapp:'💬 What
 /* v2.41 CHI VEDE COSA: tre etichette, sempre le stesse (staff, allievo sul suo profilo, community).
    🌐 solo per quello che la community mostra gia' oggi (nome, foto pubblica, badge, percorso, Kata caricati e certificati). */
 const VIS={staff:'🔒 Solo staff',allievo:'👤 Anche l’allievo',tutti:'🌐 Tutti'};
+/* v2.58 solo gli istruttori (e il creator) scrivono all'allievo: stessa regola di puo_scrivere_allievo (sql/monitor/12) */
+const puoScrivereAllievo=()=>['staff_creator','staff_istruttore_tutor','staff_istruttore_sr','staff_istruttore_jr'].includes(pdata&&pdata.staff_role);
+const SOLO_ISTR_TXT='Solo gli istruttori scrivono all’allievo: quello che scrivi qui resta per lo staff.';
 const visPill=k=>`<span class="vis vis-${k}">${VIS[k]}</span>`;
 function htmlLegendaVis(){
   return `<div class="vis-leg">${visPill('staff')}<span>${visPill('allievo')} lo legge sul suo profilo</span><span>${visPill('tutti')} lo vedono gli altri allievi nella community</span></div>`;
@@ -2241,15 +2245,18 @@ function htmlFormOss(d){
       <input name="${k}_nota" placeholder="Nota breve" value="${esc(o[k+'_nota']||'')}">`).join('')}
     ${TESTI_OSS.map(([k,l])=>`<label>${l}</label><textarea name="${k}">${esc(o[k]||'')}</textarea>`).join('')}
     </fieldset>
-    <fieldset class="vis-box allievo"><legend>${VIS.allievo}</legend>
-    <p class="aiuto" style="margin-top:0">Lo legge solo se spunti «Mostra all’allievo», qui sotto.</p>
+    ${puoScrivereAllievo()?`<fieldset class="vis-box allievo"><legend>${VIS.allievo}</legend>
+    <p class="aiuto" style="margin-top:0">Lo legge solo se spunti «Mostra all’allievo», qui sotto.</p>`:`<fieldset class="vis-box staff"><legend>${VIS.staff}</legend>
+    <p class="aiuto" style="margin-top:0">${SOLO_ISTR_TXT}</p>`}
     ${DIDATTICA.filter(([,,staff])=>!staff).map(([k,l])=>`<label>${l}</label><textarea name="${k}">${esc(o[k]||'')}</textarea>`).join('')}
     <div class="per-allievo" style="margin-top:12px;border:none;padding:0;background:none">
-      <label for="oss-per-allievo">Per l'allievo</label>
+      ${puoScrivereAllievo()?`<label for="oss-per-allievo">Per l'allievo</label>
       <textarea id="oss-per-allievo" name="per_allievo" placeholder="Un messaggio che leggerà nel suo diario" oninput="if(this.value.trim())document.getElementById('oss-visibile').checked=true">${esc(o.per_allievo||'')}</textarea>
       <p class="avv-car">Qui niente note sul carattere: le legge l'allievo. Vanno nel Quadro, in «Problematiche caratteriali», che legge solo lo staff.</p>
       <label class="interr"><input type="checkbox" id="oss-visibile"${o.visibile_allievo?' checked':''}> Mostra all'allievo</label>
-      <p class="aiuto">Questo l'allievo lo legge sul suo profilo: temi affrontati, trasformazione e questo messaggio. Mai criticità, scale e note interne.</p>
+      <p class="aiuto">Questo l'allievo lo legge sul suo profilo: temi affrontati, trasformazione e questo messaggio. Mai criticità, scale e note interne.</p>`
+      :`<label for="oss-per-allievo">Messaggio sull'allievo (per lo staff)</label>
+      <textarea id="oss-per-allievo" name="per_allievo" placeholder="Resta per lo staff">${esc(o.per_allievo||'')}</textarea>`}
     </div>
     </fieldset>
     <div class="sch-btns">
@@ -2269,7 +2276,7 @@ async function salvaOss(btn){
   f.querySelectorAll('[name]').forEach(el=>{ const v=el.value.trim(); p[el.name]=v||null; });
   f.querySelectorAll('.scala').forEach(s=>{ p[s.dataset.k]=s.dataset.v?Number(s.dataset.v):null; });
   if(!Object.keys(p).some(k=>k!=='contesto' && p[k]!=null)){ toast('Scrivi almeno una cosa prima di salvare.'); return; }
-  p.visibile_allievo=!!document.getElementById('oss-visibile')?.checked; // v2.57: ogni salvataggio è una riga nuova
+  p.visibile_allievo=puoScrivereAllievo()&&!!document.getElementById('oss-visibile')?.checked; // v2.57 riga nuova · v2.58 solo istruttori
   if(p.visibile_allievo && !p.temi_affrontati && !p.trasformazione && !p.per_allievo){ toast("Per mostrarla all'allievo scrivi temi, trasformazione o un messaggio."); return; }
   btn.disabled=true;
   const{data,error}=await sb.rpc('salva_osservazione',{p_persona_id:schedaPid,p});
@@ -2591,16 +2598,19 @@ function htmlFormQuadro(d){
     ${F?`<p class="g-dom">Fine ${esc(CORSO_FINE[F.tipo_corso]||nomeCorso(F.tipo_corso))}: com'è cambiato ${n}?</p>
       <p class="aiuto">${F.fatte} su ${F.totali} lezioni fatte. È la tappa che ${n} vede nel suo percorso: punti di forza e abitudini da trasformare sono obbligatori.</p>`:''}
     <label for="qf-contesto">Contesto</label><select id="qf-contesto" data-k="contesto"${F?' disabled':''}>${ctxOpz}</select>
-    <div class="q-blocco legge">
-      <span class="vis-bordo">${VIS.allievo}</span>
+    <div class="q-blocco ${puoScrivereAllievo()?'legge':'staff'}">
+      ${puoScrivereAllievo()?`<span class="vis-bordo">${VIS.allievo}</span>
       <p class="q-btit">👁 Lo legge ${n}</p>
-      <p class="avv-car">${n} legge tutto quello che scrivi qui. Le note sul carattere non vanno qui: scrivile in «Problematiche caratteriali», qui sotto, che legge solo lo staff.</p>
+      <p class="avv-car">${n} legge tutto quello che scrivi qui. Le note sul carattere non vanno qui: scrivile in «Problematiche caratteriali», qui sotto, che legge solo lo staff.</p>`
+      :`<span class="vis-bordo">${VIS.staff}</span>
+      <p class="q-btit">🔒 Resta per lo staff</p>
+      <p class="aiuto">${SOLO_ISTR_TXT} ${n} non lo legge.</p>`}
       ${ta('punti_forza','Punti di forza','Cosa fa bene, su cosa può contare',!!F)}
       ${ta('abitudini_da_trasformare','Abitudini da trasformare','Una tendenza da correggere, detta in modo che sappia cosa fare',!!F)}
       <label>Kata da migliorare</label>${kataRighe}
       <button type="button" class="lnk" onclick="quadroAltroKata()">+ un altro Kata</button>
       ${ta('per_te','Per te','Un messaggio scritto a lui/lei',false)}
-      <p class="aiuto">Questo l'allievo lo legge sul suo profilo.</p>
+      ${puoScrivereAllievo()?`<p class="aiuto">Questo l'allievo lo legge sul suo profilo.</p>`:''}
     </div>
     <div class="q-blocco staff">
       <span class="vis-bordo">${VIS.staff}</span>
@@ -3375,7 +3385,7 @@ function htmlGuida(){
       :`Premendo SEGNA, ${n} risulta seguito/a oggi e quest'ora vale 8 €.`;
     const per=g.perNiente||!g.per.trim()
       ?`<div><span>Per ${n}:</span> niente oggi</div>`
-      :`<div><span>Per ${n} (lo legge lui/lei):</span> ${esc(g.per.trim())}</div>`;
+      :`<div><span>Per ${n} (${puoScrivereAllievo()?'lo legge lui/lei':'resta per lo staff'}):</span> ${esc(g.per.trim())}</div>`; // v2.58
     return `${avv}${pall}${tit}<p class="g-dom">Controlla e segna</p>
       <div class="riep"><b>${esc(nomeScheda(true))}</b> · oggi ${hhmm(new Date())}
         <div><span>Su cosa:</span> ${esc(g.cosa.trim())}</div>
@@ -3406,8 +3416,8 @@ function htmlGuida(){
 const AVV_CARATTERE='Qui niente note sul carattere: quelle vanno solo ai passi 1–2, che legge lo staff.';
 function htmlPassoPer(n,val,idT,onInput,idAvanti,idPerche,indietro,avanti,niente){
   const ok=String(val||'').trim().length>=MIN_GUIDA;
-  return `<label class="g-dom" for="${idT}" style="display:block">Cosa porta a casa ${n} oggi?</label>
-    <p class="aiuto">Lo legge ${n} nel suo diario. Scrivi a lui/lei: cosa ha fatto bene, cosa è cambiato, su cosa lavorare la prossima volta.</p>
+  return `<label class="g-dom" for="${idT}" style="display:block">Cosa porta a casa ${n} oggi?${puoScrivereAllievo()?'':' (per lo staff)'}</label>
+    <p class="aiuto">${puoScrivereAllievo()?`Lo legge ${n} nel suo diario. Scrivi a lui/lei: cosa ha fatto bene, cosa è cambiato, su cosa lavorare la prossima volta.`:`${SOLO_ISTR_TXT} ${n} non lo legge.`}</p>
     <textarea id="${idT}" oninput="${onInput}" placeholder="Oggi hai lasciato la presa alta senza irrigidirti. Prossima volta: cadute un po' più alte, con lo stesso respiro.">${esc(val||'')}</textarea>
     <p class="avv-car">${AVV_CARATTERE}</p>
     <div class="sch-btns"><button class="btn" onclick="${indietro}">INDIETRO</button>
@@ -3417,7 +3427,7 @@ function htmlPassoPer(n,val,idT,onInput,idAvanti,idPerche,indietro,avanti,niente
 }
 function guidaNienteOggi(){
   const n=esc(nomeScheda());
-  dialogo(`<p><b>Sei sicuro?</b> ${n} non troverà niente di oggi nel suo diario.</p>`,
+  dialogo(puoScrivereAllievo()?`<p><b>Sei sicuro?</b> ${n} non troverà niente di oggi nel suo diario.</p>`:`<p><b>Sei sicuro?</b> Oggi niente in più per lo staff su ${n}.</p>`, // v2.58
     ['Torna e scrivi',()=>disegnaGuida(true)],
     ['Sì, oggi niente',()=>{ guida.per=''; guida.perNiente=true; guida.passo=4; bozzaSalva(); disegnaGuida(true); }]);
 }
@@ -3742,7 +3752,7 @@ function disegnaRetro(fuoco){
     }else if(passo===tot){
       const perRiga=!conPer?'':(retro.perNiente||!retro.per.trim()
         ?`<div><span>Per ${n}:</span> niente</div>`
-        :`<div><span>Per ${n} (lo legge lui/lei):</span> ${esc(retro.per.trim())}</div>`);
+        :`<div><span>Per ${n} (${puoScrivereAllievo()?'lo legge lui/lei':'resta per lo staff'}):</span> ${esc(retro.per.trim())}</div>`); // v2.58
       corpo=`<section class="sch-sez">${pall}<p class="g-dom">Controlla e segna</p>
         <div class="riep"><b>${n}</b> · turno di ${esc(giornoLungo(T.data))} ${hhmm(T.inizio)}–${T.fine?hhmm(T.fine):'in corso'}
           <div><span>Su cosa:</span> ${esc(retro.cosa.trim())}</div>
