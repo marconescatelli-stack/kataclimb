@@ -1,6 +1,9 @@
 /* ════════════════════════════════════════════════════════════════════════
- * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.2 (9 nov 2026)
+ * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.3 (10 nov 2026)
  * ════════════════════════════════════════════════════════════════════════
+ * KC-BUILD: kc-da-coprire v1.3 · 2026-11-10 · TURNI A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10): un turno monitor segnato a posteriori
+ *   (stato da_confermare, da rivedere dalla segreteria) copre le sue ore come previsto/presente: quelle ore non risultano libere.
+ *   Nient'altro cambia. CUMULA v1.2 (sotto).
  * KC-BUILD: kc-da-coprire v1.2 · 2026-11-09 · TURNI MONITOR DICHIARATI A ORE INTERE (consegna Marco 9 nov, DB sql/monitor/08): un turno monitor puo' coprire
  *   solo una parte della fascia (es. Claudia 19–20, Mattia 20–22). La voce monitor della bacheca ora e' una per ogni blocco di ORE LIBERE
  *   (nessun impegno monitor previsto/presente che le copra), e per oggi solo le ore non ancora iniziate (il turno si dichiara prima).
@@ -51,7 +54,7 @@
   function oreLibereMonitor(data,impegni,adessoHm){
     const f=fasciaMonitor(data); if(!f)return [];
     const h0=Number(f.ini.slice(0,2)), h1=Number(f.fin.slice(0,2)), out=[];
-    const attivi=(impegni||[]).filter(x=>x.data===data&&(x.stato==='previsto'||x.stato==='presente'));
+    const attivi=(impegni||[]).filter(x=>x.data===data&&(x.stato==='previsto'||x.stato==='presente'||x.stato==='da_confermare')); // v1.3
     let cur=null;
     for(let h=h0;h<h1;h++){
       const a=pad2(h)+':00', b=pad2(h+1)+':00';

@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.164 · 2026-11-10 · TURNI A POSTERIORI DA RIVEDERE (consegna Marco 10 nov, DB sql/monitor/10): Segreteria → 🗓 Turni, sezione nuova "⏳ Turni monitor da rivedere" sopra i non dichiarati: i turni che un istruttore si è segnato a posteriori (impegni_staff tipo monitor, stato da_confermare), con chi, giorno, ore, quando si è segnato e le persone seguite nel turno (v_compenso_turni_monitor). CONFERMA (nota facoltativa) e RESPINGI (nota obbligatoria) via RPC monitor_rivedi_turno: confermato si paga, respinto resta con la nota a 0 €. Solo creator e segreteria vedono i bottoni (tuPuo). Nient'altro cambia. CUMULA v3.163. -->
 <!-- KC-BUILD: portale v3.163 · 2026-11-10 · DOPPIO TURNO GIUSTIFICATO (consegna Marco v2 10 nov, DB sql/monitor/09): nella finestra della Sala con Monitor, quando nella fascia c'e' gia' un monitor, creator e segreteria hanno "Doppio turno (secondo monitor)": persona, dalle/alle, motivo obbligatorio (es. "sala piena, serve un secondo monitor") -> "sei sicuro?" -> monitor_doppio_turno. I turni doppi si leggono "doppio turno: motivo". Gli istruttori non lo vedono. NOTA: la riga del 9 nov "v3.159 TURNI MONITOR DICHIARATI PRIMA" e' stata numerata per errore (veniva dopo la v3.162): questa e' la v3.163 e cumula tutto. CUMULA v3.162. -->
 <!-- KC-BUILD: portale v3.162 · 2026-11-07 · FESTA: BAMBINI IN PIÙ (consegna Marco 7 nov, DB prenotazioni_festa_aggiunte, stripe-worker v3.98): in Segreteria → Turni la festa mostra il numero di bambini aggiornato (prenotazioni_festa.n_bambini) e nei dettagli la riga "Bambini aggiunti" con le aggiunte pagate e la data. Lettura insieme alla festa (relazione festa_id); se non riesce, la festa come prima. Niente altro. CUMULA v3.161 -->
 <!-- KC-BUILD: portale v3.161 · 2026-11-07 · ISCRIZIONE VALIDA FINO ALLA SCADENZA (decisione Marco 7 nov, trigger DB tesseramento_dicembre_anno_dopo; DB domande_iscrizione_mancanti/export_iscritti_ente/tg_tesseramento_da_iscrizione gia' sistemati dalla chat): tesserato = stato attivo e data_scadenza >= oggi, mai "dell'anno". (1) Promemoria della domanda (promemoriaDomandaServe): tesseramento attivo con scadenza da oggi in poi al posto di anno = anno corrente. (2) Segreteria → Iscrizione ASD: dopo registra_tesseramento la scadenza si rilegge da get_tesseramenti (la RPC restituisce quella calcolata prima del trigger) e la nota del fascicolo dice la scadenza vera, mai "31/12/{anno}" scritto a mano. (3) Fascicolo, blocco Tesseramento ASD: "Iscrizione attiva fino al 31/12/2027" (verde) se attivo e non scaduto, altrimenti "Scaduta il …" o "Annullata" (rosso). CUMULA v3.160 -->
@@ -1781,6 +1782,11 @@ fill="#1d4ed8" stroke="none">
           <h3 class="sc-h3">⏰ Turni monitor da chiudere <span id="tu-dachiudere-n" class="sc-conta"></span></h3>
           <p class="sc-nota" style="margin-top:0">Turni di un giorno passato mai chiusi: valgono 0 finché non scrivi l'ora reale di fine.</p>
           <div id="tu-dachiudere"></div>
+        </div>
+        <div class="sc-sez">
+          <h3 class="sc-h3">⏳ Turni monitor da rivedere <span id="tu-rivedere-n" class="sc-conta"></span></h3>
+          <p class="sc-nota" style="margin-top:0">Turni che un istruttore si è segnato dopo, perché era in sala senza essersi segnato prima. Finché non li confermi non si pagano. Se respingi, scrivi il perché: resta nello storico e lo vede chi si è segnato.</p>
+          <div id="tu-rivedere"></div>
         </div>
         <div class="sc-sez">
           <h3 class="sc-h3">⚠ Turni monitor non dichiarati <span id="tu-nondich-n" class="sc-conta"></span></h3>
@@ -11773,7 +11779,7 @@ function tuNum(n){return Number(n||0).toLocaleString('it-IT',{maximumFractionDig
 
 async function tuCaricaTutto(){
   if(!tuLunedi)tuLunedi=tuLun(new Date());
-  const tasks=[tuCaricaSettimana(),tuCaricaDaChiudere(),tuCaricaNonDich()]; // v3.159
+  const tasks=[tuCaricaSettimana(),tuCaricaDaChiudere(),tuCaricaNonDich(),tuCaricaRivedere()]; // v3.159 · v3.164 da rivedere
   if(tuPuo())tasks.push(tuCaricaCompensi(),tuCaricaCompLez(),tuCaricaCosti(),tuCaricaSconti(),tuCaricaEnte());
   else{document.getElementById('tu-compensi-wrap').classList.add('hidden');document.getElementById('tu-complez-wrap').classList.add('hidden');document.getElementById('tu-costi-wrap').classList.add('hidden');document.getElementById('tu-sconti-wrap').classList.add('hidden');document.getElementById('tu-ente-wrap').classList.add('hidden')}
   document.getElementById('tu-solo-lettura').classList.toggle('hidden',tuPuo());
@@ -12047,6 +12053,44 @@ async function tuAzione(az,impegnoId,k){
   await tuRiapri(k);
 }
 
+/* ── v3.164 Turni monitor segnati a posteriori, da rivedere (sql/monitor/10): monitor_rivedi_turno conferma o respinge ── */
+let tuRivedere=[];
+async function tuCaricaRivedere(){
+  const box=document.getElementById('tu-rivedere');if(!box)return;
+  const{data,error}=await sb.from('impegni_staff').select('id,user_id,data,ora_inizio,ora_fine,note,created_at,turno_monitor_id')
+    .eq('tipo','monitor').eq('stato','da_confermare').order('data',{ascending:false});
+  if(error){box.innerHTML='<p class="sc-vuoto">Disponibile dopo l’aggiornamento del database.</p>';return}
+  tuRivedere=data||[];
+  const pers={};
+  const ids=[...new Set(tuRivedere.map(x=>x.turno_monitor_id).filter(Boolean))];
+  if(ids.length){
+    const r=await sb.from('v_compenso_turni_monitor').select('turno_id,persone_seguite').in('turno_id',ids);
+    (r.data||[]).forEach(t=>{pers[t.turno_id]=Number(t.persone_seguite||0)});
+  }
+  document.getElementById('tu-rivedere-n').textContent=tuRivedere.length?String(tuRivedere.length):'';
+  if(!tuRivedere.length){box.innerHTML='<p class="sc-vuoto">Nessun turno da rivedere.</p>';return}
+  box.innerHTML=tuRivedere.map((x,i)=>{
+    const np=pers[x.turno_monitor_id];
+    return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(x.user_id))}</b>
+      <div class="sc-sub">${escHtml(scDataLunga(x.data))} · ${escHtml(scOra(x.ora_inizio))}–${escHtml(scOra(x.ora_fine))} · segnato il ${escHtml(scDH(x.created_at))}${np!=null?' · '+np+' '+(np===1?'persona seguita e annotata':'persone seguite e annotate'):''}</div>
+      ${x.note?`<div class="sc-sub">${escHtml(x.note)}</div>`:''}</div>
+    ${tuPuo()?`<input id="tu-riv-nota-${i}" class="input sc-in" style="width:auto;flex:1;min-width:160px" maxlength="200" placeholder="Nota (obbligatoria se respingi)">
+    <button class="btn sc-scuro sc-piccolo" onclick="tuRivedi(${i},true,this)">Conferma</button>
+    <button class="btn btn-g sc-piccolo" onclick="tuRivedi(${i},false,this)">Respingi</button>`:''}
+  </div>`}).join('');
+}
+async function tuRivedi(i,conferma,btn){
+  const x=tuRivedere[i];if(!x)return;
+  const nota=(scVal('tu-riv-nota-'+i)||'').trim();
+  if(!conferma&&nota.length<3){toast('Scrivi perché lo respingi: resta nello storico');document.getElementById('tu-riv-nota-'+i).focus();return}
+  const chi=tuNome(x.user_id),quando=`${scDataLunga(x.data)} ${scOra(x.ora_inizio)}–${scOra(x.ora_fine)}`;
+  if(!confirm(conferma?`Confermi il turno di ${chi}, ${quando}? Da adesso si paga.`:`Respingi il turno di ${chi}, ${quando}? Resta nello storico con la nota, a 0 €.`))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_rivedi_turno',{p_impegno_id:x.id,p_conferma:conferma,p_nota:nota||null});
+  if(error){btn.disabled=false;toast('Non fatto: '+scErr(error));return}
+  toast(conferma?'Turno confermato: si paga':'Turno respinto, con la nota');
+  await Promise.all([tuCaricaRivedere(),tuPuo()?tuCaricaCompensi():null]);
+}
 /* ── v3.159 Turni monitor aperti senza turno dichiarato (dalla regola nuova): 0 €, da controllare ── */
 async function tuCaricaNonDich(){
   const box=document.getElementById('tu-nondich');if(!box)return;
