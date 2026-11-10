@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.56 · 2026-11-10 · TURNI A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10). (1) I miei turni: ERO IN SALA, SEGNAMI, su qualunque giorno passato (anche oggi, per le ore già iniziate), nessuna scadenza: giorno, dalle, alle (fascia di quel giorno: lun–ven 19–22, sabato 14–18, domenica chiusa) -> "Resta da rivedere dalla segreteria: finché non lo conferma non si paga." -> monitor_dichiara_turno (il DB lo segna a_posteriori, stato da_confermare, lo lega al turno della Sala di quel giorno e avvisa la segreteria). (2) Nell'elenco i turni da rivedere hanno la scritta grigia "da rivedere" (e "respinto" se la segreteria l'ha respinto); il totale del mese dice quanti sono da rivedere. Finché è da rivedere il turno si completa (persone e report) anche oltre le 12 del giorno dopo, e la finestra del turno lo dice. (3) Compensi (creator e segreteria): riga "⏳ N turni da rivedere" con chi, giorno e ore; valgono 0 € finché non si confermano (Portale → Segreteria → Turni, o la griglia di Turni). (4) REPORT SEMPRE LEGGIBILI (Marco 10 nov): nella scheda ogni riga di Sala con Monitor mostra in evidenza l'ora in cui è stata scritta (il DB ora scrive ogni report su una riga sola, con l'ora in testa: _sala_riga), con il nome di chi l'ha scritta e il giorno; le osservazioni di corso mostrano anche l'ora in cui sono state scritte (e "aggiornata alle" se riscritta lo stesso giorno). Nessun report si nasconde per lo stato del turno. CUMULA v2.55 (sotto). -->
 <!-- KC-BUILD: oggi v2.55 · 2026-11-10 · REPORT DEL MONITOR QUANDO SERVE, NON SUBITO (consegna Marco v2 10 nov, DB sql/monitor/09; caso Giammarco 9/11). (1) Nella scheda in sala, oltre al report, AGGIUNGI AL TURNO, SCRIVO DOPO (monitor_aggiungi_seguiti): la persona entra nel turno e finisce in "Da annotare"; il report si scrive quando si vuole toccando il nome. (2) Bozza del report salvata sul telefono a ogni lettera (localStorage per persona) e ripresa quando si riapre la scheda; uscire a meta' non fa piu' perdere niente: "Lo tengo da parte" con AGGIUNGI AL TURNO ED ESCI. (3) Il DB manda il report sul turno di stasera anche se si e' appena chiuso (alle 22, sabato 18): niente piu' errore "la Sala e' finita" a meta' report. Senza nessun turno oggi il report resta nella scheda "fuori turno" e la pagina lo dice (non conta per il compenso). (4) Tessera del turno: "Da annotare" con i nomi da toccare; tessera "📝 Report da scrivere" per i turni chiusi: "Ti mancano N report del turno di ieri sera. Puoi scriverli fino alle 12:00" -> la finestra del turno con quella persona. (5) I miei turni: APRI E AGGIUNGI anche sul turno ancora aperto e fino alle 12 del giorno dopo (monitor_completa_entro), poi solo la segreteria; nella finestra del turno chi e' da annotare ha SCRIVI IL REPORT e si vede a che ora e' stato aggiunto. Dopo "la Sala e' finita" l'elenco si ricarica (il 9/11 era rimasto quello di prima, col turno "in corso" e senza bottone). Nessuna notifica push nuova: il worker non ha un evento adatto. CUMULA v2.54 (sotto). -->
 <!-- KC-BUILD: oggi v2.54 · 2026-11-09 · TURNI MONITOR DICHIARATI PRIMA + CAMBIO TURNO (consegna Marco 9 nov, DB sql/monitor/08, attivo da monitor_regola_dal()). (1) Tessera del turno: senza turno aperto dice il turno dichiarato di oggi ("Il tuo turno dichiarato oggi: 19–22. Lo apri da 15 minuti prima.") oppure "Oggi non hai un turno monitor dichiarato" con il link a Turni. (2) Se INIZIO TURNO, SONO QUI o SEGNA rispondono che il turno non è dichiarato, il dialogo spiega cosa fare e ha VAI AI TURNI (non solo "vietato"). (3) Il collegamento turno ↔ impegno lo fa il DB in monitor_turno: tolti gli update diretti di impegni_staff.turno_monitor_id (la RLS ora li blocca sulle righe monitor) e la presenza "inizio" doppia. (4) Tessera "🔁 Cambio turno" accanto a I tuoi impegni: proposte per te con ACCETTO / NO, GRAZIE (monitor_rispondi_cambio, "sei sicuro?") e le tue in attesa. (5) Testi del compenso: si paga il turno dichiarato, 8 € tante ore quante le persone diverse seguite e annotate, mai più delle ore del turno; Compensi del creator: avviso dei turni non dichiarati da controllare (v_compenso_turni_monitor.da_controllare). CUMULA v2.53 (sotto). -->
 <!-- KC-BUILD: oggi v2.53 · 2026-11-07 · NOTE DI ACCOMPAGNAMENTO IN MEMORIA DEL BAMBINO (consegna Marco 7 nov, stripe-worker v3.96): la sezione non esisteva (nessuna pagina leggeva note_accompagnamento). (1) Scheda allievo: sezione "Note di accompagnamento" (solo staff) subito sotto "In breve", con tutte le righe di note_accompagnamento della persona dalla più recente, data e fonte ("Prenotazione Lezione Privata Bambini"), testo a capo come scritto; si carica a ogni apertura della scheda, quindi si vede in ogni lezione. Lettura con la RLS note_accompagnamento_staff_all (is_staff); se non si legge, la sezione non compare. (2) Pill arancio "Da richiamare" accanto al nome (card In breve della lezione, griglia di sala, elenchi allievi, testa della scheda) per chi ha nelle note la frase "📞 Il genitore preferisce parlarne a voce", finché non c'è una Prima Lezione o lezione privata 'fatto' dal giorno della richiesta in poi (note -> lead_data -> prenotazioni_prima_lezione). Caricata una volta al caricamento, solo viste staff, come le domande mancanti. (3) Commento della costante SALDARE_WA: il numero è di Marco, non della segreteria. CUMULA v2.52 -->
@@ -472,6 +473,8 @@ body{font-size:17px}
 .da-ann{margin-top:12px; padding-top:10px; border-top:1px solid var(--velo)}
 .da-nomi{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
 .sg-da{display:inline-block; font-size:13px; font-weight:700; color:#FFB340}
+.sg-riv{display:inline-block; font-size:13px; font-weight:700; color:#C9C9CE; border:1px solid #5A5A5E; border-radius:6px; padding:0 6px} /* v2.56 da rivedere */
+.eis{margin-top:10px} .eis .riga2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
 .g-dopo{margin-top:14px; display:flex; flex-direction:column; gap:6px}
 .tab-tot{font-size:14px; margin-top:10px; color:#E5E5EA}
 .lnk{background:none; border:0; color:var(--bianco); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; text-align:left; padding:0}
@@ -2195,11 +2198,14 @@ function htmlPercorso(d){
 function pallini(v){ return `<span class="pall">${[1,2,3,4,5].map(i=>`<i class="${v&&i<=v?'on':''}"></i>`).join('')}</span>`; }
 const giornoLungo=s=>{ if(!s)return ''; const d=dLoc(s); return d.getDate()+' '+MESI[d.getMonth()]; };
 const ossSala=o=>o.ruolo==='monitor'||o.contesto==='sala_monitor';
+/* v2.56 l'ora in cui l'osservazione è stata scritta (e riscritta, se aggiornata più tardi) */
+const ossOra=o=>{ if(!o.created_at)return ''; const a=hhmm(o.created_at), b=o.updated_at?hhmm(o.updated_at):a; return ` alle ${a}`+(b!==a&&String(o.updated_at).slice(0,10)===String(o.created_at).slice(0,10)?` (aggiornata alle ${b})`:''); };
 function htmlOssSala(o,evid){
   const righe=String(o.note||'').split('\n').map(x=>x.trim()).filter(Boolean);
   return `<div class="oss sala${evid?' evid':''}">
     <div class="oh">🟢 Sala con Monitor · ${esc(o.autore||'—')} · ${giornoLungo(o.data)}</div>
-    ${righe.map(x=>`<div class="sala-r">${esc(x)}</div>`).join('')||'<div class="sala-r">—</div>'}</div>`;
+    ${righe.map(x=>{ const m=x.match(/^(\d{2}:\d{2})\s*—\s*(.*)$/); /* v2.56 l'ora in cui il report è scritto */
+      return m?`<div class="sala-r"><b>${esc(m[1])}</b> — ${esc(m[2])}</div>`:`<div class="sala-r">${esc(x)}</div>`; }).join('')||'<div class="sala-r">—</div>'}</div>`;
 }
 function htmlOss(o,evid){
   if(ossSala(o))return htmlOssSala(o,evid);
@@ -2209,7 +2215,7 @@ function htmlOss(o,evid){
   const did=DIDATTICA.filter(([k])=>o[k]).map(([k,l,staff])=>`<div class="tx"><b>${l} ${visPill(staff||!o.visibile_allievo?'staff':'allievo')}</b>${esc(o[k])}</div>`).join('');
   const pa=o.per_allievo||o.visibile_allievo?`<div class="tx per-a"><b>Per l'allievo ${visPill(o.visibile_allievo?'allievo':'staff')} ${o.visibile_allievo?'visibile nel suo diario':'non mostrato'}</b>${esc(o.per_allievo||'')}</div>`:'';
   return `<div class="oss${evid?' evid':''}">
-    <div class="oh">${ggmm(o.data)} · ${esc(o.autore||'—')}${o.contesto?' · '+esc(nomeCorso(o.contesto)):''}</div>
+    <div class="oh">${ggmm(o.data)}${ossOra(o)} · ${esc(o.autore||'—')}${o.contesto?' · '+esc(nomeCorso(o.contesto)):''}</div>
     ${did}${sc}${tx}${pa}</div>`;
 }
 
@@ -2425,7 +2431,7 @@ function disegnaScheda(){
   const oss=d.osservazioni||[];
   const scrive=!d.ridotta && pdata.staff_role!=='staff_segreteria'; // v2.20 decide ridotta; v2.21 la segreteria non scrive osservazioni
   const ossHtml=(ossAperta&&scrive)?htmlFormOss(d):(oss.length?htmlOss(oss[0],true)+(oss.length>1?`<div style="margin-top:10px">${oss.slice(1).map(o=>
-        `<details class="oss-old"><summary>${ossSala(o)?'🟢 ':''}${ggmm(o.data)} · ${esc(o.autore||'—')}${ossSala(o)?' · Sala con Monitor':''}</summary>${htmlOss(o,false)}</details>`).join('')}</div>`:'')
+        `<details class="oss-old"><summary>${ossSala(o)?'🟢 ':''}${ggmm(o.data)}${ossSala(o)?'':ossOra(o)} · ${esc(o.autore||'—')}${ossSala(o)?' · Sala con Monitor':''}</summary>${htmlOss(o,false)}</details>`).join('')}</div>`:'')
       :`<p class="sch-vuoto">${scrive?'Ancora nessuna osservazione: scrivi la prima dopo la lezione.':'Ancora nessuna osservazione degli istruttori.'}</p>`)
      +(scrive?`<div class="sch-btns"><button class="btn prim" onclick="ossAperta=true;ossSporca=false;disegnaScheda()">NUOVA OSSERVAZIONE</button></div>`:'');
   const corpo=document.getElementById('sch-corpo');
@@ -3599,7 +3605,7 @@ async function loadTurniTutti(){
 }
 function htmlTabTurni(L,conMonitor){
   return `<table class="tab"><thead><tr><th>Data</th>${conMonitor?'<th>Chi</th>':''}<th>Orario</th><th>Ore</th><th>Persone seguite</th><th>Nota di chiusura</th><th></th></tr></thead><tbody>${
-    L.map(t=>`<tr><td>${giornoLungo(t.data)}</td>${conMonitor?`<td>${esc(t.monitor||'—')}</td>`:''}<td class="num">${hhmm(t.inizio)} → ${t.fine?hhmm(t.fine):'<span class="arancio">in corso</span>'}</td>
+    L.map(t=>`<tr><td>${giornoLungo(t.data)}${t.revisione==='da_rivedere'?' <span class="sg-riv">da rivedere</span>':t.revisione==='respinto'?' <span class="sg-riv">respinto</span>':''}</td>${conMonitor?`<td>${esc(t.monitor||'—')}</td>`:''}<td class="num">${hhmm(t.inizio)} → ${t.fine?hhmm(t.fine):'<span class="arancio">in corso</span>'}</td>
       <td class="num">${numIt(t.ore)}</td><td class="num">${t.persone??0}</td><td>${esc(t.note_turno||'')}</td>
       <td><button class="btn tr-apri" onclick="apriTurno('${esc(t.turno_id)}')">${t.modificabile?'APRI E AGGIUNGI':'GUARDA'}</button></td></tr>`).join('') /* v2.55 anche il turno in corso */
   }</tbody></table>`;
@@ -3608,12 +3614,68 @@ function disegnaTurni(){
   const el=document.getElementById('sala-turni'); if(!el)return;
   if(turniElenco===null){ el.innerHTML='<div class="vuota-all">Non riesco a leggere i turni ora.</div>'; return; }
   const L=turniElenco;
-  if(!L.length){ el.innerHTML='<div class="vuota-all">Nessun turno negli ultimi 30 giorni.</div>'; return; }
+  if(!L.length){ el.innerHTML='<div class="vuota-all">Nessun turno negli ultimi 30 giorni.</div>'+htmlEroInSala(); return; }
   const ora=new Date(), mese=ora.getFullYear()+'-'+pad2(ora.getMonth()+1);
   const delMese=L.filter(t=>String(t.data).slice(0,7)===mese);
   const totOre=delMese.reduce((a,t)=>a+Number(t.ore||0),0), totPers=delMese.reduce((a,t)=>a+Number(t.persone||0),0);
-  el.innerHTML=htmlTabTurni(L,false)+`<p class="tab-tot">Totale di ${MESI[ora.getMonth()]}: ${numIt(totOre)} ore · ${totPers} ${totPers===1?'persona seguita':'persone seguite'}</p>
-    <p class="aiuto">Hai dimenticato qualcuno o un report? Apri il turno: fino alle 12 del giorno dopo lo completi tu, poi lo fa la segreteria.</p>`;
+  const nRiv=delMese.filter(t=>t.revisione==='da_rivedere').length; // v2.56
+  el.innerHTML=htmlTabTurni(L,false)+`<p class="tab-tot">Totale di ${MESI[ora.getMonth()]}: ${numIt(totOre)} ore · ${totPers} ${totPers===1?'persona seguita':'persone seguite'}${nRiv?` · ${nRiv===1?'1 turno da rivedere':nRiv+' turni da rivedere'} dalla segreteria (non si paga finché non lo conferma)`:''}</p>
+    <p class="aiuto">Hai dimenticato qualcuno o un report? Apri il turno: fino alle 12 del giorno dopo lo completi tu, poi lo fa la segreteria.</p>`+htmlEroInSala();
+}
+/* ── v2.56 ERO IN SALA, SEGNAMI (sql/monitor/10): un turno a posteriori, su qualunque giorno passato, nessuna scadenza.
+   monitor_dichiara_turno lo segna a_posteriori e da rivedere: si paga quando la segreteria lo conferma. ── */
+let eis=null; // {data} quando il modulo è aperto
+function eisFascia(di){ const f=(window.KC_FASCE_MONITOR_GIORNO||{})[dLoc(di).getDay()]; return f||null; }
+/* ore di inizio possibili: tutta la fascia nei giorni passati, oggi solo le ore già iniziate */
+function eisInizi(di){
+  const f=eisFascia(di); if(!f)return [];
+  const out=[], oggi=isoLocal(new Date()), adesso=new Date();
+  for(let h=Number(f.ini.slice(0,2));h<Number(f.fin.slice(0,2));h++){
+    if(di===oggi&&h>adesso.getHours())break;
+    out.push(pad2(h)+':00');
+  }
+  return out;
+}
+function eisAlle(di,ini){
+  const f=eisFascia(di); if(!f||!ini)return [];
+  const out=[]; for(let h=Number(ini.slice(0,2))+1;h<=Number(f.fin.slice(0,2));h++)out.push(pad2(h)+':00');
+  return out;
+}
+function htmlEroInSala(){
+  if(!eis)return `<div class="sch-btns eis"><button class="btn" onclick="eisApri()">ERO IN SALA, SEGNAMI</button></div>
+    <p class="aiuto">Eri in Sala con Monitor senza esserti segnato? Segnati qui, anche dopo giorni: resta da rivedere dalla segreteria e si paga quando lo conferma.</p>`;
+  const di=eis.data, oggi=isoLocal(new Date()), inizi=eisInizi(di);
+  let ore;
+  if(!eisFascia(di))ore='<p class="aiuto">La domenica la Sala con Monitor è chiusa: scegli un altro giorno.</p>';
+  else if(!inizi.length)ore='<p class="aiuto">Oggi la sala non è ancora iniziata: per stasera segnati dalla pagina Turni.</p>';
+  else{
+    const ini=inizi.includes(eis.ini)?eis.ini:inizi[0], alle=eisAlle(di,ini);
+    ore=`<div class="riga2"><div class="frm"><label class="aiuto" for="eis-ini">Dalle</label><select id="eis-ini" onchange="eis.ini=this.value;disegnaTurni()">${inizi.map(h=>`<option${h===ini?' selected':''}>${h}</option>`).join('')}</select></div>
+      <div class="frm"><label class="aiuto" for="eis-fin">Alle</label><select id="eis-fin">${alle.map((h,i)=>`<option${i===alle.length-1?' selected':''}>${h}</option>`).join('')}</select></div></div>
+      <p class="aiuto">Resta da rivedere dalla segreteria: finché non lo conferma non si paga.</p>`;
+  }
+  return `<section class="sch-sez eis"><h3>Ero in sala, segnami</h3>
+    <div class="frm"><label class="aiuto" for="eis-data">Che giorno?</label><input id="eis-data" type="date" max="${oggi}" value="${di}" onchange="eisCambiaData(this.value)"></div>
+    ${ore}
+    <div class="sch-btns"><button class="btn prim" onclick="eisSegna(this)"${inizi.length?'':' disabled'}>SEGNAMI</button><button class="btn" onclick="eis=null;disegnaTurni()">ANNULLA</button></div></section>`;
+}
+function eisApri(){ const d=new Date(); d.setDate(d.getDate()-1); eis={data:isoLocal(d),ini:null}; disegnaTurni(); }
+function eisCambiaData(v){ if(!eis)return; const oggi=isoLocal(new Date()); eis.data=v&&v<=oggi?v:oggi; eis.ini=null; disegnaTurni(); }
+async function eisSegna(btn){
+  if(!eis)return;
+  const di=eis.data, ini=(document.getElementById('eis-ini')||{}).value, fin=(document.getElementById('eis-fin')||{}).value;
+  if(!ini||!fin)return;
+  if(!confirm(`Ti segni nella Sala con Monitor di ${giornoLungo(di)}, dalle ${ini} alle ${fin}.\n\nResta da rivedere dalla segreteria: finché non lo conferma non si paga.`))return;
+  btn.disabled=true;
+  try{
+    const{data,error}=await sb.rpc('monitor_dichiara_turno',{p_data:di,p_ora_inizio:ini,p_ora_fine:fin});
+    if(error)throw error;
+    eis=null;
+    toast(data&&data.origine==='a_posteriori'
+      ?(data.stato==='da_confermare'?'Fatto: turno segnato, da rivedere dalla segreteria.':'Fatto: turno segnato e già confermato.')
+      :'Fatto: turno segnato. Quando arrivi, aprilo da qui.');
+    loadTurniElenco();
+  }catch(e){ btn.disabled=false; erroreChiaro('Il turno non è segnato',e); }
 }
 
 /* finestra del turno */
@@ -3651,7 +3713,8 @@ function disegnaRetro(fuoco){
   const T=retro.dett.turno||{}, L=retro.dett.seguiti||[];
   const testa=`<h2 class="tr-tit">Turno di ${esc(giornoLungo(T.data))} · ${hhmm(T.inizio)} → ${T.fine?hhmm(T.fine):'in corso'}</h2>
     ${T.monitor_user_id!==uid?`<p class="aiuto">Turno di ${esc(T.monitor||'—')}</p>`:''}
-    ${T.modificabile?(T.entro&&T.monitor_user_id===uid?`<p class="aiuto">Puoi completarlo fino a ${esc(giornoLungo(isoLocal(new Date(T.entro))))} alle ${hhmm(T.entro)}.</p>`:'')
+    ${T.in_revisione?'<p class="aiuto"><span class="sg-riv">da rivedere</span> Turno segnato dopo: si paga quando la segreteria lo conferma. Fino ad allora puoi completarlo.</p>':''}
+    ${T.modificabile?(T.in_revisione&&T.monitor_user_id===uid?'':T.entro&&T.monitor_user_id===uid?`<p class="aiuto">Puoi completarlo fino a ${esc(giornoLungo(isoLocal(new Date(T.entro))))} alle ${hhmm(T.entro)}.</p>`:'')
       :'<p class="aiuto">Il turno si completava fino alle 12 del giorno dopo: per aggiungere o spostare un report chiedi alla segreteria.</p>'}`; // v2.55
   let corpo='';
   if(retro.modo==='lista'){
@@ -4067,7 +4130,7 @@ function htmlCompensiTessera(){
     <div id="sala-gg"><div class="vuota-all">…</div></div>
   </div>`;
 }
-let compensi=null, compNonDich=null; // v2.54 turni senza dichiarazione (da_controllare)
+let compensi=null, compNonDich=null, compRiv=null; // v2.54 turni senza dichiarazione (da_controllare) · v2.56 da rivedere
 async function loadCompensi(){
   const o=new Date(), da=isoLocal(new Date(o.getFullYear(),o.getMonth(),1)), a=isoLocal(o);
   try{
@@ -4079,6 +4142,10 @@ async function loadCompensi(){
     const{data,error}=await sb.from('v_compenso_turni_monitor').select('turno_id, monitor, data').eq('da_controllare',true).gte('data',da).lte('data',a);
     compNonDich=error?null:(data||[]);
   }catch(_){ compNonDich=null; }
+  try{ // v2.56 turni segnati a posteriori, da rivedere (sql/monitor/10): se la colonna manca, nessun avviso
+    const{data,error}=await sb.from('v_compenso_turni_monitor').select('turno_id, monitor, data, ore_da_rivedere').eq('in_revisione',true).gte('data',da).lte('data',a);
+    compRiv=error?null:(data||[]);
+  }catch(_){ compRiv=null; }
   const t=document.getElementById('comp-tot');
   if(t)t.textContent=compensi?euro(compensi.reduce((s,r)=>s+Number(r.importo||0),0)):'—';
   const p=document.getElementById('comp-pann'); if(p && !p.hidden)disegnaCompensi();
@@ -4128,7 +4195,8 @@ function apriCompensi(){
 function disegnaCompensi(){
   const p=document.getElementById('comp-pann'); if(!p)return;
   const testa=`<p class="turno-regola">Si pagano le ore del turno dichiarato: 1 ora a 8 € per ogni persona diversa seguita e annotata (veterani, Expert e Sala Veterani a 5 €), le altre a 5 €. I turni prima della regola nuova restano col conto di allora.</p>`
-    +(compNonDich&&compNonDich.length?`<p class="turno-regola arancio">⚠ ${compNonDich.length===1?'1 turno aperto senza dichiarazione':compNonDich.length+' turni aperti senza dichiarazione'} questo mese, da controllare: ${compNonDich.map(r=>esc(r.monitor||'—')+' '+giornoLungo(r.data)).join(', ')}. Valgono 0 €.</p>`:''); // v2.54
+    +(compNonDich&&compNonDich.length?`<p class="turno-regola arancio">⚠ ${compNonDich.length===1?'1 turno aperto senza dichiarazione':compNonDich.length+' turni aperti senza dichiarazione'} questo mese, da controllare: ${compNonDich.map(r=>esc(r.monitor||'—')+' '+giornoLungo(r.data)).join(', ')}. Valgono 0 €.</p>`:'') // v2.54
+    +(compRiv&&compRiv.length?`<p class="turno-regola">⏳ ${compRiv.length===1?'1 turno da rivedere':compRiv.length+' turni da rivedere'} (segnati dopo): ${compRiv.map(r=>esc(r.monitor||'—')+' '+giornoLungo(r.data)+' · '+numIt(r.ore_da_rivedere)+' ore').join(', ')}. Valgono 0 € finché non li confermi (Portale → Segreteria → Turni, o la griglia di Turni).</p>`:''); // v2.56
   if(!compensi){ p.innerHTML=testa+'<div class="vuota-all">Non riesco a leggere i compensi ora.</div>'; return; }
   if(!compensi.length){ p.innerHTML=testa+'<div class="vuota-all">Nessun turno in Sala con Monitor questo mese.</div>'; return; }
   const tot=new Map();
