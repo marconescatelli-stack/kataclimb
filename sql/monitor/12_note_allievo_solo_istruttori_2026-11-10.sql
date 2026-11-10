@@ -152,5 +152,13 @@ BEGIN
   RETURN jsonb_build_object('ok',true,'id',v_id,'data',v_data,'precedenti_oggi',v_prima);
 END $function$;
 
+-- ── FRANCESCO MARIA PERUCATTI SOSPESO (Marco, 10 nov 2026) ─────────────────────────────────────
+--    Era nell'elenco istruttori come "Francesco", qualifica monitor, senza login collegato e senza lezioni assegnate.
+--    Il suo account (persona Francesco Maria Perucatti) non ha ruolo staff: non è monitor né istruttore per il portale.
+--    Si toglie dagli istruttori attivi (stato, niente DELETE): sparisce dagli elenchi di scelta. Resta un'eccezione
+--    per sostituzioni decise da Marco o dalla segreteria; per ora nessun meccanismo specifico.
+UPDATE public.istruttori SET attivo = false
+ WHERE id = '786f013d-7334-4827-9d1b-7ce5dbdb4a2a' AND nome = 'Francesco' AND attivo;
+
 REVOKE ALL ON FUNCTION public.puo_scrivere_allievo(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.puo_scrivere_allievo(uuid) TO authenticated;
