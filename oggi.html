@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.57 · 2026-11-10 · OSSERVAZIONI: OGNI RISCRITTURA RESTA (Marco 10 nov, DB sql/monitor/11): salva_osservazione non sovrascrive più l'osservazione dello stesso giorno, ne aggiunge una nuova. Il modulo, se oggi ne hai già scritta una, parte dal suo testo e dice "Oggi ne hai già scritta una alle HH:MM: resta com'è, questa si aggiunge con la sua ora." Dopo il salvataggio: "Osservazione salvata. Quella di prima di oggi resta." Nella scheda ognuna ha giorno, ora e autore (v2.56). CUMULA v2.56 (sotto). -->
 <!-- KC-BUILD: oggi v2.56 · 2026-11-10 · TURNI A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10). (1) I miei turni: ERO IN SALA, SEGNAMI, su qualunque giorno passato (anche oggi, per le ore già iniziate), nessuna scadenza: giorno, dalle, alle (fascia di quel giorno: lun–ven 19–22, sabato 14–18, domenica chiusa) -> "Resta da rivedere dalla segreteria: finché non lo conferma non si paga." -> monitor_dichiara_turno (il DB lo segna a_posteriori, stato da_confermare, lo lega al turno della Sala di quel giorno e avvisa la segreteria). (2) Nell'elenco i turni da rivedere hanno la scritta grigia "da rivedere" (e "respinto" se la segreteria l'ha respinto); il totale del mese dice quanti sono da rivedere. Finché è da rivedere il turno si completa (persone e report) anche oltre le 12 del giorno dopo, e la finestra del turno lo dice. (3) Compensi (creator e segreteria): riga "⏳ N turni da rivedere" con chi, giorno e ore; valgono 0 € finché non si confermano (Portale → Segreteria → Turni, o la griglia di Turni). (4) REPORT SEMPRE LEGGIBILI (Marco 10 nov): nella scheda ogni riga di Sala con Monitor mostra in evidenza l'ora in cui è stata scritta (il DB ora scrive ogni report su una riga sola, con l'ora in testa: _sala_riga), con il nome di chi l'ha scritta e il giorno; le osservazioni di corso mostrano anche l'ora in cui sono state scritte (e "aggiornata alle" se riscritta lo stesso giorno). Nessun report si nasconde per lo stato del turno. CUMULA v2.55 (sotto). -->
 <!-- KC-BUILD: oggi v2.55 · 2026-11-10 · REPORT DEL MONITOR QUANDO SERVE, NON SUBITO (consegna Marco v2 10 nov, DB sql/monitor/09; caso Giammarco 9/11). (1) Nella scheda in sala, oltre al report, AGGIUNGI AL TURNO, SCRIVO DOPO (monitor_aggiungi_seguiti): la persona entra nel turno e finisce in "Da annotare"; il report si scrive quando si vuole toccando il nome. (2) Bozza del report salvata sul telefono a ogni lettera (localStorage per persona) e ripresa quando si riapre la scheda; uscire a meta' non fa piu' perdere niente: "Lo tengo da parte" con AGGIUNGI AL TURNO ED ESCI. (3) Il DB manda il report sul turno di stasera anche se si e' appena chiuso (alle 22, sabato 18): niente piu' errore "la Sala e' finita" a meta' report. Senza nessun turno oggi il report resta nella scheda "fuori turno" e la pagina lo dice (non conta per il compenso). (4) Tessera del turno: "Da annotare" con i nomi da toccare; tessera "📝 Report da scrivere" per i turni chiusi: "Ti mancano N report del turno di ieri sera. Puoi scriverli fino alle 12:00" -> la finestra del turno con quella persona. (5) I miei turni: APRI E AGGIUNGI anche sul turno ancora aperto e fino alle 12 del giorno dopo (monitor_completa_entro), poi solo la segreteria; nella finestra del turno chi e' da annotare ha SCRIVI IL REPORT e si vede a che ora e' stato aggiunto. Dopo "la Sala e' finita" l'elenco si ricarica (il 9/11 era rimasto quello di prima, col turno "in corso" e senza bottone). Nessuna notifica push nuova: il worker non ha un evento adatto. CUMULA v2.54 (sotto). -->
 <!-- KC-BUILD: oggi v2.54 · 2026-11-09 · TURNI MONITOR DICHIARATI PRIMA + CAMBIO TURNO (consegna Marco 9 nov, DB sql/monitor/08, attivo da monitor_regola_dal()). (1) Tessera del turno: senza turno aperto dice il turno dichiarato di oggi ("Il tuo turno dichiarato oggi: 19–22. Lo apri da 15 minuti prima.") oppure "Oggi non hai un turno monitor dichiarato" con il link a Turni. (2) Se INIZIO TURNO, SONO QUI o SEGNA rispondono che il turno non è dichiarato, il dialogo spiega cosa fare e ha VAI AI TURNI (non solo "vietato"). (3) Il collegamento turno ↔ impegno lo fa il DB in monitor_turno: tolti gli update diretti di impegni_staff.turno_monitor_id (la RLS ora li blocca sulle righe monitor) e la presenza "inizio" doppia. (4) Tessera "🔁 Cambio turno" accanto a I tuoi impegni: proposte per te con ACCETTO / NO, GRAZIE (monitor_rispondi_cambio, "sei sicuro?") e le tue in attesa. (5) Testi del compenso: si paga il turno dichiarato, 8 € tante ore quante le persone diverse seguite e annotate, mai più delle ore del turno; Compensi del creator: avviso dei turni non dichiarati da controllare (v_compenso_turni_monitor.da_controllare). CUMULA v2.53 (sotto). -->
@@ -2222,14 +2223,14 @@ function htmlOss(o,evid){
 function ossMiaOggi(d){ const oggi=isoLocal(new Date()); return (d.osservazioni||[]).find(x=>x.mia && !ossSala(x) && String(x.data).slice(0,10)===oggi); }
 function htmlFormOss(d){
   const R=d.riga||{};
-  /* stesso giorno = la RPC aggiorna la riga dell'osservazione (la nota di sala sta su una riga sua, v2.19) */
+  /* v2.57 stesso giorno = una riga NUOVA (sql/monitor/11): il modulo parte dall'ultima di oggi, quella resta com'è */
   const o=ossMiaOggi(d)||{};
   let ctx=o.contesto||R.corso_attivo||R.tipo||'prima_lezione';
   if(ctx==='monitor')ctx='sala_monitor'; // v2.34: era 'monitor' (caso del 28/10), la Sala con Monitor e' una sola
   const opz=Object.keys(NOME_CORSO).map(k=>`<option value="${k}"${k===ctx?' selected':''}>${esc(NOME_CORSO[k])}</option>`).join('')
     +(NOME_CORSO[ctx]?'':`<option value="${esc(ctx)}" selected>${esc(nomeCorso(ctx))}</option>`);
   return `<div class="frm" id="oss-form" oninput="ossSporca=true" onchange="ossSporca=true">
-    ${o.id?`<p class="sch-vuoto">Oggi hai già scritto un'osservazione: la stai aggiornando.</p>`:''}
+    ${o.id?`<p class="sch-vuoto">Oggi ne hai già scritta una alle ${hhmm(o.created_at)}: resta com'è, questa si aggiunge con la sua ora. Parti dal suo testo e cambia quello che serve.</p>`:''}
     <label>Contesto</label><select name="contesto">${opz}</select>
     ${ctx==='sala_monitor'?'<p class="aiuto">Sala con Monitor: la nota va nel tuo turno aperto e la persona risulta seguita. Si salvano temi affrontati, trasformazione e note; le scale no.</p>':''}
     <fieldset class="vis-box staff"><legend>${VIS.staff}</legend>
@@ -2268,13 +2269,13 @@ async function salvaOss(btn){
   f.querySelectorAll('[name]').forEach(el=>{ const v=el.value.trim(); p[el.name]=v||null; });
   f.querySelectorAll('.scala').forEach(s=>{ p[s.dataset.k]=s.dataset.v?Number(s.dataset.v):null; });
   if(!Object.keys(p).some(k=>k!=='contesto' && p[k]!=null)){ toast('Scrivi almeno una cosa prima di salvare.'); return; }
-  p.visibile_allievo=!!document.getElementById('oss-visibile')?.checked; // v2.23: la RPC sovrascrive tutta la riga del giorno
+  p.visibile_allievo=!!document.getElementById('oss-visibile')?.checked; // v2.57: ogni salvataggio è una riga nuova
   if(p.visibile_allievo && !p.temi_affrontati && !p.trasformazione && !p.per_allievo){ toast("Per mostrarla all'allievo scrivi temi, trasformazione o un messaggio."); return; }
   btn.disabled=true;
   const{data,error}=await sb.rpc('salva_osservazione',{p_persona_id:schedaPid,p});
   if(error){ btn.disabled=false; erroreChiaro('Osservazione non salvata',error); return; } // v2.34: resta a schermo
   ossAperta=false; ossSporca=false;
-  toast(data&&data.sala?'Nota di Sala con Monitor salvata: risulta seguito/a nel turno.':'Osservazione salvata.');
+  toast(data&&data.sala?'Nota di Sala con Monitor salvata: risulta seguito/a nel turno.':data&&data.precedenti_oggi?'Osservazione salvata. Quella di prima di oggi resta.':'Osservazione salvata.'); // v2.57
   if(data&&data.sala)loadMonitor();
   await caricaScheda();
   loadAllievi();
