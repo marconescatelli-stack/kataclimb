@@ -116,6 +116,18 @@ DO $$ DECLARE r jsonb; n text; b uuid := 'dfed419c-0a19-4cd6-a18e-bdb702a6c5da';
 EXCEPTION WHEN OTHERS THEN INSERT INTO esiti VALUES (DEFAULT, '4 report di sala', false, SQLERRM);
 END $$;
 
+-- 6. l'allievo (Bognanni ha un login) nel suo diario riceve tutte le versioni visibili dello stesso giorno, con ora e istruttore:
+--    la pagina mostra l'ultima e, toccandola, lo storico dalla prima all'ultima
+DO $$ DECLARE k int; b uuid := 'dfed419c-0a19-4cd6-a18e-bdb702a6c5da'; BEGIN
+  PERFORM pg_temp.come('27b04151-93a7-4ecc-824c-fe337cc631a6');
+  PERFORM salva_osservazione(b, '{"contesto":"open","temi_affrontati":"Kata 3","per_allievo":"Prima stesura per te","visibile_allievo":true}'::jsonb);
+  PERFORM salva_osservazione(b, '{"contesto":"open","temi_affrontati":"Kata 3 e 4","per_allievo":"Seconda stesura per te","visibile_allievo":true}'::jsonb);
+  PERFORM pg_temp.come('1036fea7-26b2-4fd1-878a-0957403c43c9');
+  SELECT count(*) INTO k FROM v_mio_diario_didattico WHERE data = CURRENT_DATE AND scritta_alle IS NOT NULL AND istruttore IS NOT NULL
+     AND per_allievo IN ('Prima stesura per te','Seconda stesura per te');
+  INSERT INTO esiti VALUES (DEFAULT, '6 diario dell''allievo: le due versioni visibili, con ora e istruttore', k = 2, k || ' versioni lette da Bognanni');
+END $$;
+
 -- 5. impianto: indice unico non di sala tolto, quello di sala resta; il diario dell'allievo ha l'ora
 INSERT INTO esiti (prova, ok, dettaglio)
 SELECT '5 indici e diario dell''allievo',
