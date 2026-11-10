@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.163 · 2026-11-10 · DOPPIO TURNO GIUSTIFICATO (consegna Marco v2 10 nov, DB sql/monitor/09): nella finestra della Sala con Monitor, quando nella fascia c'e' gia' un monitor, creator e segreteria hanno "Doppio turno (secondo monitor)": persona, dalle/alle, motivo obbligatorio (es. "sala piena, serve un secondo monitor") -> "sei sicuro?" -> monitor_doppio_turno. I turni doppi si leggono "doppio turno: motivo". Gli istruttori non lo vedono. NOTA: la riga del 9 nov "v3.159 TURNI MONITOR DICHIARATI PRIMA" e' stata numerata per errore (veniva dopo la v3.162): questa e' la v3.163 e cumula tutto. CUMULA v3.162. -->
 <!-- KC-BUILD: portale v3.162 · 2026-11-07 · FESTA: BAMBINI IN PIÙ (consegna Marco 7 nov, DB prenotazioni_festa_aggiunte, stripe-worker v3.98): in Segreteria → Turni la festa mostra il numero di bambini aggiornato (prenotazioni_festa.n_bambini) e nei dettagli la riga "Bambini aggiunti" con le aggiunte pagate e la data. Lettura insieme alla festa (relazione festa_id); se non riesce, la festa come prima. Niente altro. CUMULA v3.161 -->
 <!-- KC-BUILD: portale v3.161 · 2026-11-07 · ISCRIZIONE VALIDA FINO ALLA SCADENZA (decisione Marco 7 nov, trigger DB tesseramento_dicembre_anno_dopo; DB domande_iscrizione_mancanti/export_iscritti_ente/tg_tesseramento_da_iscrizione gia' sistemati dalla chat): tesserato = stato attivo e data_scadenza >= oggi, mai "dell'anno". (1) Promemoria della domanda (promemoriaDomandaServe): tesseramento attivo con scadenza da oggi in poi al posto di anno = anno corrente. (2) Segreteria → Iscrizione ASD: dopo registra_tesseramento la scadenza si rilegge da get_tesseramenti (la RPC restituisce quella calcolata prima del trigger) e la nota del fascicolo dice la scadenza vera, mai "31/12/{anno}" scritto a mano. (3) Fascicolo, blocco Tesseramento ASD: "Iscrizione attiva fino al 31/12/2027" (verde) se attivo e non scaduto, altrimenti "Scaduta il …" o "Annullata" (rosso). CUMULA v3.160 -->
 <!-- KC-BUILD: portale v3.160 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE · + RITORNO DOPO IL LOGIN: iscrizione.html senza sessione lascia kc_dopo_login in localStorage; dopo il login (fresco o con sessione gia' aperta, prima dell'atterraggio su Oggi) kcDopoLogin() riporta a /iscrizione.html, una volta sola, entro un'ora, solo indirizzi della lista KC_DOPO_LOGIN_OK · (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): (1) PROFILO: in cima alla vista profilo striscia "Completa la domanda di iscrizione: due minuti dal telefono." con bottone scuro a /iscrizione.html (renderPromemoriaDomanda). Compare se in iscrizione_stato una persona dell'account (io o figlio) ha domanda_anno = null E ha un tesseramento dell'anno (stato diverso da annullato) o un corso attiva/sospesa in iscrizioni_corso (user_id dei figli da miei_figli; per il creator il corso non conta, come in domande_iscrizione_mancanti). Sparisce a domanda inviata (si rilegge a ogni apertura del profilo e al ritorno sulla pagina). RPC che fallisce: nessuna striscia, nessun errore. (2) SEGRETERIA → 🗓 Turni, sotto Sconti applicati: nuova sezione "📋 Iscritti per l'ente" (solo creator e segreteria: tuPuo; la RPC controlla comunque is_segreteria_piena): select dell'anno (corrente e due precedenti), bottone "Esporta iscritti per l'ente" → rpc export_iscritti_ente(p_anno) → file Iscritti_{anno}_Accademia_RCC.csv (UTF-8 con BOM, separatore ";", si apre in Excel; nessuna libreria xlsx nel repo) con le 20 colonne nell'ordine della RPC e intestazioni in italiano; CAP e telefono scritti come testo (="…") per non perdere gli zeri iniziali in Excel; booleani Sì/No; data di nascita GG/MM/AAAA. Sotto il bottone "{N} domande · {M} iscritti senza domanda": N = conteggio domande_iscrizione dell'anno (= righe dell'export), M = righe di domande_iscrizione_mancanti(p_anno). Solo letture. CUMULA v3.159 (sotto). -->
@@ -11911,7 +11912,7 @@ function tuApriVoce(k){
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
     const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':'')
-      :v.tipo==='monitor'?`Turno ${scOra(i.ora_inizio)}–${scOra(i.ora_fine)}`+(i.segnato_da&&i.segnato_da!==i.user_id?' · dichiarato da '+tuNome(i.segnato_da):''):(TU_RUOLO[i.ruolo]||i.ruolo); // v3.159
+      :v.tipo==='monitor'?`Turno ${scOra(i.ora_inizio)}–${scOra(i.ora_fine)}`+(/doppio turno creato/i.test(i.note||'')?' · doppio turno: '+String(i.note).replace(/^.*doppio turno creato da [^:]*:\s*/i,'').split(' · ')[0]:i.segnato_da&&i.segnato_da!==i.user_id?' · dichiarato da '+tuNome(i.segnato_da):''):(TU_RUOLO[i.ruolo]||i.ruolo); // v3.159 · v3.163 doppio
     const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
       <div class="sc-sub">${escHtml(ruolo)} · ${nsv?'<span style="color:var(--text2)">lezione non svolta</span>':escHtml(TU_STATO[i.stato]||i.stato)}${pres}</div></div>${az.join('')}</div>`;
@@ -11930,10 +11931,13 @@ function tuApriVoce(k){
   const supp=v.tipo==='corso'&&v.req?`<div class="tu-supp-box">Supporto richiesto${v.req.chiesto_da?' da <b>'+escHtml(tuNome(v.req.chiesto_da))+'</b>':''}${v.req.note?': '+escHtml(v.req.note):''}
     ${puo?` <button class="btn btn-g sc-piccolo" onclick="tuAnnullaSupporto('${v.req.id}',${k})">Annulla richiesta</button>`:''}</div>`:'';
   const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg);return ` · istruttori ${ni}/${v.imin}${v.amin||na?` · assistenti ${na}/${v.amin}`:''}`})():` · richiesti ${v.richiesti}`;
+  /* v3.163 doppio turno: solo creator e segreteria, solo se nella fascia c'e' gia' un monitor */
+  const attivi=v.tipo==='monitor'?v.seg.filter(i=>i.stato==='previsto'||i.stato==='presente'):[];
+  const doppio=(puo&&v.tipo==='monitor'&&attivi.length&&!passato)?tuFormDoppio(v,k,attivi):'';
   const d=new Date(v.data+'T00:00:00');
   scModal(`${v.tipo==='monitor'?'🟢':'📅'} ${v.titolo}`,
     `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}${conta}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
-     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${righe}${aggiungi}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
+     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${righe}${aggiungi}${doppio}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
     aggiungi?async()=>{
       if(v.tipo!=='monitor'&&tuEMonitor(scVal('tu-add-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
       const args=v.tipo==='corso'
@@ -11969,6 +11973,36 @@ function tuFormOreMonitor(v){
     <label class="sc-lbl" for="tu-mon-fin">Alle</label><select id="tu-mon-fin" class="input sc-in">${fini.map((h,i)=>`<option${i===fini.length-1?' selected':''}>${h}</option>`).join('')}</select>
     <label class="sc-lbl" for="tu-mon-mot">Motivo (resta scritto)</label><input id="tu-mon-mot" class="input sc-in" maxlength="200" placeholder="es. ha chiamato in Accademia">
     <p class="sc-nota">Il turno lo dichiara di solito la persona da Turni. Qui solo nei casi eccezionali. Ore sovrapposte a un altro monitor: il portale lo blocca.</p>`;
+}
+/* v3.163 doppio turno giustificato: un secondo monitor nella stessa ora, pagato, solo con il motivo */
+function tuFormDoppio(v,k,attivi){
+  const ora=new Date(),oggi=tuIso(ora),hm=String(ora.getHours()).padStart(2,'0')+':'+String(ora.getMinutes()).padStart(2,'0');
+  const h0=Number(v.ini.slice(0,2)),h1=Number(v.fin.slice(0,2)),ini=[],fin=[];
+  for(let h=h0;h<h1;h++){const a=String(h).padStart(2,'0')+':00';if(v.data>oggi||(v.data===oggi&&String(h+1).padStart(2,'0')+':00'>hm))ini.push(a)}
+  for(let h=h0+1;h<=h1;h++)fin.push(String(h).padStart(2,'0')+':00');
+  if(!ini.length)return '';
+  const gia=attivi.map(i=>i.user_id);
+  const opz=(tuStaff||[]).filter(u=>!gia.includes(u.user_id)).map(u=>`<option value="${escHtml(u.user_id)}">${escHtml(tuNome(u.user_id))}</option>`).join('');
+  return `<div class="tu-supp-box" style="margin-top:14px"><b>Doppio turno (secondo monitor)</b>
+    <p class="sc-nota" style="margin:4px 0 6px">In sala si paga un monitor alla volta. Un secondo monitor si paga solo con il doppio turno e il motivo scritto.</p>
+    <label class="sc-lbl" for="tu-dop-user">Chi</label><select id="tu-dop-user" class="input sc-in"><option value="">Scegli</option>${opz}</select>
+    <label class="sc-lbl" for="tu-dop-ini">Dalle</label><select id="tu-dop-ini" class="input sc-in">${ini.map(h=>`<option>${h}</option>`).join('')}</select>
+    <label class="sc-lbl" for="tu-dop-fin">Alle</label><select id="tu-dop-fin" class="input sc-in">${fin.map((h,i)=>`<option${i===fin.length-1?' selected':''}>${h}</option>`).join('')}</select>
+    <label class="sc-lbl" for="tu-dop-mot">Motivo (resta scritto)</label><input id="tu-dop-mot" class="input sc-in" maxlength="200" placeholder="es. sala piena, serve un secondo monitor">
+    <button class="btn sc-scuro sc-piccolo" style="margin-top:8px" onclick="tuCreaDoppio(${k},this)">CREA DOPPIO TURNO</button></div>`;
+}
+async function tuCreaDoppio(k,btn){
+  const v=tuVoci[k];if(!v)return;
+  const u=scVal('tu-dop-user'),ini=scVal('tu-dop-ini'),fin=scVal('tu-dop-fin'),mot=(scVal('tu-dop-mot')||'').trim();
+  if(!u){toast('Scegli chi fa il secondo monitor');return}
+  if(mot.length<5){toast('Scrivi il motivo del doppio turno');return}
+  if(fin<=ini){toast('L’ora di fine viene dopo quella di inizio');return}
+  if(!confirm(`Sei sicuro? Crei un doppio turno per ${tuNome(u)}, ${scD(v.data)} dalle ${ini} alle ${fin}: in quelle ore si pagano due monitor.\nMotivo: ${mot}`))return;
+  btn.disabled=true;
+  const{error}=await sb.rpc('monitor_doppio_turno',{p_data:v.data,p_ora_inizio:ini,p_ora_fine:fin,p_user_id:u,p_motivo:mot});
+  if(error){btn.disabled=false;toast('Non creato: '+scErr(error));return}
+  toast('Doppio turno creato');
+  await tuRiapri(k);
 }
 async function tuAnnullaMonitor(impegnoId,k){
   const v=tuVoci[k],i=v&&v.seg.find(x=>x.id===impegnoId);if(!i)return;

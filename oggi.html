@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.55 · 2026-11-10 · REPORT DEL MONITOR QUANDO SERVE, NON SUBITO (consegna Marco v2 10 nov, DB sql/monitor/09; caso Giammarco 9/11). (1) Nella scheda in sala, oltre al report, AGGIUNGI AL TURNO, SCRIVO DOPO (monitor_aggiungi_seguiti): la persona entra nel turno e finisce in "Da annotare"; il report si scrive quando si vuole toccando il nome. (2) Bozza del report salvata sul telefono a ogni lettera (localStorage per persona) e ripresa quando si riapre la scheda; uscire a meta' non fa piu' perdere niente: "Lo tengo da parte" con AGGIUNGI AL TURNO ED ESCI. (3) Il DB manda il report sul turno di stasera anche se si e' appena chiuso (alle 22, sabato 18): niente piu' errore "la Sala e' finita" a meta' report. Senza nessun turno oggi il report resta nella scheda "fuori turno" e la pagina lo dice (non conta per il compenso). (4) Tessera del turno: "Da annotare" con i nomi da toccare; tessera "📝 Report da scrivere" per i turni chiusi: "Ti mancano N report del turno di ieri sera. Puoi scriverli fino alle 12:00" -> la finestra del turno con quella persona. (5) I miei turni: APRI E AGGIUNGI anche sul turno ancora aperto e fino alle 12 del giorno dopo (monitor_completa_entro), poi solo la segreteria; nella finestra del turno chi e' da annotare ha SCRIVI IL REPORT e si vede a che ora e' stato aggiunto. Dopo "la Sala e' finita" l'elenco si ricarica (il 9/11 era rimasto quello di prima, col turno "in corso" e senza bottone). Nessuna notifica push nuova: il worker non ha un evento adatto. CUMULA v2.54 (sotto). -->
 <!-- KC-BUILD: oggi v2.54 · 2026-11-09 · TURNI MONITOR DICHIARATI PRIMA + CAMBIO TURNO (consegna Marco 9 nov, DB sql/monitor/08, attivo da monitor_regola_dal()). (1) Tessera del turno: senza turno aperto dice il turno dichiarato di oggi ("Il tuo turno dichiarato oggi: 19–22. Lo apri da 15 minuti prima.") oppure "Oggi non hai un turno monitor dichiarato" con il link a Turni. (2) Se INIZIO TURNO, SONO QUI o SEGNA rispondono che il turno non è dichiarato, il dialogo spiega cosa fare e ha VAI AI TURNI (non solo "vietato"). (3) Il collegamento turno ↔ impegno lo fa il DB in monitor_turno: tolti gli update diretti di impegni_staff.turno_monitor_id (la RLS ora li blocca sulle righe monitor) e la presenza "inizio" doppia. (4) Tessera "🔁 Cambio turno" accanto a I tuoi impegni: proposte per te con ACCETTO / NO, GRAZIE (monitor_rispondi_cambio, "sei sicuro?") e le tue in attesa. (5) Testi del compenso: si paga il turno dichiarato, 8 € tante ore quante le persone diverse seguite e annotate, mai più delle ore del turno; Compensi del creator: avviso dei turni non dichiarati da controllare (v_compenso_turni_monitor.da_controllare). CUMULA v2.53 (sotto). -->
 <!-- KC-BUILD: oggi v2.53 · 2026-11-07 · NOTE DI ACCOMPAGNAMENTO IN MEMORIA DEL BAMBINO (consegna Marco 7 nov, stripe-worker v3.96): la sezione non esisteva (nessuna pagina leggeva note_accompagnamento). (1) Scheda allievo: sezione "Note di accompagnamento" (solo staff) subito sotto "In breve", con tutte le righe di note_accompagnamento della persona dalla più recente, data e fonte ("Prenotazione Lezione Privata Bambini"), testo a capo come scritto; si carica a ogni apertura della scheda, quindi si vede in ogni lezione. Lettura con la RLS note_accompagnamento_staff_all (is_staff); se non si legge, la sezione non compare. (2) Pill arancio "Da richiamare" accanto al nome (card In breve della lezione, griglia di sala, elenchi allievi, testa della scheda) per chi ha nelle note la frase "📞 Il genitore preferisce parlarne a voce", finché non c'è una Prima Lezione o lezione privata 'fatto' dal giorno della richiesta in poi (note -> lead_data -> prenotazioni_prima_lezione). Caricata una volta al caricamento, solo viste staff, come le domande mancanti. (3) Commento della costante SALDARE_WA: il numero è di Marco, non della segreteria. CUMULA v2.52 -->
 <!-- KC-BUILD: oggi v2.52 · 2026-11-07 · DOMANDA DI ISCRIZIONE ONLINE (consegna Marco 7 nov, DB iscrizione_online_2026_11_07): lo staff vede chi manca. Al caricamento (solo viste staff) una chiamata a domande_iscrizione_mancanti(p_anno null = anno corrente; la RPC risponde solo a is_staff) -> insieme di persona_id; lettura fallita o non permessa = nessuna pill, nessun errore a schermo. Pill arancio "Domanda da completare" accanto al nome nelle card In breve della lezione (htmlBrief), nella griglia di sala (disegnaGriglia) e negli elenchi allievi (disegnaElenco). Scheda allievo (disegnaScheda): in alto "Domanda da completare · Fagli inquadrare il QR in Accademia."; nuova sezione "Chi lo accompagna" (solo staff) per i minori (meno di 18 anni da persone.data_nascita) o per chi ha accompagnatori registrati: foto, nome, legame, telefono (tel:), da accompagnatori attivi (ritirato_at IS NULL, RLS accompagnatori_staff_select) + persone (foto_riconoscimento_path, nome, cognome, telefono). Adulto che accompagna: "Accompagna: {Nome Cognome}" toccabile, apre la scheda del figlio (apriSchedaAccompagnato, chiede prima se c'e' qualcosa da non perdere). Foto dal bucket privato riconoscimento con URL firmati (applicaFoto, come le foto di riconoscimento). Funzioni nuove: loadDomandeMancanti, domandaManca, domandaPill, caricaAccompagnatori, htmlChiAccompagna, htmlAccompagna, apriSchedaAccompagnato. Nessuna scrittura nuova. CUMULA v2.51. -->
@@ -467,6 +468,11 @@ body{font-size:17px}
 .tab tfoot td{border-bottom:none; padding-top:10px}
 .tab .arancio{color:#FFB340; font-weight:700}
 .turno-regola.arancio{color:#FFB340; font-weight:700} /* v2.54 turni non dichiarati */
+/* v2.55 da annotare */
+.da-ann{margin-top:12px; padding-top:10px; border-top:1px solid var(--velo)}
+.da-nomi{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+.sg-da{display:inline-block; font-size:13px; font-weight:700; color:#FFB340}
+.g-dopo{margin-top:14px; display:flex; flex-direction:column; gap:6px}
 .tab-tot{font-size:14px; margin-top:10px; color:#E5E5EA}
 .lnk{background:none; border:0; color:var(--bianco); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; text-align:left; padding:0}
 
@@ -2052,7 +2058,8 @@ function apriScheda(pid,sala,origine){
   schedaAcc=null; schedaNoteAcc=null; // v2.52 · v2.53
   schedaSala=(!!sala || vista==='monitor') && origine!=='cerca'; // v2.18: in testa il campo "Su cosa avete lavorato?"; v2.44 'cerca' = ricerca generale, fuori dal turno
   /* v2.24: la guida riparte da capo a ogni scheda; "ricerca" = aperta da CHI STAI SEGUENDO */
-  guida=guidaNuova(); schedaDaRicerca=origine==='ricerca'; schedaVeterano=false;
+  guida=guidaNuova(); schedaDaRicerca=origine==='ricerca'||origine==='annotare'; schedaVeterano=false;
+  if(schedaSala && bozzaRiprendi(pid))setTimeout(()=>toast('Ho ripreso il report che avevi iniziato.'),400); // v2.55
   if(schedaSala){ _salaUsata=true; disegnaAvvisoTurno(); }
   const s=document.getElementById('scheda');
   document.getElementById('sch-corpo').innerHTML=`<p class="sch-vuoto">Un attimo, apro la scheda…</p>`;
@@ -2825,6 +2832,7 @@ function disegnaDiario(){
    Solo RPC: monitor_oggi · monitor_turno · cerca_persona_staff · monitor_segna · get_compenso_monitor. */
 let salaOggi=null, schedaSala=false, _salaTimer=null, _salaTok=0;
 const _salaPersone={}; // persona_id -> {nome,cognome,foto_path} dall'ultima ricerca
+const RIGA_REPORT="Aggiungi chi segui quando vuoi: il report lo scrivi quando hai un momento, anche dopo la fine del turno (fino alle 12 del giorno dopo)."; // v2.55
 const RIGA_COMPENSO="Si paga il turno che hai dichiarato: ogni ora 5 €, e diventa 8 € per ogni persona diversa che segui e annoti nella sua scheda, mai più delle ore del turno. Veterani, Expert e Sala Veterani restano a 5 €."; // v2.54
 const hhmm=ts=>{ if(!ts)return ''; const d=new Date(ts); return pad2(d.getHours())+':'+pad2(d.getMinutes()); };
 const numIt=n=>Number(n||0).toLocaleString('it-IT',{maximumFractionDigits:1});
@@ -2864,10 +2872,15 @@ function renderMonitor(){
 }
 
 function htmlSalaTessere(){
-  return `<div class="t full fermo t-turno" id="t-turno">
+  return `<div class="t full fermo t-imp" id="t-annotare" hidden>
+    <span class="et mono">📝 Report da scrivere</span>
+    <div id="annotare-corpo"></div>
+  </div>
+  <div class="t full fermo t-turno" id="t-turno">
     <span class="et mono">🟢 Sala con Monitor · turno</span>
     <div id="turno-corpo"><p class="vuota-all">…</p></div>
     <p class="turno-regola">${RIGA_COMPENSO}</p>
+    <p class="turno-regola">${RIGA_REPORT}</p>
   </div>
 
   <div class="t full fermo t-segui" id="t-segui">
@@ -2895,6 +2908,7 @@ async function loadMonitor(){
     salaOggi=data||{turno:null,seguiti:[],storico:[]};
   }catch(e){ console.error('[monitor]',e); salaOggi=null; }
   disegnaTurno(); disegnaSalaOggi(); loadTurniElenco(); disegnaAvvisoTurno(); avviaPromemoria(); // v2.34 turni con id: si aprono
+  loadDaAnnotare(); // v2.55
   loadFinePrevista();
   loadPapabili(); // v2.25: dopo ogni SEGNA le spunte della griglia sono aggiornate
   loadCompensoTurno();
@@ -2913,9 +2927,12 @@ function disegnaTurno(){
     const min=Math.floor((Date.now()-new Date(t.inizio).getTime())/60000);
     const avv=(min>45 && !n)?`<div class="avviso-ar">Sei in turno da ${Math.floor(min/60)}h ${pad2(min%60)}m e non hai segnato nessuno. <button class="lnk" onclick="vaiAllaGriglia()">Chi stai seguendo?</button></div>`:'';
     const auto=_finePrev.id===t.id&&_finePrev.ora?`<p class="turno-auto">si chiude da solo alle ${_finePrev.ora}</p>`:'';
+    const da=daAnnotare.filter(x=>x.turno_id===t.id); // v2.55
+    const rigaDa=da.length?`<div class="da-ann"><p class="turno-dom">Da annotare (${da.length}) · tocca il nome quando hai un momento</p>
+      <div class="da-nomi">${da.map(x=>`<button class="btn" onclick="apriScheda('${esc(x.persona_id)}',true,'annotare')">${esc(((x.nome||'')+' '+(x.cognome||'')).trim())}</button>`).join('')}</div></div>`:'';
     el.innerHTML=`<p class="turno-stato">In turno dalle <b>${hhmm(t.inizio)}</b></p>${auto}
       <p class="turno-comp" id="turno-comp"></p>
-      ${avv}
+      ${avv}${rigaDa}
       <p class="turno-dom">Cosa vuoi fare?</p>
       <div class="turno-btns">
         <button class="btn prim grande" onclick="vaiAllaGriglia()">SEGNA CHI STAI SEGUENDO</button>
@@ -3075,6 +3092,7 @@ function erroreChiaro(cosa,e){
 const TURNO_CHIUSO_RE=/nessun turno aperto oggi|sala con monitor di oggi è finita|turno non è aperto/i;
 const NON_DICHIARATO_RE=/turno monitor dichiarato|lo apri da 15 minuti|tuo turno dichiarato/i; // v2.54 risposte di _monitor_apri_turno e chiudi_altri_turni_aperti
 async function turnoChiusoDialogo(){
+  loadTurniElenco(); loadDaAnnotare(); // v2.55 il 9/11 l'elenco era quello di prima, col turno "in corso" e senza bottone
   let alle='';
   try{ const{data,error}=await sb.rpc('fine_turno_prevista',{p_data:isoLocal(new Date())}); if(!error&&data)alle=hhmm(data); }catch(_){}
   const vai=()=>{
@@ -3148,7 +3166,7 @@ function disegnaGriglia(){
         ${x.segnato_oggi?'<span class="sg-ok" aria-hidden="true">✓</span>':''}${viso}
         <span class="sg-nome">${nome}</span>${domandaPill(x.persona_id)}${richiamoPill(x.persona_id)}
         ${m==='prenotato'&&x.ora?`<span class="sg-ora">alle ${esc(oraBreve(x.ora))}</span>`:''}
-        ${x.segnato_oggi?`<span class="sg-alle">segnato alle ${hhmm(x.segnato_alle)}</span>`:''}
+        ${x.segnato_oggi?`<span class="sg-alle">segnato alle ${hhmm(x.segnato_alle)}</span>`:inDaAnnotare(x.persona_id)?'<span class="sg-da">da annotare</span>':''}
       </button><div class="sg-ing" data-ing="${esc(x.persona_id)}"></div></div>`;}).join('')}</div>`;
   }).join('');
   applicaFoto(el);
@@ -3215,7 +3233,7 @@ function motivoUscita(){
   if(quadroAperto && (quadroFine || quadroSporco))return 'quadro'; // v2.36
   if(ossAperta && ossSporca)return 'oss';
   if(ricSporco())return 'nota'; // v2.44
-  if(schedaSala && schedaDaRicerca && turnoAperto() && !giaSegnato(schedaPid) && guida.passo!=='fatto')return 'ricerca';
+  if(schedaSala && schedaDaRicerca && turnoAperto() && !giaSegnato(schedaPid) && !inDaAnnotare(schedaPid) && guida.passo!=='fatto')return 'ricerca'; // v2.55 gia' in Da annotare: esce libero
   return null;
 }
 function dialogoUscita(onEsci){
@@ -3223,11 +3241,14 @@ function dialogoUscita(onEsci){
   const N=`<b>${esc(nomeScheda())}</b>`, n=esc(nomeScheda());
   const esci=onEsci||esciScheda;
   if(m==='quadro'){ quadroChiudi(esci); return true; } // v2.36 fine corso: "Sei sicuro?", altrimenti "Non hai salvato"
-  if(m==='guida')
-    dialogo(giaSegnato(schedaPid)
-        ?`<p>Non hai finito di segnare ${N}. Quello che hai scritto si perde.</p>`
-        :`<p>Non hai finito di segnare ${N}. Quello che hai scritto si perde, e ${n} non risulta seguito/a: l'ora resta a 5 €.</p>`,
-      ['FINISCI ADESSO',()=>disegnaGuida(true)],['Esci senza segnare',esci]);
+  if(m==='guida'){ // v2.55 la bozza resta sul telefono: uscire non fa perdere niente
+    bozzaSalva();
+    const agg=puoAggiungereDopo(schedaPid);
+    dialogo(`<p>Non hai finito il report di ${N}. Lo tengo da parte: quando riapri la scheda lo ritrovi.</p>`
+        +(agg?`<p>Se l'hai seguito/a, aggiungilo/a al turno: finché non scrivi il report l'ora resta a 5 €.</p>`:''),
+      ['FINISCI ADESSO',()=>disegnaGuida(true)],
+      agg?['AGGIUNGI AL TURNO ED ESCI',()=>aggiungiDopo(null,esci)]:['Esci, lo finisco dopo',esci]);
+  }
   else if(m==='oss')
     dialogo(`<p>Non hai salvato l'osservazione su ${N}. Se esci si perde.</p>`,
       ['SALVA ADESSO',()=>{ const b=document.querySelector('#oss-form .btn.prim'); if(b){ b.scrollIntoView({behavior:'smooth',block:'center'}); salvaOss(b); } }],
@@ -3235,6 +3256,9 @@ function dialogoUscita(onEsci){
   else if(m==='nota')
     dialogo('<p>Sei sicuro? La nota non è salvata.</p>',
       ['SALVA ADESSO',()=>{ const b=document.getElementById('ric-ok'); if(b)ricSalva(b); }],['Esci senza salvare',esci]);
+  else if(puoAggiungereDopo(schedaPid)) // v2.55
+    dialogo(`<p>Hai seguito ${N} oggi? Aggiungilo/a al turno: il report lo scrivi quando hai un momento.</p>`,
+      ['AGGIUNGI, SCRIVO DOPO',()=>aggiungiDopo(null,esci)],["L'ho solo cercato/a, esci",esci]);
   else
     dialogo(`<p>Hai seguito ${N} oggi? Se sì, rispondi alle due domande e premi SEGNA. Se non segni, non risulta.</p>`,
       ['SEGNA ADESSO',()=>disegnaGuida(true)],["L'ho solo cercato/a, esci",esci]);
@@ -3336,7 +3360,9 @@ function htmlGuida(){
   const tit=giaSegnato(schedaPid)?`<p class="g-tit">Vuoi aggiungere qualcosa su ${n}?</p>`:'';
   if(g.passo===4){
     const vet=schedaVeterano;
-    const fissa=giaSegnato(schedaPid)
+    const fissa=!haTurnoOggi()
+      ?`Non sei in turno: premendo SEGNA il report resta nella scheda di ${n}, ma non conta per il compenso.` // v2.55 report libero
+      :giaSegnato(schedaPid)
       ?`Premendo SEGNA, quello che hai scritto si aggiunge alle note di oggi su ${n}.`
       :vet?`Premendo SEGNA, ${n} risulta seguito/a oggi. Per questa persona l'ora resta a 5 € (veterano, Expert o Sala Veterani).`
       :`Premendo SEGNA, ${n} risulta seguito/a oggi e quest'ora vale 8 €.`;
@@ -3356,6 +3382,9 @@ function htmlGuida(){
   if(g.passo===3)return `${avv}${pall}${tit}${htmlPassoPer(n,g.per,'guida-t','guidaScrivi(this)','guida-avanti','guida-perche',"guidaVai(2)","guidaVai(4)","guidaNienteOggi()")}`;
   const p1=g.passo===1;
   const val=p1?g.cosa:g.nota, ok=val.trim().length>=MIN_GUIDA;
+  /* v2.55 aggiungere senza scrivere subito: c'e' un turno di oggi e la persona non e' gia' nel turno */
+  const dopo=p1&&puoAggiungereDopo(schedaPid)?`<p class="g-dopo"><button class="btn" onclick="aggiungiDopo(this)">AGGIUNGI AL TURNO, SCRIVO DOPO</button>
+    <span class="aiuto">La trovi in "Da annotare": il report lo scrivi quando hai un momento, anche dopo la fine del turno.</span></p>`:'';
   return `${avv}${pall}${tit}
     <label class="g-dom" for="guida-t" style="display:block">${p1?`Su cosa avete lavorato con ${n}?`:'Com’è andata?'}</label>
     <p class="aiuto">${p1?'Cosa avete fatto, in concreto: vie, esercizi, obiettivo.':'Cosa hai visto, cosa è cambiato, cosa riprendere la prossima volta.'}</p>
@@ -3364,7 +3393,7 @@ function htmlGuida(){
       :'Prima rigida, all&#39;ultima caduta pulita e contenta. Prossima volta: cadute più alte.'}">${esc(val)}</textarea>
     <div class="sch-btns">${p1?'':`<button class="btn" onclick="guidaVai(1)">INDIETRO</button>`}
       <button class="btn prim" id="guida-avanti" onclick="guidaVai(${g.passo+1})"${ok?'':' disabled'}>AVANTI</button></div>
-    <p class="perche" id="guida-perche"${ok?' hidden':''}>Scrivi ancora qualcosa (almeno ${MIN_GUIDA} caratteri).</p>`;
+    <p class="perche" id="guida-perche"${ok?' hidden':''}>Scrivi ancora qualcosa (almeno ${MIN_GUIDA} caratteri).</p>${dopo}`;
 }
 /* v2.36 passo "Cosa porta a casa": lo stesso nella guida della sera e in quella dei turni passati */
 const AVV_CARATTERE='Qui niente note sul carattere: quelle vanno solo ai passi 1–2, che legge lo staff.';
@@ -3383,7 +3412,7 @@ function guidaNienteOggi(){
   const n=esc(nomeScheda());
   dialogo(`<p><b>Sei sicuro?</b> ${n} non troverà niente di oggi nel suo diario.</p>`,
     ['Torna e scrivi',()=>disegnaGuida(true)],
-    ['Sì, oggi niente',()=>{ guida.per=''; guida.perNiente=true; guida.passo=4; disegnaGuida(true); }]);
+    ['Sì, oggi niente',()=>{ guida.per=''; guida.perNiente=true; guida.passo=4; bozzaSalva(); disegnaGuida(true); }]);
 }
 function disegnaGuida(fuoco){
   const el=document.getElementById('guida'); if(!el)return;
@@ -3395,6 +3424,7 @@ function disegnaGuida(fuoco){
 }
 function guidaScrivi(el){
   guida[guida.passo===1?'cosa':guida.passo===2?'nota':'per']=el.value;
+  bozzaSalva(); // v2.55
   if(guida.passo===3)guida.perNiente=false; // ha deciso di scrivere
   const ok=el.value.trim().length>=MIN_GUIDA;
   const b=document.getElementById('guida-avanti'); if(b)b.disabled=!ok;
@@ -3420,11 +3450,83 @@ async function guidaSegna(btn){
   if(!guida.perNiente && per.length<MIN_GUIDA){ guidaVai(3); return; }
   btn.disabled=true;
   /* passo 1 -> p_su_cosa, passo 2 -> p_note (staff), passo 3 -> p_per_allievo (voce "per te" del quadro, la legge l'allievo) */
-  const{error}=await sb.rpc('monitor_segna',{p_persona_id:pid,p_su_cosa:cosa,p_note:nota,p_per_allievo:per||null});
-  if(error){ btn.disabled=false; erroreChiaro('Non segnato',error); return; } // v2.34: resta a schermo
+  const{data:esito,error}=await sb.rpc('monitor_segna',{p_persona_id:pid,p_su_cosa:cosa,p_note:nota,p_per_allievo:per||null});
+  if(error){ btn.disabled=false; bozzaSalva(); erroreChiaro('Non segnato',error); return; } // v2.34: resta a schermo · v2.55 la bozza resta
+  bozzaTogli(pid); // v2.55
+  if(esito&&esito.fuori_turno)toast(`Report salvato nella scheda. Non eri in turno: non conta per il compenso.`);
   if(pid===schedaPid){ guida={...guidaNuova(),passo:'fatto',alle:hhmm(new Date()),fotoFatta:guida.fotoFatta}; disegnaGuida(true); }
   await loadMonitor();          // turno (si apre da solo), tabella OGGI e la scheda con la conferma
   if(pid===schedaPid)caricaScheda();
+}
+
+/* ── v2.55 REPORT QUANDO SERVE (consegna 10 nov): bozza sul telefono, "aggiungi e scrivi dopo", Da annotare ── */
+let daAnnotare=[];
+const bozzaChiave=pid=>'kc_sala_bozza:'+uid+':'+pid;
+function bozzaSalva(){
+  if(!schedaSala||!schedaPid)return;
+  try{
+    if(!(guida.cosa.trim()||guida.nota.trim()||guida.per.trim()||guida.perNiente)){ localStorage.removeItem(bozzaChiave(schedaPid)); return; }
+    localStorage.setItem(bozzaChiave(schedaPid),JSON.stringify({cosa:guida.cosa,nota:guida.nota,per:guida.per,perNiente:guida.perNiente,
+      passo:[1,2,3,4].includes(guida.passo)?guida.passo:1,quando:Date.now()}));
+  }catch(_){}
+}
+function bozzaTogli(pid){ try{ localStorage.removeItem(bozzaChiave(pid)); }catch(_){} }
+function bozzaRiprendi(pid){
+  try{
+    const b=JSON.parse(localStorage.getItem(bozzaChiave(pid))||'null'); if(!b)return false;
+    if(Date.now()-Number(b.quando||0)>3*86400000){ bozzaTogli(pid); return false; } // dopo 3 giorni non serve piu'
+    guida={...guida,cosa:b.cosa||'',nota:b.nota||'',per:b.per||'',perNiente:!!b.perNiente,passo:b.passo||1};
+    return true;
+  }catch(_){ return false; }
+}
+/* c'e' un turno di oggi (aperto o gia' chiuso) oppure un turno dichiarato che copre adesso: allora il report conta */
+function dichiaratoAdesso(){
+  const o=new Date(), hm=pad2(o.getHours())+':'+pad2(o.getMinutes());
+  return (impegniOggi||[]).some(x=>x.tipo==='monitor'&&(x.stato==='previsto'||x.stato==='presente')
+    &&minuti(hm)>=minuti(x.ora_inizio)-15&&minuti(hm)<minuti(x.ora_fine));
+}
+const haTurnoOggi=()=>!!(salaOggi&&salaOggi.turno)||dichiaratoAdesso();
+const inDaAnnotare=pid=>daAnnotare.some(x=>x.persona_id===pid);
+const puoAggiungereDopo=pid=>!!(salaOggi&&salaOggi.turno)&&!giaSegnato(pid)&&!inDaAnnotare(pid);
+async function aggiungiDopo(btn,poi){
+  const pid=schedaPid; if(!pid)return;
+  if(btn)btn.disabled=true;
+  const{error}=await sb.rpc('monitor_aggiungi_seguiti',{p_persona_ids:[pid]});
+  if(error){ if(btn)btn.disabled=false; erroreChiaro('Persona non aggiunta',error); return; }
+  bozzaSalva();
+  toast(`${nomeScheda()} è nel turno: la trovi in "Da annotare".`);
+  await loadDaAnnotare();
+  if(poi)poi(); else esciScheda();
+}
+async function loadDaAnnotare(){
+  try{
+    const{data,error}=await sb.rpc('monitor_da_annotare');
+    if(error)throw error;
+    daAnnotare=data||[];
+  }catch(e){ console.warn('[da annotare]',e?.message||e); daAnnotare=[]; }
+  disegnaDaAnnotare(); disegnaTurno(); if(papabili)disegnaGriglia(); // la griglia solo se gia' caricata
+}
+function disegnaDaAnnotare(){
+  const box=document.getElementById('t-annotare'), el=document.getElementById('annotare-corpo'); if(!box||!el)return;
+  const aperto=salaOggi&&salaOggi.turno&&!salaOggi.turno.fine?salaOggi.turno.id:null;
+  const L=daAnnotare.filter(x=>x.turno_id!==aperto); // quelli del turno aperto stanno nella tessera del turno
+  box.hidden=!L.length; if(!L.length){ el.innerHTML=''; return; }
+  const oggiIso=isoLocal(new Date());
+  const perTurno=new Map(); L.forEach(x=>{ const a=perTurno.get(x.turno_id)||[]; a.push(x); perTurno.set(x.turno_id,a); });
+  el.innerHTML=[...perTurno].map(([tid,P])=>{
+    const x0=P[0], d=String(x0.data).slice(0,10);
+    const quale=d===oggiIso?'di stasera':d===isoLocal(new Date(Date.now()-86400000))?'di ieri sera':'del '+giornoLungo(d);
+    const entro=new Date(x0.entro), entroTxt=(isoLocal(entro)===oggiIso?'oggi':'domani')+' alle '+hhmm(entro);
+    return `<div class="imp"><div class="imp-h">Ti ${P.length===1?'manca 1 report':'mancano '+P.length+' report'} del turno ${esc(quale)}</div>
+      <div class="imp-s">Puoi scriverli fino a ${esc(entroTxt)}. Tocca il nome.</div>
+      <div class="da-nomi">${P.map(x=>`<button class="btn" onclick="apriTurnoPersona('${esc(tid)}','${esc(x.persona_id)}')">${esc(((x.nome||'')+' '+(x.cognome||'')).trim())}</button>`).join('')}</div></div>`;
+  }).join('');
+}
+/* dal promemoria: la finestra del turno, gia' sulla persona da annotare */
+async function apriTurnoPersona(tid,pid){
+  await apriTurno(tid);
+  const x=retro&&retro.dett&&(retro.dett.seguiti||[]).find(s=>s.persona_id===pid);
+  if(x&&retro.dett.turno.modificabile){ retro.persona={id:pid,nome:x.nome||'—'}; retro.cosa=''; retro.nota=''; retro.per=''; retro.perNiente=false; retroVai('passo1'); }
 }
 
 /* ── v2.24 promemoria: turno non iniziato. Regola di Marco 23 ott: lun–ven 19–22, sabato 14–18,
@@ -3453,7 +3555,7 @@ let _promemoriaTimer=null;
 function avviaPromemoria(){
   if(_promemoriaTimer)return;
   _promemoriaTimer=setInterval(()=>{
-    disegnaTurno(); loadCompensoTurno(); disegnaAvvisoTurno();
+    disegnaTurno(); loadCompensoTurno(); disegnaAvvisoTurno(); loadDaAnnotare(); // v2.55
     if(!document.getElementById('scheda').hidden && schedaSala && guida.passo===4)disegnaGuida(); // l'ora del riepilogo
   },5*60000);
 }
@@ -3499,7 +3601,7 @@ function htmlTabTurni(L,conMonitor){
   return `<table class="tab"><thead><tr><th>Data</th>${conMonitor?'<th>Chi</th>':''}<th>Orario</th><th>Ore</th><th>Persone seguite</th><th>Nota di chiusura</th><th></th></tr></thead><tbody>${
     L.map(t=>`<tr><td>${giornoLungo(t.data)}</td>${conMonitor?`<td>${esc(t.monitor||'—')}</td>`:''}<td class="num">${hhmm(t.inizio)} → ${t.fine?hhmm(t.fine):'<span class="arancio">in corso</span>'}</td>
       <td class="num">${numIt(t.ore)}</td><td class="num">${t.persone??0}</td><td>${esc(t.note_turno||'')}</td>
-      <td>${t.fine?`<button class="btn tr-apri" onclick="apriTurno('${esc(t.turno_id)}')">${t.modificabile?'APRI E AGGIUNGI':'GUARDA'}</button>`:''}</td></tr>`).join('')
+      <td><button class="btn tr-apri" onclick="apriTurno('${esc(t.turno_id)}')">${t.modificabile?'APRI E AGGIUNGI':'GUARDA'}</button></td></tr>`).join('') /* v2.55 anche il turno in corso */
   }</tbody></table>`;
 }
 function disegnaTurni(){
@@ -3511,7 +3613,7 @@ function disegnaTurni(){
   const delMese=L.filter(t=>String(t.data).slice(0,7)===mese);
   const totOre=delMese.reduce((a,t)=>a+Number(t.ore||0),0), totPers=delMese.reduce((a,t)=>a+Number(t.persone||0),0);
   el.innerHTML=htmlTabTurni(L,false)+`<p class="tab-tot">Totale di ${MESI[ora.getMonth()]}: ${numIt(totOre)} ore · ${totPers} ${totPers===1?'persona seguita':'persone seguite'}</p>
-    <p class="aiuto">Hai dimenticato qualcuno o l'hai segnato sulla persona sbagliata? Apri il turno: fino a 7 giorni lo sistemi tu, oltre lo fa la segreteria.</p>`;
+    <p class="aiuto">Hai dimenticato qualcuno o un report? Apri il turno: fino alle 12 del giorno dopo lo completi tu, poi lo fa la segreteria.</p>`;
 }
 
 /* finestra del turno */
@@ -3547,16 +3649,18 @@ function retroVai(modo){ if(!retro)return; retro.modo=modo; disegnaRetro(true); 
 function disegnaRetro(fuoco){
   const el=document.getElementById('tr-corpo'); if(!el||!retro||!retro.dett)return;
   const T=retro.dett.turno||{}, L=retro.dett.seguiti||[];
-  const testa=`<h2 class="tr-tit">Turno di ${esc(giornoLungo(T.data))} · ${hhmm(T.inizio)} → ${hhmm(T.fine)}</h2>
+  const testa=`<h2 class="tr-tit">Turno di ${esc(giornoLungo(T.data))} · ${hhmm(T.inizio)} → ${T.fine?hhmm(T.fine):'in corso'}</h2>
     ${T.monitor_user_id!==uid?`<p class="aiuto">Turno di ${esc(T.monitor||'—')}</p>`:''}
-    ${T.modificabile?'':'<p class="aiuto">Questo turno è di più di 7 giorni fa: per aggiungere o spostare una nota chiedi alla segreteria.</p>'}`;
+    ${T.modificabile?(T.entro&&T.monitor_user_id===uid?`<p class="aiuto">Puoi completarlo fino a ${esc(giornoLungo(isoLocal(new Date(T.entro))))} alle ${hhmm(T.entro)}.</p>`:'')
+      :'<p class="aiuto">Il turno si completava fino alle 12 del giorno dopo: per aggiungere o spostare un report chiedi alla segreteria.</p>'}`; // v2.55
   let corpo='';
   if(retro.modo==='lista'){
     corpo=`<section class="sch-sez"><h3>Chi hai seguito</h3>${L.length?L.map((x,i)=>{
       const righe=String(x.note||'').split('\n').map(r=>r.trim()).filter(Boolean);
-      return `<div class="tr-pers"><b>${esc(x.nome||'—')}</b>
-        ${righe.length?`<div class="diario">${righe.map(r=>`<div class="dr">${esc(r)}</div>`).join('')}</div>`:'<p class="aiuto">Nessuna nota scritta.</p>'}
-        ${T.modificabile?`<div class="sch-btns"><button class="btn" onclick="retroSposta(${i})">SPOSTA SU UN'ALTRA PERSONA</button></div>`:''}</div>`;
+      const quando=`<p class="aiuto">aggiunto/a alle ${hhmm(x.primo_alle)}${x.scritta_alle?' · report aggiornato '+esc(giornoLungo(isoLocal(new Date(x.scritta_alle))))+' alle '+hhmm(x.scritta_alle):''}</p>`; // v2.55 l'orario resta visibile
+      return `<div class="tr-pers"><b>${esc(x.nome||'—')}</b>${righe.length?'':' <span class="sg-da">da annotare</span>'}${quando}
+        ${righe.length?`<div class="diario">${righe.map(r=>`<div class="dr">${esc(r)}</div>`).join('')}</div>`:''}
+        ${T.modificabile?`<div class="sch-btns">${righe.length?'':`<button class="btn prim" onclick="retroScriviPer(${i})">SCRIVI IL REPORT</button>`}<button class="btn" onclick="retroSposta(${i})">SPOSTA SU UN'ALTRA PERSONA</button></div>`:''}</div>`;
     }).join(''):'<p class="sch-vuoto">Nessuna persona segnata in questo turno.</p>'}
       ${T.modificabile?`<div class="sch-btns"><button class="btn prim" onclick="retro.daPersona=null;retroVai('cerca')">+ AGGIUNGI UNA PERSONA SEGUITA</button></div>`:''}</section>`;
   }else if(retro.modo==='cerca'){
@@ -3576,11 +3680,11 @@ function disegnaRetro(fuoco){
         ?`<div><span>Per ${n}:</span> niente</div>`
         :`<div><span>Per ${n} (lo legge lui/lei):</span> ${esc(retro.per.trim())}</div>`);
       corpo=`<section class="sch-sez">${pall}<p class="g-dom">Controlla e segna</p>
-        <div class="riep"><b>${n}</b> · turno di ${esc(giornoLungo(T.data))} ${hhmm(T.inizio)}–${hhmm(T.fine)}
+        <div class="riep"><b>${n}</b> · turno di ${esc(giornoLungo(T.data))} ${hhmm(T.inizio)}–${T.fine?hhmm(T.fine):'in corso'}
           <div><span>Su cosa:</span> ${esc(retro.cosa.trim())}</div>
           <div><span>Com'è andata:</span> ${esc(retro.nota.trim())}</div>
           ${perRiga}</div>
-        <p class="riga-fissa">Premendo SEGNA, ${n} risulta seguito/a in quel turno e la nota va nel giorno ${esc(giornoLungo(T.data))}. Resta scritto «aggiunta il ${pad2(new Date().getDate())}/${pad2(new Date().getMonth()+1)}».</p>
+        <p class="riga-fissa">Premendo SEGNA, ${n} risulta seguito/a in quel turno e la nota va nel giorno ${esc(giornoLungo(T.data))}. Resta scritto «scritta il ${pad2(new Date().getDate())}/${pad2(new Date().getMonth()+1)} alle ${hhmm(new Date())}».</p>
         <div class="sch-btns"><button class="btn" onclick="retroVai('${conPer?'passo3':'passo2'}')">INDIETRO</button>
           <button class="btn prim" onclick="retroSegna(this)">SEGNA</button></div></section>`;
     }else{
@@ -3644,8 +3748,14 @@ async function retroSegna(btn){
   const{error}=await sb.rpc('monitor_nota_turno',{p_turno_id:retro.id,p_persona_id:retro.persona.id,p_su_cosa:retro.cosa.trim(),p_note:retro.nota.trim(),p_per_allievo:per||null});
   if(error){ btn.disabled=false; erroreChiaro('Nota non salvata',error); return; }
   toast(`Fatto: ${retro.persona.nome} è segnato/a nel turno.`);
+  loadDaAnnotare(); // v2.55
   retro.persona=null; retro.cosa=''; retro.nota=''; retro.per=''; retro.perNiente=false; retro.modo='lista';
   await caricaTurno(); loadTurniElenco(); loadTurniTutti();
+}
+function retroScriviPer(i){ // v2.55 report di chi e' gia' nel turno, da annotare
+  const x=retro&&retro.dett&&(retro.dett.seguiti||[])[i]; if(!x)return;
+  retro.persona={id:x.persona_id,nome:x.nome||'—'}; retro.cosa=''; retro.nota=''; retro.per=''; retro.perNiente=false;
+  retroVai('passo1');
 }
 function retroSposta(i){
   const x=retro&&retro.dett&&(retro.dett.seguiti||[])[i]; if(!x)return;
