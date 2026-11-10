@@ -24,10 +24,10 @@ DO $$ DECLARE k1 int; k2 int; s1 numeric; s2 numeric; BEGIN
   SELECT sum(importo) INTO s2 FROM get_compenso_monitor('2026-10-01','2026-10-31');
   INSERT INTO esiti VALUES (DEFAULT, '7 compensi identici: tutti i turni della vista e get_compenso_monitor ott–nov', k1 = 0 AND k2 = 0 AND s1 = s2,
     'righe diverse vista ' || k1 || ' · get_compenso ' || k2 || ' · ottobre ' || s1 || ' → ' || s2);
-  INSERT INTO esiti SELECT DEFAULT, '7b turni esistenti: origine dal 9/11 da created_at (stasera Giammarco, segnato oggi alle 12:04)',
+  INSERT INTO esiti (prova, ok, dettaglio) SELECT '7b turni esistenti: origine dal 9/11 da created_at (stasera Giammarco, segnato oggi alle 12:04)',
     origine = 'giorno_stesso', _nome_staff(user_id) || ' ' || data || ' ' || ora_inizio || ' → ' || coalesce(origine,'—')
     FROM impegni_staff WHERE id = '35d6e673-e3ee-4e54-8b11-56ec18b29e59';
-  INSERT INTO esiti SELECT DEFAULT, '7c prima del 9/11 origine vuota', count(*) = 0, count(*) || ' righe con origine'
+  INSERT INTO esiti (prova, ok, dettaglio) SELECT '7c prima del 9/11 origine vuota', count(*) = 0, count(*) || ' righe con origine'
     FROM impegni_staff WHERE tipo = 'monitor' AND data < '2026-11-09' AND origine IS NOT NULL;
 END $$;
 
@@ -181,6 +181,35 @@ DO $$ DECLARE r jsonb; BEGIN
       AND (SELECT revisione_esito FROM impegni_staff WHERE id = (r->>'id')::uuid) = 'confermato', r::text);
 EXCEPTION WHEN OTHERS THEN
   INSERT INTO esiti VALUES (DEFAULT, '8 segreteria a posteriori per Mattia (2/11)', SQLERRM LIKE '%già%', 'bloccato (2/11 occupato o già suo): ' || SQLERRM);
+END $$;
+
+-- 10. report sempre leggibili: due report di Mattia su Bognanni lo stesso giorno, fuori turno → due righe con l'ora, nome di Mattia
+DO $$ DECLARE r1 jsonb; r2 jsonb; n text; righe text[]; o jsonb; b uuid := 'dfed419c-0a19-4cd6-a18e-bdb702a6c5da'; BEGIN
+  PERFORM pg_temp.come('bc680f11-8f0f-4d4f-bc46-1bec466f4d36');   -- Mattia: stasera il suo turno 20–22 è aperto dalla prova 2; qui scrive su un giorno senza turno
+  DELETE FROM turni_monitor WHERE monitor_user_id = 'bc680f11-8f0f-4d4f-bc46-1bec466f4d36' AND data = CURRENT_DATE;   -- solo dentro la prova
+  r1 := monitor_segna(b, 'Prima serata: piedi su P2', E'Bene sui piedi,\nda riprendere i dinamici', NULL);
+  r2 := monitor_segna(b, 'Seconda volta: lettura via', 'Più calmo nella lettura', NULL);
+  SELECT note INTO n FROM osservazioni_allievo WHERE persona_id = b AND istruttore_user_id = 'bc680f11-8f0f-4d4f-bc46-1bec466f4d36' AND data = CURRENT_DATE AND contesto = 'sala_monitor';
+  righe := string_to_array(n, E'\n');
+  INSERT INTO esiti VALUES (DEFAULT, '10 due report fuori turno su Bognanni: due righe, ognuna con l''ora in testa, "fuori turno"',
+    (r1->>'fuori_turno')::boolean AND (r2->>'fuori_turno')::boolean AND cardinality(righe) = 2
+      AND righe[1] ~ '^[0-9]{2}:[0-9]{2} — Prima serata' AND righe[2] ~ '^[0-9]{2}:[0-9]{2} — Seconda volta' AND n LIKE '%Bene sui piedi, / da riprendere%',
+    n);
+  INSERT INTO esiti VALUES (DEFAULT, '10b l''ora è quella in cui è scritto (19:30 e 21:10)',
+    _sala_riga('prova', _ts_roma(CURRENT_DATE,'19:30')) LIKE '19:30 — prova' AND _sala_riga('prova', _ts_roma(CURRENT_DATE,'21:10')) LIKE '21:10 — prova'
+      AND _sala_riga('21:10 — già con l''ora') = '21:10 — già con l''ora', _sala_riga('prova', _ts_roma(CURRENT_DATE,'19:30')));
+  PERFORM pg_temp.come('1425639b-da30-4a1a-af18-e1853c3bb286');
+  SELECT x INTO o FROM jsonb_array_elements(get_scheda_allievo(b)->'osservazioni') x
+   WHERE x->>'contesto' = 'sala_monitor' AND (x->>'data')::date = CURRENT_DATE AND x->>'autore' = 'Mattia Seghezzi';
+  INSERT INTO esiti VALUES (DEFAULT, '10c nella scheda di Bognanni: la nota con le due righe e il nome di Mattia',
+    o IS NOT NULL AND o->>'note' = n, coalesce(o->>'autore','—') || ' · ' || coalesce(o->>'data','—'));
+  -- report sul turno del 9/11 scritto oggi (dalla segreteria: per Giammarco la finestra è chiusa e il turno è già confermato)
+  PERFORM pg_temp.come('1425639b-da30-4a1a-af18-e1853c3bb286');
+  PERFORM monitor_nota_turno('9acb288b-d7d1-4ac2-ab2a-7f6c90358f83', b, 'Report scritto il giorno dopo', 'Lo aggiungo a posteriori', NULL);
+  SELECT note INTO n FROM osservazioni_allievo WHERE persona_id = b AND istruttore_user_id = '77335928-3073-42ae-a327-fc2774d1d966' AND data = CURRENT_DATE - 1 AND contesto = 'sala_monitor';
+  INSERT INTO esiti VALUES (DEFAULT, '10d report sul turno di ieri: giorno del turno + "scritta il … alle …"', n LIKE '%turno 19:56–22:00 — Report scritto il giorno dopo%scritta il%alle%Roberta%', n);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO esiti VALUES (DEFAULT, '10 report sempre leggibili', false, SQLERRM);
 END $$;
 
 -- 9. impianto: blocco 11 nel cron, permessi

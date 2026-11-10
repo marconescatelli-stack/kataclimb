@@ -36,6 +36,11 @@
 --  7. Avvisi (worker v3.2): turno.a_posteriori (subito, quiete 22–08) e turni.scoperti (blocco 11 nel cron, tra le 10 e
 --     le 12 ora di Roma, una volta al giorno con dedup_key; domeniche e giorni_chiusi esclusi). canale push, user_id NULL.
 --  _monitor_impegno_adesso / apertura turno: nessun cambiamento (giorno_stesso si apre come prima; 'da_confermare' no).
+--  12. REPORT SEMPRE LEGGIBILI (Marco, 10 nov): i report contano a prescindere da turni e pagamento. Le note di sala restano
+--     una riga per persona, istruttore e giorno (l'unicità la usano turno, Da annotare, sposta nota), ma ogni report
+--     accodato diventa UNA riga che comincia con l'ora in cui è scritto (_sala_riga): gli a capo dentro il testo non
+--     spezzano più il report in righe senza ora. monitor_segna (anche fuori turno), salva_osservazione, monitor_nota_turno
+--     passano tutti da qui. Lo storico già scritto non si tocca. Nessun report dipende dallo stato del turno.
 -- ═══════════════════════════════════════════════════════════════════════════════════════════════
 
 -- ── 0. colonne, stato nuovo ─────────────────────────────────────────────────────────────────────
@@ -647,11 +652,89 @@ BEGIN
   EXECUTE d;
 END $do$;
 
+-- ── 12. report: ogni riga con l'ora in cui è scritto ────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public._sala_riga(p_riga text, p_quando timestamptz DEFAULT now())
+ RETURNS text LANGUAGE sql STABLE SET search_path TO 'public'
+AS $$
+  SELECT CASE WHEN r ~ '^([0-9]{2}:[0-9]{2}|turno )' THEN r      -- ha già l'ora (o "turno HH:MI–HH:MI … scritta il …")
+              ELSE to_char(p_quando AT TIME ZONE 'Europe/Rome','HH24:MI') || ' — ' || r END
+    FROM (SELECT regexp_replace(trim(coalesce(p_riga,'')), '\s*\n\s*', ' / ', 'g') AS r) z
+$$;
+
+CREATE OR REPLACE FUNCTION public._sala_annota(p_turno_id uuid, p_persona_id uuid, p_quando timestamp with time zone, p_riga text)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE t turni_monitor%ROWTYPE; v_id uuid; v_riga text;
+BEGIN
+  SELECT * INTO t FROM turni_monitor WHERE id = p_turno_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Turno non trovato'; END IF;
+  IF p_persona_id IS NULL THEN RAISE EXCEPTION 'Scegli la persona che hai seguito'; END IF;
+  IF coalesce(trim(p_riga),'') = '' THEN RAISE EXCEPTION 'La nota e'' vuota'; END IF;
+  v_riga := _sala_riga(p_riga, now());   -- 10/11: un report = una riga con l'ora in cui è scritto
+  -- la riga e' del monitor del turno e del giorno del turno (anche quando la scrive la segreteria)
+  INSERT INTO osservazioni_allievo (persona_id, istruttore_user_id, data, contesto, note, created_at)
+  VALUES (p_persona_id, t.monitor_user_id, t.data, 'sala_monitor', v_riga, p_quando)
+  ON CONFLICT (persona_id, istruttore_user_id, data) WHERE contesto = 'sala_monitor' DO UPDATE
+    SET note = COALESCE(nullif(osservazioni_allievo.note,'') || E'\n','') || v_riga, updated_at = now()
+  RETURNING id INTO v_id;
+  INSERT INTO turni_monitor_seguiti (turno_id, persona_id, primo_alle, ultimo_alle)
+  VALUES (p_turno_id, p_persona_id, p_quando, p_quando)
+  ON CONFLICT (turno_id, persona_id) DO UPDATE
+    SET primo_alle = LEAST(turni_monitor_seguiti.primo_alle, EXCLUDED.primo_alle),
+        ultimo_alle = GREATEST(turni_monitor_seguiti.ultimo_alle, EXCLUDED.ultimo_alle);
+  RETURN v_id;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.monitor_segna(p_persona_id uuid, p_su_cosa text, p_note text DEFAULT NULL::text, p_per_allievo text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE v_turno uuid; v_id uuid; v_riga text; v_pa text; v_fuori boolean := false;
+BEGIN
+  IF auth.uid() IS NULL OR NOT is_staff() THEN RAISE EXCEPTION 'Solo staff'; END IF;
+  IF length(trim(coalesce(p_su_cosa,''))) < 10 THEN RAISE EXCEPTION 'Scrivi su cosa avete lavorato'; END IF;
+  IF length(trim(coalesce(p_note,''))) < 10 THEN RAISE EXCEPTION 'Scrivi com''è andata'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM persone WHERE id = p_persona_id) THEN RAISE EXCEPTION 'Persona non trovata'; END IF;
+  SELECT id INTO v_turno FROM turni_monitor WHERE monitor_user_id=auth.uid() AND data=CURRENT_DATE AND fine IS NULL ORDER BY inizio DESC LIMIT 1;
+  -- turno dichiarato che copre adesso e sala non finita: il report apre (o riapre) il turno, vale come presenza
+  IF v_turno IS NULL AND now() < _sala_fine_oggi()
+     AND (CURRENT_DATE < monitor_regola_dal() OR (_monitor_impegno_adesso(auth.uid())).id IS NOT NULL) THEN
+    v_turno := _monitor_apri_turno();
+  END IF;
+  -- altrimenti va sul mio ultimo turno di oggi, anche se già chiuso (la chiusura delle 22 non fa perdere niente)
+  IF v_turno IS NULL THEN
+    SELECT id INTO v_turno FROM turni_monitor WHERE monitor_user_id=auth.uid() AND data=CURRENT_DATE ORDER BY inizio DESC LIMIT 1;
+  END IF;
+  -- nessun turno oggi: report libero, resta nella scheda, nessun compenso
+  v_fuori := v_turno IS NULL;
+  v_riga := _sala_riga(trim(p_su_cosa)||' ('||trim(p_note)||')', now());   -- 10/11: una riga, con l'ora in testa
+  IF v_fuori THEN
+    INSERT INTO osservazioni_allievo (persona_id, istruttore_user_id, data, contesto, note, created_at)
+    VALUES (p_persona_id, auth.uid(), CURRENT_DATE, 'sala_monitor', v_riga || ' · fuori turno', now())
+    ON CONFLICT (persona_id, istruttore_user_id, data) WHERE contesto = 'sala_monitor' DO UPDATE
+      SET note = COALESCE(nullif(osservazioni_allievo.note,'') || E'\n','') || v_riga || ' · fuori turno', updated_at = now()
+    RETURNING id INTO v_id;
+  ELSE
+    v_id := _sala_annota(v_turno, p_persona_id, now(), v_riga);
+  END IF;
+  v_pa := nullif(trim(coalesce(p_per_allievo,'')),'');
+  IF v_pa IS NOT NULL THEN
+    PERFORM quadro_aggiungi(p_persona_id, 'sala_monitor', jsonb_build_array(jsonb_build_object('tipo','per_te','testo',v_pa)));
+  END IF;
+  RETURN jsonb_build_object('ok',true,'id',v_id,'turno_id',v_turno,'fuori_turno',v_fuori,'per_allievo',v_pa IS NOT NULL);
+END $function$;
+
 -- ── 11. permessi ────────────────────────────────────────────────────────────────────────────────
 REVOKE ALL ON FUNCTION public._monitor_origine(date, time, timestamptz) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public._monitor_avvisa_a_posteriori(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public._monitor_lega_turno(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public._turni_scoperti_avvisa(boolean) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._sala_riga(text, timestamptz) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.monitor_turno_in_revisione(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.monitor_turno_in_revisione(uuid) TO authenticated;
 REVOKE ALL ON FUNCTION public.monitor_rivedi_turno(uuid, boolean, text) FROM PUBLIC, anon;
