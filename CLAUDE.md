@@ -52,6 +52,33 @@ Cloudflare Pages/Workers/R2 + Supabase + Brevo (email transazionali) + Stripe + 
 - RPC PUBBLICHE (sicurezza, 6 nov 2026 — Master v4.23): le funzioni nuove nascono CHIUSE a chi non ha login. Se una pagina senza login (inizia*, orari, eventi, evento, proposta-*, questionario-prima, completa-contatti, arrampichi-gia, listino-corsi-*, sumisura, prima-lezione-privata) chiama una RPC nuova, l'SQL della consegna deve contenere `GRANT EXECUTE ON FUNCTION public.<nome>(<argomenti>) TO anon;`. Senza quella riga la pagina riceve 401. Non aprire mai al pubblico funzioni che scrivono dati di persone già registrate.
 - GUARDIA D'IDENTITÀ (trappola T-UID-NULL): nelle funzioni SECURITY DEFINER il controllo si scrive `IF auth.uid() IS NULL OR …` (oppure `IS DISTINCT FROM`), mai solo `IF p_user_id <> auth.uid()`: senza login quel confronto vale NULL e non blocca.
 
+## Turni monitor, report e note (Marco, 9–11 nov 2026 — dettaglio in `sql/monitor/08`–`12`)
+
+Regola attiva dal 9/11/2026 (`monitor_regola_dal()`); prima vale lo storico (foglio cartaceo della segreteria). Ore intere, fascia lun–ven 19–22, sabato 14–18, domenica chiuso.
+
+**Quando si dichiara il turno** (`impegni_staff.origine`, `_monitor_origine`):
+- **Dichiarato** = segnato entro il giorno prima (fino alle 23:59 ora di Roma). È il buon uso.
+- **Giorno stesso**: se l'ora è libera vale e si paga, ma resta marcato `giorno_stesso`. Se l'ora è di un collega si passa solo dalla sostituzione (proponi / accetta).
+- **A posteriori**: senza scadenza. Stato `da_confermare` ("da rivedere"), non si paga finché la segreteria non conferma (`monitor_rivedi_turno`; respinto = `ritirato` con nota, mai cancellato). Se l'ora era già di un altro decide la segreteria. Se lo segna Marco o la segreteria è già confermato.
+
+**Pagamento:**
+- Un solo monitor pagato per ora. Il secondo solo con doppio turno creato da Marco o dalla segreteria, con il motivo (`monitor_doppio_turno`).
+- Il monitor si paga solo se segue persone: un turno senza persone seguite è Sala, non monitor.
+- Nelle ore in cui si fa lezione non si è anche monitor.
+- ⚠️ Al 11/11/2026 il DB NON impone ancora questi ultimi due punti: `v_compenso_turni_monitor` paga 5 €/ora le ore dichiarate anche senza persone (8 € per le persone annotate, mai più delle ore) e `monitor_dichiara_turno` non controlla le lezioni. Non dare per scontato che il DB li applichi: serve una migrazione nuova, col "vai" di Marco.
+
+**Report e note:**
+- I report sono liberi (chiunque dello staff, a chiunque, quando vuole, anche fuori turno) e **separati dal pagamento**: un report fuori turno resta nella scheda ma non paga. L'ora di scrittura resta visibile (`_sala_riga`).
+- Note di corso con **storico**: ogni riscrittura è una riga nuova, mai sovrascritta (`salva_osservazione`, sql 11). L'allievo vede l'ultima versione e, al tocco, lo storico.
+- **Solo gli istruttori** (`staff_istruttore_jr`/`_sr`/`_tutor` e `staff_creator`) scrivono note visibili all'allievo. **Lo impone il DB** (`puo_scrivere_allievo`, sql 12): osservazione visibile da un non istruttore → rifiutata; voci del quadro da un non istruttore → salvate solo per lo staff (`solo_staff`). La segreteria scrive solo note di segreteria.
+
+**Avvisi — worker notifiche live v3.3** (tabella `eventi_notifica`):
+- `turno.cambio.*` (proposto, accettato, rifiutato, ritirato, scaduto; proposta "a tutti" con `user_id` NULL) — sql 08c;
+- `turni.scoperti`: ogni giorno tra le 10 e le 12, ore scoperte di domani e dopodomani (domenica e giorni chiusi esclusi) — sql 10;
+- `turno.a_posteriori`: alla segreteria, subito (quiete 22–08) — sql 10;
+- email allo staff.
+- Gli SQL nel repo citano ancora v3.0–v3.2 (il contratto degli eventi è quello); la versione live è la v3.3.
+
 ## Regole di codice
 
 - Consegnare file completi e deployabili, mai diff parziali da ricomporre a mano.
