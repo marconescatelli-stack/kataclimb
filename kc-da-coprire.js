@@ -1,6 +1,9 @@
 /* ════════════════════════════════════════════════════════════════════════
- * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.3 (10 nov 2026)
+ * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.4 (11 nov 2026)
  * ════════════════════════════════════════════════════════════════════════
+ * KC-BUILD: kc-da-coprire v1.4 · 2026-11-11 · TURNO IN CORSO (consegna Marco 11 nov, DB sql/monitor/13): un turno di oggi segnato mentre la fascia
+ *   e' in corso vale come giorno stesso dall'ora in corso. Quindi per oggi un'ora libera resta "da coprire" finche' non e' FINITA (prima: finche'
+ *   non era iniziata). kcOreLibereMonitor(data, impegni, adessoHm): con adessoHm toglie le ore gia' finite. Nient'altro cambia. CUMULA v1.3 (sotto).
  * KC-BUILD: kc-da-coprire v1.3 · 2026-11-10 · TURNI A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10): un turno monitor segnato a posteriori
  *   (stato da_confermare, da rivedere dalla segreteria) copre le sue ore come previsto/presente: quelle ore non risultano libere.
  *   Nient'altro cambia. CUMULA v1.2 (sotto).
@@ -59,8 +62,8 @@
     for(let h=h0;h<h1;h++){
       const a=pad2(h)+':00', b=pad2(h+1)+':00';
       const coperta=attivi.some(x=>hm(x.ora_inizio)<b&&hm(x.ora_fine)>a);
-      const iniziata=!!adessoHm&&a<=adessoHm;
-      if(!coperta&&!iniziata){ if(cur&&cur.fin===a)cur.fin=b; else{ cur={ini:a,fin:b}; out.push(cur); } }
+      const finita=!!adessoHm&&b<=adessoHm; // v1.4: l'ora in corso si puo' ancora prendere
+      if(!coperta&&!finita){ if(cur&&cur.fin===a)cur.fin=b; else{ cur={ini:a,fin:b}; out.push(cur); } }
       else cur=null;
     }
     return out;
