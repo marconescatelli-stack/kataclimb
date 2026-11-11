@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.13 · 2026-11-11 · TURNO IN CORSO (consegna Marco 11 nov, DB sql/monitor/13; caso Mattia 11/11 alle 19:02). (1) Modulo DICHIARA di oggi: finché la fascia non è finita si sceglie anche l'ora in corso (e le ore già finite): il DB fa valere subito il turno dall'ora in corso (giorno stesso, previsto) e tiene a posteriori, da rivedere dalla segreteria, solo le ore già finite. Prima di confermare la pagina lo dice ("Dalle 20 vale subito. L'ora 19–20 è già passata: resta da rivedere dalla segreteria."), anche su MI SEGNO della bacheca e della disponibilità. (2) Se il turno vale subito, dopo la conferma la pagina porta dritto a Oggi?inizia=turno, che apre il turno e passa a "Chi segui stasera?". (3) "Ore libere", "Mancano monitor" e la bacheca contano l'ora in corso finché non è finita (kc-da-coprire v1.4, caricato con ?v=1.4 perché il service worker tiene i .js in cache). (4) I miei impegni: il turno da_confermare si legge "da rivedere dalla segreteria" (prima: "segna la presenza su Oggi"). Scritture sempre e solo via RPC. CUMULA v1.12. -->
 <!-- KC-BUILD: turni v1.12 · 2026-11-10 · GIORNO PRIMA, GIORNO STESSO, A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10). (1) Griglia monitor: ogni turno mostra un segno discreto, "giorno stesso" (arancio, impegni_staff.origine giorno_stesso, non sui doppi turni) o "da rivedere" (grigio, stato da_confermare: segnato a posteriori, non si paga finché la segreteria non conferma); dopo la conferma "a posteriori ✓". Creator e segreteria hanno CONFERMA / RESPINGI (nota obbligatoria) sui turni da rivedere, via monitor_rivedi_turno; ANNULLA resta sugli altri. (2) Segnarsi per oggi (DICHIARO, MI SEGNO della bacheca e della disponibilità): prima di confermare il portale dice "Vale, ma la prossima volta segnati entro il giorno prima: così gli altri sanno che la sala è coperta." Spiega, non blocca. (3) In cima alla pagina il riquadro "Mancano monitor" con le ore ancora scoperte di oggi (non iniziate), domani e dopodomani, e MI SEGNO che apre il modulo del turno su quel giorno. (4) Testo della sezione Turni monitor aggiornato (entro il giorno prima; a posteriori da Oggi → I miei turni). Scritture sempre e solo via RPC. CUMULA v1.11. -->
 <!-- KC-BUILD: turni v1.11 · 2026-11-10 · DOPPIO TURNO (consegna Marco v2 10 nov, DB sql/monitor/09): nella griglia monitor il turno creato dalla segreteria come doppio turno si legge "doppio turno: motivo". La pagina non propone mai il doppio turno agli istruttori (lo crea solo creator/segreteria dal portale). CUMULA v1.10 (sotto). -->
 <!-- KC-BUILD: turni v1.10 · 2026-11-09 · TURNI MONITOR DICHIARATI PRIMA + CAMBIO TURNO CON ACCETTAZIONE (consegna Marco 9 nov, DB sql/monitor/08). (1) TURNI MONITOR a ore intere: in ogni giorno l'elenco dei turni dichiarati con le ore (es. 19–20 Claudia, 20–22 Mattia), le ore libere e DICHIARA IL TURNO -> scelta "dalle/alle" solo tra le ore libere non ancora iniziate -> "sei sicuro?" che ricorda di aprire il turno su Oggi -> monitor_dichiara_turno (il DB controlla ore intere, fascia lun-ven 19-22 / sab 14-18, prima dell'inizio, nessuna sovrapposizione). Creator e segreteria scelgono anche "per chi" con il motivo obbligatorio (caso eccezionale, resta scritto chi l'ha fatto) e hanno ANNULLA su ogni turno (monitor_annulla_turno con la nota, mai cancellato); sotto il nome "dichiarato da …" quando non l'ha fatto la persona. (2) PROPONI A UN COLLEGA sui propri turni non ancora iniziati: collega preciso o "a chiunque dello staff", nota facoltativa, "sei sicuro?" (finche' non accetta il turno resta tuo) -> monitor_proponi_cambio. (3) Sezione nuova "🔁 Cambi turno monitor" sotto Da coprire: le proposte per te con ACCETTO / NO, GRAZIE (monitor_rispondi_cambio, con "sei sicuro?"), le tue in attesa con RITIRA LA PROPOSTA (monitor_ritira_cambio), lo storico degli ultimi 14 giorni (chi, a chi, accettato/rifiutato il …). (4) MI TOLGO sul turno monitor solo prima che inizi. Bacheca: le ore libere a blocchi (kc-da-coprire v1.2). CUMULA v1.9 (sotto). -->
@@ -21,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/kc-da-coprire.js"></script>
+<script src="/kc-da-coprire.js?v=1.4"></script>
 <style>
 :root{
   --nero:#141414; --tile:#1E1E1E; --bianco:#FFF; --grigio:#B8B8B8; --velo:rgba(255,255,255,.08);
@@ -203,7 +204,7 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
   <div id="lezioni"><p class="vuota">…</p></div>
 
   <div class="zona">Turni monitor</div>
-  <p class="nota-zona">Sala con Monitor, prossime 2 settimane. Segnati entro il giorno prima, a ore intere (lunedì–venerdì dalle 19 alle 22, sabato dalle 14 alle 18), un monitor alla volta. Il giorno stesso vale se l'ora è libera, ma resta segnato «giorno stesso». Quando arrivi apri il turno su Oggi. Se eri in sala senza esserti segnato, segnati dopo da Oggi → I miei turni: resta da rivedere dalla segreteria e si paga quando lo conferma.</p>
+  <p class="nota-zona">Sala con Monitor, prossime 2 settimane. Segnati entro il giorno prima, a ore intere (lunedì–venerdì dalle 19 alle 22, sabato dalle 14 alle 18), un monitor alla volta. Il giorno stesso vale se l'ora è libera, ma resta segnato «giorno stesso»; anche a turno iniziato vale dall'ora in corso, le ore già finite restano da rivedere dalla segreteria. Quando arrivi apri il turno su Oggi. Se eri in sala senza esserti segnato, segnati dopo da Oggi → I miei turni: resta da rivedere dalla segreteria e si paga quando lo conferma.</p>
   <div id="monitor"><p class="vuota">…</p></div>
 
   <div class="zona">I miei impegni</div>
@@ -381,12 +382,13 @@ async function nonPiuDisp(id,btn){
 /* MI SEGNO da chi aveva detto "sono disponibile": prende il turno davvero */
 async function segnaCtx(k,btn){
   const c=dispCtx[k]; if(!c)return;
-  if(c.tipo==='monitor'&&perOggi(c.data)&&!confirm(`Ti segni per oggi, ${c.ini}–${c.fin}.\n\n${MSG_GIORNO_STESSO}`))return; // v1.12
+  if(c.tipo==='monitor'&&perOggi(c.data)&&!confirm(`Ti segni per oggi, ${c.ini}–${c.fin}.\n\n${testoTurnoOggi(c.ini,c.fin)}`))return; // v1.12 · v1.13
   btn.disabled=true;
   const r=c.tipo==='monitor'
     ?await sb.rpc('impegno_mi_segno',{p_tipo:'monitor',p_data:c.data,p_ora_inizio:c.ini,p_ora_fine:c.fin})
     :await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:c.slot_id,p_data:c.data,p_ruolo:RUOLI_CONDUCE.includes(staffRole)?'conduce':'supporto'});
   if(r.error){ btn.disabled=false; toast('Non segnato: '+errTesto(r.error)); return; }
+  if(c.tipo==='monitor'&&vaiAInizia(r.data))return; // v1.13
   toast('Segnato. Grazie!');
   carica();
 }
@@ -443,13 +445,14 @@ function disegnaBacheca(){
 }
 async function bachecaSegno(i,btn){
   const v=bacheca&&bacheca.voci[i]; if(!v)return;
-  if(v.tipo==='monitor'&&perOggi(v.data)&&!confirm(`Ti segni per oggi, ${v.ini}–${v.fin}.\n\n${MSG_GIORNO_STESSO}`))return; // v1.12
+  if(v.tipo==='monitor'&&perOggi(v.data)&&!confirm(`Ti segni per oggi, ${v.ini}–${v.fin}.\n\n${testoTurnoOggi(v.ini,v.fin)}`))return; // v1.12 · v1.13
   btn.disabled=true;
   const ruolo=RUOLI_CONDUCE.includes(staffRole)?'conduce':'supporto';
   const r=v.tipo==='monitor'
     ?await sb.rpc('impegno_mi_segno',{p_tipo:'monitor',p_data:v.data,p_ora_inizio:v.ini,p_ora_fine:v.fin})
     :await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:v.slot_id,p_data:v.data,p_ruolo:ruolo});
   if(r.error){ btn.disabled=false; toast('Non segnato: '+errTesto(r.error)); return; }
+  if(v.tipo==='monitor'&&vaiAInizia(r.data))return; // v1.13
   toast(v.tipo==='monitor'?`Turno ${v.ini}–${v.fin} dichiarato. Quel giorno aprilo su Oggi quando arrivi.`:'Segnato. Grazie!');
   carica();
 }
@@ -790,6 +793,36 @@ const adessoHm=()=>{ const d=new Date(); return pad2(d.getHours())+':'+pad2(d.ge
 const giaIniziato=x=>x.data<isoLocal(new Date())||(x.data===isoLocal(new Date())&&ora(x.ora_inizio)<=adessoHm());
 const oreTxt=x=>`${ora(x.ora_inizio)}–${ora(x.ora_fine)}`;
 const cambioAperto=impId=>cambi.find(c=>c.impegno_id===impId&&c.stato==='proposta')||null;
+/* v1.13 (sql/monitor/13) modulo DICHIARA: oggi, finché la fascia non è finita, tutte le ore libere della fascia.
+   Il DB tiene a posteriori le ore già finite e fa valere subito quella in corso; prima di confermare la pagina lo dice. */
+function liberePerModulo(di){
+  if(!window.kcOreLibereMonitor)return [];
+  const L=kcOreLibereMonitor(di,impMon,null);
+  if(di!==isoLocal(new Date()))return L;
+  const f=(window.KC_FASCE_MONITOR_GIORNO||{})[dLoc(di).getDay()];
+  return f&&adessoHm()<f.fin?L:[];
+}
+/* v1.13 prima di confermare un turno di oggi: cosa vale subito e cosa resta a posteriori (la stessa regola di monitor_dichiara_turno) */
+function testoTurnoOggi(ini,fin){
+  const ora=adessoHm(), h=ora.slice(0,2)+':00', hh=x=>String(Number(String(x).slice(0,2)));
+  if(fin<=ora)return 'Queste ore sono già passate: il turno resta da rivedere dalla segreteria e si paga quando lo conferma.';
+  if(ini<h){
+    const una=Number(h.slice(0,2))-Number(ini.slice(0,2))===1;
+    return `Dalle ${hh(h)} vale subito. ${una?"L'ora":'Le ore'} ${hh(ini)}–${hh(h)} ${una?'è già passata: resta':'sono già passate: restano'} da rivedere dalla segreteria.`;
+  }
+  if(ini<=ora)return 'Il turno è già iniziato: vale subito e lo apri appena confermi.';
+  return MSG_GIORNO_STESSO;
+}
+/* v1.13 dopo la conferma: se il turno vale adesso, dritto a INIZIO TURNO su Oggi */
+function vaiAInizia(r){
+  if(!(r&&r.subito&&r.subito.apribile_adesso))return false;
+  toast(r.a_posteriori?`Fatto. Dalle ${String(r.subito.ora_inizio).slice(0,5)} vale subito: apriamo il turno. Il resto è da rivedere dalla segreteria.`:'Fatto. Il turno vale subito: apriamo il turno.');
+  setTimeout(()=>{ location.href='/oggi.html?inizia=turno'; },900);
+  return true;
+}
+const esitoTurno=(r,normale)=>r&&r.a_posteriori&&!r.subito
+  ?(r.a_posteriori.stato==='da_confermare'?'Fatto: turno segnato a posteriori, da rivedere dalla segreteria.':'Fatto: turno segnato e già confermato.')
+  :normale;
 function disegnaMonitor(lunedi){
   lunedi=lunedi||_lunediMon; if(!lunedi)return;
   const oggiIso=isoLocal(new Date());
@@ -802,7 +835,8 @@ function disegnaMonitor(lunedi){
       html+=`<div class="giorno${passato?' passato':''}"><h3>${GIORNI_FULL[d.getDay()]} ${d.getDate()}</h3>`;
       (FASCE_MONITOR_GIORNO[d.getDay()]||[]).forEach(f=>{
         const seg=impMon.filter(i=>i.data===di&&ora(i.ora_inizio)<f.fin&&ora(i.ora_fine)>f.ini).sort((a,b)=>ora(a.ora_inizio).localeCompare(ora(b.ora_inizio)));
-        const libere=passato?[]:(window.kcOreLibereMonitor?kcOreLibereMonitor(di,impMon,di===oggiIso?adessoHm():null):[]);
+        const libere=passato?[]:liberePerModulo(di); // v1.13 il modulo: oggi anche l'ora in corso (e le finite, a posteriori)
+        const libereOra=passato?[]:(window.kcOreLibereMonitor?kcOreLibereMonitor(di,impMon,di===oggiIso?adessoHm():null):[]);
         const righe=seg.map(htmlTurnoMon).join('');
         let rigaD='', btn='';
         if(!passato){
@@ -812,7 +846,7 @@ function disegnaMonitor(lunedi){
         html+=`<div class="fascia">
           <div class="fh">${f.ini}–${f.fin}</div>
           ${righe||`<div class="chi nessuno">Nessun turno dichiarato</div>`}
-          ${libere.length&&seg.length?`<div class="libere">Ore libere: ${libere.map(b=>b.ini+'–'+b.fin).join(', ')}</div>`:''}
+          ${libereOra.length&&seg.length?`<div class="libere">Ore libere: ${libereOra.map(b=>b.ini+'–'+b.fin).join(', ')}</div>`:''}
           ${rigaNonDisp(di,f.ini,f.fin)}${rigaD}${btn}${_dichAperto===di?htmlDichiara(di,libere):''}</div>`;
       });
       html+='</div>';
@@ -860,7 +894,7 @@ function opzioniAlle(libere,ini){
   return out.map((h,i)=>`<option${i===out.length-1?' selected':''}>${h}</option>`).join('');
 }
 function dichAlle(di){
-  const libere=kcOreLibereMonitor(di,impMon,di===isoLocal(new Date())?adessoHm():null);
+  const libere=liberePerModulo(di); // v1.13
   $('dich-fin').innerHTML=opzioniAlle(libere,$('dich-ini').value);
 }
 function dichChi(){ $('dich-mot-box').classList.toggle('hidden',!$('dich-chi').value); }
@@ -869,12 +903,13 @@ async function confermaDichiara(di,btn){
   if(!ini||!fin)return;
   if(chi&&mot.length<3){ toast('Scrivi il motivo: dichiarare per un collega è un caso eccezionale.'); $('dich-mot').focus(); return; }
   const per=chi?` per ${nome(chi)}`:'';
-  if(!confirm(`Sei sicuro? Dichiari il turno monitor${per} di ${giornoLungo(di)} dalle ${ini} alle ${fin}.\n\nQuando arriva in sala, apre il turno su Oggi: si paga il turno dichiarato, solo se viene aperto.`+(perOggi(di)&&!chi?`\n\n${MSG_GIORNO_STESSO}`:'')))return; // v1.12
+  if(!confirm(`Sei sicuro? Dichiari il turno monitor${per} di ${giornoLungo(di)} dalle ${ini} alle ${fin}.\n\nQuando arriva in sala, apre il turno su Oggi: si paga il turno dichiarato, solo se viene aperto.`+(perOggi(di)?`\n\n${testoTurnoOggi(ini,fin)}`:'')))return; // v1.12 · v1.13 turno in corso
   btn.disabled=true;
-  const{error}=await sb.rpc('monitor_dichiara_turno',{p_data:di,p_ora_inizio:ini,p_ora_fine:fin,p_user_id:chi,p_note:chi?mot:null});
+  const{data,error}=await sb.rpc('monitor_dichiara_turno',{p_data:di,p_ora_inizio:ini,p_ora_fine:fin,p_user_id:chi,p_note:chi?mot:null});
   if(error){ btn.disabled=false; toast('Non dichiarato: '+errTesto(error)); return; }
   _dichAperto=null;
-  toast(chi?`Fatto: turno ${ini}–${fin} dichiarato per ${nome(chi)}.`:`Fatto: turno ${ini}–${fin} dichiarato. Quel giorno aprilo su Oggi quando arrivi.`);
+  if(!chi&&vaiAInizia(data))return; // v1.13
+  toast(chi?`Fatto: turno ${ini}–${fin} dichiarato per ${nome(chi)}.`:esitoTurno(data,`Fatto: turno ${ini}–${fin} dichiarato. Quel giorno aprilo su Oggi quando arrivi.`));
   carica();
 }
 /* v1.12 GIORNO STESSO: vale, ma il portale lo spiega prima (principio Duolingo: spiega, non blocca) */
@@ -1025,7 +1060,7 @@ function disegnaMiei(){
   $('miei').innerHTML=miei.map(x=>{
     const s=x.slot_id?lezioni.find(l=>l.id===x.slot_id):null;
     const cosa=x.tipo==='monitor'?'Sala con Monitor':(s?titoloLezione(s):'Lezione')+' · '+(RUOLO[x.ruolo]||x.ruolo);
-    const st=x.stato==='presente'?'<span class="stato-ok">presente ✓</span>':x.stato==='assente'?'<span class="stato-ko">assente</span>':x.stato==='non_svolta'?'<span class="stato-nonsv">lezione non svolta</span>':(x.data===oggiIso?'oggi: segna la presenza su Oggi':''); // v1.8
+    const st=x.stato==='presente'?'<span class="stato-ok">presente ✓</span>':x.stato==='assente'?'<span class="stato-ko">assente</span>':x.stato==='non_svolta'?'<span class="stato-nonsv">lezione non svolta</span>':x.stato==='da_confermare'?'<span class="stato-nonsv">da rivedere dalla segreteria</span>':(x.data===oggiIso?'oggi: segna la presenza su Oggi':''); // v1.8
     const corso=s&&!s.lead_scuola_id&&!s.data_evento; // v1.1: lezione dei corsi
     const btn=x.stato!=='previsto'?'':x.tipo==='monitor' // v1.10 il turno monitor: via solo prima che inizi, oppure si propone
       ?(giaIniziato(x)?'':(cambioAperto(x.id)?`<span class="det">proposto, in attesa</span>`:`<button class="btn" onclick="proponiDaMiei('${esc(x.id)}')">PROPONI</button>`)+`<button class="btn" onclick="miTolgo('${esc(x.id)}',this)">MI TOLGO</button>`)
