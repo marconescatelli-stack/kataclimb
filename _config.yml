@@ -1,0 +1,4 @@
+# GitHub Pages (Jekyll): file del repo da NON pubblicare su kataclimb.com.
+# Restano nel repo (e quindi leggibili da Claude e da Marco), ma il sito non li serve.
+exclude:
+  - CLAUDE.md
