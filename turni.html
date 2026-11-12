@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.14 · 2026-11-12 · UN ISTRUTTORE AL POSTO DELL'ASSISTENTE (consegna Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12): in LEZIONI DEI CORSI, quando mancano assistenti ma gli istruttori in più coprono la lezione, il contatore scrive "Istruttori 2/1 · un istruttore al posto dell'assistente" (con più posti "N istruttori al posto degli assistenti") invece di "Assistenti 0/1"; negli altri casi come prima (contaCorso). Colore e "scoperta" arrivano sempre da v_copertura_lezioni.coperta. kc-da-coprire caricato con ?v=1.5. CUMULA v1.13. -->
 <!-- KC-BUILD: turni v1.13 · 2026-11-11 · TURNO IN CORSO (consegna Marco 11 nov, DB sql/monitor/13; caso Mattia 11/11 alle 19:02). (1) Modulo DICHIARA di oggi: finché la fascia non è finita si sceglie anche l'ora in corso (e le ore già finite): il DB fa valere subito il turno dall'ora in corso (giorno stesso, previsto) e tiene a posteriori, da rivedere dalla segreteria, solo le ore già finite. Prima di confermare la pagina lo dice ("Dalle 20 vale subito. L'ora 19–20 è già passata: resta da rivedere dalla segreteria."), anche su MI SEGNO della bacheca e della disponibilità. (2) Se il turno vale subito, dopo la conferma la pagina porta dritto a Oggi?inizia=turno, che apre il turno e passa a "Chi segui stasera?". (3) "Ore libere", "Mancano monitor" e la bacheca contano l'ora in corso finché non è finita (kc-da-coprire v1.4, caricato con ?v=1.4 perché il service worker tiene i .js in cache). (4) I miei impegni: il turno da_confermare si legge "da rivedere dalla segreteria" (prima: "segna la presenza su Oggi"). Scritture sempre e solo via RPC. CUMULA v1.12. -->
 <!-- KC-BUILD: turni v1.12 · 2026-11-10 · GIORNO PRIMA, GIORNO STESSO, A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10). (1) Griglia monitor: ogni turno mostra un segno discreto, "giorno stesso" (arancio, impegni_staff.origine giorno_stesso, non sui doppi turni) o "da rivedere" (grigio, stato da_confermare: segnato a posteriori, non si paga finché la segreteria non conferma); dopo la conferma "a posteriori ✓". Creator e segreteria hanno CONFERMA / RESPINGI (nota obbligatoria) sui turni da rivedere, via monitor_rivedi_turno; ANNULLA resta sugli altri. (2) Segnarsi per oggi (DICHIARO, MI SEGNO della bacheca e della disponibilità): prima di confermare il portale dice "Vale, ma la prossima volta segnati entro il giorno prima: così gli altri sanno che la sala è coperta." Spiega, non blocca. (3) In cima alla pagina il riquadro "Mancano monitor" con le ore ancora scoperte di oggi (non iniziate), domani e dopodomani, e MI SEGNO che apre il modulo del turno su quel giorno. (4) Testo della sezione Turni monitor aggiornato (entro il giorno prima; a posteriori da Oggi → I miei turni). Scritture sempre e solo via RPC. CUMULA v1.11. -->
 <!-- KC-BUILD: turni v1.11 · 2026-11-10 · DOPPIO TURNO (consegna Marco v2 10 nov, DB sql/monitor/09): nella griglia monitor il turno creato dalla segreteria come doppio turno si legge "doppio turno: motivo". La pagina non propone mai il doppio turno agli istruttori (lo crea solo creator/segreteria dal portale). CUMULA v1.10 (sotto). -->
@@ -22,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/kc-da-coprire.js?v=1.4"></script>
+<script src="/kc-da-coprire.js?v=1.5"></script>
 <style>
 :root{
   --nero:#141414; --tile:#1E1E1E; --bianco:#FFF; --grigio:#B8B8B8; --velo:rgba(255,255,255,.08);
@@ -626,6 +627,12 @@ function disegnaCorsi(){
   });
   $('corsi').innerHTML=html;
 }
+/* v1.14 un istruttore al posto dell'assistente: colore e "scoperta" restano da c.coperta, cambia solo la scritta */
+function contaCorso(ni,na,mi,ma){
+  const k=ma-na;
+  if(na<ma&&ni>=mi&&(ni+na)>=(mi+ma))return `Istruttori ${ni}/${mi} · ${k===1?"un istruttore al posto dell'assistente":k+' istruttori al posto degli assistenti'}`;
+  return `Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:'');
+}
 function htmlCorso(c,i){
   const seg=impLez.filter(x=>x.slot_id===c.slot_id && x.data===c.data && x.stato!=='assente')
     .sort((a,b)=>(a.compenso_tipo==='lezione'?0:1)-(b.compenso_tipo==='lezione'?0:1));
@@ -633,7 +640,7 @@ function htmlCorso(c,i){
   const mio=seg.find(x=>x.user_id===uid);
   const req=c.supporto_richiesto_id?richieste.find(r=>r.id===c.supporto_richiesto_id)||{id:c.supporto_richiesto_id}:null;
   const ni=Number(c.istruttori||0), na=Number(c.assistenti||0), mi=Number(c.istruttori_min||0), ma=Number(c.assistenti_min||0);
-  const conta=`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:'');
+  const conta=contaCorso(ni,na,mi,ma); // v1.14
   const chips=seg.map(x=>{const chi=sostituisceChi(x);return `<span class="chip${x.compenso_tipo==='ora'?' ass':''}${x.user_id===uid?' io':''}${x.stato==='non_svolta'?' nonsv':''}">${esc(nome(x.user_id))}${chi?' (sostituisce '+esc(chi)+')':''} · ${x.compenso_tipo==='ora'?'assistente':'istruttore'}${x.stato==='presente'?' ✓':x.stato==='non_svolta'?' · lezione non svolta':''}</span>`}).join('')
     +assenti.map(x=>`<span class="chip vuoto">${esc(nome(x.user_id))} · assente</span>`).join('')
     +(seg.length?'':'<span class="chip vuoto">nessuno segnato</span>');

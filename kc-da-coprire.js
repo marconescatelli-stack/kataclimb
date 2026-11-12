@@ -1,6 +1,9 @@
 /* ════════════════════════════════════════════════════════════════════════
- * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.4 (11 nov 2026)
+ * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.5 (12 nov 2026)
  * ════════════════════════════════════════════════════════════════════════
+ * KC-BUILD: kc-da-coprire v1.5 · 2026-11-12 · UN ISTRUTTORE AL POSTO DELL'ASSISTENTE (consegna Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12): conta
+ *   delle lezioni dei corsi: se mancano assistenti ma gli istruttori in più coprono, "Istruttori 2/1 · un istruttore al posto dell'assistente"
+ *   (con più posti "N istruttori al posto degli assistenti"); altrimenti come prima. coperta resta quella di v_copertura_lezioni. CUMULA v1.4.
  * KC-BUILD: kc-da-coprire v1.4 · 2026-11-11 · TURNO IN CORSO (consegna Marco 11 nov, DB sql/monitor/13): un turno di oggi segnato mentre la fascia
  *   e' in corso vale come giorno stesso dall'ora in corso. Quindi per oggi un'ora libera resta "da coprire" finche' non e' FINITA (prima: finche'
  *   non era iniziata). kcOreLibereMonitor(data, impegni, adessoHm): con adessoHm toglie le ore gia' finite. Nient'altro cambia. CUMULA v1.3 (sotto).
@@ -127,7 +130,7 @@
       const ni=Number(c.istruttori||0),na=Number(c.assistenti||0),mi=Number(c.istruttori_min||0),ma=Number(c.assistenti_min||0);
       voci.push(arricchisci({tipo:'lezione',data:c.data,ini:hm(c.ora_inizio),fin:hm(c.ora_fine),slot_id:c.slot_id,
         titolo:nomeCorso(c.tipo_corso,c.fascia)+(festa?` · ${festa.n_bambini} bambini`:''),
-        tipo_corso:c.tipo_corso,segnati:seg,conta:`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:''),coperta:!!c.coperta,
+        tipo_corso:c.tipo_corso,segnati:seg,conta:(na<ma&&ni>=mi&&(ni+na)>=(mi+ma))?`Istruttori ${ni}/${mi} · ${ma-na===1?"un istruttore al posto dell'assistente":(ma-na)+' istruttori al posto degli assistenti'}`:`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:''),coperta:!!c.coperta,
         richiesta:req?{id:req.id,chiesto_da:req.chiesto_da,chi:req.chiesto_da?nome(req.chiesto_da):'',note:req.note||''}:null}));
     });
     /* lezioni delle scuole con meno di 3 persone */
