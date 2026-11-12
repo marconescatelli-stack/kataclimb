@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.15 · 2026-11-12 · CI SONO IO (consegna Marco 12 nov, ore 20: il piano resta 1 istruttore + 1 assistente, la presenza la mette chi è davvero in lezione; caso giovedì 12/11 Mattia, che ha dovuto aggiungere Roberta). In LEZIONI DEI CORSI (ancora #lezioni-corsi), sulle lezioni di oggi in cui non sono segnato, per staff_istruttore_* e staff_assistente (non monitor), bottone CI SONO IO anche se la lezione è coperta -> finestra di conferma "Ti segni presente adesso a questa lezione. Usalo solo se sei in lezione: la segreteria lo vede." (SÌ, CI SONO / ANNULLA, stesso schema di kcGuida del portale: kcGuida vive solo in portale.html, qui guidaConferma) -> impegno_mi_segno('lezione', slot, data, 'conduce') e subito impegno_presenza(id restituito, 'inizio'). Gli assistenti passano ad assistente da soli (lo fa la RPC). Errori delle RPC mostrati come arrivano, la finestra resta aperta. Non segna assente nessuno. CUMULA v1.14. -->
+<!-- KC-BUILD: turni v1.14 · 2026-11-12 · UN ISTRUTTORE AL POSTO DELL'ASSISTENTE (consegna Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12): in LEZIONI DEI CORSI, quando mancano assistenti ma gli istruttori in più coprono la lezione, il contatore scrive "Istruttori 2/1 · un istruttore al posto dell'assistente" (con più posti "N istruttori al posto degli assistenti") invece di "Assistenti 0/1"; negli altri casi come prima (contaCorso). Colore e "scoperta" arrivano sempre da v_copertura_lezioni.coperta. kc-da-coprire caricato con ?v=1.5. CUMULA v1.13. -->
 <!-- KC-BUILD: turni v1.13 · 2026-11-11 · TURNO IN CORSO (consegna Marco 11 nov, DB sql/monitor/13; caso Mattia 11/11 alle 19:02). (1) Modulo DICHIARA di oggi: finché la fascia non è finita si sceglie anche l'ora in corso (e le ore già finite): il DB fa valere subito il turno dall'ora in corso (giorno stesso, previsto) e tiene a posteriori, da rivedere dalla segreteria, solo le ore già finite. Prima di confermare la pagina lo dice ("Dalle 20 vale subito. L'ora 19–20 è già passata: resta da rivedere dalla segreteria."), anche su MI SEGNO della bacheca e della disponibilità. (2) Se il turno vale subito, dopo la conferma la pagina porta dritto a Oggi?inizia=turno, che apre il turno e passa a "Chi segui stasera?". (3) "Ore libere", "Mancano monitor" e la bacheca contano l'ora in corso finché non è finita (kc-da-coprire v1.4, caricato con ?v=1.4 perché il service worker tiene i .js in cache). (4) I miei impegni: il turno da_confermare si legge "da rivedere dalla segreteria" (prima: "segna la presenza su Oggi"). Scritture sempre e solo via RPC. CUMULA v1.12. -->
 <!-- KC-BUILD: turni v1.12 · 2026-11-10 · GIORNO PRIMA, GIORNO STESSO, A POSTERIORI (consegna Marco 10 nov, DB sql/monitor/10). (1) Griglia monitor: ogni turno mostra un segno discreto, "giorno stesso" (arancio, impegni_staff.origine giorno_stesso, non sui doppi turni) o "da rivedere" (grigio, stato da_confermare: segnato a posteriori, non si paga finché la segreteria non conferma); dopo la conferma "a posteriori ✓". Creator e segreteria hanno CONFERMA / RESPINGI (nota obbligatoria) sui turni da rivedere, via monitor_rivedi_turno; ANNULLA resta sugli altri. (2) Segnarsi per oggi (DICHIARO, MI SEGNO della bacheca e della disponibilità): prima di confermare il portale dice "Vale, ma la prossima volta segnati entro il giorno prima: così gli altri sanno che la sala è coperta." Spiega, non blocca. (3) In cima alla pagina il riquadro "Mancano monitor" con le ore ancora scoperte di oggi (non iniziate), domani e dopodomani, e MI SEGNO che apre il modulo del turno su quel giorno. (4) Testo della sezione Turni monitor aggiornato (entro il giorno prima; a posteriori da Oggi → I miei turni). Scritture sempre e solo via RPC. CUMULA v1.11. -->
 <!-- KC-BUILD: turni v1.11 · 2026-11-10 · DOPPIO TURNO (consegna Marco v2 10 nov, DB sql/monitor/09): nella griglia monitor il turno creato dalla segreteria come doppio turno si legge "doppio turno: motivo". La pagina non propone mai il doppio turno agli istruttori (lo crea solo creator/segreteria dal portale). CUMULA v1.10 (sotto). -->
@@ -22,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/kc-da-coprire.js?v=1.4"></script>
+<script src="/kc-da-coprire.js?v=1.5"></script>
 <style>
 :root{
   --nero:#141414; --tile:#1E1E1E; --bianco:#FFF; --grigio:#B8B8B8; --velo:rgba(255,255,255,.08);
@@ -156,6 +158,13 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
 .cambio .q{font-size:15px; font-weight:700}
 .cambio .s{font-size:14px; color:#C9C9CE; margin-top:2px}
 .storico{font-size:14px; color:#C9C9CE; padding:6px 0; border-top:1px solid var(--velo)}
+/* v1.15 finestra di conferma (stesso schema di kcGuida del portale: annulla chiaro a sinistra, conferma a destra) */
+.gd-velo{position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; padding:16px; z-index:300}
+.gd-box{background:var(--tile); border:1px solid var(--velo); border-radius:var(--r); padding:18px; max-width:420px; width:100%}
+.gd-box h3{font-size:17px; font-weight:800; margin-bottom:10px}
+.gd-cosa{font-size:15px; line-height:1.45; background:#0E0E10; border:1px solid var(--velo); border-radius:12px; padding:10px 12px}
+.gd-err{font-size:14px; color:var(--rosso); margin-top:10px}
+.gd-btns{display:flex; justify-content:space-between; gap:10px; margin-top:14px}
 </style>
 </head>
 <body>
@@ -195,7 +204,7 @@ select{font:inherit; font-size:15px; color:var(--bianco); background:#0E0E10; bo
   <p class="nota-zona">Chi lascia un turno lo propone a un collega. Il turno passa solo quando il collega accetta, e il passaggio resta scritto.</p>
   <div id="cambi-box"><p class="vuota">…</p></div>
 
-  <div class="zona">Lezioni dei corsi</div>
+  <div class="zona" id="lezioni-corsi">Lezioni dei corsi</div>
   <p class="nota-zona">Prossime 4 settimane. Gli impegni del piano fisso sono già segnati: se non ci sei, premi NON CI SONO e il portale chiama il sostituto. Il giorno stesso segna la presenza su Oggi.</p>
   <div id="corsi"><p class="vuota">…</p></div>
 
@@ -626,6 +635,12 @@ function disegnaCorsi(){
   });
   $('corsi').innerHTML=html;
 }
+/* v1.14 un istruttore al posto dell'assistente: colore e "scoperta" restano da c.coperta, cambia solo la scritta */
+function contaCorso(ni,na,mi,ma){
+  const k=ma-na;
+  if(na<ma&&ni>=mi&&(ni+na)>=(mi+ma))return `Istruttori ${ni}/${mi} · ${k===1?"un istruttore al posto dell'assistente":k+' istruttori al posto degli assistenti'}`;
+  return `Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:'');
+}
 function htmlCorso(c,i){
   const seg=impLez.filter(x=>x.slot_id===c.slot_id && x.data===c.data && x.stato!=='assente')
     .sort((a,b)=>(a.compenso_tipo==='lezione'?0:1)-(b.compenso_tipo==='lezione'?0:1));
@@ -633,7 +648,7 @@ function htmlCorso(c,i){
   const mio=seg.find(x=>x.user_id===uid);
   const req=c.supporto_richiesto_id?richieste.find(r=>r.id===c.supporto_richiesto_id)||{id:c.supporto_richiesto_id}:null;
   const ni=Number(c.istruttori||0), na=Number(c.assistenti||0), mi=Number(c.istruttori_min||0), ma=Number(c.assistenti_min||0);
-  const conta=`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:'');
+  const conta=contaCorso(ni,na,mi,ma); // v1.14
   const chips=seg.map(x=>{const chi=sostituisceChi(x);return `<span class="chip${x.compenso_tipo==='ora'?' ass':''}${x.user_id===uid?' io':''}${x.stato==='non_svolta'?' nonsv':''}">${esc(nome(x.user_id))}${chi?' (sostituisce '+esc(chi)+')':''} · ${x.compenso_tipo==='ora'?'assistente':'istruttore'}${x.stato==='presente'?' ✓':x.stato==='non_svolta'?' · lezione non svolta':''}</span>`}).join('')
     +assenti.map(x=>`<span class="chip vuoto">${esc(nome(x.user_id))} · assente</span>`).join('')
     +(seg.length?'':'<span class="chip vuoto">nessuno segnato</span>');
@@ -659,6 +674,7 @@ function htmlCorso(c,i){
   }else if(!c.coperta && !req){
     az=`<button class="btn prim" onclick="miSegnoCorso(${i},this)">MI SEGNO</button>`;
   }
+  if(!mio && puoCiSonoIo() && c.data===isoLocal(new Date())) az+=`<button class="btn prim" onclick="ciSonoIo(${i})">CI SONO IO</button>`; // v1.15
   let rigaD='';
   if(!mio && (!c.coperta||req)){ // v1.7 sono disponibile sulle lezioni scoperte o con supporto richiesto
     const D=htmlDisp({tipo:'lezione',data:c.data,ini:ora(c.ora_inizio),fin:ora(c.ora_fine),slot_id:c.slot_id,titolo:nomeCorsoLez(c.tipo_corso,c.fascia)},{miSegno:false});
@@ -730,6 +746,35 @@ async function annullaSupporto(id,btn){
   if(error){ btn.disabled=false; toast('Non annullata: '+errTesto(error)); return; }
   toast('Richiesta annullata.');
   carica();
+}
+/* v1.15 CI SONO IO (regola di Marco 12 nov): chi è davvero in lezione oggi si segna presente da solo, anche se la lezione è coperta.
+   Non segna assente nessuno: chi era previsto e non c'era resta previsto e lo sistema la segreteria. */
+function puoCiSonoIo(){ return /^staff_istruttore_/.test(staffRole||'') || staffRole==='staff_assistente'; }
+function guidaConferma(titolo,testo,okLbl,azione){
+  const v=document.createElement('div'); v.className='gd-velo';
+  v.innerHTML=`<div class="gd-box" role="dialog" aria-modal="true" aria-label="${esc(titolo)}"><h3>${esc(titolo)}</h3><div class="gd-cosa">${esc(testo)}</div>
+    <div class="gd-err" hidden></div><div class="gd-btns"><button class="btn gd-no">ANNULLA</button><button class="btn prim gd-si">${esc(okLbl)}</button></div></div>`;
+  const chiudi=()=>v.remove(), si=v.querySelector('.gd-si'), no=v.querySelector('.gd-no'), err=v.querySelector('.gd-err');
+  no.onclick=chiudi; v.onclick=e=>{ if(e.target===v && !si.disabled)chiudi(); };
+  si.onclick=async()=>{
+    si.disabled=no.disabled=true; err.hidden=true;
+    try{ await azione(); chiudi(); }
+    catch(e){ err.textContent=errTesto(e); err.hidden=false; si.disabled=no.disabled=false; }
+  };
+  document.body.appendChild(v); si.focus();
+}
+function ciSonoIo(i){
+  const c=corsiVoci[i]; if(!c)return;
+  guidaConferma(`${nomeCorsoLez(c.tipo_corso,c.fascia)} · ${ora(c.ora_inizio)}–${ora(c.ora_fine)}`,
+    'Ti segni presente adesso a questa lezione. Usalo solo se sei in lezione: la segreteria lo vede.','SÌ, CI SONO',async()=>{
+    const r=await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:c.slot_id,p_data:c.data,p_ruolo:'conduce'});
+    if(r.error)throw r.error;
+    const id=r.data&&r.data.id; if(!id)throw new Error('Segnato, ma la presenza non è partita: premi SONO QUI su Oggi.');
+    const p=await sb.rpc('impegno_presenza',{p_impegno_id:id,p_azione:'inizio'});
+    if(p.error){ carica(); throw new Error('Sei segnato sulla lezione, ma la presenza non è partita: '+errTesto(p.error)); }
+    toast('Fatto: sei presente a questa lezione.');
+    carica();
+  });
 }
 async function miSegnoCorso(i,btn){
   const c=corsiVoci[i]; if(!c)return;

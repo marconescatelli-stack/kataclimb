@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.167 · 2026-11-12 · UN ISTRUTTORE AL POSTO DELL'ASSISTENTE (consegna Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12, Master v4.30; caso giovedì 12/11 Corso Ragazzi (12–17) 18:00–19:30 con Claudia e Mattia, Davide assente). Segreteria → 🗓 Turni: (1) la lezione del corso è coperta quando ci sono gli istruttori minimi e le persone in totale sono almeno istruttori + assistenti richiesti (tuCoperta, la stessa regola di v_copertura_lezioni.coperta); tuConta invariata. (2) Contatore della tessera e del dettaglio: se mancano assistenti ma gli istruttori in più coprono, "Istruttori 2/1 · un istruttore al posto dell'assistente" (con più posti "N istruttori al posto degli assistenti"); negli altri casi come prima (tuContaTesto). (3) Per creator e segreteria (tuPuo) sotto ogni tessera di lezione del corso la riga "Tocca per segnare presente, assente o sostituire"; nel dettaglio, sopra le persone, la riga di guida (SEGNA ASSENTE, SOSTITUISCI o AGGIUNGI PERSONA, SONO QUI). Nessun bottone nuovo, nessuna RPC nuova. CUMULA v3.166. -->
 <!-- KC-BUILD: portale v3.166 · 2026-11-12 · MODULO CONSENSI MINORI: il link nella sezione Consensi puntava a /docs/Modulo_Consensi_Minori_KataClimb.pdf (404, il file è nella radice) → /Modulo_Consensi_Minori_KataClimb.pdf. -->
 <!-- KC-BUILD: portale v3.165 · 2026-11-10 · OSSERVAZIONI: OGNI RISCRITTURA RESTA (Marco 10 nov, DB sql/monitor/11): nel Mio percorso dell'allievo le note degli istruttori (v_mio_diario_didattico) arrivano con scritta_alle: ogni nota mostra giorno e ora in cui è stata scritta e (decisione di Marco) per ogni giorno e istruttore l'allievo vede subito l'ultima versione della nota; se ce ne sono di più, sotto c'è "La traccia di questa nota: N versioni · tocca per vederle" e toccando la nota si apre lo storico con tutte le versioni di quel giorno, dalla prima all'ultima, ognuna con giorno, ora e istruttore (diarioStorico, apre e chiude; anche da tastiera). Il senso: l'allievo percepisce che c'è una traccia e un percorso. Raggruppamento per giorno e nome dell'istruttore come lo dà v_mio_diario_didattico. Lo staff nella scheda vede tutte le versioni come prima. CUMULA v3.164. -->
 <!-- KC-BUILD: portale v3.164 · 2026-11-10 · TURNI A POSTERIORI DA RIVEDERE (consegna Marco 10 nov, DB sql/monitor/10): Segreteria → 🗓 Turni, sezione nuova "⏳ Turni monitor da rivedere" sopra i non dichiarati: i turni che un istruttore si è segnato a posteriori (impegni_staff tipo monitor, stato da_confermare), con chi, giorno, ore, quando si è segnato e le persone seguite nel turno (v_compenso_turni_monitor). CONFERMA (nota facoltativa) e RESPINGI (nota obbligatoria) via RPC monitor_rivedi_turno: confermato si paga, respinto resta con la nota a 0 €. Solo creator e segreteria vedono i bottoni (tuPuo). (2) REPORT SEMPRE LEGGIBILI (Marco 10 nov): nel Mio percorso dell'allievo ogni tappa della traccia (valutazioni e "Per te" di istruttori e monitor) mostra giorno, ora in cui è stata scritta e chi l'ha scritta (questDataOra al posto della sola data). Nient'altro cambia. CUMULA v3.163. -->
@@ -1761,6 +1762,8 @@ fill="#1d4ed8" stroke="none">
         .tu-tab th{text-align:left;font-size:13px;color:var(--text2);padding:7px 8px 7px 0;border-bottom:1px solid var(--border);white-space:nowrap}
         .tu-tab td{padding:8px 8px 8px 0;border-bottom:1px solid var(--border)}
         .tu-tab tfoot td{border-bottom:none;font-weight:700}
+        .tu-voce .tu-tocca{display:block;font-size:13px;color:var(--text2);font-style:italic;margin-top:4px} /* v3.167 */
+        .tu-guida{font-size:13px;color:var(--text);background:var(--bg3);border-radius:8px;padding:8px 10px;margin:0 0 8px;line-height:1.4} /* v3.167 */
         .tu-voce .tu-supp{display:block;font-size:13px;font-weight:700;color:#92400E;margin-top:3px}
         .tu-nonci{font-size:13px;color:var(--text2);margin:0 0 6px;line-height:1.4}
         .tu-nonci b{color:var(--text)}
@@ -11715,6 +11718,13 @@ function tuFestaDettagli(f){
 }
 function tuNomeCorso(tipo,fascia){if(tipo==='bambini')return fascia==='ragazzi'?TU_NOME_CORSO.ragazzi:TU_NOME_CORSO.bambini;return TU_NOME_CORSO[tipo]||String(tipo||'Lezione').replace(/_/g,' ')}
 /* stessa regola di v_copertura_lezioni: istruttore = compenso lezione o percentuale (v3.148), assistente = ora, contano previsto e presente */
+/* v3.167 un istruttore al posto dell'assistente (Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12): coperta = istruttori minimi e persone in totale >= istruttori + assistenti richiesti */
+function tuCoperta(ni,na,imin,amin){return ni>=imin&&(ni+na)>=(imin+amin)}
+function tuContaTesto(ni,na,imin,amin,min){
+  const I=min?'istruttori':'Istruttori',A=min?'assistenti':'Assistenti',k=amin-na;
+  if(na<amin&&tuCoperta(ni,na,imin,amin))return `${I} ${ni}/${imin} · ${k===1?"un istruttore al posto dell'assistente":k+' istruttori al posto degli assistenti'}`;
+  return `${I} ${ni}/${imin}${amin||na?` · ${A} ${na}/${amin}`:''}`;
+}
 function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
 let tuCompLez=[];
 /* v3.148 — stessa regola di _prima_dentro_corso (DB): una Prima Lezione con lo stesso istruttore gia' su un corso
@@ -11897,14 +11907,14 @@ function tuDisegnaSettimana(){
       +(voci.length?voci.map(v=>{
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
-          const{ni,na}=tuConta(v.seg),ok=ni>=v.imin&&na>=v.amin;
+          const{ni,na}=tuConta(v.seg),ok=tuCoperta(ni,na,v.imin,v.amin);
           const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(tuDentroCorso(i)?' <span style="font-size:13px;color:var(--text2)">'+TU_DENTRO+'</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':i.stato==='non_svolta'?' <span style="color:var(--text2)">(lezione non svolta)</span>':'')).join(', ');
           const nonSv=v.seg.length&&v.seg.every(i=>i.stato==='non_svolta'||i.stato==='assente')&&v.seg.some(i=>i.stato==='non_svolta'); // v3.152
           return `<button class="tu-voce ${nonSv?'grigio':ok?'verde':'rosso'}" onclick="tuApriVoce(${k})">
             <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${nonSv?'lezione non svolta':ok?'coperta':'scoperta'}</b></span>
             <span class="tu-t">${escHtml(v.titolo)}</span>
-            <span class="tu-n">Istruttori ${ni}/${v.imin}${v.amin||na?` · Assistenti ${na}/${v.amin}`:''}</span>
-            <span class="tu-n">${nomiC||'Nessuno'}</span>${v.req?'<span class="tu-supp">Supporto richiesto</span>':''}</button>`;
+            <span class="tu-n">${tuContaTesto(ni,na,v.imin,v.amin)}</span>
+            <span class="tu-n">${nomiC||'Nessuno'}</span>${v.req?'<span class="tu-supp">Supporto richiesto</span>':''}${tuPuo()?'<span class="tu-tocca">Tocca per segnare presente, assente o sostituire</span>':''}</button>`;
         }
         /* v3.159 monitor: coperto = nessuna ora libera nella fascia */
         const lib=tuOreLibere(v.seg,v),n=v.seg.filter(i=>i.stato!=='assente').length;
@@ -11953,14 +11963,14 @@ function tuApriVoce(k){
   /* v3.139 richiesta di supporto aperta sulla lezione del corso */
   const supp=v.tipo==='corso'&&v.req?`<div class="tu-supp-box">Supporto richiesto${v.req.chiesto_da?' da <b>'+escHtml(tuNome(v.req.chiesto_da))+'</b>':''}${v.req.note?': '+escHtml(v.req.note):''}
     ${puo?` <button class="btn btn-g sc-piccolo" onclick="tuAnnullaSupporto('${v.req.id}',${k})">Annulla richiesta</button>`:''}</div>`:'';
-  const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg);return ` · istruttori ${ni}/${v.imin}${v.amin||na?` · assistenti ${na}/${v.amin}`:''}`})():` · richiesti ${v.richiesti}`;
+  const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg);return ' · '+tuContaTesto(ni,na,v.imin,v.amin,true)})():` · richiesti ${v.richiesti}`;
   /* v3.163 doppio turno: solo creator e segreteria, solo se nella fascia c'e' gia' un monitor */
   const attivi=v.tipo==='monitor'?v.seg.filter(i=>i.stato==='previsto'||i.stato==='presente'):[];
   const doppio=(puo&&v.tipo==='monitor'&&attivi.length&&!passato)?tuFormDoppio(v,k,attivi):'';
   const d=new Date(v.data+'T00:00:00');
   scModal(`${v.tipo==='monitor'?'🟢':'📅'} ${v.titolo}`,
     `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}${conta}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
-     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${righe}${aggiungi}${doppio}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
+     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${puo&&v.tipo==='corso'?'<p class="tu-guida">Chi non c\'era: <b>SEGNA ASSENTE</b>. Chi è venuto al suo posto: <b>SOSTITUISCI</b> oppure <b>AGGIUNGI PERSONA</b>. Le presenze le segnano gli istruttori con <b>SONO QUI</b>: tu correggi solo quello che manca.</p>':''}${righe}${aggiungi}${doppio}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
     aggiungi?async()=>{
       if(v.tipo!=='monitor'&&tuEMonitor(scVal('tu-add-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
       const args=v.tipo==='corso'

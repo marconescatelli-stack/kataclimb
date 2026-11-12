@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.59 · 2026-11-12 · CI SONO IO (consegna Marco 12 nov): in fondo alla tessera "I tuoi impegni · oggi", per staff_istruttore_* e staff_assistente, la riga "Sei in una lezione che non è tra i tuoi impegni? Segnati da Turni" con il link a /turni.html#lezioni-corsi (lì c'è CI SONO IO, turni v1.15). Per loro la tessera compare anche senza impegni di oggi, con la sola riga. kc-da-coprire caricato con ?v=1.5 (v1.5: "un istruttore al posto dell'assistente"). CUMULA v2.58. -->
 <!-- KC-BUILD: oggi v2.58 · 2026-11-10 · NOTE PER L'ALLIEVO SOLO DAGLI ISTRUTTORI (Marco 10 nov, DB sql/monitor/12): solo istruttori jr/sr/tutor e il creator (puoScrivereAllievo, stessa regola di puo_scrivere_allievo nel DB) hanno "Mostra all'allievo" e i campi che legge l'allievo. Per assistenti, monitor e segreteria: (1) nel modulo osservazione il riquadro diventa "🔒 Solo staff" con la riga "Solo gli istruttori scrivono all'allievo: quello che scrivi qui resta per lo staff", senza la casella Mostra all'allievo (il DB la rifiuta comunque); (2) nel report di sala il passo "Cosa porta a casa" diventa "per lo staff" e il riepilogo dice "resta per lo staff" (il DB salva la voce solo per lo staff: decisione di Marco); (3) nel Quadro il blocco "Lo legge" diventa "Resta per lo staff". Il report e il turno contano come prima (8 €). CUMULA v2.57. -->
 <!-- KC-BUILD: oggi v2.57 · 2026-11-10 · OSSERVAZIONI: OGNI RISCRITTURA RESTA (Marco 10 nov, DB sql/monitor/11): salva_osservazione non sovrascrive più l'osservazione dello stesso giorno, ne aggiunge una nuova. Il modulo, se oggi ne hai già scritta una, parte dal suo testo e dice "Oggi ne hai già scritta una alle HH:MM: resta com'è, questa si aggiunge con la sua ora." Dopo il salvataggio: "Osservazione salvata. Quella di prima di oggi resta." Nella scheda ognuna ha giorno, ora e autore (v2.56). CUMULA v2.56 (sotto). -->
 <!-- KC-BUILD: oggi v2.57 · 2026-11-11 · TURNO IN CORSO (consegna Marco 11 nov, DB sql/monitor/13; caso Mattia 11/11 alle 19:02, rimasto senza uscita). (1) oggi.html?inizia=turno (arrivo da Turni dopo essersi segnati a turno iniziato): appena letti gli impegni di oggi si apre il turno che vale adesso, con la stessa strada di INIZIO TURNO (prima l'avviso se c'è un altro monitor in turno, poi "Chi segui stasera?"); il parametro si toglie dall'indirizzo. (2) ERO IN SALA, SEGNAMI su oggi: prima di confermare dice cosa vale subito e cosa resta a posteriori ("Dalle 20 vale subito. L'ora 19–20 è già passata: resta da rivedere dalla segreteria."); se vale subito il turno si apre. (3) Il turno di oggi da rivedere (stato da_confermare) si vede: nella tessera del turno "segnato a posteriori: da rivedere dalla segreteria, non si apre da qui, i report li scrivi lo stesso" al posto di "non hai un turno dichiarato" (era questo che a Mattia faceva sembrare il turno sparito); in I tuoi impegni la stessa scritta, senza SONO QUI. (4) INIZIO TURNO fallito: il messaggio nuovo del DB per il turno a posteriori si mostra così com'è con HO CAPITO, senza VAI AI TURNI (lì non c'è niente da fare). kc-da-coprire caricato con ?v=1.4. CUMULA v2.56. -->
@@ -63,7 +64,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/kc-da-coprire.js?v=1.4"></script>
+<script src="/kc-da-coprire.js?v=1.5"></script>
 <style>
 :root{
   --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
@@ -4391,7 +4392,8 @@ function rispondiCambioOggi(i,accetta,btn){
 }
 function disegnaImpegniOggi(){
   const box=document.getElementById('t-imp'), el=document.getElementById('imp-corpo'); if(!box||!el)return;
-  box.hidden=!impegniOggi.length;
+  const ciSono=/^staff_istruttore_/.test(pdata.staff_role||'')||pdata.staff_role==='staff_assistente'; // v2.59 istruttori e assistenti: CI SONO IO da Turni
+  box.hidden=!impegniOggi.length&&!ciSono;
   el.innerHTML=impegniOggi.map(x=>{
     const cosa=x.tipo==='monitor'?'Sala con Monitor'
       :((x.slot&&(IMP_LEZ[x.slot.tipo_corso]||nomeLezioneSlot(x.slot)))||'Lezione')+(x.slot&&x.slot.ente?' · '+x.slot.ente:'');
@@ -4414,7 +4416,8 @@ function disegnaImpegniOggi(){
     return `<div class="imp"><div class="imp-h">${esc(oraBreve(x.ora_inizio))}–${esc(oraBreve(x.ora_fine))} · ${esc(cosa)}</div>
       <div class="imp-s">${esc(ruolo.replace(/^ · /,''))}${stato?(ruolo?' · ':'')+stato:''}</div>
       ${btn&&!dimenticata?`<div class="sch-btns">${btn}</div>`:''}${ricorda}</div>`;
-  }).join('');
+  }).join('')
+  +(ciSono?'<p class="imp-ricorda" style="font-size:14px;color:#E5E5EA;margin-top:10px">Sei in una lezione che non è tra i tuoi impegni? <a href="/turni.html#lezioni-corsi" style="color:inherit;text-decoration:underline;font-weight:700">Segnati da Turni</a></p>':''); // v2.59
 }
 /* v2.28 nome completo delle lezioni dei corsi: per i minori conta la fascia */
 function nomeLezioneSlot(sl){
