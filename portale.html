@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.170 · 2026-11-13 · VIA I PONTI DEL NOME TECNICO (Marco 13 nov, migrazione della chat fatta: v_segreteria_da_sistemare_seg restituisce istruttori_in_piu, segreteria_conferma_istruttori_in_piu esiste). Tolti dsTipoNuovo (traduzione di persone_in_piu al caricamento) e dsConfermaIstruttoriInPiu (ripiego sulla funzione vecchia): VA BENE COSÌ chiama direttamente segreteria_conferma_istruttori_in_piu. La funzione vecchia resta nel DB, quella nuova passa da lei. Nessuna modifica a DB. CUMULA v3.169. -->
 <!-- KC-BUILD: portale v3.169 · 2026-11-13 · LE PAROLE GIUSTE (correzione Marco 13 nov: in Accademia ci sono allievi e istruttori, "persone" confonde). Solo testi. Segreteria → ⚠ Da sistemare: gruppo persone_in_piu "Più istruttori del previsto" (era Più persone del previsto) con l'aiuto "…Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto."; doppia_lezione "Stesso istruttore su due lezioni"; lezione_scoperta "Lezioni senza istruttore (prossimi 7 giorni)"; VA BENE COSÌ: suggerimento "Gli istruttori segnati erano davvero tutti in lezione: si pagano tutti" e conferma "Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?". Segreteria → Turni: "Togliere questo istruttore dal turno?", "Segnare assente questo istruttore?" e, nella stessa conferma, "Segnare presente questo istruttore? La lezione viene pagata.". NOME TECNICO IN PASSAGGIO (Marco 13 nov, scelta B): il gruppo e la conferma si chiamano istruttori_in_piu / segreteria_conferma_istruttori_in_piu. Finché la migrazione della chat non rinomina vista e funzione, la pagina legge anche il tipo persone_in_piu (lo traduce al caricamento dell'elenco) e, se segreteria_conferma_istruttori_in_piu non esiste ancora (PGRST202), chiama segreteria_conferma_persone_in_piu. Dopo la migrazione questi due ponti si tolgono. CUMULA v3.168. -->
 <!-- KC-BUILD: portale v3.168 · 2026-11-12 · PIÙ PERSONE DEL PREVISTO (consegna Marco 12 nov, DB avviso_persone_in_piu_2026_11_12): in Segreteria → ⚠ Da sistemare il gruppo nuovo "Più persone del previsto" (tipo persone_in_piu di v_segreteria_da_sistemare_seg, in fondo a DS_GRUPPI) con la riga di aiuto "Il piano prevede un istruttore e un assistente. Se sono venuti in più, si pagano tutti: controlla che sia giusto."; nella riga quando, i nomi dei presenti, il nome intero del corso e il testo cosa del DB. APRI IN AGENDA (come doppia_lezione) e VA BENE COSÌ -> kcGuida "Confermi che in questa lezione erano presenti tutti e che vanno pagati tutti?" (SÌ, VA BENE / ANNULLA) -> segreteria_conferma_persone_in_piu(slot, data, null), poi l'elenco si rilegge (dsDopo); errori come arrivano. Prima una riga persone_in_piu si contava nel numero ma non si vedeva. CUMULA v3.167. -->
 <!-- KC-BUILD: portale v3.167 · 2026-11-12 · UN ISTRUTTORE AL POSTO DELL'ASSISTENTE (consegna Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12, Master v4.30; caso giovedì 12/11 Corso Ragazzi (12–17) 18:00–19:30 con Claudia e Mattia, Davide assente). Segreteria → 🗓 Turni: (1) la lezione del corso è coperta quando ci sono gli istruttori minimi e le persone in totale sono almeno istruttori + assistenti richiesti (tuCoperta, la stessa regola di v_copertura_lezioni.coperta); tuConta invariata. (2) Contatore della tessera e del dettaglio: se mancano assistenti ma gli istruttori in più coprono, "Istruttori 2/1 · un istruttore al posto dell'assistente" (con più posti "N istruttori al posto degli assistenti"); negli altri casi come prima (tuContaTesto). (3) Per creator e segreteria (tuPuo) sotto ogni tessera di lezione del corso la riga "Tocca per segnare presente, assente o sostituire"; nel dettaglio, sopra le persone, la riga di guida (SEGNA ASSENTE, SOSTITUISCI o AGGIUNGI PERSONA, SONO QUI). Nessun bottone nuovo, nessuna RPC nuova. CUMULA v3.166. -->
@@ -13055,15 +13056,6 @@ async function dsSoloFestePrenotate(rows){
   const ok=new Set((error?[]:data||[]).map(f=>f.slot_id+'|'+f.data));
   return rows.filter(r=>!(r.tipo==='lezione_scoperta'&&r.tipo_corso==='festa_sabato')||ok.has(r.slot_id+'|'+r.data));
 }
-/* v3.169 nome tecnico in passaggio (Marco 13 nov): il DB dice ancora persone_in_piu finché la migrazione non rinomina in istruttori_in_piu; la pagina capisce tutti e due. Tolta la migrazione, si toglie questa riga */
-const dsTipoNuovo=r=>r.tipo==='persone_in_piu'?{...r,tipo:'istruttori_in_piu'}:r;
-/* v3.169 conferma: prima la funzione col nome nuovo, se nel DB non c'è ancora la vecchia */
-async function dsConfermaIstruttoriInPiu(slotId,data){
-  const a={p_slot_id:slotId,p_data:data,p_nota:null};
-  const r=await sb.rpc('segreteria_conferma_istruttori_in_piu',a);
-  if(r.error&&(r.error.code==='PGRST202'||/could not find the function/i.test(r.error.message||'')))return sb.rpc('segreteria_conferma_persone_in_piu',a);
-  return r;
-}
 async function dsCaricaConto(){
   try{
     const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('tipo,impegno_id,tipo_corso,slot_id,data'); // v3.158 + tipo_corso, slot_id, data per le feste
@@ -13099,7 +13091,7 @@ async function dsCarica(){
   try{
     const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('*').order('ordine').order('data').order('ora_inizio');
     if(error)throw error;
-    dsRighe=(await dsSoloFestePrenotate((data||[]).map(dsTipoNuovo))).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id))); // v3.158
+    dsRighe=(await dsSoloFestePrenotate(data||[])).filter(r=>!(r.tipo==='ruolo_da_verificare'&&dsNascoste.has(r.impegno_id))); // v3.158
     await dsContorno();
     await dsCaricaPren(); // v3.152
   }catch(e){dsRighe=null;el.innerHTML='';scMsg('ds-msg','Non riesco a leggere le voci da sistemare: '+scErr(e));dsConto(null);return;}
@@ -13243,7 +13235,7 @@ async function dsAzione(az,i){
     kcGuida({titolo:'Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?',
       succede:[`Lezione ${lq}${chi?': presenti <b>'+escHtml(chi)+'</b>':''}`,'Si pagano tutti e la voce sparisce da questo elenco'],
       ok:'SÌ, VA BENE',annulla:'ANNULLA',
-      azione:async()=>{const{error}=await dsConfermaIstruttoriInPiu(r.slot_id,r.data);if(error)throw error;},
+      azione:async()=>{const{error}=await sb.rpc('segreteria_conferma_istruttori_in_piu',{p_slot_id:r.slot_id,p_data:r.data,p_nota:null});if(error)throw error;},
       dopo:'Fatto: confermato, si pagano tutti. Il portale è già a posto.',poi:dsDopo});
     return;
   }
