@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<!-- KC-BUILD: oggi v2.61 · 2026-11-13 · LE PAROLE GIUSTE (correzione Marco 13 nov: in Accademia ci sono allievi e istruttori, "persone" confonde). Solo testi di ⚠ DA SISTEMARE: gruppo persone_in_piu "Più istruttori del previsto" (era Più persone del previsto) con l'aiuto "…Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto."; doppia_lezione "Stesso istruttore su due lezioni"; lezione_scoperta "Lezioni senza istruttore (prossimi 7 giorni)"; dialogo di VA BENE COSÌ "Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?". Nomi tecnici (persone_in_piu) invariati. CUMULA v2.60. -->
+<!-- KC-BUILD: oggi v2.61 · 2026-11-13 · LE PAROLE GIUSTE (correzione Marco 13 nov: in Accademia ci sono allievi e istruttori, "persone" confonde). Solo testi di ⚠ DA SISTEMARE: gruppo persone_in_piu "Più istruttori del previsto" (era Più persone del previsto) con l'aiuto "…Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto."; doppia_lezione "Stesso istruttore su due lezioni"; lezione_scoperta "Lezioni senza istruttore (prossimi 7 giorni)"; dialogo di VA BENE COSÌ "Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?". NOME TECNICO IN PASSAGGIO (Marco 13 nov, scelta B): il gruppo e la conferma si chiamano istruttori_in_piu / segreteria_conferma_istruttori_in_piu. Finché la migrazione della chat non rinomina vista e funzione, la pagina legge anche il tipo persone_in_piu (lo traduce al caricamento dell'elenco) e, se segreteria_conferma_istruttori_in_piu non esiste ancora (PGRST202), chiama segreteria_conferma_persone_in_piu. Dopo la migrazione questi due ponti si tolgono. CUMULA v2.60. -->
 <!-- KC-BUILD: oggi v2.60 · 2026-11-12 · PIÙ PERSONE DEL PREVISTO (consegna Marco 12 nov, DB avviso_persone_in_piu_2026_11_12): nella tessera ⚠ DA SISTEMARE il gruppo nuovo "Più persone del previsto" (tipo persone_in_piu di v_segreteria_da_sistemare_seg, in fondo a SIST_GRUPPI) con la riga di aiuto "Il piano prevede un istruttore e un assistente. Se sono venuti in più, si pagano tutti: controlla che sia giusto."; nella riga quando, i nomi dei presenti, il nome intero del corso e il testo cosa del DB. APRI IN AGENDA (come doppia_lezione) e VA BENE COSÌ -> "Confermi che in questa lezione erano presenti tutti e che vanno pagati tutti?" (SÌ, VA BENE / ANNULLA) -> segreteria_conferma_persone_in_piu(slot, data, null), poi l'elenco si rilegge; errori come arrivano. Prima una riga persone_in_piu si contava nel numero ma non si vedeva. CUMULA v2.59. -->
 <!-- KC-BUILD: oggi v2.59 · 2026-11-12 · CI SONO IO (consegna Marco 12 nov): in fondo alla tessera "I tuoi impegni · oggi", per staff_istruttore_* e staff_assistente, la riga "Sei in una lezione che non è tra i tuoi impegni? Segnati da Turni" con il link a /turni.html#lezioni-corsi (lì c'è CI SONO IO, turni v1.15). Per loro la tessera compare anche senza impegni di oggi, con la sola riga. kc-da-coprire caricato con ?v=1.5 (v1.5: "un istruttore al posto dell'assistente"). CUMULA v2.58. -->
 <!-- KC-BUILD: oggi v2.58 · 2026-11-10 · NOTE PER L'ALLIEVO SOLO DAGLI ISTRUTTORI (Marco 10 nov, DB sql/monitor/12): solo istruttori jr/sr/tutor e il creator (puoScrivereAllievo, stessa regola di puo_scrivere_allievo nel DB) hanno "Mostra all'allievo" e i campi che legge l'allievo. Per assistenti, monitor e segreteria: (1) nel modulo osservazione il riquadro diventa "🔒 Solo staff" con la riga "Solo gli istruttori scrivono all'allievo: quello che scrivi qui resta per lo staff", senza la casella Mostra all'allievo (il DB la rifiuta comunque); (2) nel report di sala il passo "Cosa porta a casa" diventa "per lo staff" e il riepilogo dice "resta per lo staff" (il DB salva la voce solo per lo staff: decisione di Marco); (3) nel Quadro il blocco "Lo legge" diventa "Resta per lo staff". Il report e il turno contano come prima (8 €). CUMULA v2.57. -->
@@ -1506,7 +1506,7 @@ async function loadSegCode(){
 const segPuoConti=()=>['staff_creator','staff_segreteria'].includes(pdata.staff_role);
 const segPuoSistemare=()=>pdata.staff_role==='staff_segreteria'; // v2.50 Da sistemare e' lavoro della segreteria
 const SIST_GRUPPI=[['presenza_mancante','Presenze da confermare'],['turno_da_chiudere','Turni monitor da chiudere'],
-  ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stesso istruttore su due lezioni'],['lezione_scoperta','Lezioni senza istruttore (prossimi 7 giorni)'],['persone_in_piu','Più istruttori del previsto']]; // v2.60
+  ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stesso istruttore su due lezioni'],['lezione_scoperta','Lezioni senza istruttore (prossimi 7 giorni)'],['istruttori_in_piu','Più istruttori del previsto']]; // v2.60
 let sistRighe=[], sistSlot={}, sistAltre={}, sistInizio={}, sistStaff=null, sistPiano=[], sistIndisp=[];
 /* v2.39 NON C'ERA LEZIONE: prenotazioni (non cancellate in tempo) per slot e data delle presenze da confermare.
    Solo Prime Lezioni e corsi a lezioni hanno prenotazioni: per gli altri corsi (abbonamenti) il suggerito resta PRESENTE. */
@@ -1568,13 +1568,22 @@ async function sistSoloFestePrenotate(rows){
   const ok=new Set((error?[]:data||[]).map(f=>f.slot_id+'|'+f.data));
   return rows.filter(r=>!(r.tipo==='lezione_scoperta'&&r.tipo_corso==='festa_sabato')||ok.has(r.slot_id+'|'+r.data));
 }
+/* v2.61 nome tecnico in passaggio (Marco 13 nov): il DB dice ancora persone_in_piu finché la migrazione non rinomina in istruttori_in_piu; la pagina capisce tutti e due. Tolta la migrazione, si toglie questa riga */
+const sistTipoNuovo=r=>r.tipo==='persone_in_piu'?{...r,tipo:'istruttori_in_piu'}:r;
+/* v2.61 conferma: prima la funzione col nome nuovo, se nel DB non c'è ancora la vecchia */
+async function sistConfermaIstruttoriInPiu(slotId,data){
+  const a={p_slot_id:slotId,p_data:data,p_nota:null};
+  const r=await sb.rpc('segreteria_conferma_istruttori_in_piu',a);
+  if(r.error&&(r.error.code==='PGRST202'||/could not find the function/i.test(r.error.message||'')))return sb.rpc('segreteria_conferma_persone_in_piu',a);
+  return r;
+}
 async function loadSegSistema(){
   if(!segPuoSistemare())return;
   if(!document.getElementById('t-sist'))return;
   try{
     const{data,error}=await sb.from('v_segreteria_da_sistemare_seg').select('*').order('ordine').order('data').order('ora_inizio');
     if(error)throw error;
-    sistRighe=(await sistSoloFestePrenotate(data||[])).filter(r=>!(r.tipo==='ruolo_da_verificare'&&sistNascoste.has(r.impegno_id))); // v2.51
+    sistRighe=(await sistSoloFestePrenotate((data||[]).map(sistTipoNuovo))).filter(r=>!(r.tipo==='ruolo_da_verificare'&&sistNascoste.has(r.impegno_id))); // v2.51
     await sistCaricaContorno();
     await sistCaricaPren(); // v2.39
   }catch(e){ sistRighe=null; console.error('[seg-sistema]',e); }
@@ -1667,7 +1676,7 @@ function disegnaSistema(){
     const L=sistRighe.map((r,i)=>[r,i]).filter(([r])=>r.tipo===tipo);
     if(!L.length)return '';
     return `<div class="sist-gr">${esc(tit)}<span>${L.length}</span></div>`
-      +(tipo==='persone_in_piu'?'<p class="sist-aiuto">Il piano prevede un istruttore e un assistente. Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto.</p>':'') // v2.60
+      +(tipo==='istruttori_in_piu'?'<p class="sist-aiuto">Il piano prevede un istruttore e un assistente. Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto.</p>':'') // v2.60
       +(tipo==='presenza_mancante'?'<p class="sist-aiuto">Prima Lezione con l’istruttore presente ma nessun allievo: PRESENTE (vale come vuota, 5 €/h). NON C’ERA LEZIONE solo se la lezione non si è tenuta e l’istruttore non c’era.</p>':'') // v2.39
       +L.map(([r,i])=>rigaSistema(r,i)).join('');
   }).join('');
@@ -1684,7 +1693,7 @@ function rigaSistema(r,i){
   else if(r.tipo==='ruolo_da_verificare') az=b('togli','TOGLI',1)+b('estremo','CASO ESTREMO, CONFERMA');
   else if(r.tipo==='doppia_lezione') az=`<a class="btn prim" href="/agenda.html?data=${encodeURIComponent(r.data)}&tipo=${encodeURIComponent(r.tipo_corso||'')}">APRI IN AGENDA</a>`;
   else if(r.tipo==='lezione_scoperta') az=b('aggiungi','AGGIUNGI STAFF',1);
-  else if(r.tipo==='persone_in_piu') az=`<a class="btn prim" href="/agenda.html?data=${encodeURIComponent(r.data)}&tipo=${encodeURIComponent(r.tipo_corso||'')}">APRI IN AGENDA</a>`+b('va_bene','VA BENE COSÌ'); // v2.60
+  else if(r.tipo==='istruttori_in_piu') az=`<a class="btn prim" href="/agenda.html?data=${encodeURIComponent(r.data)}&tipo=${encodeURIComponent(r.tipo_corso||'')}">APRI IN AGENDA</a>`+b('va_bene','VA BENE COSÌ'); // v2.60
   return `<div class="sist-r">
     <div class="q">${esc(sistQuando(r))}</div>
     ${r.persona?`<div class="chi">${esc(r.persona)}</div>`:''}
@@ -1762,7 +1771,7 @@ async function sistAzione(az,i,btn){
   const lez=sistNomeLez(r.slot_id,r.tipo_corso,r.fascia), quando=sistQuando(r);
   if(az==='va_bene'){ // v2.60 più istruttori del previsto: la segreteria conferma che vanno pagati tutti
     dialogo(`<p><b>Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?</b></p><p>${esc(quando)} · ${esc(lez)}${r.persona?' · '+esc(r.persona):''}</p>`,
-      ['SÌ, VA BENE',()=>sistEsegui(btn,()=>sb.rpc('segreteria_conferma_persone_in_piu',{p_slot_id:r.slot_id,p_data:r.data,p_nota:null}),'Fatto: confermato, si pagano tutti.')],['ANNULLA',null]);
+      ['SÌ, VA BENE',()=>sistEsegui(btn,()=>sistConfermaIstruttoriInPiu(r.slot_id,r.data),'Fatto: confermato, si pagano tutti.')],['ANNULLA',null]);
     return;
   }
   if(az==='non_svolta'){ // v2.39: tutta la lezione, nessun sostituto, 0 €
