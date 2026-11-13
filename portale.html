@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.171 · 2026-11-13 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB istruttore_da_assistente_10_euro_ora_2026_11_13 e un_titolare_piu_appoggio_2026_11_13, Master v4.35). Segreteria → 🗓 Turni, corsi Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11: gli stessi di _istruttore_da_assistente): (1) nella tessera e nel dettaglio ogni istruttore si legge "titolare" o "d'appoggio" al posto di "Istruttore" (un istruttore entrato a ore = d'appoggio, come lo paga il DB). (2) Per creator e segreteria, su ogni istruttore previsto o presente, "Cambia in d'appoggio" / "Cambia in titolare" -> conferma -> impegno_mi_segno con p_user_id e p_ruolo supporto/conduce (aggiorna l'impegno, anche su lezioni passate). (3) Nel dettaglio, con due titolari, riga "Due titolari: dite chi è d'appoggio, altrimenti lo decide il portale." (4) Contatore: "Istruttori 2/1 · un istruttore d'appoggio" in questi corsi, negli altri come prima. CIFRE: "Istruttore (15 € a lezione)" in Aggiungi una persona e in Da sistemare -> "Istruttore (titolare 15 € l'ora, d'appoggio 10 € l'ora)", "Assistente (5 € l'ora)"; conferme di Da sistemare (PRESENTE, AGGIUNGI STAFF) e note dei compensi senza "15 € a lezione". Nessuna modifica a DB. CUMULA v3.170. -->
 <!-- KC-BUILD: portale v3.170 · 2026-11-13 · VIA I PONTI DEL NOME TECNICO (Marco 13 nov, migrazione della chat fatta: v_segreteria_da_sistemare_seg restituisce istruttori_in_piu, segreteria_conferma_istruttori_in_piu esiste). Tolti dsTipoNuovo (traduzione di persone_in_piu al caricamento) e dsConfermaIstruttoriInPiu (ripiego sulla funzione vecchia): VA BENE COSÌ chiama direttamente segreteria_conferma_istruttori_in_piu. La funzione vecchia resta nel DB, quella nuova passa da lei. Nessuna modifica a DB. CUMULA v3.169. -->
 <!-- KC-BUILD: portale v3.169 · 2026-11-13 · LE PAROLE GIUSTE (correzione Marco 13 nov: in Accademia ci sono allievi e istruttori, "persone" confonde). Solo testi. Segreteria → ⚠ Da sistemare: gruppo persone_in_piu "Più istruttori del previsto" (era Più persone del previsto) con l'aiuto "…Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto."; doppia_lezione "Stesso istruttore su due lezioni"; lezione_scoperta "Lezioni senza istruttore (prossimi 7 giorni)"; VA BENE COSÌ: suggerimento "Gli istruttori segnati erano davvero tutti in lezione: si pagano tutti" e conferma "Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?". Segreteria → Turni: "Togliere questo istruttore dal turno?", "Segnare assente questo istruttore?" e, nella stessa conferma, "Segnare presente questo istruttore? La lezione viene pagata.". NOME TECNICO IN PASSAGGIO (Marco 13 nov, scelta B): il gruppo e la conferma si chiamano istruttori_in_piu / segreteria_conferma_istruttori_in_piu. Finché la migrazione della chat non rinomina vista e funzione, la pagina legge anche il tipo persone_in_piu (lo traduce al caricamento dell'elenco) e, se segreteria_conferma_istruttori_in_piu non esiste ancora (PGRST202), chiama segreteria_conferma_persone_in_piu. Dopo la migrazione questi due ponti si tolgono. CUMULA v3.168. -->
 <!-- KC-BUILD: portale v3.168 · 2026-11-12 · PIÙ PERSONE DEL PREVISTO (consegna Marco 12 nov, DB avviso_persone_in_piu_2026_11_12): in Segreteria → ⚠ Da sistemare il gruppo nuovo "Più persone del previsto" (tipo persone_in_piu di v_segreteria_da_sistemare_seg, in fondo a DS_GRUPPI) con la riga di aiuto "Il piano prevede un istruttore e un assistente. Se sono venuti in più, si pagano tutti: controlla che sia giusto."; nella riga quando, i nomi dei presenti, il nome intero del corso e il testo cosa del DB. APRI IN AGENDA (come doppia_lezione) e VA BENE COSÌ -> kcGuida "Confermi che in questa lezione erano presenti tutti e che vanno pagati tutti?" (SÌ, VA BENE / ANNULLA) -> segreteria_conferma_persone_in_piu(slot, data, null), poi l'elenco si rilegge (dsDopo); errori come arrivano. Prima una riga persone_in_piu si contava nel numero ma non si vedeva. CUMULA v3.167. -->
@@ -1818,7 +1819,7 @@ fill="#1d4ed8" stroke="none">
             <input id="tu-mese-lez" type="month" class="input sc-in" style="width:auto" onchange="tuCaricaCompLez()">
             <button class="btn sc-scuro sc-piccolo" onclick="tuEsportaCsvLez()">Esporta CSV</button>
           </div>
-          <p class="sc-nota" style="margin-top:0">Istruttori 15 € a lezione, anche se dura un'ora e mezza. Assistenti a ore (5 € l'ora, salvo tariffa personale). Si paga solo con la presenza segnata.</p>
+          <p class="sc-nota" style="margin-top:0">Istruttori 15 € l'ora. Nei corsi Bambini, Ragazzi ed Evo Ragazzi un solo titolare a 15 € l'ora, ogni altro istruttore d'appoggio a 10 € l'ora. Assistenti 5 € l'ora, salvo tariffa personale. Si paga solo con la presenza segnata.</p>
           <div id="tu-complez"></div>
           <h3 class="sc-h3" style="margin-top:16px">⏰ Da confermare <span id="tu-daconf-n" class="sc-conta"></span></h3>
           <p class="sc-nota" style="margin-top:0">Lezioni di giorni passati senza presenza: valgono 0 finché non confermi chi c'era.</p>
@@ -1832,7 +1833,7 @@ fill="#1d4ed8" stroke="none">
             <input id="tu-mese-costi" type="month" class="input sc-in" style="width:auto" onchange="tuCaricaCosti()">
             <button class="btn sc-scuro sc-piccolo" onclick="tuEsportaCsvCosti()">Esporta CSV</button>
           </div>
-          <p class="sc-nota" style="margin-top:0">Corsi 15 € a lezione · Prime Lezioni 15 € l'ora con almeno un allievo presente, 5 € l'ora se vuota, 0 se l'istruttore è già sul corso nella stessa ora · monitor come sopra · Expert e Giovani di Mellozzini a percentuale (sotto). Si paga solo con la presenza segnata.</p>
+          <p class="sc-nota" style="margin-top:0">Corsi 15 € l'ora (d'appoggio 10 € l'ora) · Prime Lezioni 15 € l'ora con almeno un allievo presente, 5 € l'ora se vuota, 0 se l'istruttore è già sul corso nella stessa ora · monitor come sopra · Expert e Giovani di Mellozzini a percentuale (sotto). Si paga solo con la presenza segnata.</p>
           <div id="tu-costi"></div>
           <h3 class="sc-h3" style="margin-top:16px">Prime Lezioni del mese</h3>
           <div id="tu-prime"></div>
@@ -11723,9 +11724,21 @@ function tuNomeCorso(tipo,fascia){if(tipo==='bambini')return fascia==='ragazzi'?
 /* stessa regola di v_copertura_lezioni: istruttore = compenso lezione o percentuale (v3.148), assistente = ora, contano previsto e presente */
 /* v3.167 un istruttore al posto dell'assistente (Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12): coperta = istruttori minimi e persone in totale >= istruttori + assistenti richiesti */
 function tuCoperta(ni,na,imin,amin){return ni>=imin&&(ni+na)>=(imin+amin)}
-function tuContaTesto(ni,na,imin,amin,min){
+/* v3.171 TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB un_titolare_piu_appoggio_2026_11_13): nei corsi Bambini, Ragazzi ed Evo Ragazzi
+   (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11/2026: gli stessi di _istruttore_da_assistente) un solo istruttore titolare
+   (ruolo conduce, 15 €/h), ogni altro istruttore d'appoggio (supporto, 10 €/h, anche se entrato a ore), assistente 5 €/h. */
+const TU_CORSI_TITOLARE=['bambini','evo_ragazzi'];
+const tuConTitolare=v=>!!v&&v.tipo==='corso'&&!!v.slot&&TU_CORSI_TITOLARE.includes(v.slot.tipo_corso)&&String(v.data||'')>='2026-11-01';
+const tuEIstruttore=u=>/^staff_istruttore_/.test(((tuStaff||[]).find(x=>x.user_id===u)||{}).staff_role||'');
+const tuIstrInLez=(i,v)=>i.compenso_tipo!=='ora'||(tuConTitolare(v)&&tuEIstruttore(i.user_id));
+function tuRuoloLez(i,v){
+  if(!tuIstrInLez(i,v))return 'assistente';
+  if(!tuConTitolare(v))return 'istruttore';
+  return i.ruolo==='conduce'&&i.compenso_tipo!=='ora'?'titolare':'d\u2019appoggio';
+}
+function tuContaTesto(ni,na,imin,amin,min,v){
   const I=min?'istruttori':'Istruttori',A=min?'assistenti':'Assistenti',k=amin-na;
-  if(na<amin&&tuCoperta(ni,na,imin,amin))return `${I} ${ni}/${imin} · ${k===1?"un istruttore al posto dell'assistente":k+' istruttori al posto degli assistenti'}`;
+  if(na<amin&&tuCoperta(ni,na,imin,amin))return `${I} ${ni}/${imin} · `+(tuConTitolare(v)?(k===1?"un istruttore d'appoggio":k+" istruttori d'appoggio"):(k===1?"un istruttore al posto dell'assistente":k+' istruttori al posto degli assistenti')); // v3.171
   return `${I} ${ni}/${imin}${amin||na?` · ${A} ${na}/${amin}`:''}`;
 }
 function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
@@ -11911,12 +11924,12 @@ function tuDisegnaSettimana(){
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
           const{ni,na}=tuConta(v.seg),ok=tuCoperta(ni,na,v.imin,v.amin);
-          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(tuDentroCorso(i)?' <span style="font-size:13px;color:var(--text2)">'+TU_DENTRO+'</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':i.stato==='non_svolta'?' <span style="color:var(--text2)">(lezione non svolta)</span>':'')).join(', ');
+          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(tuConTitolare(v)&&tuIstrInLez(i,v)?' ('+tuRuoloLez(i,v)+')':i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(tuDentroCorso(i)?' <span style="font-size:13px;color:var(--text2)">'+TU_DENTRO+'</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':i.stato==='non_svolta'?' <span style="color:var(--text2)">(lezione non svolta)</span>':'')).join(', ');
           const nonSv=v.seg.length&&v.seg.every(i=>i.stato==='non_svolta'||i.stato==='assente')&&v.seg.some(i=>i.stato==='non_svolta'); // v3.152
           return `<button class="tu-voce ${nonSv?'grigio':ok?'verde':'rosso'}" onclick="tuApriVoce(${k})">
             <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${nonSv?'lezione non svolta':ok?'coperta':'scoperta'}</b></span>
             <span class="tu-t">${escHtml(v.titolo)}</span>
-            <span class="tu-n">${tuContaTesto(ni,na,v.imin,v.amin)}</span>
+            <span class="tu-n">${tuContaTesto(ni,na,v.imin,v.amin,false,v)}</span>
             <span class="tu-n">${nomiC||'Nessuno'}</span>${v.req?'<span class="tu-supp">Supporto richiesto</span>':''}${tuPuo()?'<span class="tu-tocca">Tocca per segnare presente, assente o sostituire</span>':''}</button>`;
         }
         /* v3.159 monitor: coperto = nessuna ora libera nella fascia */
@@ -11946,8 +11959,12 @@ function tuApriVoce(k){
     if(puo&&!nsv&&v.tipo==='corso'&&i.stato!=='presente'&&!futuro)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('presente','${i.id}',${k})">Segna presente</button>`);
     if(puo&&!nsv&&v.tipo==='corso'&&i.stato!=='assente')az.push(`<button class="btn sc-scuro sc-piccolo" onclick="tuApriSost('${i.id}',${k})">Sostituisci</button>`); // v3.141
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
+    if(puo&&tuConTitolare(v)&&tuIstrInLez(i,v)&&(i.stato==='previsto'||i.stato==='presente')){ // v3.171
+      const tit=tuRuoloLez(i,v)==='titolare';
+      az.push(`<button class="btn btn-g sc-piccolo" onclick="tuCambiaRuolo('${i.id}',${k},'${tit?'supporto':'conduce'}')">${tit?'Cambia in d’appoggio':'Cambia in titolare'}</button>`);
+    }
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
-    const ruolo=v.tipo==='corso'?(i.compenso_tipo==='ora'?'Assistente':'Istruttore')+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':'')
+    const ruolo=v.tipo==='corso'?(()=>{const r=tuRuoloLez(i,v);return r.charAt(0).toUpperCase()+r.slice(1)})()+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':'')
       :v.tipo==='monitor'?`Turno ${scOra(i.ora_inizio)}–${scOra(i.ora_fine)}`+(/doppio turno creato/i.test(i.note||'')?' · doppio turno: '+String(i.note).replace(/^.*doppio turno creato da [^:]*:\s*/i,'').split(' · ')[0]:i.segnato_da&&i.segnato_da!==i.user_id?' · dichiarato da '+tuNome(i.segnato_da):''):(TU_RUOLO[i.ruolo]||i.ruolo); // v3.159 · v3.163 doppio
     const chiSost=v.tipo==='corso'?tuSostituisceChi(i):null; // v3.141
     return `<div class="sc-riga"><div class="sc-riga-main"><b>${escHtml(tuNome(i.user_id))}</b>${chiSost?' <span class="sc-sub">(sostituisce '+escHtml(chiSost)+')</span>':''}
@@ -11959,21 +11976,22 @@ function tuApriVoce(k){
     <label class="sc-lbl" for="tu-add-user">Aggiungi una persona</label>
     <select id="tu-add-user" class="input sc-in"${v.tipo==='corso'?' onchange="tuRuoloDaUtente()"':''}>${tuOpzioniStaff(liberi,null,v,v.tipo!=='monitor')}</select>
     ${v.tipo==='corso'?`<label class="sc-lbl" for="tu-add-ruolo">Come</label>
-    <select id="tu-add-ruolo" class="input sc-in"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>`
+    <select id="tu-add-ruolo" class="input sc-in"><option value="conduce">Istruttore (titolare 15 € l’ora, d’appoggio 10 € l’ora)</option><option value="assistente">Assistente (5 € l’ora)</option></select>`
     :v.tipo==='lezione'?`<label class="sc-lbl" for="tu-add-ruolo">Ruolo</label>
     <select id="tu-add-ruolo" class="input sc-in"><option value="supporto">Supporto</option><option value="conduce">Conduce</option></select>`
     :v.tipo==='monitor'?tuFormOreMonitor(v):''}`:'';
   /* v3.139 richiesta di supporto aperta sulla lezione del corso */
   const supp=v.tipo==='corso'&&v.req?`<div class="tu-supp-box">Supporto richiesto${v.req.chiesto_da?' da <b>'+escHtml(tuNome(v.req.chiesto_da))+'</b>':''}${v.req.note?': '+escHtml(v.req.note):''}
     ${puo?` <button class="btn btn-g sc-piccolo" onclick="tuAnnullaSupporto('${v.req.id}',${k})">Annulla richiesta</button>`:''}</div>`:'';
-  const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg);return ' · '+tuContaTesto(ni,na,v.imin,v.amin,true)})():` · richiesti ${v.richiesti}`;
+  const dueTit=tuConTitolare(v)&&v.seg.filter(i=>(i.stato==='previsto'||i.stato==='presente')&&tuRuoloLez(i,v)==='titolare').length>1; // v3.171
+  const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg);return ' · '+tuContaTesto(ni,na,v.imin,v.amin,true,v)})():` · richiesti ${v.richiesti}`;
   /* v3.163 doppio turno: solo creator e segreteria, solo se nella fascia c'e' gia' un monitor */
   const attivi=v.tipo==='monitor'?v.seg.filter(i=>i.stato==='previsto'||i.stato==='presente'):[];
   const doppio=(puo&&v.tipo==='monitor'&&attivi.length&&!passato)?tuFormDoppio(v,k,attivi):'';
   const d=new Date(v.data+'T00:00:00');
   scModal(`${v.tipo==='monitor'?'🟢':'📅'} ${v.titolo}`,
     `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}${conta}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
-     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${puo&&v.tipo==='corso'?'<p class="tu-guida">Chi non c\'era: <b>SEGNA ASSENTE</b>. Chi è venuto al suo posto: <b>SOSTITUISCI</b> oppure <b>AGGIUNGI PERSONA</b>. Le presenze le segnano gli istruttori con <b>SONO QUI</b>: tu correggi solo quello che manca.</p>':''}${righe}${aggiungi}${doppio}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
+     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${dueTit?'<p class="sc-warn" style="font-size:14px;margin:0 0 8px">Due titolari: dite chi è d’appoggio, altrimenti lo decide il portale.</p>':''}${puo&&v.tipo==='corso'?'<p class="tu-guida">Chi non c\'era: <b>SEGNA ASSENTE</b>. Chi è venuto al suo posto: <b>SOSTITUISCI</b> oppure <b>AGGIUNGI PERSONA</b>. Le presenze le segnano gli istruttori con <b>SONO QUI</b>: tu correggi solo quello che manca.</p>':''}${righe}${aggiungi}${doppio}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
     aggiungi?async()=>{
       if(v.tipo!=='monitor'&&tuEMonitor(scVal('tu-add-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
       const args=v.tipo==='corso'
@@ -12070,6 +12088,16 @@ async function tuRiapri(k){
   if(n>=0)tuApriVoce(n);else closeModal('mo-scuole');
 }
 
+/* v3.171 la segreteria cambia titolare / d'appoggio per un istruttore: impegno_mi_segno con p_user_id aggiorna il ruolo dell'impegno */
+async function tuCambiaRuolo(impegnoId,k,ruolo){
+  const v=tuVoci[k];if(!v)return;const i=v.seg.find(x=>x.id===impegnoId);if(!i)return;
+  if(!confirm(`${tuNome(i.user_id)} diventa ${ruolo==='conduce'?'titolare (15 € l\u2019ora)':'d\u2019appoggio (10 € l\u2019ora)'} in questa lezione. In ogni lezione il titolare è uno solo. Confermi?`))return;
+  const{error}=await sb.rpc('impegno_mi_segno',{p_tipo:'lezione',p_slot_id:v.slot.id,p_data:v.data,p_ruolo:ruolo,p_user_id:i.user_id});
+  if(error){scMsg('mo-scuole-msg',scErr(error));return}
+  toast(ruolo==='conduce'?'Ora è il titolare':'Ora è d\u2019appoggio');
+  if(tuPuo())tuCaricaCompLez();
+  await tuRiapri(k);
+}
 async function tuAzione(az,impegnoId,k){
   const testi={togli:'Togliere questo istruttore dal turno?',assente:'Segnare assente questo istruttore?',annulla:'Riportare a previsto? Si cancellano gli orari di presenza.',
     presente:'Segnare presente questo istruttore? La lezione viene pagata.'};
@@ -13251,7 +13279,7 @@ async function dsAzione(az,i){
     kcGuida({titolo:`${chi} era presente?`,
       succede:[`<b>${escHtml(chi)}</b> risulta presente alla lezione ${lq}`,
         c.compenso_tipo==='percentuale'?'È pagato a percentuale sugli incassi del corso: la lezione non vale euro a parte' // v3.148
-        :c.compenso_tipo==='lezione'?'Gli vengono contati 15 € nei compensi del mese':'Gli vengono contate le ore della lezione nei compensi del mese'],
+        :c.compenso_tipo==='lezione'?'Gli viene contata la lezione nei compensi del mese: titolare 15 € l\u2019ora, d\u2019appoggio 10 € l\u2019ora':'Gli vengono contate le ore della lezione nei compensi del mese'],
       ok:'Sì, era presente',annulla:'No, torna indietro',
       azione:async()=>{const{error}=await sb.rpc('impegno_presenza',{p_impegno_id:r.impegno_id,p_azione:'fine'});if(error)throw error;},
       dopo:`Fatto: ${chi} risulta presente. Il portale è già a posto.`,poi:dsDopo});
@@ -13296,12 +13324,12 @@ async function dsAzione(az,i){
     kcGuida({titolo:sost?`Sostituisci ${chi}`:'Aggiungi staff alla lezione',
       corpo:`<p class="al-ctx" style="margin-top:0">${escHtml(lez)} · ${escHtml(quando)}</p>
         <label class="sc-lbl" for="ds-chi">${sost?'Al suo posto':'Chi'}</label><select id="ds-chi" class="input sc-in"${sost?'':' onchange="dsRuoloDaPersona()"'}>${opz}</select>
-        ${sost?'':`<label class="sc-lbl" for="ds-ruolo">Come</label><select id="ds-ruolo" class="input sc-in"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>`}`,
+        ${sost?'':`<label class="sc-lbl" for="ds-ruolo">Come</label><select id="ds-ruolo" class="input sc-in"><option value="conduce">Istruttore (titolare 15 € l’ora, d’appoggio 10 € l’ora)</option><option value="assistente">Assistente (5 € l’ora)</option></select>`}`,
       succede:()=>{
         const u=alVal('ds-chi'),nu=u?escHtml(dsNomeStaff(u)):'…';
         if(sost)return[`<b>${nu}</b> prende il posto di <b>${escHtml(chi)}</b> sulla lezione ${lq}`,
           passata?'Lezione passata: risulta già presente, e la lezione la paghi a lui':'Sulla lezione compare lui al posto di '+escHtml(chi)];
-        return[`<b>${nu}</b> viene segnato sulla lezione ${lq}`,alVal('ds-ruolo')==='assistente'?'Come assistente: pagato a ore':'Come istruttore: 15 € a lezione'];
+        return[`<b>${nu}</b> viene segnato sulla lezione ${lq}`,alVal('ds-ruolo')==='assistente'?'Come assistente: 5 € l\u2019ora':'Come istruttore: titolare 15 € l\u2019ora, d\u2019appoggio 10 € l\u2019ora'];
       },
       attenzione:()=>dsMonitor(alVal('ds-chi'))?DS_MON_ATT:'',
       pronto:()=>alVal('ds-chi')?true:'Scegli chi',

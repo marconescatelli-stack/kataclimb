@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.112 · 2026-11-13 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB istruttore_da_assistente_10_euro_ora_2026_11_13 e un_titolare_piu_appoggio_2026_11_13, Master v4.35). Riga Staff delle lezioni dei corsi Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11: gli stessi di _istruttore_da_assistente): ogni istruttore si legge "titolare" o "d'appoggio" al posto di "istruttore" (entrato a ore = d'appoggio, come lo paga il DB); per la segreteria CAMBIA IN D'APPOGGIO / CAMBIA IN TITOLARE su ogni istruttore previsto o presente -> conferma -> impegno_mi_segno con p_user_id e p_ruolo supporto/conduce; con due titolari riga arancio "Due titolari: dite chi è d'appoggio, altrimenti lo decide il portale.". AGGIUNGI STAFF: "Istruttore (titolare 15 € l'ora, d'appoggio 10 € l'ora)" e "Assistente (5 € l'ora)" al posto di "15 € a lezione" / "a ore"; "la persona" -> "chi scegli". Nessuna modifica a DB. CUMULA v3.111. -->
 <!-- KC-BUILD: agenda v3.111 · 2026-11-07 · FESTA: BAMBINI IN PIÙ (consegna Marco 7 nov, DB prenotazioni_festa_aggiunte, stripe-worker v3.98): la card della festa mostra il numero di bambini aggiornato (prenotazioni_festa.n_bambini, che il Worker aumenta a ogni aggiunta pagata); nei dettagli la riga "Bambini aggiunti" con le aggiunte pagate e la data ("+5 il 12/11 · 75 €"). Le aggiunte si leggono insieme alla festa (relazione festa_id); se quella lettura non riesce si rilegge la festa come prima, senza aggiunte. Niente altro. CUMULA v3.110 -->
 <!-- KC-BUILD: agenda v3.110 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. (1) gli slot festa_sabato non sono lezioni: caricaSlot e la ricerca (cercaCarica) li escludono (.neq tipo_corso festa_sabato). Prima, nella vista Tutti i corsi comparivano ogni sabato come blocchi "Da assegnare" e il tocco apriva un tab festa_sabato con i bottoni di prenotazione. (2) Solo staff, nella vista 📋 Tutti i corsi e nel tab Bambini e Ragazzi: la festa prenotata (prenotazioni_festa stato prenotato, settimana a schermo) compare nella fascia del suo slot (ora_inizio–ora_fine dello slot) come "🎉 Festa · N bambini · genitore · telefono" (card rosa tra le lezioni in ordine di ora; nella griglia Tutti una riga "🎉 Feste"). Al tocco, modale di sola lettura con quando, bambini, eta' dei bambini, festeggiato, genitore, telefono (link tel:), durata, importo in €, note. Tutti i campi scritti dai genitori passano da escF. Se la lettura fallisce (RLS, rete) la festa non compare e il resto dell'agenda resta com'e'. Nessuna scrittura. CUMULA v3.109. -->
 <!-- KC-BUILD: agenda v3.109 · 2026-11-06 · IL TOCCO SUL NOME APRE LA SCHEDA (Marco 5–6 nov, sostituisce la consegna v1 del 5 nov): per tutto lo staff (isStaff) ogni nome prenotato o iscritto apre oggi.html?scheda=<persona_id>&torna=agenda&data=&tipo= nella stessa scheda del browser. persona_id: iscritti, abbonati e Manovra in Sosta dalla riga (v_lista_manovra_sosta ha persona_id, non user_id); Prima Lezione e Scuole dalla lettura della foto v3.95; corsi a credito da profile_data, una lettura in batch con cache (idrataNomi). Persona non trovata: nome senza tocco e console.warn. apriCardLead resta nel file ma non e' piu' legata ai nomi. Nessun SQL. CUMULA v3.108. -->
@@ -156,6 +157,7 @@
   .staffrow .s-chip.previsto { background:#E5E7EB; color:#374151; }
   .staffrow .s-chip.presente { background:#DCFCE7; color:#166534; }
   .staffrow .s-chip.assente { background:#FEE2E2; color:#991B1B; }
+  .staffrow .s-duetit { flex-basis:100%; font-size:14px; font-weight:700; color:#B45309; } /* v3.112 due titolari */
   .staffrow .s-chip.non_svolta { background:#F3F4F6; color:#6B7280; } /* lezione non svolta: grigio, non e' un'assenza */
   .staffrow .s-vuoto { color:#B91C1C; font-weight:700; }
   .staffrow .s-btn { font-size:13px; font-weight:800; padding:.3rem .6rem; border-radius:8px; border:1px solid var(--ink); background:#fff; color:var(--ink); cursor:pointer; }
@@ -533,7 +535,7 @@
     <select id="stf-persona"></select>
     <div id="stf-ruolo-box">
       <label for="stf-ruolo" style="font-size:14px;font-weight:700">Ruolo</label>
-      <select id="stf-ruolo"><option value="conduce">Istruttore (15 € a lezione)</option><option value="assistente">Assistente (a ore)</option></select>
+      <select id="stf-ruolo"><option value="conduce">Istruttore (titolare 15 € l’ora, d’appoggio 10 € l’ora)</option><option value="assistente">Assistente (5 € l’ora)</option></select>
     </div>
     <div id="stf-msg" class="modal-msg"></div>
     <div class="modal-actions">
@@ -2382,6 +2384,18 @@
   const isSegreteriaAg = () => STAFF_COMPLETO.includes(userStaffRole);
   const haRigaStaff = (s) => !haTurni(s) && s.tipo_corso !== 'monitor'; // scuole: riga Istruttori di sempre · Sala con Monitor: turni a parte
   const STAFF_STATO = { previsto: 'previsto', presente: 'presente ✓', assente: 'assente', non_svolta: 'lezione non svolta' }; // non_svolta: 2 nov 2026
+  /* v3.112 TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB un_titolare_piu_appoggio_2026_11_13): nei corsi Bambini, Ragazzi ed Evo Ragazzi
+     (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11/2026: gli stessi di _istruttore_da_assistente) un solo istruttore titolare
+     (ruolo conduce, 15 €/h), ogni altro istruttore d'appoggio (supporto, 10 €/h, anche se entrato a ore), assistente 5 €/h. */
+  const STAFF_CORSI_TITOLARE = ['bambini', 'evo_ragazzi'];
+  const staffConTitolare = (s, dataIso) => !!s && STAFF_CORSI_TITOLARE.includes(s.tipo_corso) && String(dataIso || '') >= '2026-11-01';
+  const staffEIstruttore = (u) => /^staff_istruttore_/.test((staffNomi && staffNomi[u] && staffNomi[u].staff_role) || '');
+  const staffIstrInLez = (r, s, dataIso) => r.compenso_tipo !== 'ora' || (staffConTitolare(s, dataIso) && staffEIstruttore(r.user_id));
+  function staffRuoloLez(r, s, dataIso) {
+    if (!staffIstrInLez(r, s, dataIso)) return 'assistente';
+    if (!staffConTitolare(s, dataIso)) return 'istruttore';
+    return r.ruolo === 'conduce' && r.compenso_tipo !== 'ora' ? 'titolare' : 'd’appoggio';
+  }
 
   async function caricaStaffLezioni(lezioni) {
     staffSlot = {}; staffErr = null;
@@ -2425,7 +2439,7 @@
     const voci = vis.map(r => {
       const chi = sostituisceChi(r, righe);
       const lab = escAttr(staffNome(r.user_id)) + (chi ? ' (sostituisce ' + escAttr(chi) + ')' : '')
-        + ' · ' + (r.compenso_tipo === 'ora' ? 'assistente' : 'istruttore') + ' · ' + (STAFF_STATO[r.stato] || r.stato);
+        + ' · ' + staffRuoloLez(r, s, dataIso) + ' · ' + (STAFF_STATO[r.stato] || r.stato); // v3.112
       let az = '';
       if (seg) {
         const b = (a, t) => `<button class="s-btn" data-staff-az="${a}" data-imp="${r.id}" data-user="${r.user_id}" data-slot="${s.id}" data-data="${dataIso}">${t}</button>`;
@@ -2433,12 +2447,15 @@
         if (r.stato !== 'assente') az += b('assente', 'ASSENTE');
         if (r.stato !== 'assente') az += b('sostituisci', 'SOSTITUISCI');
         if (r.stato !== 'previsto') az += b('annulla', 'ANNULLA');
+        if (staffConTitolare(s, dataIso) && staffIstrInLez(r, s, dataIso) && (r.stato === 'previsto' || r.stato === 'presente')) // v3.112
+          az += staffRuoloLez(r, s, dataIso) === 'titolare' ? b('appoggio', 'CAMBIA IN D’APPOGGIO') : b('titolare', 'CAMBIA IN TITOLARE');
       }
       return `<div class="s-voce"><span class="s-chip ${r.stato}">${lab}</span>${az}</div>`;
     }).join('');
     const vuoto = vis.length ? '' : '<span class="s-vuoto">Nessun istruttore segnato</span>';
+    const dueTit = staffConTitolare(s, dataIso) && vis.filter(r => (r.stato === 'previsto' || r.stato === 'presente') && staffRuoloLez(r, s, dataIso) === 'titolare').length > 1; // v3.112
     const aggiungi = seg ? `<button class="s-btn s-agg" data-staff-az="aggiungi" data-slot="${s.id}" data-data="${dataIso}">+ AGGIUNGI STAFF</button>` : '';
-    return `<div class="staffrow"><span class="t-tit">Staff</span>${voci}${vuoto}${aggiungi}</div>`;
+    return `<div class="staffrow"><span class="t-tit">Staff</span>${voci}${vuoto}${aggiungi}${dueTit ? '<span class="s-duetit">Due titolari: dite chi è d’appoggio, altrimenti lo decide il portale.</span>' : ''}</div>`;
   }
 
   /* lista per Sostituisci / Aggiungi: per primo il sostituto automatico della lezione, poi tutto lo staff per nome */
@@ -2472,6 +2489,16 @@
         const righe = staffSlot[d.slot + '|' + d.data] || [];
         if (d.staffAz === 'sostituisci' || d.staffAz === 'aggiungi') { apriStaff(d.staffAz, d, righe); return; }
         const nome = staffNome(d.user);
+        if (d.staffAz === 'titolare' || d.staffAz === 'appoggio') { // v3.112 impegno_mi_segno con p_user_id aggiorna il ruolo dell'impegno
+          const tit = d.staffAz === 'titolare';
+          if (!confirm(`${nome} diventa ${tit ? 'titolare (15 € l’ora)' : 'd’appoggio (10 € l’ora)'} in questa lezione. In ogni lezione il titolare è uno solo. Confermi?`)) return;
+          b.disabled = true;
+          const { error } = await sb.rpc('impegno_mi_segno', { p_tipo: 'lezione', p_slot_id: d.slot, p_data: d.data, p_ruolo: tit ? 'conduce' : 'supporto', p_user_id: d.user });
+          if (error) { b.disabled = false; toast(traduciErrore(error, 'Staff'), true); return; }
+          toast(tit ? `✓ ${nome} è il titolare` : `✓ ${nome} è d’appoggio`);
+          await render();
+          return;
+        }
         const testi = {
           presente: `Segnare presente ${nome}? La lezione viene pagata.`,
           assente: `Segnare assente ${nome}?\n\nSe è assente, il portale chiama il suo sostituto (se previsto).`,
@@ -2492,7 +2519,7 @@
     staffCtx = { az, slotId: d.slot, dataIso: d.data, impId: d.imp || null, userId: d.user || null };
     document.getElementById('stf-tit').textContent = az === 'aggiungi' ? 'Aggiungi staff' : 'Sostituisci ' + staffNome(d.user);
     document.getElementById('stf-info').textContent = az === 'aggiungi'
-      ? (d.data < isoD(new Date()) ? 'Lezione passata: la persona risulta subito presente.' : 'La persona viene segnata sulla lezione.')
+      ? (d.data < isoD(new Date()) ? 'Lezione passata: chi scegli risulta subito presente.' : 'Chi scegli viene segnato sulla lezione.')
       : (d.data < isoD(new Date()) ? 'Lezione passata: chi scegli risulta presente al posto suo.' : 'Chi scegli prende il suo posto sulla lezione.');
     document.getElementById('stf-persona').innerHTML = az === 'aggiungi'
       ? opzioniStaff(d.slot, null, vis, d.data)
