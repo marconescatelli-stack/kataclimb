@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.169 · 2026-11-13 · LE PAROLE GIUSTE (correzione Marco 13 nov: in Accademia ci sono allievi e istruttori, "persone" confonde). Solo testi. Segreteria → ⚠ Da sistemare: gruppo persone_in_piu "Più istruttori del previsto" (era Più persone del previsto) con l'aiuto "…Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto."; doppia_lezione "Stesso istruttore su due lezioni"; lezione_scoperta "Lezioni senza istruttore (prossimi 7 giorni)"; VA BENE COSÌ: suggerimento "Gli istruttori segnati erano davvero tutti in lezione: si pagano tutti" e conferma "Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?". Segreteria → Turni: "Togliere questo istruttore dal turno?", "Segnare assente questo istruttore?" e, nella stessa conferma, "Segnare presente questo istruttore? La lezione viene pagata.". Nomi tecnici (persone_in_piu) invariati. CUMULA v3.168. -->
 <!-- KC-BUILD: portale v3.168 · 2026-11-12 · PIÙ PERSONE DEL PREVISTO (consegna Marco 12 nov, DB avviso_persone_in_piu_2026_11_12): in Segreteria → ⚠ Da sistemare il gruppo nuovo "Più persone del previsto" (tipo persone_in_piu di v_segreteria_da_sistemare_seg, in fondo a DS_GRUPPI) con la riga di aiuto "Il piano prevede un istruttore e un assistente. Se sono venuti in più, si pagano tutti: controlla che sia giusto."; nella riga quando, i nomi dei presenti, il nome intero del corso e il testo cosa del DB. APRI IN AGENDA (come doppia_lezione) e VA BENE COSÌ -> kcGuida "Confermi che in questa lezione erano presenti tutti e che vanno pagati tutti?" (SÌ, VA BENE / ANNULLA) -> segreteria_conferma_persone_in_piu(slot, data, null), poi l'elenco si rilegge (dsDopo); errori come arrivano. Prima una riga persone_in_piu si contava nel numero ma non si vedeva. CUMULA v3.167. -->
 <!-- KC-BUILD: portale v3.167 · 2026-11-12 · UN ISTRUTTORE AL POSTO DELL'ASSISTENTE (consegna Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12, Master v4.30; caso giovedì 12/11 Corso Ragazzi (12–17) 18:00–19:30 con Claudia e Mattia, Davide assente). Segreteria → 🗓 Turni: (1) la lezione del corso è coperta quando ci sono gli istruttori minimi e le persone in totale sono almeno istruttori + assistenti richiesti (tuCoperta, la stessa regola di v_copertura_lezioni.coperta); tuConta invariata. (2) Contatore della tessera e del dettaglio: se mancano assistenti ma gli istruttori in più coprono, "Istruttori 2/1 · un istruttore al posto dell'assistente" (con più posti "N istruttori al posto degli assistenti"); negli altri casi come prima (tuContaTesto). (3) Per creator e segreteria (tuPuo) sotto ogni tessera di lezione del corso la riga "Tocca per segnare presente, assente o sostituire"; nel dettaglio, sopra le persone, la riga di guida (SEGNA ASSENTE, SOSTITUISCI o AGGIUNGI PERSONA, SONO QUI). Nessun bottone nuovo, nessuna RPC nuova. CUMULA v3.166. -->
 <!-- KC-BUILD: portale v3.166 · 2026-11-12 · MODULO CONSENSI MINORI: il link nella sezione Consensi puntava a /docs/Modulo_Consensi_Minori_KataClimb.pdf (404, il file è nella radice) → /Modulo_Consensi_Minori_KataClimb.pdf. -->
@@ -12069,8 +12070,8 @@ async function tuRiapri(k){
 }
 
 async function tuAzione(az,impegnoId,k){
-  const testi={togli:'Togliere questa persona dal turno?',assente:'Segnare assente questa persona?',annulla:'Riportare a previsto? Si cancellano gli orari di presenza.',
-    presente:'Segnare presente questa persona? La lezione viene pagata.'};
+  const testi={togli:'Togliere questo istruttore dal turno?',assente:'Segnare assente questo istruttore?',annulla:'Riportare a previsto? Si cancellano gli orari di presenza.',
+    presente:'Segnare presente questo istruttore? La lezione viene pagata.'};
   if(!confirm(testi[az]))return;
   const{error}=az==='togli'
     ?await sb.rpc('impegno_mi_tolgo',{p_impegno_id:impegnoId})
@@ -12987,7 +12988,7 @@ function alFatto(id){
    stesse RPC (impegno_presenza, sostituisci_istruttore, segreteria_chiudi_turno, impegno_mi_segno), con
    ogni azione che passa da kcGuida. Solo creator e segreteria (alPuo). Solo nomi, mai email o telefoni. */
 const DS_GRUPPI=[['presenza_mancante','Presenze da confermare'],['turno_da_chiudere','Turni monitor da chiudere'],
-  ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stessa persona su due lezioni'],['lezione_scoperta','Lezioni senza staff (prossimi 7 giorni)'],['persone_in_piu','Più persone del previsto']]; // v3.168
+  ['ruolo_da_verificare','Ruolo da verificare'],['doppia_lezione','Stesso istruttore su due lezioni'],['lezione_scoperta','Lezioni senza istruttore (prossimi 7 giorni)'],['persone_in_piu','Più istruttori del previsto']]; // v3.168
 const DS_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 const DS_GIORNI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
 let dsRighe=[],dsSlot={},dsAltre={},dsInizio={},dsComp={},dsStaff=null,dsPiano=[],dsIndisp=[];
@@ -13157,7 +13158,7 @@ function dsDisegna(){
   el.innerHTML=DS_GRUPPI.map(([tipo,tit])=>{
     const L=dsRighe.map((r,i)=>[r,i]).filter(([r])=>r.tipo===tipo);
     if(!L.length)return '';
-    return `<div class="sc-sez al-gruppo"><h3 class="sc-h3">${tit} <span class="sc-conta">${L.length}</span></h3>${tipo==='persone_in_piu'?'<p class="al-spiega" style="margin:0 0 6px">Il piano prevede un istruttore e un assistente. Se sono venuti in più, si pagano tutti: controlla che sia giusto.</p>':''}${tipo==='presenza_mancante'?'<p class="al-spiega" style="margin:0 0 6px">Prima Lezione con l’istruttore presente ma nessun allievo: PRESENTE (vale come vuota, 5 €/h). NON C’ERA LEZIONE solo se la lezione non si è tenuta e l’istruttore non c’era.</p>':''}${L.map(([r,i])=>dsRiga(r,i)).join('')}</div>`;
+    return `<div class="sc-sez al-gruppo"><h3 class="sc-h3">${tit} <span class="sc-conta">${L.length}</span></h3>${tipo==='persone_in_piu'?'<p class="al-spiega" style="margin:0 0 6px">Il piano prevede un istruttore e un assistente. Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto.</p>':''}${tipo==='presenza_mancante'?'<p class="al-spiega" style="margin:0 0 6px">Prima Lezione con l’istruttore presente ma nessun allievo: PRESENTE (vale come vuota, 5 €/h). NON C’ERA LEZIONE solo se la lezione non si è tenuta e l’istruttore non c’era.</p>':''}${L.map(([r,i])=>dsRiga(r,i)).join('')}</div>`;
   }).join('');
 }
 function dsRiga(r,i){
@@ -13175,7 +13176,7 @@ function dsRiga(r,i){
   else if(r.tipo==='doppia_lezione')az=`<div class="al-az"><a class="btn sc-scuro sc-piccolo" target="_blank" rel="noopener" href="/agenda.html?data=${encodeURIComponent(r.data)}&tipo=${encodeURIComponent(r.tipo_corso||'')}">APRI IN AGENDA</a><span class="al-spiega">Si apre l'agenda su quel giorno in una nuova scheda: togli la lezione sbagliata</span></div>`;
   else if(r.tipo==='lezione_scoperta')az=b('aggiungi','AGGIUNGI STAFF',true,'Scegli chi fa la lezione');
   else if(r.tipo==='persone_in_piu')az=`<div class="al-az"><a class="btn sc-scuro sc-piccolo" target="_blank" rel="noopener" href="/agenda.html?data=${encodeURIComponent(r.data)}&tipo=${encodeURIComponent(r.tipo_corso||'')}">APRI IN AGENDA</a><span class="al-spiega">Si apre l'agenda su quel giorno in una nuova scheda: togli o segna assente chi non c'era</span></div>`
-    +b('va_bene','VA BENE COSÌ',false,'Erano davvero tutti in lezione: si pagano tutti'); // v3.168
+    +b('va_bene','VA BENE COSÌ',false,'Gli istruttori segnati erano davvero tutti in lezione: si pagano tutti'); // v3.168
   return `<div class="al-riga">
     <div class="al-ctx" style="margin-top:0"><b>${escHtml(dsQuando(r))}</b></div>
     ${r.persona?`<div><span class="al-nome">${escHtml(r.persona)}</span></div>`:''}
@@ -13229,8 +13230,8 @@ async function dsAzione(az,i){
   const r=dsRighe&&dsRighe[i];if(!r)return;
   const lez=dsNomeLez(r.slot_id,r.tipo_corso,r.fascia),quando=dsQuando(r),chi=r.persona||'';
   const lq=`<b>${escHtml(lez)}</b> di ${escHtml(quando)}`;
-  if(az==='va_bene'){ // v3.168 più persone del previsto: la segreteria conferma che vanno pagati tutti
-    kcGuida({titolo:'Confermi che in questa lezione erano presenti tutti e che vanno pagati tutti?',
+  if(az==='va_bene'){ // v3.168 più istruttori del previsto: la segreteria conferma che vanno pagati tutti
+    kcGuida({titolo:'Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?',
       succede:[`Lezione ${lq}${chi?': presenti <b>'+escHtml(chi)+'</b>':''}`,'Si pagano tutti e la voce sparisce da questo elenco'],
       ok:'SÌ, VA BENE',annulla:'ANNULLA',
       azione:async()=>{const{error}=await sb.rpc('segreteria_conferma_persone_in_piu',{p_slot_id:r.slot_id,p_data:r.data,p_nota:null});if(error)throw error;},
