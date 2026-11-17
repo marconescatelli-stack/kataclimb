@@ -1,4 +1,6 @@
-/* kc-proposta-open.js v1.0 — 17 nov 2026
+/* kc-proposta-open.js v1.1 — 17 nov 2026
+ * v1.1: sotto il codice QR, "MANDA SU WHATSAPP": apre WhatsApp sul numero dell'allievo con lo stesso link gia' scritto
+ *       (per quando l'istruttore non puo' far inquadrare il codice). Il numero si legge da persone.telefono.
  * PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov 2026).
  * Appena l'allievo e' segnato presente alla Prima Lezione Adulti, l'istruttore apre questa
  * schermata (da Agenda o da Oggi) e gli fa inquadrare il codice: sul telefono dell'allievo si
@@ -32,6 +34,14 @@
     if (css) e.style.cssText = css;
     if (testo != null) e.textContent = testo;   // mai HTML da nomi di persone
     return e;
+  }
+
+  function waNum(tel) {   // stessa regola di oggi.html
+    var t = String(tel || '').replace(/[^0-9+]/g, '');
+    if (!t) return '';
+    t = t.replace(/^\+/, '');
+    if (t.indexOf('39') !== 0 && t.length <= 10) t = '39' + t;
+    return t;
   }
 
   function chiudi() {
@@ -80,7 +90,7 @@
       }
       if (!pid) throw new Error('persona non trovata');
 
-      var r2 = await sb.from('persone').select('nome').eq('id', pid).maybeSingle();
+      var r2 = await sb.from('persone').select('nome,telefono').eq('id', pid).maybeSingle();
       var nome = ((r2.data && r2.data.nome) || opt.nome || '').trim();
       var chi = nome || 'L’allievo';
 
@@ -121,7 +131,20 @@
       if (svg) { svg.style.width = '100%'; svg.style.height = 'auto'; svg.style.display = 'block'; svg.setAttribute('aria-label', 'Codice QR della proposta Open'); }
       corpo.appendChild(box);
       riga(corpo, 'Accompagna ' + chi + ' fino al pagamento.', true);
-      riga(corpo, 'Oppure: fai aprire il portale a ' + chi + ', la proposta si apre da sola.');
+      // v1.1 — stesso link su WhatsApp, al numero dell'allievo
+      var num = waNum(r2.data && r2.data.telefono);
+      if (num) {
+        var testo = (nome ? nome + ', ' : '') + 'questa è la tua proposta per continuare con il Corso Open KataClimb. ' +
+                    'Apri il link, guarda il calendario e scegli come frequentare: ' + url;
+        var wa = el('a', 'display:block;margin:4px 0 6px;background:#0A0A0A;color:#fff;text-decoration:none;font-weight:800;font-size:15px;padding:14px;border-radius:12px', 'MANDA SU WHATSAPP');
+        wa.href = 'https://wa.me/' + num + '?text=' + encodeURIComponent(testo);
+        wa.target = '_blank';
+        wa.rel = 'noopener';
+        corpo.appendChild(wa);
+        riga(corpo, 'Si apre WhatsApp con il messaggio già scritto per ' + chi + ': premi invia.');
+      } else {
+        riga(corpo, 'Per mandarla su WhatsApp manca il numero di telefono di ' + chi + ': usa il codice qui sopra.');
+      }
     } catch (e) {
       console.error('[proposta open]', e);
       if (!document.getElementById(ID)) return;
