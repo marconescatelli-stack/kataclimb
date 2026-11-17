@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.113 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Vista staff, Prima Lezione Adulti: appena un allievo e' segnato P (fatto), accanto a P/A compare il bottone scuro "Proposta Open". Toccandolo si apre a tutto schermo il codice QR della sua proposta (proposta-open.html?u=<persona_id>) da fargli inquadrare, con la riga che guida l'istruttore; se ha gia' un corso dice "Corso attivo", se la Prima Lezione non risulta pagata nel portale dice di passare dalla segreteria. Carica /kc-proposta-open.js?v=1.0 (nuovo, condiviso con Oggi; il QR si disegna in pagina con kc-qrcode.js, nessun servizio esterno). Mai su Prima Lezione Bambini, Ragazzi, Genitori, Scuole o private. Solo letture; nessuna modifica a DB, presenze o pagamenti. CUMULA v3.112. -->
 <!-- KC-BUILD: agenda v3.112 · 2026-11-13 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB istruttore_da_assistente_10_euro_ora_2026_11_13 e un_titolare_piu_appoggio_2026_11_13, Master v4.35). Riga Staff delle lezioni dei corsi Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11: gli stessi di _istruttore_da_assistente): ogni istruttore si legge "titolare" o "d'appoggio" al posto di "istruttore" (entrato a ore = d'appoggio, come lo paga il DB); per la segreteria CAMBIA IN D'APPOGGIO / CAMBIA IN TITOLARE su ogni istruttore previsto o presente -> conferma -> impegno_mi_segno con p_user_id e p_ruolo supporto/conduce; con due titolari riga arancio "Due titolari: dite chi è d'appoggio, altrimenti lo decide il portale.". AGGIUNGI STAFF: "Istruttore (titolare 15 € l'ora, d'appoggio 10 € l'ora)" e "Assistente (5 € l'ora)" al posto di "15 € a lezione" / "a ore"; "la persona" -> "chi scegli". Nessuna modifica a DB. CUMULA v3.111. -->
 <!-- KC-BUILD: agenda v3.111 · 2026-11-07 · FESTA: BAMBINI IN PIÙ (consegna Marco 7 nov, DB prenotazioni_festa_aggiunte, stripe-worker v3.98): la card della festa mostra il numero di bambini aggiornato (prenotazioni_festa.n_bambini, che il Worker aumenta a ogni aggiunta pagata); nei dettagli la riga "Bambini aggiunti" con le aggiunte pagate e la data ("+5 il 12/11 · 75 €"). Le aggiunte si leggono insieme alla festa (relazione festa_id); se quella lettura non riesce si rilegge la festa come prima, senza aggiunte. Niente altro. CUMULA v3.110 -->
 <!-- KC-BUILD: agenda v3.110 · 2026-11-07 · FESTE DEL SABATO (consegna Marco 7 nov, DB feste_sabato_e_private_bambini): NOMI: prima_lezione_privata → 'Lezione Privata Bambini' (era Prima Lezione Privata Speciale) e festa_sabato → 'Festa ed Esperienza Arrampicata' nelle mappe dei nomi dei corsi, mai il nome tecnico o accorciato. (1) gli slot festa_sabato non sono lezioni: caricaSlot e la ricerca (cercaCarica) li escludono (.neq tipo_corso festa_sabato). Prima, nella vista Tutti i corsi comparivano ogni sabato come blocchi "Da assegnare" e il tocco apriva un tab festa_sabato con i bottoni di prenotazione. (2) Solo staff, nella vista 📋 Tutti i corsi e nel tab Bambini e Ragazzi: la festa prenotata (prenotazioni_festa stato prenotato, settimana a schermo) compare nella fascia del suo slot (ora_inizio–ora_fine dello slot) come "🎉 Festa · N bambini · genitore · telefono" (card rosa tra le lezioni in ordine di ora; nella griglia Tutti una riga "🎉 Feste"). Al tocco, modale di sola lettura con quando, bambini, eta' dei bambini, festeggiato, genitore, telefono (link tel:), durata, importo in €, note. Tutti i campi scritti dai genitori passano da escF. Se la lettura fallisce (RLS, rete) la festa non compare e il resto dell'agenda resta com'e'. Nessuna scrittura. CUMULA v3.109. -->
@@ -255,6 +256,7 @@
   .pa-btn { padding:.2rem .4rem; border-radius:5px; cursor:pointer; font-size:13px; font-weight:700;
             border:1.5px solid var(--border); background:#fff; color:#3D3D3D; font-family:inherit; transition:all .15s; min-width:38px; }
   .pa-btn:hover { border-color:var(--muted); }
+  .pa-btn.po-btn { background:#0A0A0A; color:#fff; border-color:#0A0A0A; white-space:nowrap; padding:.3rem .55rem; }
   .pa-btn.attivo-p { background:var(--ok); color:#fff; border-color:var(--ok); }
   .pa-btn.attivo-a { background:var(--warn); color:#fff; border-color:var(--warn); }
 
@@ -704,6 +706,8 @@
 <!-- kc-avvisi v2 — registro unico degli avvisi. Il ?v= e' obbligatorio: sw.js serve i .js
      cache-first. Alzarlo a ogni modifica del registro. -->
 <script src="/kc-avvisi.js?v=2"></script>
+<!-- v3.113 — schermata "Proposta Open" con il codice QR (condivisa con oggi.html). ?v= obbligatorio: sw.js serve i .js dalla cache. -->
+<script src="/kc-proposta-open.js?v=1.0"></script>
 
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -2189,6 +2193,11 @@
             paLabels = `
               <button class="pa-btn${paP}" data-prenot="${p.id}" data-action="fatto" data-tipo="prima_lezione">P</button>
               <button class="pa-btn${paA}" data-prenot="${p.id}" data-action="no_show" data-tipo="prima_lezione">A</button>`;
+            // v3.113 — Prima Lezione Adulti fatta: l'istruttore apre la proposta del Corso Open (QR da far inquadrare)
+            if (tipoEff === 'prima_lezione' && p.stato === 'fatto' && p.lead_id) {
+              paLabels += `
+              <button class="pa-btn po-btn" data-po-lead="${p.lead_id}" title="Fai inquadrare il codice all'allievo: si apre la sua proposta del Corso Open KataClimb">Proposta Open</button>`;
+            }
           } else {
             // Open/Advance/Intro/Evo: 'presente' / 'assente'
             const paP = p.stato === 'presente' ? ' attivo-p' : '';
@@ -2783,6 +2792,13 @@
     // Disdici allievo (vista allievo)
     document.querySelectorAll('.btn-disdici').forEach(b => {
       b.onclick = () => apriDisdici(b.dataset.prenot, b.dataset.info);
+    });
+    // v3.113 — Proposta Open: schermata con il codice QR (kc-proposta-open.js)
+    document.querySelectorAll('.pa-btn[data-po-lead]').forEach(b => {
+      b.onclick = () => {
+        if (window.kcPropostaOpen) window.kcPropostaOpen.apri({ sb, leadId: b.dataset.poLead });
+        else toast('La proposta non si è caricata: ricarica la pagina e riprova', true);
+      };
     });
     // Marca P/A (DEBITO-178: onClickPA instrada marca vs rimarca)
     document.querySelectorAll('.pa-btn[data-action]').forEach(b => {

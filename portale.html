@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.172 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Per l'ALLIEVO adulto appena segnato presente alla Prima Lezione Adulti: (1) entrando nel portale si apre da sola, a tutto schermo, la proposta del Corso Open KataClimb con le due scelte (2 volte a settimana 215 € tutto insieme · 1 volta a settimana 115 € adesso e 100 € dopo le prime 4 lezioni), bottone "Vedi il calendario e scegli" verso proposta-open.html?u=<persona_id> e "Ci penso" che chiude (ricordato sul telefono, non riappare da sola). (2) Il riquadro in cima alla home non dice piu' "Prenota la prima lezione" a chi l'ha gia' fatta: dice "Il tuo Corso Open KataClimb ti aspetta" e porta alla stessa pagina; sparisce quando l'Open e' pagato. Condizioni = le stesse di cron_accoda_offerta_open (mail del giorno dopo): prima_paid, nessun corso attivo, nessun pagamento Open/Advance/Intro/Evo, Prima Lezione Adulti (tipo_corso prima_lezione) fatta negli ultimi 14 giorni; mai staff, mai minori, Genitori o private. Solo lettura di dati gia' in memoria (profile, myPrenotCorso): nessuna query nuova, nessuna modifica a DB o pagamenti. CUMULA v3.171. -->
 <!-- KC-BUILD: portale v3.171 · 2026-11-13 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB istruttore_da_assistente_10_euro_ora_2026_11_13 e un_titolare_piu_appoggio_2026_11_13, Master v4.35). Segreteria → 🗓 Turni, corsi Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11: gli stessi di _istruttore_da_assistente): (1) nella tessera e nel dettaglio ogni istruttore si legge "titolare" o "d'appoggio" al posto di "Istruttore" (un istruttore entrato a ore = d'appoggio, come lo paga il DB). (2) Per creator e segreteria, su ogni istruttore previsto o presente, "Cambia in d'appoggio" / "Cambia in titolare" -> conferma -> impegno_mi_segno con p_user_id e p_ruolo supporto/conduce (aggiorna l'impegno, anche su lezioni passate). (3) Nel dettaglio, con due titolari, riga "Due titolari: dite chi è d'appoggio, altrimenti lo decide il portale." (4) Contatore: "Istruttori 2/1 · un istruttore d'appoggio" in questi corsi, negli altri come prima. CIFRE: "Istruttore (15 € a lezione)" in Aggiungi una persona e in Da sistemare -> "Istruttore (titolare 15 € l'ora, d'appoggio 10 € l'ora)", "Assistente (5 € l'ora)"; conferme di Da sistemare (PRESENTE, AGGIUNGI STAFF) e note dei compensi senza "15 € a lezione". Nessuna modifica a DB. CUMULA v3.170. -->
 <!-- KC-BUILD: portale v3.170 · 2026-11-13 · VIA I PONTI DEL NOME TECNICO (Marco 13 nov, migrazione della chat fatta: v_segreteria_da_sistemare_seg restituisce istruttori_in_piu, segreteria_conferma_istruttori_in_piu esiste). Tolti dsTipoNuovo (traduzione di persone_in_piu al caricamento) e dsConfermaIstruttoriInPiu (ripiego sulla funzione vecchia): VA BENE COSÌ chiama direttamente segreteria_conferma_istruttori_in_piu. La funzione vecchia resta nel DB, quella nuova passa da lei. Nessuna modifica a DB. CUMULA v3.169. -->
 <!-- KC-BUILD: portale v3.169 · 2026-11-13 · LE PAROLE GIUSTE (correzione Marco 13 nov: in Accademia ci sono allievi e istruttori, "persone" confonde). Solo testi. Segreteria → ⚠ Da sistemare: gruppo persone_in_piu "Più istruttori del previsto" (era Più persone del previsto) con l'aiuto "…Se in lezione ci sono più istruttori o assistenti del previsto, si pagano tutti: controlla che sia giusto."; doppia_lezione "Stesso istruttore su due lezioni"; lezione_scoperta "Lezioni senza istruttore (prossimi 7 giorni)"; VA BENE COSÌ: suggerimento "Gli istruttori segnati erano davvero tutti in lezione: si pagano tutti" e conferma "Confermi che gli istruttori e gli assistenti segnati erano tutti in lezione e vanno pagati tutti?". Segreteria → Turni: "Togliere questo istruttore dal turno?", "Segnare assente questo istruttore?" e, nella stessa conferma, "Segnare presente questo istruttore? La lezione viene pagata.". NOME TECNICO IN PASSAGGIO (Marco 13 nov, scelta B): il gruppo e la conferma si chiamano istruttori_in_piu / segreteria_conferma_istruttori_in_piu. Finché la migrazione della chat non rinomina vista e funzione, la pagina legge anche il tipo persone_in_piu (lo traduce al caricamento dell'elenco) e, se segreteria_conferma_istruttori_in_piu non esiste ancora (PGRST202), chiama segreteria_conferma_persone_in_piu. Dopo la migrazione questi due ponti si tolgono. CUMULA v3.168. -->
@@ -8818,6 +8819,10 @@ function buildHeroCardConfig(profile, prenotCorso, daysSinceLast){
     // ESSENCE-K: ha gia' pagato l'intensivo, non deve comprare una Prima Lezione.
     // Al posto dell'invito, il prossimo passo vero.
     if(isEssenceSenzaCorso(profile)) return buildHeroCardEssence();
+    // v3.172 — Prima Lezione Adulti appena fatta: il prossimo passo e' il Corso Open, non un'altra Prima Lezione.
+    if(propostaOpenAperta(profile, prenotCorso)){
+      return {icon:'🧗', title:'Il tuo Corso Open KataClimb ti aspetta', sub:'Prima Lezione Adulti fatta. 7 lezioni, iscrizione annuale inclusa: guarda il calendario e scegli come frequentare.', cta:'Vedi la proposta', action:'proposta_open', color:'#0284C7', bg:'var(--duo-blue-bg)'};
+    }
     return {icon:'🌟', title:'Inizia il tuo viaggio', sub:'Prenota la prima lezione per entrare in Accademia.', cta:'Prima lezione', action:'inizia', color:'#7B61FF', bg:'var(--duo-purple-bg)'};
   }
 
@@ -8892,6 +8897,70 @@ function buildHeroCardStaff(profile){
   };
 }
 
+/* ═══ v3.172 — PROPOSTA OPEN A FINE PRIMA LEZIONE (Marco, 17 nov 2026) ═══════════
+   Appena l'istruttore segna PRESENTE alla Prima Lezione Adulti, la proposta del Corso
+   Open KataClimb si apre da sola nel portale dell'allievo: l'istruttore lo guida li',
+   sul telefono. Le condizioni sono le stesse della mail del giorno dopo
+   (cron_accoda_offerta_open), cosi' portale e mail dicono la stessa cosa alle stesse
+   persone. Tutto letto da dati gia' in memoria. */
+const PROPOSTA_OPEN_GIORNI = 14;
+function propostaOpenAperta(p, prenot){
+  if(!p || !p.persona_id || !p.prima_paid) return false;
+  if(isStaffRole(p.staff_role) || (typeof isStaff==='function' && isStaff())) return false;
+  if(p.corso_attivo || p.meta_open_paid || p.acconto_open_paid || p.advance_paid || p.intro_paid || p.evo_paid) return false;
+  if(!Array.isArray(prenot)) return false;
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return prenot.some(function(x){
+    if(x.tipo_corso !== 'prima_lezione') return false;            // solo Prima Lezione Adulti
+    if(x.stato !== 'fatto' && x.stato !== 'presente') return false;
+    if(!x.data_lezione) return false;
+    const d = new Date(String(x.data_lezione).slice(0,10)+'T00:00:00');
+    const giorni = Math.round((oggi - d) / 86400000);
+    return giorni >= 0 && giorni <= PROPOSTA_OPEN_GIORNI;
+  });
+}
+function propostaOpenUrl(){
+  return 'proposta-open.html?u=' + encodeURIComponent(profile.persona_id) +
+         (profile.nome ? '&nome=' + encodeURIComponent(profile.nome) : '');
+}
+function propostaOpenChiave(){ return 'kc_proposta_open_vista_' + (profile && profile.user_id || ''); }
+function propostaOpenChiudi(){
+  try{ localStorage.setItem(propostaOpenChiave(), '1'); }catch(e){}
+  const o = document.getElementById('proposta-open-schermo');
+  if(o) o.remove();
+}
+function mostraPropostaOpenSeServe(){
+  if(!propostaOpenAperta(profile, myPrenotCorso)) return;
+  if(document.getElementById('proposta-open-schermo')) return;
+  let vista = false;
+  try{ vista = localStorage.getItem(propostaOpenChiave()) === '1'; }catch(e){}
+  if(vista) return;   // ha gia' detto "Ci penso": resta il riquadro in cima alla home
+  const o = document.createElement('div');
+  o.id = 'proposta-open-schermo';
+  o.setAttribute('role','dialog');
+  o.setAttribute('aria-modal','true');
+  o.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#fff;color:#0A0A0A;overflow-y:auto;'
+    + 'display:flex;flex-direction:column;justify-content:center;padding:28px 22px calc(28px + env(safe-area-inset-bottom));font-family:inherit';
+  const riga = 'border:1.5px solid #D4D4D4;border-radius:14px;padding:14px 16px;margin-bottom:10px;font-size:15px;line-height:1.5';
+  o.innerHTML =
+    '<div style="max-width:460px;width:100%;margin:0 auto">' +
+      '<div style="font-size:13px;font-weight:800;letter-spacing:.06em;color:#0284C7;margin-bottom:10px">PRIMA LEZIONE ADULTI FATTA</div>' +
+      '<div id="proposta-open-titolo" style="font-size:26px;font-weight:900;line-height:1.2;margin-bottom:12px"></div>' +
+      '<div style="font-size:16px;line-height:1.55;color:#404040;margin-bottom:20px">Ora puoi continuare con il <strong style="color:#0A0A0A">Corso Open KataClimb</strong>: 7 lezioni, iscrizione annuale inclusa. Scegli come frequentare.</div>' +
+      '<div style="'+riga+'"><strong>2 volte a settimana</strong><br>215&nbsp;€ · tutto insieme</div>' +
+      '<div style="'+riga+'"><strong>1 volta a settimana</strong><br>115&nbsp;€ adesso, 100&nbsp;€ dopo le prime 4 lezioni</div>' +
+      '<button type="button" id="proposta-open-vai" style="display:block;width:100%;margin-top:18px;background:#0A0A0A;color:#fff;border:0;border-radius:12px;padding:16px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer">Vedi il calendario e scegli →</button>' +
+      '<button type="button" id="proposta-open-dopo" style="display:block;width:100%;margin-top:10px;background:none;border:0;color:#404040;padding:12px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:underline">Ci penso</button>' +
+      '<div style="font-size:13px;color:#404040;text-align:center;line-height:1.5;margin-top:6px">La proposta resta in cima al tuo portale.</div>' +
+    '</div>';
+  document.body.appendChild(o);
+  // il nome viene dal profilo: solo testo, mai HTML
+  document.getElementById('proposta-open-titolo').textContent =
+    (profile.nome ? profile.nome + ', ' : '') + 'il prossimo passo è qui.';
+  document.getElementById('proposta-open-vai').onclick = function(){ window.location.href = propostaOpenUrl(); };
+  document.getElementById('proposta-open-dopo').onclick = propostaOpenChiudi;
+}
+
 function renderHeroCard(cfg){
   const el = document.getElementById('my-hero-card');
   if(!el || !cfg) return;
@@ -8916,6 +8985,8 @@ function heroCtaAction(action){
   if(action === 'agenda'){ window.location.href = 'agenda.html'; return; }
   if(action === 'inizia'){ window.location.href = 'inizia.html'; return; }
   if(action === 'whatsapp'){ window.open('https://wa.me/393318743953', '_blank'); return; }
+  // v3.172 — proposta del Corso Open KataClimb dopo la Prima Lezione Adulti
+  if(action === 'proposta_open'){ if(profile && profile.persona_id) window.location.href = propostaOpenUrl(); return; }
   // ESSENCE-K: apre la finestra di caricamento della presentazione, gia' esistente.
   if(action === 'presentazione'){ if(typeof openUploadPresentazione === 'function') openUploadPresentazione(); return; }
   // ESSENCE-K: porta alla griglia dei Kata nella stessa pagina.
@@ -9036,6 +9107,7 @@ async function refreshHomeDuolingo(){
     renderStatRow(profile, daysSinceLastPresence, stepIdx);
     const cfg = buildHeroCardConfig(profile, myPrenotCorso, daysSinceLastPresence);
     renderHeroCard(cfg);
+    mostraPropostaOpenSeServe(); // v3.172
     msCartaAllievo(); // v3.140
   }catch(e){
     console.warn('[home-duolingo]', e);

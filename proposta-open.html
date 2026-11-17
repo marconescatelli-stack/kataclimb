@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KC-BUILD: proposta-open · 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Open di KataClimb" -> "Il percorso Open KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO OPEN" -> "IL TUO PERCORSO OPEN KATACLIMB IN ACCADEMIA RCC"; (2) og:image da arrampicata_kalymnos_rcc.jpg a hero-photo.jpg (l'hero della pagina, come proposta-advance); (3) aperta senza parametri (niente u/saldo/mezza) il blocco pagamento restava nascosto senza via d'uscita: ora riquadro #cta-wa "Vuoi iniziare il percorso? Scrivici su WhatsApp" (wa.me/393318743953, stile .cta-block .wa di proposta-advance, testi >=13px); (4) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
+<!-- KC-BUILD: proposta-open · 2026-11-17 · FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A): la pagina si apre anche dal QR dell'istruttore su Oggi e dal portale dell'allievo appena segnato presente alla Prima Lezione Adulti. (1) Le tessere di pagamento si chiamano con la frequenza: "2 volte a settimana · 215 € · tutto insieme" e "1 volta a settimana · 115 € adesso, 100 € dopo le prime 4 lezioni" (via "Open completo" e "½ Open": sono due modi di pagare lo stesso Corso Open KataClimb, non due corsi, Modello_Open §6); validità con le stesse parole di listino-corsi-adulti.html v1.4; "iscrizione annuale inclusa". (2) Blocco "Hai tra 18 e 24 anni, o più di 60?" con Corso Giovani e Corso Senior via WhatsApp segreteria (come la mail Brevo #4). (3) "Preferisci pagare in Accademia?" con WhatsApp segreteria. Nessuna modifica a DB, Worker o link di pagamento (mode=saldo e mode=mezza invariati). La terza scelta (1 volta a settimana, 215 € tutto insieme) arriva con la Parte B. CUMULA 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Open di KataClimb" -> "Il percorso Open KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO OPEN" -> "IL TUO PERCORSO OPEN KATACLIMB IN ACCADEMIA RCC"; (2) og:image da arrampicata_kalymnos_rcc.jpg a hero-photo.jpg (l'hero della pagina, come proposta-advance); (3) aperta senza parametri (niente u/saldo/mezza) il blocco pagamento restava nascosto senza via d'uscita: ora riquadro #cta-wa "Vuoi iniziare il percorso? Scrivici su WhatsApp" (wa.me/393318743953, stile .cta-block .wa di proposta-advance, testi >=13px); (4) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -141,6 +141,19 @@ body{
   display:inline-block; margin-top:16px; background:#25D366; color:#fff; text-decoration:none;
   font-weight:800; font-size:15px; padding:13px 28px; border-radius:12px;
 }
+.pay-card .pc-price small{font-size:13px; font-weight:700; color:var(--ink2)}
+.altri-corsi{
+  border:1px solid var(--border2); border-radius:16px; padding:16px 18px; margin:18px 0 16px;
+  background:var(--bg2); font-size:14px; color:var(--ink2); line-height:1.6;
+}
+.altri-corsi strong{display:block; color:var(--ink); font-size:15px; margin-bottom:2px}
+.altri-btn{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.wa-mini{
+  flex:1 1 160px; text-align:center; background:#25D366; color:#fff; text-decoration:none;
+  font-weight:800; font-size:14px; padding:11px 12px; border-radius:10px;
+}
+.paga-accademia{font-size:14px; color:var(--ink2); text-align:center; margin-top:18px; line-height:1.6}
+.paga-accademia a{display:block; color:var(--sky-dark); font-weight:800; margin-top:2px}
 .foot-note{font-size:12px; color:var(--ink3); text-align:center; margin-top:24px; line-height:1.7}
 .err-box{
   background:#FEF2F2; border:1px solid #FECACA; color:#991B1B;
@@ -184,30 +197,44 @@ body{
   <div class="note-posti" id="note-posti"></div>
 
   <div class="pay-block" id="pay-block" style="display:none">
-    <div class="section-title">Come vuoi iniziare</div>
-    <div class="section-sub">Pagamento sicuro con carta · gestito da Stripe</div>
+    <div class="section-title">Scegli come frequentare</div>
+    <div class="section-sub">Corso Open KataClimb · 7 lezioni · iscrizione annuale inclusa</div>
+
+    <div class="altri-corsi">
+      <strong>Hai tra 18 e 24 anni, o più di 60?</strong>
+      Puoi scegliere il corso dedicato: scrivi alla segreteria su WhatsApp, l'iscrizione si fa in segreteria.
+      <div class="altri-btn">
+        <a class="wa-mini" href="https://wa.me/393318743953?text=Ciao%2C%20ho%20fatto%20la%20Prima%20Lezione%20e%20vorrei%20iscrivermi%20al%20Corso%20Giovani">Iscriviti al Corso Giovani</a>
+        <a class="wa-mini" href="https://wa.me/393318743953?text=Ciao%2C%20ho%20fatto%20la%20Prima%20Lezione%20e%20vorrei%20iscrivermi%20al%20Corso%20Senior">Iscriviti al Corso Senior</a>
+      </div>
+    </div>
 
     <div class="pay-card" id="card-saldo">
       <div class="pc-top">
-        <span class="pc-name">Open completo</span>
+        <span class="pc-name">2 volte a settimana</span>
         <span class="pc-price">215&nbsp;€</span>
       </div>
-      <div class="pc-desc">Tutte e 7 le lezioni, in un'unica soluzione. 45 giorni di validità.</div>
-      <a class="btn-pay" id="btn-saldo" href="#">Paga e inizia →</a>
+      <div class="pc-desc">Tutto insieme: 7 lezioni in circa 4 settimane. Validità 45 giorni.</div>
+      <a class="btn-pay" id="btn-saldo" href="#">Paga 215&nbsp;€ e inizia →</a>
     </div>
 
     <div class="pay-card" id="card-mezza">
       <div class="pc-top">
-        <span class="pc-name">½ Open</span>
-        <span class="pc-price">115&nbsp;€</span>
+        <span class="pc-name">1 volta a settimana</span>
+        <span class="pc-price">115&nbsp;€ <small>adesso</small></span>
       </div>
-      <div class="pc-desc">Le prime 4 lezioni ora, le altre 3 quando vuoi proseguire.</div>
-      <a class="btn-pay alt" id="btn-mezza" href="#">Inizia con la prima metà →</a>
+      <div class="pc-desc">In due rate: 115&nbsp;€ adesso per le prime 4 lezioni, entro 5 settimane. Poi 100&nbsp;€ per le altre 3, entro 4 settimane.</div>
+      <a class="btn-pay alt" id="btn-mezza" href="#">Paga 115&nbsp;€ e inizia →</a>
     </div>
 
     <div class="foot-note">
       Dopo il pagamento ricevi via email l'accesso al portale, dove prenoti le tue lezioni
       scegliendo tra questi giorni, volta per volta.
+    </div>
+
+    <div class="paga-accademia">
+      Preferisci pagare in Accademia?
+      <a href="https://wa.me/393318743953?text=Ciao%2C%20ho%20fatto%20la%20Prima%20Lezione%20e%20vorrei%20iscrivermi%20al%20Corso%20Open%20pagando%20in%20Accademia">Scrivi alla segreteria su WhatsApp</a>
     </div>
   </div>
 
