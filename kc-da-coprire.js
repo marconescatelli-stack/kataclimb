@@ -1,6 +1,10 @@
 /* ════════════════════════════════════════════════════════════════════════
- * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.5 (12 nov 2026)
+ * KataClimb — DA COPRIRE  ·  kc-da-coprire.js  ·  v1.6 (17 nov 2026)
  * ════════════════════════════════════════════════════════════════════════
+ * KC-BUILD: kc-da-coprire v1.6 · 2026-11-17 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB un_titolare_piu_appoggio_2026_11_13): nei corsi
+ *   Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11/2026) il contatore dice "Istruttori 2/1 · un
+ *   istruttore d'appoggio" (con più posti "N istruttori d'appoggio"), come Turni v1.16 e il portale v3.171. Negli altri corsi resta "al posto
+ *   dell'assistente". Nessuna modifica a DB. CUMULA v1.5.
  * KC-BUILD: kc-da-coprire v1.5 · 2026-11-12 · UN ISTRUTTORE AL POSTO DELL'ASSISTENTE (consegna Marco 12 nov, DB istruttore_al_posto_assistente_2026_11_12): conta
  *   delle lezioni dei corsi: se mancano assistenti ma gli istruttori in più coprono, "Istruttori 2/1 · un istruttore al posto dell'assistente"
  *   (con più posti "N istruttori al posto degli assistenti"); altrimenti come prima. coperta resta quella di v_copertura_lezioni. CUMULA v1.4.
@@ -53,6 +57,9 @@
     if(tipo==='bambini')return fascia==='ragazzi'?NOME_CORSO.ragazzi:NOME_CORSO.bambini;
     return NOME_CORSO[tipo]||String(tipo||'Lezione').replace(/_/g,' ');
   }
+  /* v1.6 corsi con un titolare e istruttori d'appoggio: gli stessi di _istruttore_da_assistente, dal 1/11/2026 */
+  const CORSI_TITOLARE=['bambini','evo_ragazzi'];
+  const conTitolare=c=>!!c&&CORSI_TITOLARE.includes(c.tipo_corso)&&String(c.data||'')>='2026-11-01';
   function fasciaMonitor(data){ return FASCE_MONITOR_GIORNO[dLoc(data).getDay()]||null; }
   const si=(a,b)=>!a||!b; // ore nulle = tutto il giorno
   /* v1.2 ore intere libere della fascia di quel giorno: blocchi contigui [{ini,fin}] senza turno monitor previsto/presente.
@@ -130,7 +137,7 @@
       const ni=Number(c.istruttori||0),na=Number(c.assistenti||0),mi=Number(c.istruttori_min||0),ma=Number(c.assistenti_min||0);
       voci.push(arricchisci({tipo:'lezione',data:c.data,ini:hm(c.ora_inizio),fin:hm(c.ora_fine),slot_id:c.slot_id,
         titolo:nomeCorso(c.tipo_corso,c.fascia)+(festa?` · ${festa.n_bambini} bambini`:''),
-        tipo_corso:c.tipo_corso,segnati:seg,conta:(na<ma&&ni>=mi&&(ni+na)>=(mi+ma))?`Istruttori ${ni}/${mi} · ${ma-na===1?"un istruttore al posto dell'assistente":(ma-na)+' istruttori al posto degli assistenti'}`:`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:''),coperta:!!c.coperta,
+        tipo_corso:c.tipo_corso,segnati:seg,conta:(na<ma&&ni>=mi&&(ni+na)>=(mi+ma))?`Istruttori ${ni}/${mi} · `+(conTitolare(c)?(ma-na===1?"un istruttore d'appoggio":(ma-na)+" istruttori d'appoggio"):(ma-na===1?"un istruttore al posto dell'assistente":(ma-na)+' istruttori al posto degli assistenti')):`Istruttori ${ni}/${mi}`+(ma||na?` · Assistenti ${na}/${ma}`:''),coperta:!!c.coperta,
         richiesta:req?{id:req.id,chiesto_da:req.chiesto_da,chi:req.chiesto_da?nome(req.chiesto_da):'',note:req.note||''}:null}));
     });
     /* lezioni delle scuole con meno di 3 persone */
