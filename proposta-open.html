@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- KC-BUILD: proposta-open · 2026-11-18 · TERZA SCELTA (decisione Marco 17 nov, Master v4.38; stripe-worker v3.100 + accredita_saldo_open_mono): nuova tessera "1 volta a settimana · tutto insieme · 215 €" (7 lezioni, validita' 65 giorni) verso /open-checkout?mode=saldo_mono. Le due tessere da 1 volta a settimana ora dicono "tutto insieme" e "in due rate". Il resto invariato. -->
 <!-- KC-BUILD: proposta-open · 2026-11-17 · FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A): la pagina si apre anche dal QR dell'istruttore su Oggi e dal portale dell'allievo appena segnato presente alla Prima Lezione Adulti. (1) Le tessere di pagamento si chiamano con la frequenza: "2 volte a settimana · 215 € · tutto insieme" e "1 volta a settimana · 115 € adesso, 100 € dopo le prime 4 lezioni" (via "Open completo" e "½ Open": sono due modi di pagare lo stesso Corso Open KataClimb, non due corsi, Modello_Open §6); validità con le stesse parole di listino-corsi-adulti.html v1.4; "iscrizione annuale inclusa". (2) Blocco "Hai tra 18 e 24 anni, o più di 60?" con Corso Giovani e Corso Senior via WhatsApp segreteria (come la mail Brevo #4). (3) "Preferisci pagare in Accademia?" con WhatsApp segreteria. Nessuna modifica a DB, Worker o link di pagamento (mode=saldo e mode=mezza invariati). La terza scelta (1 volta a settimana, 215 € tutto insieme) arriva con la Parte B. CUMULA 2026-10-09 · AUDIT GIRO 2: (1) dicitura entita': meta description "Il percorso Open di KataClimb" -> "Il percorso Open KataClimb in Accademia RCC", pillola hero "IL TUO PERCORSO OPEN" -> "IL TUO PERCORSO OPEN KATACLIMB IN ACCADEMIA RCC"; (2) og:image da arrampicata_kalymnos_rcc.jpg a hero-photo.jpg (l'hero della pagina, come proposta-advance); (3) aperta senza parametri (niente u/saldo/mezza) il blocco pagamento restava nascosto senza via d'uscita: ora riquadro #cta-wa "Vuoi iniziare il percorso? Scrivici su WhatsApp" (wa.me/393318743953, stile .cta-block .wa di proposta-advance, testi >=13px); (4) sicurezza: il saluto con ?nome= non passa piu' da innerHTML, il nome entra con textContent (stesso testo visibile). Primo KC-BUILD del file. -->
 <html lang="it">
 <head>
@@ -141,6 +142,7 @@ body{
   display:inline-block; margin-top:16px; background:#25D366; color:#fff; text-decoration:none;
   font-weight:800; font-size:15px; padding:13px 28px; border-radius:12px;
 }
+.pay-card .pc-modo{font-size:13px; font-weight:700; color:var(--ink2)}
 .pay-card .pc-price small{font-size:13px; font-weight:700; color:var(--ink2)}
 .altri-corsi{
   border:1px solid var(--border2); border-radius:16px; padding:16px 18px; margin:18px 0 16px;
@@ -211,16 +213,25 @@ body{
 
     <div class="pay-card" id="card-saldo">
       <div class="pc-top">
-        <span class="pc-name">2 volte a settimana</span>
+        <span class="pc-name">2 volte a settimana<br><small class="pc-modo">tutto insieme</small></span>
         <span class="pc-price">215&nbsp;€</span>
       </div>
       <div class="pc-desc">Tutto insieme: 7 lezioni in circa 4 settimane. Validità 45 giorni.</div>
       <a class="btn-pay" id="btn-saldo" href="#">Paga 215&nbsp;€ e inizia →</a>
     </div>
 
-    <div class="pay-card" id="card-mezza">
+    <div class="pay-card" id="card-saldo-mono">
       <div class="pc-top">
-        <span class="pc-name">1 volta a settimana</span>
+        <span class="pc-name">1 volta a settimana<br><small class="pc-modo">tutto insieme</small></span>
+        <span class="pc-price">215&nbsp;€</span>
+      </div>
+      <div class="pc-desc">Tutto insieme: 7 lezioni in circa 7 settimane. Validità 65 giorni.</div>
+      <a class="btn-pay alt" id="btn-saldo-mono" href="#">Paga 215&nbsp;€ e inizia →</a>
+    </div>
+
+    <div class="pay-card" id="card-mezza">
+      <div class="pc-head">
+        <span class="pc-name">1 volta a settimana<br><small class="pc-modo">in due rate</small></span>
         <span class="pc-price">115&nbsp;€ <small>adesso</small></span>
       </div>
       <div class="pc-desc">In due rate: 115&nbsp;€ adesso per le prime 4 lezioni, entro 5 settimane. Poi 100&nbsp;€ per le altre 3, entro 4 settimane.</div>
@@ -288,6 +299,9 @@ if (u) {
     `${WORKER_URL}/open-checkout?u=${encodeURIComponent(u)}&mode=saldo`;
   document.getElementById('btn-mezza').href =
     `${WORKER_URL}/open-checkout?u=${encodeURIComponent(u)}&mode=mezza`;
+  // 18 nov 2026 — terza scelta: 1 volta a settimana, tutto insieme (stripe-worker v3.100)
+  document.getElementById('btn-saldo-mono').href =
+    `${WORKER_URL}/open-checkout?u=${encodeURIComponent(u)}&mode=saldo_mono`;
 } else if (urlSaldo || urlMezza) {
   // retrocompat: vecchi link con le sessioni Stripe gia' pre-create nell'URL
   payBlock.style.display = 'block';
@@ -295,6 +309,7 @@ if (u) {
   else document.getElementById('card-saldo').style.display = 'none';
   if (urlMezza) document.getElementById('btn-mezza').href = urlMezza;
   else document.getElementById('card-mezza').style.display = 'none';
+  document.getElementById('card-saldo-mono').style.display = 'none'; // i vecchi link non hanno questa scelta
 } else {
   // audit giro 2 — pagina aperta senza parametri (niente u, saldo, mezza): il blocco pagamento resta nascosto,
   // quindi diamo una via d'uscita: scrivere su WhatsApp.
