@@ -1,4 +1,6 @@
-/* kc-proposta-open.js v1.1 — 17 nov 2026
+/* kc-proposta-open.js v1.2 — 18 nov 2026
+ * v1.2: la riga per l'istruttore elenca le tre scelte (terza: 1 volta a settimana, 215 € tutto insieme; stripe-worker v3.100).
+ * v1.1 — 17 nov 2026
  * v1.1: sotto il codice QR, "MANDA SU WHATSAPP": apre WhatsApp sul numero dell'allievo con lo stesso link gia' scritto
  *       (per quando l'istruttore non puo' far inquadrare il codice). Il numero si legge da persone.telefono.
  * PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov 2026).
@@ -124,7 +126,7 @@
       qr.make();
 
       titolo(corpo, 'Fai inquadrare questo codice a ' + chi);
-      riga(corpo, 'Sul suo telefono si apre la sua proposta: calendario, 2 volte a settimana (215 €) oppure 1 volta a settimana (115 € adesso, 100 € dopo le prime 4 lezioni).');
+      riga(corpo, 'Sul suo telefono si apre la sua proposta con il calendario e tre scelte: 2 volte a settimana (215 €), 1 volta a settimana tutto insieme (215 €), 1 volta a settimana in due rate (115 € adesso, 100 € dopo le prime 4 lezioni).');
       var box = el('div', 'width:min(78vw,300px);margin:6px auto 14px;padding:10px;border:2px solid #0A0A0A;border-radius:16px;background:#fff');
       box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });   // SVG generato dalla libreria, nessun dato in HTML
       var svg = box.querySelector('svg');
