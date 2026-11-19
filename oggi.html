@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.67 · 2026-11-19 · PERSONE DI INTERESSE (decisione Marco 19 nov, DB sql/monitor/14, caso Chicca Savino "corda solo con un monitor presente in sala"). Lista fissa e corta delle persone su cui chi è in sala deve stare attento, con una riga di attenzione ciascuna (RPC persone_di_interesse, solo staff). Si vede: (1) nel pannello del turno, sempre, in turno e fuori turno; (2) in cima a "Chi segui stasera?" e alle card "In breve · stasera"; (3) sulla card "In breve" della persona, come riga di attenzione. Nessuna notifica per ora. Se la RPC non c'è ancora, non si vede nulla e niente si rompe. CUMULA v2.66. -->
 <!-- KC-BUILD: oggi v2.66 · 2026-11-18 · Proposta Open: carica /kc-proposta-open.js?v=1.2 (la riga per l'istruttore elenca le tre scelte; terza scelta 1 volta a settimana 215 € tutto insieme, stripe-worker v3.100). Nient'altro. CUMULA v2.65. -->
 <!-- KC-BUILD: oggi v2.65 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Scheda allievo: per chi ha fatto la Prima Lezione Adulti negli ultimi 14 giorni e non ha un corso, sotto lo stato del percorso compare il bottone "PROPOSTA OPEN" con la riga che guida l'istruttore. Toccandolo si apre a tutto schermo il codice QR della sua proposta (proposta-open.html?u=<persona_id>) da fargli inquadrare. Sotto il codice, "MANDA SU WHATSAPP" con lo stesso link gia' scritto per il numero dell'allievo. Carica /kc-proposta-open.js?v=1.1 (nuovo, lo stesso dell'Agenda, dove il bottone compare accanto a P/A appena si segna presente). Solo letture; nessuna modifica a DB. CUMULA v2.64. -->
 <!-- KC-BUILD: oggi v2.64 · 2026-11-17 · DA COPRIRE ALLINEATA: carica kc-da-coprire.js?v=1.6 (nei corsi Bambini, Ragazzi ed Evo Ragazzi, dal 1/11, "un istruttore d'appoggio" al posto di "un istruttore al posto dell'assistente"). Nient'altro cambia. Nessuna modifica a DB. CUMULA v2.63. -->
@@ -524,6 +525,13 @@ body{font-size:17px}
 .sist-r .az .btn{flex:1 1 auto}
 .sist-aiuto{font-size:13px; color:#B8B8B8; margin-top:6px; line-height:1.4} /* v2.42 in breve */
 .brief-ov{z-index:10003}
+/* v2.67 persone di interesse */
+.pdi{border:1px solid #FFB340; border-left:4px solid #FFB340; background:rgba(255,179,64,.10); border-radius:12px; padding:12px 14px; margin:12px 0}
+.pdi-tit{font-size:13px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#FFB340; margin:0 0 4px}
+.pdi-sub{font-size:13px; color:#E5E5EA; margin:0 0 8px}
+.pdi-r{font-size:15px; color:#FFE2B8; line-height:1.35; padding:6px 0; border-top:1px solid rgba(255,179,64,.25)}
+.pdi-r b{color:#fff}
+.br-att{font-size:14px; color:#FFE2B8; border-left:3px solid #FFB340; padding:4px 0 4px 8px; margin-top:6px}
 .br-card{background:var(--tile);border:1px solid var(--velo);border-radius:14px;padding:12px 14px;margin-bottom:12px}
 .br-in-scheda .br-card{border:none;padding:0;background:none;margin:0}
 .br-testa{display:flex;gap:12px;align-items:center}
@@ -2957,7 +2965,25 @@ function htmlSalaTabelle(){
   <div class="full pann-all" id="sala-turni"><div class="vuota-all">…</div></div>`;
 }
 
+/* v2.67 PERSONE DI INTERESSE: lista fissa, letta una volta per pagina */
+let interesse=null;
+async function loadInteresse(){
+  try{ const{data,error}=await sb.rpc('persone_di_interesse'); if(error)throw error; interesse=Array.isArray(data)?data:[]; }
+  catch(e){ console.warn('[persone di interesse]',e?.message||e); interesse=[]; }
+}
+function htmlInteresse(){
+  if(!interesse||!interesse.length)return '';
+  return `<div class="pdi"><p class="pdi-tit">Persone di interesse · sicurezza</p>
+    <p class="pdi-sub">Se sono in sala, tienile d'occhio.</p>
+    ${interesse.map(x=>`<div class="pdi-r"><b>${esc(((x.nome||'')+' '+(x.cognome||'')).trim()||'—')}</b> — ${esc(x.attenzione||'')}</div>`).join('')}</div>`;
+}
+function attenzioneRiga(pid){
+  const x=(interesse||[]).find(y=>y.persona_id===pid);
+  return x?`<div class="br-att"><b>Attenzione</b> — ${esc(x.attenzione||'')}</div>`:'';
+}
+
 async function loadMonitor(){
+  if(interesse===null)await loadInteresse();
   try{
     const{data,error}=await sb.rpc('monitor_oggi');
     if(error)throw error;
@@ -2993,7 +3019,7 @@ function disegnaTurno(){
       <div class="turno-btns">
         <button class="btn prim grande" onclick="vaiAllaGriglia()">SEGNA CHI STAI SEGUENDO</button>
         <button class="btn prim grande btn-fine" onclick="salaTurno('fine',this)">FINE TURNO</button>
-      </div>${oggiTxt}`;
+      </div>${htmlInteresse()}${oggiTxt}`;
     return;
   }
   /* v2.54 il turno si apre solo su un turno dichiarato: prima di INIZIO TURNO si dice quale, o dove si dichiara */
@@ -3007,7 +3033,7 @@ function disegnaTurno(){
     :`<p class="turno-oggi">Oggi non hai un turno monitor dichiarato. I turni si dichiarano prima, in <a href="/turni.html#monitor">Turni</a>: senza turno dichiarato il turno non si apre e non si paga.</p>`)+rigaRiv;
   el.innerHTML=(t?`<p class="turno-stato">Turno ${hhmm(t.inizio)} → ${hhmm(t.fine)}</p><p class="turno-comp" id="turno-comp"></p>`:'')+
     `<p class="turno-dom">Sei in sala? Inizia il turno.</p>
-    <div class="turno-btns"><button class="btn prim grande" onclick="salaTurno('inizio',this)">INIZIO TURNO</button></div>${rigaDich}${oggiTxt}`;
+    <div class="turno-btns"><button class="btn prim grande" onclick="salaTurno('inizio',this)">INIZIO TURNO</button></div>${rigaDich}${htmlInteresse()}${oggiTxt}`;
 }
 async function salaTurno(az,btn){
   /* v2.24: niente confirm, prima di chiudere il riepilogo di chi hai segnato */
@@ -3931,6 +3957,7 @@ function htmlBrief(c){
         ${corso?`<div class="br-sub">${corso}</div>`:''}
         ${c.ultima_sala?`<div class="br-sub">ultima volta in sala: ${esc(ggmm(c.ultima_sala))}</div>`:''}
         ${c.ricordo?`<div class="br-ric"><i>${esc(briefCorto(c.ricordo))}</i> ${visPill('staff')}</div>`:''}</div></div>
+    ${attenzioneRiga(c.persona_id)}
     ${R?`<div class="br-riass">${visPill('staff')} ${esc(briefCorto(R.testo))} <span>— ${esc(R.autore||'')}, ${esc(ggmm(String(R.data||'').slice(0,10)))}</span></div>`:''}
     ${sez('Lavoro fatto',lav)}
     ${sens.length?`<div class="br-sez sens"><b>Sensibilità ${visPill('staff')} <span class="br-avv">solo staff, non dirlo così all’allievo</span></b>${sens.map(r=>`<div class="br-r">${r}</div>`).join('')}</div>`:''}
@@ -3952,6 +3979,7 @@ function briefMostra(){
     const n=brief.sel.size;
     c.innerHTML=`<h2 class="tr-tit">Chi segui stasera?</h2>
       <p class="aiuto">Spunta le persone che segui in questo turno: per ognuna leggi la card «In breve», poi inizi.</p>
+      ${htmlInteresse()}
       <div class="frm"><input id="bs-q" type="search" autocomplete="off" placeholder="Cerca per nome e aggiungi" oninput="briefCerca(this.value)"></div>
       <div id="bs-ris"></div>
       <div class="bs-lista">${brief.papabili===null?'<p class="vuota-all">Un attimo…</p>':(righe||'<p class="vuota-all">Oggi nessuno in elenco: cerca per nome qui sopra.</p>')}</div>
@@ -3960,6 +3988,7 @@ function briefMostra(){
   }else{
     c.innerHTML=`<h2 class="tr-tit">${esc(brief.titolo||'In breve')}</h2>
       <p class="aiuto">${brief.da==='turno'?'Leggi chi segui stasera, poi inizia il turno.':'Chi trovi a lezione.'}</p>
+      ${brief.da==='turno'?htmlInteresse():''}
       ${(brief.cards||[]).length?brief.cards.map(htmlBrief).join(''):'<p class="vuota-all">Nessuna card da mostrare.</p>'}
       <div class="sch-btns">${brief.da==='turno'
         ?'<button class="btn prim grande" onclick="briefInizia()">INIZIA IL TURNO</button>'
@@ -4049,6 +4078,7 @@ async function apriBriefLezione(slotId){
 /* scheda allievo: la card della persona in cima */
 async function caricaBriefScheda(pid){
   try{
+    if(interesse===null)await loadInteresse(); // v2.67 riga di attenzione sulla card
     const{data,error}=await sb.rpc('brief_allievi',{p_persona_ids:[pid]});
     if(error)throw error;
     if(pid!==schedaPid)return;

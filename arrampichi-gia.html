@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: arrampichi-gia v1.7 · 2026-11-19 · CLICK UP (Marco 19 nov): in Accademia si assicura solo con il Click Up, è nel regolamento. Dopo "Da primo o da secondo?" una domanda nuova (click_up: lo usi?) con la regola scritta dentro; chi non risponde "è il mio assicuratore abituale" vede anche "Con cosa assicuri di solito?" (assicuratore), gli altri la saltano. Avanti/Indietro e il contatore delle domande saltano la schermata che non serve. Le due risposte arrivano a Marco nella mail e nella scheda (RPC invia_questionario_arrampicatore: due etichette in più, sql/questionario_arrampicatore_click_up_2026-11-19.sql). CUMULA v1.6 -->
 <!-- KC-BUILD: arrampichi-gia v1.6 · 2026-11-19 · EMAIL DI NUOVO FACOLTATIVA (Marco 19 nov): a Marco serve la mail di notifica (parte sempre) e il contatto WhatsApp della persona (il telefono, con il link WhatsApp nella mail); chi scrive l'email riceve la conferma, chi non la scrive no. Bottone WhatsApp e riga del riepilogo restano. CUMULA v1.5 -->
 <!-- KC-BUILD: arrampichi-gia v1.5 · 2026-11-19 · MAIL DOPO IL QUESTIONARIO (Marco 17 nov): email obbligatoria ("Ti mandiamo qui la conferma della telefonata"), la usa la mail di conferma che parte dal DB (sql/questionario_arrampicatore_mail_2026-11-19.sql + Worker notifiche); schermata finale con "Ti abbiamo mandato una mail con il riepilogo." e il bottone WhatsApp per scrivere a Marco prima della telefonata (+39 331 874 3953). CUMULA v1.4 -->
 <!-- KC-BUILD: arrampichi-gia v1.4 · 2026-11-06 · FOTO IN TESTATA (Marco 6 nov): la foto del volo in falesia (volo_falesia_arrampichi_gia.jpg, radice di kataclimb.com, stessa del sito Accademia) sopra la barra, con il titolo h1 "Se arrampichi già, questo è il tuo posto" dentro. CUMULA v1.3 -->
@@ -100,6 +101,28 @@
       <label><input type="radio" name="ruolo" value="da primo in sala"> Da primo in sala</label>
       <label><input type="radio" name="ruolo" value="da primo in falesia"> Da primo anche in falesia</label>
       <label><input type="radio" name="ruolo" value="anche vie lunghe"> Anche sulle vie lunghe</label>
+    </div>
+  </section>
+
+  <!-- 3b · v1.7 Click Up -->
+  <section class="schermo nascosto" data-k="click_up" data-tipo="single" data-obbl="1">
+    <p class="domanda">In Accademia si assicura solo con il Click Up: è nel regolamento. Tu lo usi?</p>
+    <div class="scelte">
+      <label><input type="radio" name="click_up" value="sì, è il mio assicuratore abituale"> Sì, è il mio assicuratore abituale</label>
+      <label><input type="radio" name="click_up" value="l'ho usato qualche volta"> L'ho usato qualche volta</label>
+      <label><input type="radio" name="click_up" value="lo conosco, ma uso altro"> Lo conosco, ma uso altro</label>
+      <label><input type="radio" name="click_up" value="non l'ho mai usato"> Non l'ho mai usato</label>
+    </div>
+  </section>
+
+  <!-- 3c · v1.7 solo per chi non usa il Click Up di abitudine -->
+  <section class="schermo nascosto" data-k="assicuratore" data-tipo="single" data-obbl="1">
+    <p class="domanda">Con cosa assicuri di solito?</p>
+    <div class="scelte">
+      <label><input type="radio" name="assicuratore" value="Grigri"> Grigri</label>
+      <label><input type="radio" name="assicuratore" value="secchiello o tubo"> Secchiello o tubo</label>
+      <label><input type="radio" name="assicuratore" value="un altro assicuratore assistito"> Un altro assicuratore assistito</label>
+      <label><input type="radio" name="assicuratore" value="non assicuro ancora"> Non assicuro ancora</label>
     </div>
   </section>
 
@@ -216,13 +239,23 @@ let inviato = false;
 
 const $ = id => document.getElementById(id);
 
+// v1.7 — "Con cosa assicuri di solito?" si chiede solo a chi non usa il Click Up di abitudine
+function saltata(s) {
+  if (s.dataset.k !== 'assicuratore') return false;
+  const c = document.querySelector('input[name="click_up"]:checked');
+  return !!c && c.value.indexOf('abituale') >= 0;
+}
+function prossimo(n) { let k = n + 1; while (k < schermi.length - 1 && saltata(schermi[k])) k++; return k; }
+function precedente(n) { let k = n - 1; while (k > 0 && saltata(schermi[k])) k--; return k; }
+
 function mostra(n) {
   i = n;
   schermi.forEach((s, k) => s.classList.toggle('nascosto', k !== n));
   const s = schermi[n], k = s.dataset.k;
-  const pos = domande.indexOf(s);
-  $('barra').style.width = (k === 'grazie' ? 100 : k === 'intro' ? 0 : Math.round(((pos) / domande.length) * 100)) + '%';
-  $('passo').textContent = pos >= 0 ? ('Domanda ' + (pos + 1) + ' di ' + domande.length) : '';
+  const vive = domande.filter(d => !saltata(d)); // v1.7 il contatore non conta la domanda saltata
+  const pos = vive.indexOf(s);
+  $('barra').style.width = (k === 'grazie' ? 100 : k === 'intro' ? 0 : Math.round(((pos) / vive.length) * 100)) + '%';
+  $('passo').textContent = pos >= 0 ? ('Domanda ' + (pos + 1) + ' di ' + vive.length) : '';
   $('err').textContent = '';
   $('indietro').classList.toggle('nascosto', n === 0 || k === 'grazie');
   $('avanti').classList.toggle('nascosto', k === 'grazie');
@@ -252,7 +285,7 @@ function controlla(s) {
 
 function raccogli() {
   const r = {};
-  domande.forEach(s => { if (s.dataset.k !== 'contatti') r[s.dataset.k] = valore(s); });
+  domande.forEach(s => { if (s.dataset.k !== 'contatti' && !saltata(s)) r[s.dataset.k] = valore(s); });
   const o = document.querySelector('input[name="orario"]:checked');
   if (o && !slotScelto()) r.orario = o.value;
   return r;
@@ -344,15 +377,15 @@ $('avanti').addEventListener('click', () => {
   if (s.dataset.k === 'contatti') { invia(); return; }
   const e = controlla(s);
   if (e) { $('err').textContent = e; return; }
-  mostra(i + 1);
+  mostra(prossimo(i));
 });
-$('indietro').addEventListener('click', () => { if (i > 0) mostra(i - 1); });
+$('indietro').addEventListener('click', () => { if (i > 0) mostra(precedente(i)); });
 document.querySelectorAll('.schermo input, .schermo textarea').forEach(el => el.addEventListener('input', () => { iniziato = true; }, { once: true }));
 
 // Scelta singola: si va avanti da soli dopo un attimo (una domanda, una risposta)
 schermi.forEach(s => {
   if (s.dataset.tipo === 'single') {
-    s.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', () => setTimeout(() => { if (schermi[i] === s) mostra(i + 1); }, 220)));
+    s.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', () => setTimeout(() => { if (schermi[i] === s) mostra(prossimo(i)); }, 220)));
   }
 });
 
