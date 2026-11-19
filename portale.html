@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.174 · 2026-11-19 · CORSO GIOVANI KATACLIMB (18–24): PAGA, ENTRA, PRENOTA (Marco 19 nov, sql/giovani/01-02, stripe-worker v3.101). Fascicolo → 🎫 Abbonamenti, sull'abbonamento Giovani: interruttore "Può prenotare il Corso Advance KataClimb" (RPC imposta_advance_giovani, conferma prima, riga "acceso da NOME il GG/MM"); "Copia link di pagamento" (proposta-giovani.html?u=<persona>); senza email: "Manca l'email: scrivila qui per farlo entrare in agenda" con campo, controllo doppioni sull'email, poi Worker POST /giovani-account (account + mail di accesso). Registra abbonamento Giovani: niente giorno fisso, e dopo la registrazione l'account nasce da solo se manca. CUMULA v3.173 -->
 <!-- KC-BUILD: portale v3.173 · 2026-11-18 · PROPOSTA OPEN: TERZA SCELTA (decisione Marco 17 nov, Master v4.38; stripe-worker v3.100). Nella schermata che si apre da sola dopo la Prima Lezione Adulti le scelte sono tre: 2 volte a settimana 215 € tutto insieme · 1 volta a settimana 215 € tutto insieme · 1 volta a settimana 115 € adesso e 100 € dopo le prime 4 lezioni. Solo testo. CUMULA v3.172. -->
 <!-- KC-BUILD: portale v3.172 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Per l'ALLIEVO adulto appena segnato presente alla Prima Lezione Adulti: (1) entrando nel portale si apre da sola, a tutto schermo, la proposta del Corso Open KataClimb con le due scelte (2 volte a settimana 215 € tutto insieme · 1 volta a settimana 115 € adesso e 100 € dopo le prime 4 lezioni), bottone "Vedi il calendario e scegli" verso proposta-open.html?u=<persona_id> e "Ci penso" che chiude (ricordato sul telefono, non riappare da sola). (2) Il riquadro in cima alla home non dice piu' "Prenota la prima lezione" a chi l'ha gia' fatta: dice "Il tuo Corso Open KataClimb ti aspetta" e porta alla stessa pagina; sparisce quando l'Open e' pagato. Condizioni = le stesse di cron_accoda_offerta_open (mail del giorno dopo): prima_paid, nessun corso attivo, nessun pagamento Open/Advance/Intro/Evo, Prima Lezione Adulti (tipo_corso prima_lezione) fatta negli ultimi 14 giorni; mai staff, mai minori, Genitori o private. Solo lettura di dati gia' in memoria (profile, myPrenotCorso): nessuna query nuova, nessuna modifica a DB o pagamenti. CUMULA v3.171. -->
 <!-- KC-BUILD: portale v3.171 · 2026-11-13 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB istruttore_da_assistente_10_euro_ora_2026_11_13 e un_titolare_piu_appoggio_2026_11_13, Master v4.35). Segreteria → 🗓 Turni, corsi Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11: gli stessi di _istruttore_da_assistente): (1) nella tessera e nel dettaglio ogni istruttore si legge "titolare" o "d'appoggio" al posto di "Istruttore" (un istruttore entrato a ore = d'appoggio, come lo paga il DB). (2) Per creator e segreteria, su ogni istruttore previsto o presente, "Cambia in d'appoggio" / "Cambia in titolare" -> conferma -> impegno_mi_segno con p_user_id e p_ruolo supporto/conduce (aggiorna l'impegno, anche su lezioni passate). (3) Nel dettaglio, con due titolari, riga "Due titolari: dite chi è d'appoggio, altrimenti lo decide il portale." (4) Contatore: "Istruttori 2/1 · un istruttore d'appoggio" in questi corsi, negli altri come prima. CIFRE: "Istruttore (15 € a lezione)" in Aggiungi una persona e in Da sistemare -> "Istruttore (titolare 15 € l'ora, d'appoggio 10 € l'ora)", "Assistente (5 € l'ora)"; conferme di Da sistemare (PRESENTE, AGGIUNGI STAFF) e note dei compensi senza "15 € a lezione". Nessuna modifica a DB. CUMULA v3.170. -->
@@ -6985,7 +6986,7 @@ async function abbCaricaCataloghi(){
 function abbTipo(tipo){return(abbTipi||[]).find(t=>t.tipo===tipo)||null}
 // slot_ammessi in forma 'tipo_corso/fascia', '*' = qualsiasi fascia (stessa regola di registra_abbonamento)
 function abbSlotAmmesso(s,ammessi){return(ammessi||[]).some(a=>a===s.tipo_corso+'/'+s.fascia||a===s.tipo_corso+'/*')}
-function abbTipoConGiorni(tipo){const t=abbTipo(tipo);return !!(t&&(t.slot_ammessi||[]).length)}
+function abbTipoConGiorni(tipo){if(tipo==='giovani')return false;/* v3.174 — i Giovani prenotano ogni settimana */const t=abbTipo(tipo);return !!(t&&(t.slot_ammessi||[]).length)}
 function abbSlotsDelTipo(tipo){const t=abbTipo(tipo);return t?(abbSlotAttivi||[]).filter(s=>abbSlotAmmesso(s,t.slot_ammessi)):[]}
 // Nome completo del corso di uno slot, da abbonamenti_tipi: il tipo che ha QUELLO slot come primo ammesso
 function abbLabelSlot(s){
@@ -7177,6 +7178,7 @@ async function confermaAbbonamento(){
     closeModal('mo-pagamento-manuale');
     toast((r.label||abbTipo(tipo)?.label||tipo)+': attivo fino al '+abbGMA(r.al||al)+' · '+abbEuro(r.importo??importo)+' € '+(r.pagato?abbMetodo(r.metodo):'da pagare'));
     currentLeadAbb=null;
+    if(tipo==='giovani')giovaniGarantisciAccount(abbPersonaId,true); // v3.174 — Invariante Provisioning Automatico
     if(currentLeadDetail&&currentLeadDetail.id===l.id)showLeadDetail(l.id);
   }catch(e){
     abbMsg('abb-msg',e.message||String(e));
@@ -7363,6 +7365,22 @@ async function loadLeadAbbonamenti(lead,personaId){
     const slotByIscr={};
     (sl.data||[]).forEach(x=>{(slotByIscr[x.iscrizione_id]=slotByIscr[x.iscrizione_id]||[]).push(x.slot_id)});
     currentLeadAbb={personaId,righe,slotByIscr,pause:pz.data||[],pagamenti:pg.data||[],ingressi:(gi.data||{}).ingressi||[]};
+    // v3.174 — Corso Giovani: interruttore Advance, email e account della persona
+    const idsGiovani=righe.filter(r=>r.tipo_abbonamento==='giovani').map(r=>r.iscrizione_id);
+    if(idsGiovani.length){
+      try{
+        const[ab,per,pdx]=await Promise.all([
+          sb.from('iscrizioni_minori').select('id,advance_abilitato,advance_abilitato_da,advance_abilitato_il').in('id',idsGiovani),
+          sb.from('persone').select('email').eq('id',personaId).maybeSingle(),
+          sb.from('profile_data').select('user_id').eq('persona_id',personaId).maybeSingle()
+        ]);
+        const chi=[...new Set((ab.data||[]).map(x=>x.advance_abilitato_da).filter(Boolean))];
+        let nomi={};
+        if(chi.length){const{data:pr}=await sb.from('profiles').select('user_id,nome,cognome').in('user_id',chi);(pr||[]).forEach(x=>{nomi[x.user_id]=((x.nome||'')+' '+(x.cognome||'')).trim()})}
+        currentLeadAbb.giovani={adv:Object.fromEntries((ab.data||[]).map(x=>[x.id,{...x,nome_da:nomi[x.advance_abilitato_da]||''}])),
+          email:(per.data||{}).email||'',account:!!(pdx.data&&pdx.data.user_id)};
+      }catch(e){console.warn('[loadLeadAbbonamenti] giovani:',e.message||e)}
+    }
     renderLeadDetail();
   }catch(e){console.warn('[loadLeadAbbonamenti]',e.message||e)}
 }
@@ -7389,6 +7407,7 @@ function renderAbbonamentiBlock(){
         ${isStaff()&&r.ingressi_inclusi!=null&&r.stato!=='scaduto'&&r.stato!=='esaurito'?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="segnaIngressoFascicolo('${escHtml(String(r.tipo_abbonamento).replace('pacchetto_ingressi_',''))}')">✓ Ingresso di oggi</button>`:''}
         ${isStaff()&&r.ingressi_inclusi!=null&&r.ingressi_inclusi-(r.ingressi_usati??0)>0&&questIdOk(r.iscrizione_id)?`<button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="openIngressiPassati('${r.iscrizione_id}')">＋ Ingressi già fatti</button>`:''}
       </div>
+      ${r.tipo_abbonamento==='giovani'?htmlGiovaniAbb(r,a):''}
     </div>`;
   }).join('');
   // Pausa: solo abbonamenti mensili (adulti). Mai per Bambini/Ragazzi.
@@ -7419,6 +7438,67 @@ function renderAbbonamentiBlock(){
     ${storico}
     ${htmlIngressiTendina(a)}
   </div>`;
+}
+
+/* ── v3.174 Corso Giovani KataClimb (18–24): interruttore Advance, link di pagamento, email → account ── */
+function htmlGiovaniAbb(r,a){
+  if(!isStaff()||!questIdOk(r.iscrizione_id))return'';
+  const g=a.giovani||{};const ad=(g.adv||{})[r.iscrizione_id]||{};
+  const acceso=!!ad.advance_abilitato;
+  const quando=ad.advance_abilitato_il?abbGMA(String(ad.advance_abilitato_il).slice(0,10)).slice(0,5):'';
+  const riga=ad.advance_abilitato_il?`<div style="font-size:13px;color:var(--text2)">${acceso?'acceso':'spento'} da ${escHtml(ad.nome_da||'staff')} il ${quando}</div>`:'';
+  const email=g.email?'':`<div style="width:100%;margin-top:8px;background:#FEF3C7;border:1px solid #F59E0B40;color:#92400E;padding:8px 12px;border-radius:8px;font-size:14px">
+      <strong>Manca l'email: scrivila qui per farlo entrare in agenda.</strong>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input type="email" id="gv-email" placeholder="email" style="flex:1;min-width:180px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:14px">
+      <button class="btn" style="font-size:13px;padding:6px 12px" onclick="giovaniSalvaEmail('${a.personaId}')">Salva e crea l'accesso</button></div></div>`;
+  const account=(g.email&&!g.account)?`<div style="width:100%;margin-top:8px;font-size:13px;color:#92400E">Accesso al portale non ancora creato. <button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="giovaniGarantisciAccount('${a.personaId}')">Crea l'accesso e manda la mail</button></div>`:'';
+  return`<div style="width:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+      <label style="display:flex;gap:6px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" ${acceso?'checked':''} onchange="giovaniToggleAdvance('${r.iscrizione_id}',this)"> Può prenotare il Corso Advance KataClimb</label>
+      <button class="btn btn-g" style="font-size:13px;padding:4px 10px" onclick="giovaniCopiaLink('${a.personaId}')">🔗 Copia link di pagamento</button>
+      ${riga}${email}${account}
+    </div>`;
+}
+async function giovaniToggleAdvance(iscrId,el){
+  const on=el.checked;
+  const msg=on?'Abilitare il Corso Advance KataClimb? Da adesso prenota sugli orari del Corso Advance KataClimb (e il giovedì del Corso Giovani) al posto del Corso Open KataClimb.'
+             :'Togliere il Corso Advance KataClimb? Torna a prenotare sugli orari del Corso Open KataClimb.';
+  if(!confirm(msg)){el.checked=!on;return}
+  el.disabled=true;
+  const{error}=await sb.rpc('imposta_advance_giovani',{p_iscrizione_id:iscrId,p_attivo:on});
+  el.disabled=false;
+  if(error){el.checked=!on;toast('Non salvato: '+(error.message||error));return}
+  toast(on?'✓ Corso Advance KataClimb abilitato':'✓ Torna il Corso Open KataClimb');
+  if(currentLeadDetail)showLeadDetail(currentLeadDetail.id);
+}
+async function giovaniCopiaLink(personaId){
+  const url='https://kataclimb.com/proposta-giovani.html?u='+encodeURIComponent(personaId);
+  try{await navigator.clipboard.writeText(url);toast('Link di pagamento copiato ✓')}
+  catch(e){prompt('Copia il link di pagamento:',url)}
+}
+async function giovaniGarantisciAccount(personaId,silenzioso){
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const r=await fetch(STRIPE_WORKER_BASE+'/giovani-account',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(session?session.access_token:'')},body:JSON.stringify({persona_id:personaId})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok){if(!silenzioso||r.status!==409)toast('Accesso non creato: '+(j.error||('errore '+r.status)));return false}
+    if(j.nuovo)toast(j.mail_accesso?'✓ Accesso creato: mail con il link inviata':'✓ Accesso creato (mail non partita: avvisalo tu)');
+    else if(!silenzioso)toast('Ha già l\'accesso al portale');
+    if(currentLeadDetail)showLeadDetail(currentLeadDetail.id);
+    return true;
+  }catch(e){toast('Accesso non creato: '+(e.message||e));return false}
+}
+async function giovaniSalvaEmail(personaId){
+  const el=document.getElementById('gv-email');
+  const email=String(el&&el.value||'').trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Scrivi un\'email valida');return}
+  // doppioni: un'altra scheda con la stessa email va unita prima
+  const{data:altre,error:e1}=await sb.from('persone').select('id,nome,cognome').ilike('email',email).neq('id',personaId).limit(1);
+  if(e1){toast('Errore: '+e1.message);return}
+  if(altre&&altre.length){toast('Questa email è già nella scheda di '+((altre[0].nome||'')+' '+(altre[0].cognome||'')).trim()+': unisci prima le due schede.');return}
+  const{error}=await sb.from('persone').update({email}).eq('id',personaId);
+  if(error){toast('Email non salvata: '+error.message);return}
+  toast('✓ Email salvata, creo l\'accesso…');
+  await giovaniGarantisciAccount(personaId);
 }
 
 /* ── Pausa abbonamenti adulti (mensili) ── */
