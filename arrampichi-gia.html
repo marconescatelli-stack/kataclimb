@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: arrampichi-gia v1.5 · 2026-11-19 · MAIL DOPO IL QUESTIONARIO (Marco 17 nov): email obbligatoria ("Ti mandiamo qui la conferma della telefonata"), la usa la mail di conferma che parte dal DB (sql/questionario_arrampicatore_mail_2026-11-19.sql + Worker notifiche); schermata finale con "Ti abbiamo mandato una mail con il riepilogo." e il bottone WhatsApp per scrivere a Marco prima della telefonata (+39 331 874 3953). CUMULA v1.4 -->
 <!-- KC-BUILD: arrampichi-gia v1.4 · 2026-11-06 · FOTO IN TESTATA (Marco 6 nov): la foto del volo in falesia (volo_falesia_arrampichi_gia.jpg, radice di kataclimb.com, stessa del sito Accademia) sopra la barra, con il titolo h1 "Se arrampichi già, questo è il tuo posto" dentro. CUMULA v1.3 -->
 <!-- KC-BUILD: arrampichi-gia v1.3 · 2026-11-06 · VIA LA SCHERMATA INTRO (Marco 6 nov): chi arriva dal sito ha già letto la presentazione, si parte dalla domanda 1; Indietro nascosto sulla prima domanda; l'avviso "vuoi uscire?" scatta alla prima risposta. CUMULA v1.2 -->
 <!-- KC-BUILD: arrampichi-gia v1.2 · 2026-11-06 · tolto noindex: il blocco in home del sito Accademia (v1.11) e la card Expert portano qui. Griglia orari = i primi DUE GIORNI UTILI (lun–ven, fuori indisponibilità) entro 10 giorni, non due giorni di calendario: il test di Marco di venerdì 6 nov 9:31 non vedeva slot (sab/dom) e finiva sulla fascia. CUMULA v1.1: -->
@@ -55,6 +56,7 @@
   .stato h2 { margin-bottom:14px; font-size:1.4rem; }
   .stato p { margin-bottom:12px; }
   .stato a { color:var(--blu); font-weight:700; }
+  .stato a.wa { display:inline-block; background:var(--inchiostro); color:#fff; text-decoration:none; border-radius:10px; padding:14px 22px; margin:4px 0 18px; font-size:1.02rem; }
   .nota { font-size:.9rem; color:var(--grigio); margin-top:10px; }
 </style>
 </head>
@@ -165,7 +167,7 @@
     <div class="campo"><label class="et" for="telefono">Telefono</label>
       <div class="tel"><span class="pref">+39</span><input type="tel" id="telefono" autocomplete="tel-national" inputmode="numeric" placeholder="3xx xxx xxxx" maxlength="20"></div>
     </div>
-    <div class="campo"><label class="et" for="email">Email <span style="font-weight:400;color:var(--grigio)">(facoltativa)</span></label><input type="email" id="email" autocomplete="email" maxlength="200"></div>
+    <div class="campo"><label class="et" for="email">Email</label><p class="aiuto" style="margin-bottom:8px">Ti mandiamo qui la conferma della telefonata.</p><input type="email" id="email" autocomplete="email" maxlength="200"></div>
     <div class="campo" id="blocco-slot">
       <label class="et">Scegli il quarto d'ora in cui ti chiama</label>
       <p class="aiuto" id="slot-aiuto">Carico i prossimi orari liberi…</p>
@@ -188,6 +190,9 @@
     <h2>Fatto 🧗</h2>
     <p>Le tue risposte sono protette dalla privacy e le legge solo Marco.</p>
     <p id="grazie-testo">Ti chiama lui nel giorno e nell'orario che hai scelto.</p>
+    <p id="grazie-mail" class="nascosto">Ti abbiamo mandato una mail con il riepilogo.</p>
+    <p>Se vuoi parlare con Marco prima della telefonata, scrivigli su WhatsApp:</p>
+    <a class="wa" href="https://wa.me/393318743953?text=Ciao%20Marco%2C%20ho%20appena%20compilato%20il%20questionario%20per%20chi%20arrampica%20gi%C3%A0." target="_blank" rel="noopener">Scrivi a Marco su WhatsApp</a>
     <p>Se nel frattempo vuoi vedere dove siamo: <a href="https://palestra-arrampicata-roma.it/#contatti">Accademia ArrampiKata RCC, Via Cassia 1634, La Storta</a>.</p>
   </section>
 
@@ -306,7 +311,8 @@ async function invia() {
   const email = $('email').value.trim();
   if (!nome) { err.textContent = 'Scrivi il tuo nome: Marco ti chiama per nome.'; $('nome').focus(); return; }
   if (telRaw.length < 9) { err.textContent = 'Scrivi il numero a cui Marco ti chiama (almeno 9 cifre).'; $('telefono').focus(); return; }
-  if (email && email.indexOf('@') < 0) { err.textContent = 'L\'email non sembra valida: controllala o lasciala vuota.'; $('email').focus(); return; }
+  if (!email) { err.textContent = 'Scrivi la tua email: ti mandiamo lì la conferma della telefonata.'; $('email').focus(); return; }
+  if (email.indexOf('@') < 0) { err.textContent = 'L\'email non sembra valida: controllala.'; $('email').focus(); return; }
   if (!$('consenso').checked) { err.textContent = 'Spunta il consenso per essere ricontattato: senza, Marco non può chiamarti.'; return; }
   const slot = slotScelto();
   const fasciaVisibile = !$('blocco-orario').classList.contains('nascosto');
@@ -324,6 +330,7 @@ async function invia() {
     });
     if (slot) { const d = new Date(slot); $('grazie-testo').textContent = 'Ti chiama lui ' + giornoIt(d) + ' alle ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ', al numero che hai scritto.'; }
     else { $('grazie-testo').textContent = 'Ti chiama lui nei prossimi giorni, nella fascia che hai scelto.'; }
+    $('grazie-mail').classList.toggle('nascosto', !email);
     inviato = true;
     mostra(schermi.findIndex(s => s.dataset.k === 'grazie'));
   } catch (e) {
