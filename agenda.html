@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.116 · 2026-11-19 · ORARI CHIUSI NON IN AGENDA (segnalazione Roberta 19 nov: "Evo e Open negli stessi orari di mercoledì e venerdì"). Con lo scambio temporaneo Open / Evo (Master v4.42) gli orari di prima sono chiusi per data in slot_chiusure e i nuovi sono accanto: la griglia della settimana non leggeva slot_chiusure e li mostrava tutti e due. Ora render() legge le chiusure della settimana e salta gli orari di Open, Advance, Intro Corda ed Evo Corda chiusi in quella data e SENZA prenotati (chi è prenotato resta sempre visibile). Vale per tutte le viste che passano da render(): corso singolo, Tutti i corsi, allievo. Prime Lezioni, minori, monitor, scuole e feste invariati. Nessuna scrittura, nessuna modifica al DB. Nient'altro toccato. -->
 <!-- KC-BUILD: agenda v3.115 · 2026-11-19 · I GIOVANI PRENOTANO LA LEZIONE DELLA SETTIMANA (Marco 19 nov, sql/giovani/01). Vista allievo anche senza corso_attivo quando c'è un abbonamento Giovani attivo (RPC mio_abbonamento_giovani): in testa abbonamento fino al GG/MM e la lezione di questa settimana; slot del Corso Giovani KataClimb (18–24) + Corso Open KataClimb (Corso Advance KataClimb al posto dell'Open se abilitato) col nome intero; Prenota → conferma "Prenoti la lezione di questa settimana…" → prenota_con_abbonamento; disdetta senza limite (8 ore), oltre la scadenza bottone Rinnova (proposta-giovani.html). Vista staff: prenotati con tag Giovani (abbonamento_id), niente ↔ sulle loro righe, via l'elenco fisso Abbonato per i Giovani (resta Senior, Genitori, Fly, Lab); selettore + Prenota allievo: per un Giovane usa prenota_con_abbonamento. CUMULA v3.114 -->
 <!-- KC-BUILD: agenda v3.114 · 2026-11-18 · Proposta Open: carica /kc-proposta-open.js?v=1.2 (la riga per l'istruttore elenca le tre scelte; terza scelta 1 volta a settimana 215 € tutto insieme, stripe-worker v3.100). Nient'altro. CUMULA v3.113. -->
 <!-- KC-BUILD: agenda v3.113 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Vista staff, Prima Lezione Adulti: appena un allievo e' segnato P (fatto), accanto a P/A compare il bottone scuro "Proposta Open". Toccandolo si apre a tutto schermo il codice QR della sua proposta (proposta-open.html?u=<persona_id>) da fargli inquadrare, con la riga che guida l'istruttore; se ha gia' un corso dice "Corso attivo", se la Prima Lezione non risulta pagata nel portale dice di passare dalla segreteria. Sotto il codice, "MANDA SU WHATSAPP": apre WhatsApp sul numero dell'allievo con lo stesso link gia' scritto. Carica /kc-proposta-open.js?v=1.1 (nuovo, condiviso con Oggi; il QR si disegna in pagina con kc-qrcode.js, nessun servizio esterno). Mai su Prima Lezione Bambini, Ragazzi, Genitori, Scuole o private. Solo letture; nessuna modifica a DB, presenze o pagamenti. CUMULA v3.112. -->
@@ -1930,6 +1931,10 @@
     }
   }
 
+  // v3.116 — corsi adulti a prenotazione: un orario chiuso in una data (slot_chiusure) e senza prenotati non compare in agenda.
+  // Prime Lezioni, minori, monitor e scuole restano come prima (lì la chiusura vuol dire "pieno" e la lezione si tiene).
+  const CORSI_CHIUSURA_NASCONDE = ['open', 'advance', 'intro_corda', 'evo_corda'];
+
   async function render() {
     const grid = document.getElementById('grid');
     grid.innerHTML = '<div class="empty">Caricamento…</div>';
@@ -1940,11 +1945,13 @@
     renderEventiSettimana(lun, dom); // v3.65: eventi Accademia della settimana (read-only, non blocca)
 
     try {
-      const [slots, prenot, feste] = await Promise.all([
+      const [slots, prenot, feste, rChiuseSett] = await Promise.all([
         caricaSlot(),
         caricaPrenotSettimana(lun, dom),
-        caricaFesteSettimana(lun, dom) // v3.110 — mai errore: lettura fallita = []
+        caricaFesteSettimana(lun, dom), // v3.110 — mai errore: lettura fallita = []
+        sb.from('slot_chiusure').select('slot_id, data').gte('data', isoD(lun)).lte('data', isoD(dom)) // v3.116 — lettura fallita = nessuna chiusura, la settimana si vede come prima
       ]);
+      const chiuseSett = new Set(((rChiuseSett && rChiuseSett.data) || []).map(r => r.slot_id + '|' + r.data));
       festeSettimana = feste;
 
       if (!slots.length) {
@@ -1974,6 +1981,7 @@
         const passato  = dtFine < now;
         const pSlot    = prenot.filter(x => x.slot_id === s.id && x.data_lezione === dataIso);
         if (window.GIORNI_CHIUSI && window.GIORNI_CHIUSI.has(dataIso)) continue; // giorno chiuso: niente slot prenotabili
+        if (CORSI_CHIUSURA_NASCONDE.includes(s.tipo_corso) && chiuseSett.has(s.id + '|' + dataIso) && !pSlot.length) continue; // v3.116 — orario chiuso in quella data e senza prenotati: non si mostra
         lezioni.push({ slot:s, data, dataIso, dtInizio, dtFine, passato, prenotazioni:pSlot });
       }
 
