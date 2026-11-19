@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<!-- KC-BUILD: agenda v3.114 + SOLA CORREZIONE v3.116 · 2026-11-19 · portata su main da sola per decisione di Marco (19 nov): la v3.115 Giovani resta su dev. ORARI CHIUSI NON IN AGENDA (segnalazione Roberta 19 nov: "Evo e Open negli stessi orari di mercoledì e venerdì"). Con lo scambio temporaneo Open / Evo (Master v4.42) gli orari di prima sono chiusi per data in slot_chiusure e i nuovi sono accanto: la griglia della settimana non leggeva slot_chiusure e li mostrava tutti e due. Ora render() legge le chiusure della settimana e salta gli orari di Open, Advance, Intro Corda ed Evo Corda chiusi in quella data e SENZA prenotati (chi è prenotato resta sempre visibile). Vale per tutte le viste che passano da render(): corso singolo, Tutti i corsi, allievo. Prime Lezioni, minori, monitor, scuole e feste invariati. Nessuna scrittura, nessuna modifica al DB. Nient'altro toccato. -->
+<!-- KC-BUILD: agenda v3.116 · 2026-11-19 · ORARI CHIUSI NON IN AGENDA (segnalazione Roberta 19 nov: "Evo e Open negli stessi orari di mercoledì e venerdì"). Con lo scambio temporaneo Open / Evo (Master v4.42) gli orari di prima sono chiusi per data in slot_chiusure e i nuovi sono accanto: la griglia della settimana non leggeva slot_chiusure e li mostrava tutti e due. Ora render() legge le chiusure della settimana e salta gli orari di Open, Advance, Intro Corda ed Evo Corda chiusi in quella data e SENZA prenotati (chi è prenotato resta sempre visibile). Vale per tutte le viste che passano da render(): corso singolo, Tutti i corsi, allievo. Prime Lezioni, minori, monitor, scuole e feste invariati. Nessuna scrittura, nessuna modifica al DB. Nient'altro toccato. -->
+<!-- KC-BUILD: agenda v3.115 · 2026-11-19 · I GIOVANI PRENOTANO LA LEZIONE DELLA SETTIMANA (Marco 19 nov, sql/giovani/01). Vista allievo anche senza corso_attivo quando c'è un abbonamento Giovani attivo (RPC mio_abbonamento_giovani): in testa abbonamento fino al GG/MM e la lezione di questa settimana; slot del Corso Giovani KataClimb (18–24) + Corso Open KataClimb (Corso Advance KataClimb al posto dell'Open se abilitato) col nome intero; Prenota → conferma "Prenoti la lezione di questa settimana…" → prenota_con_abbonamento; disdetta senza limite (8 ore), oltre la scadenza bottone Rinnova (proposta-giovani.html). Vista staff: prenotati con tag Giovani (abbonamento_id), niente ↔ sulle loro righe, via l'elenco fisso Abbonato per i Giovani (resta Senior, Genitori, Fly, Lab); selettore + Prenota allievo: per un Giovane usa prenota_con_abbonamento. CUMULA v3.114 -->
 <!-- KC-BUILD: agenda v3.114 · 2026-11-18 · Proposta Open: carica /kc-proposta-open.js?v=1.2 (la riga per l'istruttore elenca le tre scelte; terza scelta 1 volta a settimana 215 € tutto insieme, stripe-worker v3.100). Nient'altro. CUMULA v3.113. -->
 <!-- KC-BUILD: agenda v3.113 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Vista staff, Prima Lezione Adulti: appena un allievo e' segnato P (fatto), accanto a P/A compare il bottone scuro "Proposta Open". Toccandolo si apre a tutto schermo il codice QR della sua proposta (proposta-open.html?u=<persona_id>) da fargli inquadrare, con la riga che guida l'istruttore; se ha gia' un corso dice "Corso attivo", se la Prima Lezione non risulta pagata nel portale dice di passare dalla segreteria. Sotto il codice, "MANDA SU WHATSAPP": apre WhatsApp sul numero dell'allievo con lo stesso link gia' scritto. Carica /kc-proposta-open.js?v=1.1 (nuovo, condiviso con Oggi; il QR si disegna in pagina con kc-qrcode.js, nessun servizio esterno). Mai su Prima Lezione Bambini, Ragazzi, Genitori, Scuole o private. Solo letture; nessuna modifica a DB, presenze o pagamenti. CUMULA v3.112. -->
 <!-- KC-BUILD: agenda v3.112 · 2026-11-13 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB istruttore_da_assistente_10_euro_ora_2026_11_13 e un_titolare_piu_appoggio_2026_11_13, Master v4.35). Riga Staff delle lezioni dei corsi Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11: gli stessi di _istruttore_da_assistente): ogni istruttore si legge "titolare" o "d'appoggio" al posto di "istruttore" (entrato a ore = d'appoggio, come lo paga il DB); per la segreteria CAMBIA IN D'APPOGGIO / CAMBIA IN TITOLARE su ogni istruttore previsto o presente -> conferma -> impegno_mi_segno con p_user_id e p_ruolo supporto/conduce; con due titolari riga arancio "Due titolari: dite chi è d'appoggio, altrimenti lo decide il portale.". AGGIUNGI STAFF: "Istruttore (titolare 15 € l'ora, d'appoggio 10 € l'ora)" e "Assistente (5 € l'ora)" al posto di "15 € a lezione" / "a ore"; "la persona" -> "chi scegli". Nessuna modifica a DB. CUMULA v3.111. -->
@@ -780,7 +781,33 @@
   // v3.96 — abbonamenti adulti (stessa tabella iscrizioni_minori, stessa RPC get_iscritti_minori):
   // SOLO visualizzazione dei nomi con tag "Abbonato". Non contano nell'occupazione, niente
   // "+ Iscrivi minore", "+ Prenota allievo" invariato.
-  const ADULTI_ABBONATI_TIPI = ['giovani', 'senior', 'genitori', 'fly', 'lab'];
+  // v3.115 — i Giovani prenotano la lezione della settimana (prenotazioni_corso con abbonamento_id): niente piu' elenco fisso
+  const ADULTI_ABBONATI_TIPI = ['senior', 'genitori', 'fly', 'lab'];
+  // v3.115 — vista allievo del Corso Giovani KataClimb (18–24): pseudo-tipo con piu' corsi insieme
+  const GIOVANI_ABB = 'giovani_abb';
+  let giovaniAbb = null;          // risposta di mio_abbonamento_giovani()
+  let giovaniPrenotSett = [];     // le mie prenotazioni con abbonamento nella settimana a schermo
+  const NOME_CORSO_GIOVANI = { giovani: 'Corso Giovani KataClimb (18–24)', open: 'Corso Open KataClimb', advance: 'Corso Advance KataClimb' };
+  const tipiGiovani = () => ['giovani', giovaniAbb && giovaniAbb.advance ? 'advance' : 'open'];
+  async function caricaGiovaniAbb() {
+    try {
+      const { data, error } = await sb.rpc('mio_abbonamento_giovani');
+      if (error) { console.warn('[giovani]', error.message); return false; }
+      giovaniAbb = (data && data.attivo) ? data : null;
+      return !!giovaniAbb;
+    } catch (e) { console.warn('[giovani]', e && e.message); return false; }
+  }
+  const ggmmIso = iso => { const p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : ''; };
+  function rigaGiovani() {
+    if (!giovaniAbb) return '';
+    const l = giovaniAbb.lezione_settimana;
+    let sett = 'questa settimana: scegli la tua lezione';
+    if (l) {
+      const d = new Date(l.data + 'T00:00:00');
+      sett = `questa settimana: lezione prenotata ${GIORNI[(d.getDay() + 6) % 7]} ${d.getDate()} ${MESI_BR[d.getMonth()]} alle ${l.ora}`;
+    }
+    return `Corso Giovani KataClimb (18–24) · abbonamento fino al ${ggmmIso(giovaniAbb.al)} · ${sett}`;
+  }
   let iscrittiMinori = {}; // slot_id -> [{iscrizione_id, persona_id, nome, cognome, paid, data_fine}]
 
   const TIPO_LABELS = {
@@ -1208,6 +1235,7 @@
     if (isStaffCompleto())       viewMode = 'segreteria';
     else if (isStaffIstruttore())viewMode = 'istruttore';
     else if (userProfile.corso_attivo) viewMode = 'allievo';
+    else if (await caricaGiovaniAbb()) viewMode = 'allievo'; // v3.115 — Corso Giovani KataClimb (18–24)
     else { showAccessDenied(); return; }
 
     const { data: cfgs, error: cfgErr } = await sb
@@ -1302,7 +1330,25 @@
 
     const tipoSel = document.getElementById('tipo-select');
 
-    if (viewMode === 'allievo') {
+    if (viewMode === 'allievo' && giovaniAbb && !userProfile.corso_attivo) {
+      // v3.115 — Corso Giovani KataClimb (18–24): una lezione a settimana, niente contatore a lezioni
+      currentTipo = GIOVANI_ABB;
+      tipoSel.style.display = 'none';
+      document.getElementById('title').textContent = `Agenda Accademia RCC`;
+      document.getElementById('sub').textContent = rigaGiovani();
+      const navMon = document.getElementById('nav-monitor');
+      if (navMon) navMon.style.display = 'none';
+      const banner = document.getElementById('info-banner');
+      if (banner) {
+        banner.innerHTML = `<strong>Come funziona</strong> · Con il Corso Giovani KataClimb (18–24) hai <strong>una lezione a settimana</strong> (da lunedì a domenica): la scegli tra gli orari del ${giovaniAbb.advance ? 'Corso Advance KataClimb' : 'Corso Open KataClimb'} e il giovedì del Corso Giovani. Se disdici almeno 8 ore prima, la settimana si libera e puoi sceglierne un'altra. Negli altri giorni hai la Sala con Monitor.`;
+        banner.style.display = '';
+      }
+      const rf = document.getElementById('regola-finestre');
+      rf.innerHTML = `<span>Prenoti fino a <strong>4 ore</strong> prima della lezione</span><span class="sep">·</span><span>Disdici fino a <strong>8 ore</strong> prima</span>`;
+      rf.style.display = '';
+      const cEl = document.getElementById('counter');
+      if (cEl) cEl.style.display = 'none';
+    } else if (viewMode === 'allievo') {
       currentTipo = userProfile.corso_attivo;
       tipoSel.style.display = 'none';
       const lab = TIPO_LABELS[currentTipo]?.label || currentTipo;
@@ -1368,6 +1414,7 @@
 
   function updateCounter() {
     if (viewMode !== 'allievo') return;
+    if (currentTipo === GIOVANI_ABB) return; // v3.115
     const counterEl = document.getElementById('counter');
     counterEl.style.display = '';
     // DEBITO-190: il numero grande resta "quante ne puoi ancora prenotare",
@@ -1614,6 +1661,7 @@
       if (isPrimaTipo(currentTipo)) q = q.in('tipo_corso', PRIMA_FAMILY);
       else if (currentTipo === 'scuole') q = q.in('tipo_corso', SCUOLA_TIPI); // v3.99 — Scuole F1
       else if (currentTipo === 'bambini') q = q.in('tipo_corso', BAMBINI_TAB); // v3.83 — corsi minori + prime lezioni insieme
+      else if (currentTipo === GIOVANI_ABB) q = q.in('tipo_corso', tipiGiovani()); // v3.115
       else q = q.eq('tipo_corso', currentTipo);
     }
 
@@ -1705,7 +1753,7 @@
     if (currentTipo === 'tutti') {
       const [rc, rp] = await Promise.all([
         sb.from('prenotazioni_corso')
-          .select('id, slot_id, user_id, data_lezione, stato, tipo_corso')
+          .select('id, slot_id, user_id, data_lezione, stato, tipo_corso, abbonamento_id')
           .gte('data_lezione', isoD(lun)).lte('data_lezione', isoD(dom)),
         sb.from('prenotazioni_prima_lezione')
           .select('id, slot_id, lead_id, data_lezione, stato, presente, crm_leads(nome, cognome, telefono, funnel_stage)')
@@ -1767,10 +1815,21 @@
       return [...corso.map(p => ({ ...p, profile_data: byUserId[p.user_id] || null })), ...prima];
     }
 
+    // v3.115 — allievo del Corso Giovani: le sue prenotazioni sui corsi ammessi
+    if (currentTipo === GIOVANI_ABB) {
+      const { data, error } = await sb.from('prenotazioni_corso')
+        .select('id, slot_id, user_id, data_lezione, stato, tipo_corso, abbonamento_id')
+        .in('tipo_corso', tipiGiovani()).eq('user_id', userId)
+        .gte('data_lezione', isoD(lun)).lte('data_lezione', isoD(dom));
+      if (error) throw error;
+      giovaniPrenotSett = (data || []).filter(p => p.abbonamento_id);
+      return (data || []).map(p => ({ ...p, profile_data: null }));
+    }
+
     // Altri corsi: prenotazioni_corso (nomi vengono da view profiles, non da profile_data)
     // Pattern due query separate perché profiles è una VIEW e Supabase non fa embed su view senza FK.
     let q = sb.from('prenotazioni_corso')
-      .select('id, slot_id, user_id, data_lezione, stato, tipo_corso')
+      .select('id, slot_id, user_id, data_lezione, stato, tipo_corso, abbonamento_id') // v3.115 abbonamento_id → tag Giovani
       .eq('tipo_corso', currentTipo)
       .gte('data_lezione', isoD(lun))
       .lte('data_lezione', isoD(dom));
@@ -1976,7 +2035,7 @@
      e "non ci sono piu' lezioni" sarebbe falso. */
   function avvisoSettimanaSenzaPrenotabili(grid, lezioni, now) {
     if (viewMode !== 'allievo') return;
-    if (isPrimaTipo(currentTipo) || currentTipo === 'tutti') return;
+    if (isPrimaTipo(currentTipo) || currentTipo === 'tutti' || currentTipo === GIOVANI_ABB) return; // v3.115
     if (weekOffset > 0) return;
     if (grid.querySelector('.btn-prenota:not(.btn-lead):not(.btn-allievo):not(.btn-iscrivi)')) return;
     if (!(creditoCorso() > 0)) return;
@@ -2094,8 +2153,8 @@
     const ist = s.istruttori ? (s.istruttori.nome || '') + (s.istruttori.cognome ? ' '+s.istruttori.cognome[0]+'.' : '') : '—';
 
     // v3.59 — in vista "Tutti" il tipo effettivo è quello del singolo slot (colore/stati/config per-slot)
-    const tipoEff = (currentTipo === 'tutti' || currentTipo === 'bambini' || currentTipo === 'scuole' || isPrimaTipo(currentTipo)) ? s.tipo_corso : currentTipo; // v3.79 — nel tab Prima il tipo è quello del singolo slot · v3.83 — idem nel tab Bambini e Ragazzi
-    if (currentTipo === 'tutti' || currentTipo === 'bambini' || currentTipo === 'scuole' || isPrimaTipo(currentTipo)) cfg = tipiConfig[s.tipo_corso] || cfg;
+    const tipoEff = (currentTipo === 'tutti' || currentTipo === 'bambini' || currentTipo === 'scuole' || currentTipo === GIOVANI_ABB || isPrimaTipo(currentTipo)) ? s.tipo_corso : currentTipo; // v3.79 — nel tab Prima il tipo è quello del singolo slot · v3.83 — idem nel tab Bambini e Ragazzi · v3.115 — idem per l'allievo Giovani
+    if (currentTipo === 'tutti' || currentTipo === 'bambini' || currentTipo === 'scuole' || currentTipo === GIOVANI_ABB || isPrimaTipo(currentTipo)) cfg = tipiConfig[s.tipo_corso] || cfg;
 
     const card = document.createElement('div');
     card.className = 'slot ' + tipoEff + (passato ? ' passato' : '');
@@ -2132,7 +2191,10 @@
 
     // v3.73 — badge fascia: distingue a colpo d'occhio le Prima minori dalle adulti
     let fasciaBadge = '';
-    if (isScuolaTipo(s.tipo_corso)) {
+    if (currentTipo === GIOVANI_ABB) {
+      // v3.115 — l'allievo Giovani vede piu' corsi insieme: nome intero su ogni lezione
+      fasciaBadge = `<div style="font-size:14px;font-weight:700;margin-top:2px">${escAttr(NOME_CORSO_GIOVANI[s.tipo_corso] || s.tipo_corso)}</div>`;
+    } else if (isScuolaTipo(s.tipo_corso)) {
       // v3.99 — Scuole F1: nome completo del corso + scuola (la fascia 'ragazzi' dello slot e' solo tecnica)
       fasciaBadge = `<div style="font-size:14px;font-weight:700;color:var(--scuola);margin-top:2px">${escAttr(labelSlot(s.tipo_corso))}${s.lead_scuola_id && enteScuola[s.lead_scuola_id] ? ' · ' + escAttr(enteScuola[s.lead_scuola_id]) : ''}</div>`;
     } else if (s.fascia === 'bambini') {
@@ -2192,6 +2254,7 @@
           } else {
             nome = `${p.profile_data?.nome || ''} ${p.profile_data?.cognome || ''}`.trim() || '—';
             nomeAttr = kpAttr({ user: p.user_id }); // v3.109 — persona_id da profile_data in idrataNomi
+            if (p.abbonamento_id) stageTag = `<span class="stage-tag">Giovani</span>`; // v3.115 — prenotato con l'abbonamento
           }
           // Bottoni P/A
           let paLabels;
@@ -2223,7 +2286,13 @@
 
           // Bottoni Sposta/Annulla — segreteria su Open/Adv/Intro/Evo (corsi a credito)
           let sposterHtml = '';
-          if (currentTipo !== 'tutti' && isStaffCompleto() && !isPrimaTipo(tipoEff) && !isScuolaTipo(tipoEff) && (p.stato === 'prenotato' || p.stato === 'presente')) { // v3.99 — mai ↔/✗ a credito sulle lezioni scuola
+          if (currentTipo !== 'tutti' && isStaffCompleto() && p.abbonamento_id && (p.stato === 'prenotato' || p.stato === 'presente')) {
+            // v3.115 — riga del Corso Giovani: si disdice e si riprenota (regola della settimana), niente ↔
+            sposterHtml = `
+              <div class="pa-buttons">
+                <button class="pa-btn" data-prenot="${p.id}" data-act="annulla" title="Annulla">✗</button>
+              </div>`;
+          } else if (currentTipo !== 'tutti' && isStaffCompleto() && !isPrimaTipo(tipoEff) && !isScuolaTipo(tipoEff) && (p.stato === 'prenotato' || p.stato === 'presente')) { // v3.99 — mai ↔/✗ a credito sulle lezioni scuola
             sposterHtml = `
               <div class="pa-buttons">
                 <button class="pa-btn" data-prenot="${p.id}" data-act="sposta" data-kind="corso" title="Sposta">↔</button>
@@ -2257,7 +2326,9 @@
     }
 
     let colAction;
-    if (viewMode === 'allievo') {
+    if (viewMode === 'allievo' && currentTipo === GIOVANI_ABB) {
+      colAction = renderGiovaniAction(lez, cfg, miaPrenot, pieno, now); // v3.115
+    } else if (viewMode === 'allievo') {
       colAction = renderAllievoAction(lez, cfg, miaPrenot, pieno, now);
     } else if (isManovra(tipoEff)) {
       // v3.102 — Corso Manovra in Sosta KataClimb: le persone entrano dalla lista (Segreteria del portale), non da qui
@@ -2662,6 +2733,42 @@
       : window.kcAvvisi.daCodice('corso_scaduto_senza_data');
   }
 
+  // v3.115 — azione dell'allievo del Corso Giovani KataClimb (18–24): una lezione a settimana.
+  function renderGiovaniAction(lez, cfg, miaPrenot, pieno, now) {
+    const { dtInizio, passato, dataIso, slot:s } = lez;
+    const nota = (t) => `<div style="font-size:13px;color:var(--muted);margin-top:.3rem;line-height:1.4">${t}</div>`;
+    if (passato) {
+      if (miaPrenot && miaPrenot.stato === 'presente') return `<div><span class="stato-label presente">✓ Presente</span></div>`;
+      if (miaPrenot && miaPrenot.stato === 'assente')  return `<div><span class="stato-label assente">✗ Assente</span></div>`;
+      return `<div></div>`;
+    }
+    const oreAlla = (dtInizio - now) / (60*60*1000);
+    if (miaPrenot && miaPrenot.stato === 'prenotato') {
+      if (oreAlla > (cfg.finestra_disdetta_ore ?? 8)) {
+        return `<div><button class="btn-disdici" data-prenot="${miaPrenot.id}" data-info="${escAttr(infoSlotLabel(lez) + ' · ' + (NOME_CORSO_GIOVANI[s.tipo_corso] || ''))}">Disdici</button></div>`;
+      }
+      return `<div><span class="stato-label chiuso">Disdetta chiusa</span>${nota('Si disdice fino a 8 ore prima: questa resta la lezione della settimana.')}</div>`;
+    }
+    if (giovaniAbb && giovaniAbb.al && dataIso > giovaniAbb.al) {
+      return `<div><span class="stato-label chiuso">Dopo il ${ggmmIso(giovaniAbb.al)}</span>${nota('Il tuo abbonamento vale fino al ' + ggmmIso(giovaniAbb.al) + '.')}`
+        + `<a class="btn-prenota" style="display:inline-block;margin-top:.4rem;text-decoration:none" href="proposta-giovani.html?u=${encodeURIComponent(giovaniAbb.persona_id || '')}">Rinnova</a></div>`;
+    }
+    // una lezione a settimana: la settimana a schermo e' una sola (lun–dom)
+    const usata = giovaniPrenotSett.find(p => ['prenotato', 'presente', 'assente', 'cancellato_tardi'].includes(p.stato));
+    if (usata) {
+      return `<div><span class="stato-label chiuso">Settimana già usata</span>${nota('Hai già la lezione di questa settimana. Per cambiarla, prima disdici quella (fino a 8 ore prima).')}</div>`;
+    }
+    if (pieno) return `<div><span class="stato-label pieno">Pieno</span>${nota('Scegli un\'altra lezione della settimana.')}</div>`;
+    if (oreAlla / 24 > (cfg.apertura_prenotazione_giorni ?? 7)) {
+      const apertura = new Date(dtInizio.getTime() - (cfg.apertura_prenotazione_giorni ?? 7) * 24*60*60*1000);
+      return `<div><span class="stato-label attesa">Apre il ${apertura.getDate()} ${MESI_BR[apertura.getMonth()]}</span></div>`;
+    }
+    if (oreAlla < (cfg.finestra_prenotazione_ore ?? 4)) {
+      return `<div><span class="stato-label chiuso">Prenotazioni chiuse</span>${nota('Si prenota fino a ' + (cfg.finestra_prenotazione_ore ?? 4) + ' ore prima.')}</div>`;
+    }
+    return `<div><button class="btn-prenota" data-slot="${s.id}" data-data="${dataIso}" data-tipo="${s.tipo_corso}" data-info="${escAttr(infoSlotLabel(lez))}">Prenota</button></div>`;
+  }
+
   function renderAllievoAction(lez, cfg, miaPrenot, pieno, now) {
     const { dtInizio, dtFine, passato, dataIso, slot:s } = lez;
 
@@ -2999,6 +3106,13 @@
   function apriPrenota(slotId, dataIso, info, tipo) {
     currentSlotForPrenota = { slotId, dataIso, tipo: tipo || null };
     document.getElementById('prenota-info').textContent = info;
+    if (currentTipo === GIOVANI_ABB) {
+      // v3.115 — prima di prenotare si dice cosa succede
+      const d = new Date(dataIso + 'T00:00:00');
+      const ora = (String(info).match(/(\d{2}:\d{2})/) || [])[1] || '';
+      document.getElementById('prenota-info').textContent =
+        `Prenoti la lezione di questa settimana: ${NOME_CORSO_GIOVANI[tipo] || ''}, ${GIORNI[(d.getDay() + 6) % 7]} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} alle ${ora}. Con il Corso Giovani hai una lezione a settimana.`;
+    }
     document.getElementById('prenota-msg').className = 'modal-msg';
     document.getElementById('prenota-msg').textContent = '';
     document.getElementById('prenota-conferma').disabled = false;
@@ -3013,12 +3127,20 @@
     msgEl.className = 'modal-msg';
     msgEl.textContent = 'Prenotazione in corso…';
 
-    const { data, error } = await sb.rpc('prenota_corso', {
+    const isGiovani = currentTipo === GIOVANI_ABB; // v3.115
+    const { data, error } = await sb.rpc(isGiovani ? 'prenota_con_abbonamento' : 'prenota_corso', {
       p_user_id: userId,
       p_slot_id: currentSlotForPrenota.slotId,
       p_data_lezione: currentSlotForPrenota.dataIso
     });
 
+    if (error && isGiovani) {
+      // v3.115 — i testi della funzione dicono gia' il motivo e cosa fare
+      msgEl.className = 'modal-msg err';
+      msgEl.textContent = error.message.replace(/^.*ERROR:\s*/i, '').replace(/^P0001:\s*/i, '');
+      btn.disabled = false;
+      return;
+    }
     if (error) {
       msgEl.className = 'modal-msg err';
       // kc-avvisi v2 — la traduzione dei RAISE vive nel registro, non piu' qui: una sola
@@ -3044,6 +3166,14 @@
     }
 
     closeModal('modal-prenota');
+    if (isGiovani) {
+      toast('✓ Lezione della settimana prenotata — puoi disdire fino a 8 ore prima');
+      await caricaGiovaniAbb();
+      document.getElementById('sub').textContent = rigaGiovani();
+      notifyParent('prenota');
+      await render();
+      return;
+    }
     // v3.81 — reminder finestra disdetta a ogni conferma (nDisd letto dalla config del corso attivo)
     const nDisd = tipiConfig[currentTipo]?.finestra_disdetta_ore ?? 8;
     toast(`✓ Prenotazione confermata — puoi disdire fino a ${nDisd} ore prima della lezione`);
@@ -3058,6 +3188,18 @@
   function apriDisdici(prenotId, info) {
     currentPrenotForDisdici = { prenotId };
     document.getElementById('disdici-info').textContent = info;
+    if (currentTipo === GIOVANI_ABB) {
+      // v3.115 — sotto abbonamento nessun limite di disdette: in tempo libera la settimana
+      document.getElementById('disdici-title').textContent = 'Disdici la lezione';
+      const ctx = document.getElementById('disdici-context');
+      ctx.innerHTML = 'Disdici almeno 8 ore prima: la settimana si libera e puoi prenotare un\'altra lezione. Più tardi la lezione resta quella della settimana.';
+      document.getElementById('disdici-warning').textContent = '';
+      document.getElementById('disdici-msg').className = 'modal-msg';
+      document.getElementById('disdici-msg').textContent = '';
+      document.getElementById('disdici-conferma').disabled = false;
+      openModal('modal-disdici');
+      return;
+    }
 
     // §v3.51 — Rendering progressivo basato su counter spostamenti residui
     const S = spostRimasti();   // DEBITO-190: dalla view
@@ -3135,6 +3277,17 @@
       return;
     }
 
+    if (currentTipo === GIOVANI_ABB) {
+      // v3.115
+      closeModal('modal-disdici');
+      toast(data && data.in_tempo ? '✓ Lezione disdetta: puoi prenotarne un\'altra questa settimana'
+                                  : '✓ Disdetta registrata: la lezione resta quella della settimana');
+      await caricaGiovaniAbb();
+      document.getElementById('sub').textContent = rigaGiovani();
+      notifyParent('disdici');
+      await render();
+      return;
+    }
     // DEBITO-190: prima si rattoppavano a mano tre campi di userProfile coi
     // valori tornati dalla RPC. Ora si richiede la fotografia: una riga, e non
     // puo' divergere da quello che vede il database.
@@ -3635,6 +3788,21 @@
           .in('user_id', profili.map(p => p.user_id));
         (cc || []).forEach(c => { creditoDi[`${c.user_id}|${c.tipo_corso}`] = c; });
       }
+      // v3.115 — chi ha un abbonamento del Corso Giovani attivo prenota con l'abbonamento
+      const giovaneDi = {};
+      if (profili && profili.length && ['giovani', 'open', 'advance'].includes(currentTipo)) {
+        try {
+          const { data: pdx } = await sb.from('profile_data').select('user_id, persona_id').in('user_id', profili.map(p => p.user_id));
+          const pids = (pdx || []).map(r => r.persona_id).filter(Boolean);
+          if (pids.length) {
+            const oggiIso = isoD(new Date());
+            const { data: ab } = await sb.from('iscrizioni_minori').select('persona_id, data_fine, advance_abilitato')
+              .eq('tipo_abbonamento', 'giovani').eq('status', 'attiva').in('persona_id', pids).gte('data_fine', oggiIso);
+            const perPersona = Object.fromEntries((ab || []).map(a => [a.persona_id, a]));
+            (pdx || []).forEach(r => { if (perPersona[r.persona_id]) giovaneDi[r.user_id] = perPersona[r.persona_id]; });
+          }
+        } catch (e) { console.warn('[giovani picker]', e && e.message); }
+      }
 
       if (!profili || profili.length === 0) {
         resultsEl.innerHTML = `
@@ -3660,11 +3828,14 @@
         const credito = cc
           ? `${cc.prenotabili} prenotabil${cc.prenotabili === 1 ? 'e' : 'i'} · ${cc.fatte} fatte su ${cc.totali}`
           : 'nessuna iscrizione attiva';
-        const warning = !compatibile
+        const gv = giovaneDi[p.user_id];
+        const warning = gv
+          ? `<span style="color:var(--ok);font-size:11px;font-weight:700;margin-left:.4rem">✓ Corso Giovani KataClimb (18–24) · abbonamento fino al ${ggmmIso(gv.data_fine)}${gv.advance_abilitato ? ' · Advance' : ''}</span>`
+          : !compatibile
           ? `<span style="color:var(--warn);font-size:11px;font-weight:700;margin-left:.4rem">⚠ ${corsoLab}</span>`
           : `<span style="color:${cc && cc.prenotabili > 0 ? 'var(--ok)' : 'var(--warn)'};font-size:11px;font-weight:700;margin-left:.4rem">${cc && cc.prenotabili > 0 ? '✓' : '⚠'} ${corsoLab} · ${credito}</span>`;
         return `
-          <div class="allievo-row" data-uid="${p.user_id}" data-nome="${escAttr((p.nome||'')+' '+(p.cognome||''))}"
+          <div class="allievo-row" data-uid="${p.user_id}" data-giovani="${gv ? '1' : ''}" data-nome="${escAttr((p.nome||'')+' '+(p.cognome||''))}"
                style="padding:.6rem .9rem;border-bottom:1px solid var(--border);cursor:pointer;font-size:14.5px">
             <strong>${p.nome||''} ${p.cognome||''}</strong>
             ${warning}
@@ -3676,7 +3847,7 @@
       resultsEl.querySelectorAll('.allievo-row').forEach(row => {
         row.onmouseenter = () => { if (row.dataset.uid !== (allievoScelto&&allievoScelto.uid)) row.style.background = 'rgba(167,126,17,.08)'; };
         row.onmouseleave = () => { if (row.dataset.uid !== (allievoScelto&&allievoScelto.uid)) row.style.background = ''; };
-        row.onclick = () => scegliAllievo(row.dataset.uid, row.dataset.nome);
+        row.onclick = () => scegliAllievo(row.dataset.uid, row.dataset.nome, row.dataset.giovani === '1');
       });
 
     } catch (err) {
@@ -3684,8 +3855,8 @@
     }
   }
 
-  function scegliAllievo(userId, nome) {
-    allievoScelto = { uid: userId, nome };
+  function scegliAllievo(userId, nome, giovani) {
+    allievoScelto = { uid: userId, nome, giovani: !!giovani }; // v3.115
     // chiude la tastiera su iPhone così la modale e il bottone Prenota tornano visibili
     const inp = document.getElementById('allievo-search');
     if (inp) inp.blur();
@@ -3727,7 +3898,14 @@
       return;
     }
 
-    const { data, error } = await sb.rpc('prenota_corso_admin', {
+    // v3.115 — allievo del Corso Giovani: lezione della settimana con l'abbonamento (niente pacchetto, niente omaggio)
+    const { data, error } = allievoScelto.giovani
+      ? await sb.rpc('prenota_con_abbonamento', {
+          p_user_id: userId,
+          p_slot_id: currentSlotForAllievo.slotId,
+          p_data_lezione: currentSlotForAllievo.dataIso
+        })
+      : await sb.rpc('prenota_corso_admin', {
       p_user_id: userId,
       p_slot_id: currentSlotForAllievo.slotId,
       p_data_lezione: currentSlotForAllievo.dataIso,
