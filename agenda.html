@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.118 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.117). Riga Staff: tolto il bottone CAMBIA IN D'APPOGGIO e tolto l'avviso arancio sui titolari. Resta CAMBIA IN TITOLARE, solo per la segreteria e solo su un istruttore che risulta d'appoggio. Chi non può venire: ASSENTE o SOSTITUISCI. Nessuna modifica a DB. CUMULA v3.117. -->
 <!-- KC-BUILD: agenda v3.117 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). (1) Riga Staff: l'avviso arancio sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (slot_copertura.istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, non "assistente" (come v_copertura_lezioni). Nessuna modifica a DB. CUMULA v3.116. -->
 <!-- KC-BUILD: agenda v3.116 · 2026-11-19 · ORARI CHIUSI NON IN AGENDA (segnalazione Roberta 19 nov: "Evo e Open negli stessi orari di mercoledì e venerdì"). Con lo scambio temporaneo Open / Evo (Master v4.42) gli orari di prima sono chiusi per data in slot_chiusure e i nuovi sono accanto: la griglia della settimana non leggeva slot_chiusure e li mostrava tutti e due. Ora render() legge le chiusure della settimana e salta gli orari di Open, Advance, Intro Corda ed Evo Corda chiusi in quella data e SENZA prenotati (chi è prenotato resta sempre visibile). Vale per tutte le viste che passano da render(): corso singolo, Tutti i corsi, allievo. Prime Lezioni, minori, monitor, scuole e feste invariati. Nessuna scrittura, nessuna modifica al DB. Nient'altro toccato. -->
 <!-- KC-BUILD: agenda v3.115 · 2026-11-19 · I GIOVANI PRENOTANO LA LEZIONE DELLA SETTIMANA (Marco 19 nov, sql/giovani/01). Vista allievo anche senza corso_attivo quando c'è un abbonamento Giovani attivo (RPC mio_abbonamento_giovani): in testa abbonamento fino al GG/MM e la lezione di questa settimana; slot del Corso Giovani KataClimb (18–24) + Corso Open KataClimb (Corso Advance KataClimb al posto dell'Open se abilitato) col nome intero; Prenota → conferma "Prenoti la lezione di questa settimana…" → prenota_con_abbonamento; disdetta senza limite (8 ore), oltre la scadenza bottone Rinnova (proposta-giovani.html). Vista staff: prenotati con tag Giovani (abbonamento_id), niente ↔ sulle loro righe, via l'elenco fisso Abbonato per i Giovani (resta Senior, Genitori, Fly, Lab); selettore + Prenota allievo: per un Giovane usa prenota_con_abbonamento. CUMULA v3.114 -->
@@ -2546,13 +2547,13 @@
         if (r.stato !== 'assente') az += b('sostituisci', 'SOSTITUISCI');
         if (r.stato !== 'previsto') az += b('annulla', 'ANNULLA');
         if (staffConTitolare(s, dataIso) && staffIstrInLez(r, s, dataIso) && (r.stato === 'previsto' || r.stato === 'presente')) // v3.112
-          az += staffRuoloLez(r, s, dataIso) === 'titolare' ? b('appoggio', 'CAMBIA IN D’APPOGGIO') : b('titolare', 'CAMBIA IN TITOLARE');
+          az += staffRuoloLez(r, s, dataIso) === 'titolare' ? '' : b('titolare', 'CAMBIA IN TITOLARE'); // v3.118 via CAMBIA IN D'APPOGGIO: l'istruttore è titolare di default
       }
       return `<div class="s-voce"><span class="s-chip ${r.stato}">${lab}</span>${az}</div>`;
     }).join('');
     const vuoto = vis.length ? '' : '<span class="s-vuoto">Nessun istruttore segnato</span>';
     const nTit = vis.filter(r => (r.stato === 'previsto' || r.stato === 'presente') && staffRuoloLez(r, s, dataIso) === 'titolare').length;
-    const dueTit = staffConTitolare(s, dataIso) && nTit > staffTitPrevisti(s, dataIso); // v3.112 · v3.117 solo se i titolari sono più dei previsti
+    const dueTit = false; // v3.118 via l'avviso sui titolari: nessuno deve dire chi è d'appoggio
     const aggiungi = seg ? `<button class="s-btn s-agg" data-staff-az="aggiungi" data-slot="${s.id}" data-data="${dataIso}">+ AGGIUNGI STAFF</button>` : '';
     return `<div class="staffrow"><span class="t-tit">Staff</span>${voci}${vuoto}${aggiungi}${dueTit ? '<span class="s-duetit">Titolari ' + nTit + ', previsti ' + staffTitPrevisti(s, dataIso) + ': dite chi è d’appoggio, altrimenti lo decide il portale.</span>' : ''}</div>`;
   }

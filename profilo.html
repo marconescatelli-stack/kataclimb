@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: profilo v1.9 · 2026-11-20 · DOPPIA SCADENZA: LEZIONI E SALA CON MONITOR (Marco 19-20 nov, DB sala_corso_blocco_e_date_2026_11_20, RPC mie_scadenze_corso). Chi è nel Corso Advance, Intro Corda o Evo Corda KataClimb vede due tessere: "Lezioni del corso" e "Sala con Monitor", ognuna con i giorni che restano e la data. Sala scaduta: lo dice e dice cosa fare. Il Corso Open KataClimb resta com'era. CUMULA v1.8 -->
 <!-- KC-BUILD: profilo v1.8 · 2026-11-07 · ISCRIZIONE VALIDA FINO ALLA SCADENZA (decisione Marco 7 nov, trigger DB tesseramento_dicembre_anno_dopo): la tessera ASD non cerca più la riga dell'anno in corso. Tesserato = stato attivo e data_scadenza >= oggi (data locale); se ce ne sono più di una vale quella che scade più tardi. Testi: grande "ATTIVA ✓", sotto "Iscrizione attiva fino al 31/12/2027" con la scadenza vera dal DB. Senza iscrizione valida resta RINNOVA con l'ultimo anno. CUMULA v1.7 -->
 <!-- KC-BUILD: profilo v1.7 · 2026-09-22 · DEBITO-190 FASE C: le lezioni del pacchetto arrivano da get_contatori e non piu' dalle colonne salvate in profile_data. Via la mappa _COLCRED corso→colonna: la view sa gia' di quale corso si parla. La tessera Lezioni tiene il numero grande e sotto dice da dove viene, '5 su 8 · PRENOTA'. La validita' del pacchetto resta dove sta (scadenza_consumo_open non e' un contatore). NON toccati: identita', gradi, kata, ASD, il resto dei testi. CUMULA v1.6  2026-09-01 · LISTINI RAGGIUNGIBILI: tessera 💶 Listini Accademia (/listini.html) in fondo alle tessere allievo, formato riga come Cordata — le pagine listino 2026/27 erano orfane. CUMULA v1.5 · 2026-07-20 · ONDA 4 AUDIT: dati operativi a min 13px (numeri Kata .fn erano a 8px; anche .t .cmd, .t .big small, .chi .da, .chi .grado, .fascia .fnome, .tappa, .t-sentiero .leg). Solo font-size (+ line-height/flex-wrap dove serve per non rompere il layout); nessuna modifica a logica, query o testi. CUMULA v1.4 · 2026-07-05 · BARRA: voce 👥 Comunità (portale.html?nav=comunita) tra Eventi e Profilo. CUMULA v1.3 · 2026-06-17 · Impostazioni: da tessera a icona ⚙ FISSA in alto a destra (speculare alla freccia indietro, z-index sopra tutto) -> impostazioni-profilo.html. CUMULA v1.2 · 2026-06-17 · + tessera ⚙ Impostazioni (link impostazioni-profilo.html): cambio password + privacy raggiungibile dal profilo utente vero (la barra Profilo atterra qui, non sul vecchio header portale). CUMULA v1.1 · 2026-06-13 notte · Tessera ASD e Scudetti cablate su colonne VERIFICATE (query Marco): tesseramenti(persona_id, anno, data_scadenza, stato) -> anno corrente + vale-fino-al; scudetti_persona(persona_id, evento_nome, conquistato_at) -> conteggio reale, nome evento nel tooltip. Chiave unica persona_id, niente piu tentativi alla cieca. CUMULA v1.0 · INTEGRAZIONE del prototipo approvato (profilo-proto v0.2).
      Pagina SEPARATA (pattern oggi/agenda/monitor): auth condivisa, zero righe a rischio sul portale.
@@ -233,6 +234,7 @@ let sb,uid,profilo={},pdata={};
    contando le righe, e non piu' dalle colonne salvate in profile_data.
    Via anche la mappa corso→colonna: la view sa di quale corso si parla. */
 let contatori={};
+let scadCorso=[]; // v1.9 doppia scadenza: lezioni e Sala con Monitor del corso in corso
 const contatore=()=>contatori[pdata.corso_attivo]||null;
 const creditoCorso=()=>contatore()?.prenotabili ?? null;
 
@@ -257,6 +259,12 @@ async function init(){
     const{data:cc}=await sb.rpc('get_contatori',{p_user_id:uid});
     contatori={}; (cc||[]).forEach(c=>{contatori[c.tipo_corso]=c});
   }catch(e){console.warn('[profilo] get_contatori:',e.message);contatori={}}
+  /* v1.9 doppia scadenza: le due date del corso in corso (lezioni e Sala con Monitor) */
+  try{
+    const{data:sd,error:se}=await sb.rpc('mie_scadenze_corso');
+    if(se)throw se;
+    scadCorso=Array.isArray(sd)?sd:[];
+  }catch(e){console.warn('[profilo] mie_scadenze_corso:',e&&e.message);scadCorso=[]}
 
   document.getElementById('app').style.display='block';
   render();
@@ -286,6 +294,20 @@ function render(){
       <div class="big">${gg}<small> giorni</small></div>
       <span class="cmd mono">FINO AL ${sc.getDate()} ${MESI[sc.getMonth()].slice(0,3).toUpperCase()}</span>
     </div>`;
+  }
+
+  /* v1.9 doppia scadenza: due tessere per chi ha la Sala con Monitor inclusa nel corso */
+  const sc0=scadCorso.find(x=>x.tipo_corso===pdata.corso_attivo)||scadCorso[0];
+  if(sc0){
+    const oggi0=new Date(); oggi0.setHours(0,0,0,0);
+    const tess=(et,iso,vuoto,scadTxt)=>{
+      if(!iso)return`<div class="t t-val due"><span class="et mono">${et}</span><div class="big">—</div><span class="cmd mono">${vuoto}</span></div>`;
+      const d=dLoc(iso), gg=Math.round((d-oggi0)/86400000), fino=d.getDate()+' '+MESI[d.getMonth()].slice(0,3).toUpperCase();
+      if(gg<0)return`<div class="t t-val due"><span class="et mono">${et}</span><div class="big" style="color:var(--rosso);font-size:1.05rem">${scadTxt}</div><span class="cmd mono" style="color:var(--rosso)">DAL ${fino} · PARLA CON LA SEGRETERIA</span></div>`;
+      return`<div class="t t-val due"><span class="et mono">${et}</span><div class="big">${gg}<small> ${gg===1?'giorno':'giorni'}</small></div><span class="cmd mono">FINO AL ${fino}</span></div>`;
+    };
+    valHtml+=tess('Lezioni del corso',sc0.lezioni_fino_al,'DALLA TUA PRIMA LEZIONE','scadute')
+            +tess('Sala con Monitor',sc0.sala_fino_al,'DALLA TUA PRIMA LEZIONE','scaduta');
   }
 
   c.innerHTML=`
