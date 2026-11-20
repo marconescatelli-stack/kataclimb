@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.117 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). (1) Riga Staff: l'avviso arancio sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (slot_copertura.istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, non "assistente" (come v_copertura_lezioni). Nessuna modifica a DB. CUMULA v3.116. -->
 <!-- KC-BUILD: agenda v3.116 · 2026-11-19 · ORARI CHIUSI NON IN AGENDA (segnalazione Roberta 19 nov: "Evo e Open negli stessi orari di mercoledì e venerdì"). Con lo scambio temporaneo Open / Evo (Master v4.42) gli orari di prima sono chiusi per data in slot_chiusure e i nuovi sono accanto: la griglia della settimana non leggeva slot_chiusure e li mostrava tutti e due. Ora render() legge le chiusure della settimana e salta gli orari di Open, Advance, Intro Corda ed Evo Corda chiusi in quella data e SENZA prenotati (chi è prenotato resta sempre visibile). Vale per tutte le viste che passano da render(): corso singolo, Tutti i corsi, allievo. Prime Lezioni, minori, monitor, scuole e feste invariati. Nessuna scrittura, nessuna modifica al DB. Nient'altro toccato. -->
 <!-- KC-BUILD: agenda v3.115 · 2026-11-19 · I GIOVANI PRENOTANO LA LEZIONE DELLA SETTIMANA (Marco 19 nov, sql/giovani/01). Vista allievo anche senza corso_attivo quando c'è un abbonamento Giovani attivo (RPC mio_abbonamento_giovani): in testa abbonamento fino al GG/MM e la lezione di questa settimana; slot del Corso Giovani KataClimb (18–24) + Corso Open KataClimb (Corso Advance KataClimb al posto dell'Open se abilitato) col nome intero; Prenota → conferma "Prenoti la lezione di questa settimana…" → prenota_con_abbonamento; disdetta senza limite (8 ore), oltre la scadenza bottone Rinnova (proposta-giovani.html). Vista staff: prenotati con tag Giovani (abbonamento_id), niente ↔ sulle loro righe, via l'elenco fisso Abbonato per i Giovani (resta Senior, Genitori, Fly, Lab); selettore + Prenota allievo: per un Giovane usa prenota_con_abbonamento. CUMULA v3.114 -->
 <!-- KC-BUILD: agenda v3.114 · 2026-11-18 · Proposta Open: carica /kc-proposta-open.js?v=1.2 (la riga per l'istruttore elenca le tre scelte; terza scelta 1 volta a settimana 215 € tutto insieme, stripe-worker v3.100). Nient'altro. CUMULA v3.113. -->
@@ -2465,6 +2466,7 @@
   let staffSlot = {};      // slot_id|data -> righe impegni_staff (tutti gli stati)
   let staffNomi = null;    // user_id -> {nome, staff_role}
   let staffPiano = null;   // righe slot_piano_staff attive
+  let staffCop = null;     // v3.117 slot_id -> istruttori_min (slot_copertura)
   let staffErr = null;
   let staffCtx = null;     // {az, slotId, dataIso, impId, userId}
   let staffIndisp = [];    // v3.105 v_staff_indisponibilita della settimana
@@ -2479,7 +2481,11 @@
   const STAFF_CORSI_TITOLARE = ['bambini', 'evo_ragazzi'];
   const staffConTitolare = (s, dataIso) => !!s && STAFF_CORSI_TITOLARE.includes(s.tipo_corso) && String(dataIso || '') >= '2026-11-01';
   const staffEIstruttore = (u) => /^staff_istruttore_/.test((staffNomi && staffNomi[u] && staffNomi[u].staff_role) || '');
-  const staffIstrInLez = (r, s, dataIso) => r.compenso_tipo !== 'ora' || (staffConTitolare(s, dataIso) && staffEIstruttore(r.user_id));
+  /* v3.117 nelle Prime Lezioni (anche Lezione Privata Bambini) chi è segnato è l'istruttore anche se pagato a ore: come v_copertura_lezioni */
+  const staffPrimaLez = (s) => !!s && /^prima_lezione/.test(s.tipo_corso || '');
+  const staffIstrInLez = (r, s, dataIso) => r.compenso_tipo !== 'ora' || staffPrimaLez(s) || (staffConTitolare(s, dataIso) && staffEIstruttore(r.user_id));
+  /* v3.117 quanti titolari prevede la lezione: dal 19/11/2026 quanti istruttori chiede la copertura (lunedì e giovedì due), prima uno */
+  const staffTitPrevisti = (s, dataIso) => String(dataIso || '') >= '2026-11-19' ? Math.max(1, Number((staffCop && staffCop[s.id]) || 1)) : 1;
   function staffRuoloLez(r, s, dataIso) {
     if (!staffIstrInLez(r, s, dataIso)) return 'assistente';
     if (!staffConTitolare(s, dataIso)) return 'istruttore';
@@ -2494,7 +2500,8 @@
     const slotIds = [...new Set(conStaff.map(l => l.slot.id))];
     const date = conStaff.map(l => l.dataIso).sort();
     staffOre = {}; conStaff.forEach(l => { staffOre[l.slot.id] = { ini: l.slot.ora_inizio, fin: l.slot.ora_fine }; });
-    const [rImp, rNomi, rPiano, rInd] = await Promise.all([
+    const [rCop, rImp, rNomi, rPiano, rInd] = await Promise.all([
+      staffCop ? { data: null } : sb.from('slot_copertura').select('slot_id, istruttori_min'), // v3.117
       sb.from('impegni_staff').select('id, slot_id, data, user_id, ruolo, stato, compenso_tipo, da_piano, note, presenza_inizio')
         .eq('tipo', 'lezione').in('slot_id', slotIds).gte('data', date[0]).lte('data', date[date.length - 1]),
       staffNomi ? { data: null } : sb.from('profiles').select('user_id, nome, cognome, staff_role').not('staff_role', 'is', null),
@@ -2502,6 +2509,8 @@
       sb.from('v_staff_indisponibilita').select('user_id, data, ora_inizio, ora_fine, motivo').gte('data', date[0]).lte('data', date[date.length - 1]) // v3.105
     ]);
     if (rInd.error) console.warn('[staff] indisponibilita:', rInd.error.message);
+    if (rCop && rCop.error) console.warn('[staff] slot_copertura:', rCop.error.message);
+    if (rCop && rCop.data) { staffCop = {}; rCop.data.forEach(c => { staffCop[c.slot_id] = c.istruttori_min; }); }
     staffIndisp = rInd.data || [];
     if (rImp.error) { staffErr = rImp.error; console.warn('[staff] impegni_staff:', rImp.error.message); return; }
     if (rNomi.data) { staffNomi = {}; rNomi.data.forEach(p => { staffNomi[p.user_id] = { nome: ((p.nome || '') + ' ' + (p.cognome || '')).trim() || 'Staff', staff_role: p.staff_role }; }); }
@@ -2542,9 +2551,10 @@
       return `<div class="s-voce"><span class="s-chip ${r.stato}">${lab}</span>${az}</div>`;
     }).join('');
     const vuoto = vis.length ? '' : '<span class="s-vuoto">Nessun istruttore segnato</span>';
-    const dueTit = staffConTitolare(s, dataIso) && vis.filter(r => (r.stato === 'previsto' || r.stato === 'presente') && staffRuoloLez(r, s, dataIso) === 'titolare').length > 1; // v3.112
+    const nTit = vis.filter(r => (r.stato === 'previsto' || r.stato === 'presente') && staffRuoloLez(r, s, dataIso) === 'titolare').length;
+    const dueTit = staffConTitolare(s, dataIso) && nTit > staffTitPrevisti(s, dataIso); // v3.112 · v3.117 solo se i titolari sono più dei previsti
     const aggiungi = seg ? `<button class="s-btn s-agg" data-staff-az="aggiungi" data-slot="${s.id}" data-data="${dataIso}">+ AGGIUNGI STAFF</button>` : '';
-    return `<div class="staffrow"><span class="t-tit">Staff</span>${voci}${vuoto}${aggiungi}${dueTit ? '<span class="s-duetit">Due titolari: dite chi è d’appoggio, altrimenti lo decide il portale.</span>' : ''}</div>`;
+    return `<div class="staffrow"><span class="t-tit">Staff</span>${voci}${vuoto}${aggiungi}${dueTit ? '<span class="s-duetit">Titolari ' + nTit + ', previsti ' + staffTitPrevisti(s, dataIso) + ': dite chi è d’appoggio, altrimenti lo decide il portale.</span>' : ''}</div>`;
   }
 
   /* lista per Sostituisci / Aggiungi: per primo il sostituto automatico della lezione, poi tutto lo staff per nome */
