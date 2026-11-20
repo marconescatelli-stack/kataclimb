@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.177 · 2026-11-20 · DOPPIA SCADENZA: LEZIONI E SALA CON MONITOR (Marco 19-20 nov, DB sala_corso_doppia_scadenza_2026_11_20, Master v4.50). Fascicolo → 🎓 Percorso corsi: per Corso Advance, Intro Corda ed Evo Corda KataClimb le righe sono due, "Lezioni: scadono il …" e "Sala con Monitor inclusa: fino al …" (rossa se scaduta; "parte dalla prima presenza" se l'allievo non è ancora venuto). loadLeadIscrizioni legge sala_coperture per iscrizione_id (sola lettura). Il Corso Open KataClimb resta com'era. CUMULA v3.176 -->
 <!-- KC-BUILD: portale v3.176 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.175). Segreteria → 🗓 Turni: tolto "Cambia in d'appoggio" e tolto l'avviso sui titolari. Resta "Cambia in titolare" solo su un istruttore che risulta d'appoggio. Chi non può venire: Segna assente o Sostituisci. Nessuna modifica a DB. CUMULA v3.175. -->
 <!-- KC-BUILD: portale v3.175 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). Segreteria → 🗓 Turni. (1) L'avviso sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, e conta tra gli istruttori (prima "assistente" e "Istruttori 0/1"), anche in "Presenze da confermare"; come v_copertura_lezioni. Nessuna modifica a DB. CUMULA v3.174. -->
 <!-- KC-BUILD: portale v3.174 · 2026-11-19 · CORSO GIOVANI KATACLIMB (18–24): PAGA, ENTRA, PRENOTA (Marco 19 nov, sql/giovani/01-02, stripe-worker v3.101). Fascicolo → 🎫 Abbonamenti, sull'abbonamento Giovani: interruttore "Può prenotare il Corso Advance KataClimb" (RPC imposta_advance_giovani, conferma prima, riga "acceso da NOME il GG/MM"); "Copia link di pagamento" (proposta-giovani.html?u=<persona>); senza email: "Manca l'email: scrivila qui per farlo entrare in agenda" con campo, controllo doppioni sull'email, poi Worker POST /giovani-account (account + mail di accesso). Registra abbonamento Giovani: niente giorno fisso, e dopo la registrazione l'account nasce da solo se manca. CUMULA v3.173 -->
@@ -6301,6 +6302,14 @@ async function loadLeadIscrizioni(lead){
     .select('id,tipo_corso,status,lezioni_completate,lezioni_totali,stato_pagamento,data_iscrizione,data_inizio_validita,data_fine_validita,inizio_da_prima_presenza') // v3.149 id: + PAGA DOPO collega l'iscrizione attiva
     .eq('user_id',uid);
   if(error){console.warn('[loadLeadIscrizioni]',error.message);return}
+  // v3.177 doppia scadenza: la sala inclusa nel corso ha la sua data (sala_coperture, fonte corso)
+  const idsSala=(data||[]).filter(r=>['advance','intro_corda','evo_corda'].includes(r.tipo_corso)).map(r=>r.id);
+  if(idsSala.length){
+    try{
+      const{data:sc}=await sb.from('sala_coperture').select('iscrizione_id,dal,al').in('iscrizione_id',idsSala);
+      (sc||[]).forEach(s=>{const r=data.find(x=>x.id===s.iscrizione_id);if(r)r._sala=s;});
+    }catch(e){console.warn('[sala corso]',e&&e.message);}
+  }
   if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
   currentLeadIscrizioni=data||[];
   renderLeadDetail();
@@ -6572,12 +6581,23 @@ function renderLeadDetail(){
     const scadenzaCorso=r=>{
       if(r.status!=='attiva'&&r.status!=='sospesa')return'';
       const riga=(t,c,b)=>`<div style="flex-basis:100%;text-align:right;font-size:13px;color:${c};font-weight:${b?700:400}">${t}</div>`;
+      // v3.177 doppia scadenza: nei corsi con sala inclusa le righe sono due, lezioni e Sala con Monitor
+      const conSala=['advance','intro_corda','evo_corda'].includes(r.tipo_corso);
+      const salaRiga=()=>{
+        if(!conSala)return'';
+        const s=r._sala;
+        if(!s||!s.al)return riga('Sala con Monitor inclusa: parte dalla prima presenza','#4B5563');
+        const f=String(s.al).slice(0,10), gs=Math.round((Date.parse(f)-Date.parse(abbIsoOggi()))/864e5), ts='Sala con Monitor inclusa: fino al '+abbGMA(f)+' · ';
+        if(gs<0)return riga(ts+'scaduta da '+(-gs)+(gs===-1?' giorno':' giorni'),'#B91C1C',true);
+        if(gs===0)return riga(ts+'scade oggi','#B45309');
+        return riga(ts+'tra '+gs+(gs===1?' giorno':' giorni'),gs<=7?'#B45309':'#4B5563');
+      };
       const fine=r.data_fine_validita?String(r.data_fine_validita).slice(0,10):null;
-      if(!fine)return riga(r.inizio_da_prima_presenza?'la scadenza parte dalla prima presenza':'senza scadenza','#4B5563');
-      const g=Math.round((Date.parse(fine)-Date.parse(abbIsoOggi()))/864e5), t='scade il '+abbGMA(fine)+' · ';
-      if(g<0)return riga(t+'scaduto da '+(-g)+(g===-1?' giorno':' giorni'),'#B91C1C',true);
-      if(g===0)return riga(t+'scade oggi','#B45309');
-      return riga(t+'tra '+g+(g===1?' giorno':' giorni'),g<=7?'#B45309':'#4B5563');
+      if(!fine)return riga((conSala?'Lezioni: ':'')+(r.inizio_da_prima_presenza?'la scadenza parte dalla prima presenza':'senza scadenza'),'#4B5563')+salaRiga();
+      const g=Math.round((Date.parse(fine)-Date.parse(abbIsoOggi()))/864e5), t=(conSala?'Lezioni: scadono il ':'scade il ')+abbGMA(fine)+' · ';
+      if(g<0)return riga(t+(conSala?'scadute da ':'scaduto da ')+(-g)+(g===-1?' giorno':' giorni'),'#B91C1C',true)+salaRiga();
+      if(g===0)return riga(t+(conSala?'scadono oggi':'scade oggi'),'#B45309')+salaRiga();
+      return riga(t+'tra '+g+(g===1?' giorno':' giorni'),g<=7?'#B45309':'#4B5563')+salaRiga();
     };
     const items=rows.map(r=>{
       const lbl=LBL[r.tipo_corso]||r.tipo_corso;
