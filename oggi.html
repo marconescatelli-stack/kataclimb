@@ -2,6 +2,9 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.69 · 2026-11-20 · SALA DEL CORSO SCADUTA: IL MONITOR LO VEDE E NON LA METTE NEL TURNO (Marco 19-20 nov, DB sala_corso_blocco_e_date_2026_11_20). Chi ha la Sala con Monitor inclusa nel corso scaduta, e nessun'altra copertura, compare con "sala scaduta" nella griglia e in "Chi segui stasera?" non si può spuntare: sotto il nome c'è scritto da quando e cosa serve. Il blocco vero lo fa il database (monitor_scegli_seguiti, monitor_aggiungi_seguiti), che risponde con la spiegazione. Elenco da sala_corso_scadute(); se la RPC non risponde non si mostra nulla. CUMULA v2.68 -->
+<!-- KC-BUILD: oggi v2.68 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v2.67). In "I tuoi impegni · oggi" tolta la coppia di bottoni TITOLARE / D'APPOGGIO: il ruolo resta scritto nella riga della lezione. Nessuna modifica a DB. CUMULA v2.67. -->
+<!-- KC-BUILD: oggi v2.67 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). In "I tuoi impegni · oggi": (1) il testo delle conferme TITOLARE / D'APPOGGIO non dice più "il titolare è uno solo: mettetevi d'accordo" (lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), i titolari sono due); (2) nelle Prime Lezioni e nella Lezione Privata Bambini l'istruttore pagato a ore non è più scritto "assistente". Nessuna modifica a DB. CUMULA v2.66. -->
 <!-- KC-BUILD: oggi v2.66 · 2026-11-18 · Proposta Open: carica /kc-proposta-open.js?v=1.2 (la riga per l'istruttore elenca le tre scelte; terza scelta 1 volta a settimana 215 € tutto insieme, stripe-worker v3.100). Nient'altro. CUMULA v2.65. -->
 <!-- KC-BUILD: oggi v2.65 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Scheda allievo: per chi ha fatto la Prima Lezione Adulti negli ultimi 14 giorni e non ha un corso, sotto lo stato del percorso compare il bottone "PROPOSTA OPEN" con la riga che guida l'istruttore. Toccandolo si apre a tutto schermo il codice QR della sua proposta (proposta-open.html?u=<persona_id>) da fargli inquadrare. Sotto il codice, "MANDA SU WHATSAPP" con lo stesso link gia' scritto per il numero dell'allievo. Carica /kc-proposta-open.js?v=1.1 (nuovo, lo stesso dell'Agenda, dove il bottone compare accanto a P/A appena si segna presente). Solo letture; nessuna modifica a DB. CUMULA v2.64. -->
 <!-- KC-BUILD: oggi v2.64 · 2026-11-17 · DA COPRIRE ALLINEATA: carica kc-da-coprire.js?v=1.6 (nei corsi Bambini, Ragazzi ed Evo Ragazzi, dal 1/11, "un istruttore d'appoggio" al posto di "un istruttore al posto dell'assistente"). Nient'altro cambia. Nessuna modifica a DB. CUMULA v2.63. -->
@@ -3201,6 +3204,15 @@ function apriCercaNome(){
 /* ── v2.25 griglia: sala_papabili_oggi() gia' ordinata e senza veterani ── */
 const FASCE_SALA=[['prenotato','Prenotati oggi'],['iscritto','Allievi con sala attiva'],['abituale','Visti di recente in sala']];
 let papabili=null, _papTok=0;
+/* v2.69 sala del corso scaduta: persona_id -> {sala_fino_al, messaggio}. Vuoto se la RPC non risponde. */
+let salaScadute={};
+async function caricaSalaScadute(){
+  try{
+    const{data,error}=await sb.rpc('sala_corso_scadute');
+    if(error)throw error;
+    salaScadute={}; (data||[]).forEach(x=>{salaScadute[x.persona_id]=x;});
+  }catch(e){ console.warn('[sala scadute]',e?.message||e); salaScadute={}; }
+}
 async function loadPapabili(){
   if(!document.getElementById('sala-griglia'))return;
   const tok=++_papTok;
@@ -3210,6 +3222,8 @@ async function loadPapabili(){
     if(tok!==_papTok)return;
     papabili=data||[];
     papabili.forEach(x=>{_salaPersone[x.persona_id]={nome:x.nome,cognome:x.cognome,foto_path:x.foto_path};});
+    await caricaSalaScadute(); // v2.69
+    if(tok!==_papTok)return;
   }catch(e){ if(tok!==_papTok)return; console.error('[sala papabili]',e); papabili=null; }
   disegnaGriglia();
 }
@@ -3229,6 +3243,7 @@ function disegnaGriglia(){
         <span class="sg-nome">${nome}</span>${domandaPill(x.persona_id)}${richiamoPill(x.persona_id)}
         ${m==='prenotato'&&x.ora?`<span class="sg-ora">alle ${esc(oraBreve(x.ora))}</span>`:''}
         ${x.segnato_oggi?`<span class="sg-alle">segnato alle ${hhmm(x.segnato_alle)}</span>`:inDaAnnotare(x.persona_id)?'<span class="sg-da">da annotare</span>':''}
+        ${salaScadute[x.persona_id]?'<span class="sg-da" style="color:#FF6B60">sala scaduta</span>':''}
       </button><div class="sg-ing" data-ing="${esc(x.persona_id)}"></div></div>`;}).join('')}</div>`;
   }).join('');
   applicaFoto(el);
@@ -3946,9 +3961,14 @@ function briefMostra(){
   document.getElementById('brief-back').hidden=brief.da==='turno'; // passo obbligato: nessun salta
   if(brief.modo==='scelta'){
     const L=[...(brief.papabili||[]),...brief.extra.filter(x=>!(brief.papabili||[]).some(p=>p.persona_id===x.persona_id))];
-    const righe=L.map(x=>`<label class="bs-riga"><input type="checkbox"${brief.sel.has(x.persona_id)?' checked':''} onchange="briefSpunta('${esc(x.persona_id)}',this.checked)">
+    const righe=L.map(x=>{
+      const sx=salaScadute[x.persona_id]; // v2.69 sala del corso scaduta: non si spunta, e si dice perche'
+      if(sx)return `<label class="bs-riga" style="opacity:1"><input type="checkbox" disabled>
         ${avatarHtml(x.nome,x.cognome,x.foto_path)}<span class="txt"><b>${esc(((x.nome||'')+' '+(x.cognome||'')).trim()||'—')}</b>
-        <span>${esc(x.motivo?(MOTIVO_SALA[x.motivo]||x.motivo):'aggiunto da te')}${x.ora?' · '+esc(String(x.ora).slice(0,5)):''}</span></span></label>`).join('');
+        <span style="color:#FF6B60;font-weight:700">Sala scaduta il ${esc(ggmm(sx.sala_fino_al))}. Le lezioni del corso si fanno; per la Sala con Monitor serve la seconda rata o il mese di sala, in segreteria.</span></span></label>`;
+      return `<label class="bs-riga"><input type="checkbox"${brief.sel.has(x.persona_id)?' checked':''} onchange="briefSpunta('${esc(x.persona_id)}',this.checked)">
+        ${avatarHtml(x.nome,x.cognome,x.foto_path)}<span class="txt"><b>${esc(((x.nome||'')+' '+(x.cognome||'')).trim()||'—')}</b>
+        <span>${esc(x.motivo?(MOTIVO_SALA[x.motivo]||x.motivo):'aggiunto da te')}${x.ora?' · '+esc(String(x.ora).slice(0,5)):''}</span></span></label>`;}).join('');
     const n=brief.sel.size;
     c.innerHTML=`<h2 class="tr-tit">Chi segui stasera?</h2>
       <p class="aiuto">Spunta le persone che segui in questo turno: per ognuna leggi la card «In breve», poi inizi.</p>
@@ -3990,6 +4010,7 @@ async function controllaChiSegui(){
 async function apriChiSegui(turnoId){
   brief={modo:'scelta',da:'turno',turnoId,sel:new Set(),extra:[],papabili:null}; briefMostra();
   const{data,error}=await sb.rpc('sala_papabili_oggi');
+  await caricaSalaScadute(); // v2.69
   if(!brief||brief.turnoId!==turnoId)return;
   brief.papabili=error?[]:(data||[]);
   if(error)console.warn('[chi segui] papabili:',error.message);
@@ -4285,7 +4306,7 @@ const IMP_RUOLO={conduce:'conduci',supporto:'supporto',monitor:'Sala con Monitor
 const IMP_CORSI_TITOLARE=['bambini','evo_ragazzi'];
 const impConTitolare=x=>x.tipo==='lezione'&&!!x.slot&&IMP_CORSI_TITOLARE.includes(x.slot.tipo_corso)&&String(x.data||'')>='2026-11-01';
 const impTitolare=x=>x.ruolo==='conduce'&&x.compenso_tipo!=='ora';
-const IMP_TESTO_RUOLI="Titolare: conduci tu la lezione, 15 € l'ora. D'appoggio: affianchi il titolare, 10 € l'ora. In ogni lezione il titolare è uno solo: mettetevi d'accordo.";
+const IMP_TESTO_RUOLI="Titolare: conduci la lezione, 15 € l'ora. D'appoggio: affianchi i titolari, 10 € l'ora. Lunedì e giovedì, nel Corso Bambini (6–11) e nel Corso Ragazzi (12–17), i titolari sono due. Nelle altre lezioni il titolare è uno solo."; // v2.67
 let impegniOggi=[];
 let _iniziaDaLink=false; // v2.57
 /* v2.57 (sql/monitor/13) apre il turno che vale adesso, per la stessa strada di INIZIO TURNO:
@@ -4437,7 +4458,7 @@ function disegnaImpegniOggi(){
     const cosa=x.tipo==='monitor'?'Sala con Monitor'
       :((x.slot&&(IMP_LEZ[x.slot.tipo_corso]||nomeLezioneSlot(x.slot)))||'Lezione')+(x.slot&&x.slot.ente?' · '+x.slot.ente:'');
     const istrTit=impConTitolare(x)&&/^staff_istruttore_/.test(pdata.staff_role||''); // v2.63
-    const ruolo=x.tipo==='lezione'?' · '+(istrTit?(impTitolare(x)?'titolare':'d’appoggio'):x.compenso_tipo==='ora'?'assistente':(IMP_RUOLO[x.ruolo]||x.ruolo)):'';
+    const ruolo=x.tipo==='lezione'?' · '+(istrTit?(impTitolare(x)?'titolare':'d’appoggio'):x.compenso_tipo==='ora'&&!(x.slot&&/^prima_lezione/.test(x.slot.tipo_corso||''))?'assistente':(IMP_RUOLO[x.ruolo]||x.ruolo)):''; // v2.67 Prime Lezioni: istruttore anche se a ore
     let stato='', btn='', ricorda='';
     /* v2.28: le lezioni si pagano solo con la presenza; finita senza presenza, SEGNA ADESSO prende il posto di SONO QUI */
     const dimenticata=x.tipo==='lezione' && x.stato==='previsto' && lezioneDimenticata(x);
@@ -4454,7 +4475,7 @@ function disegnaImpegniOggi(){
     else if(x.stato==='presente'){ stato=`<span class="ok-t">Sei qui dalle ${hhmm(x.presenza_inizio)}</span>`; btn=`<button class="btn fine" onclick="impPresenza('${esc(x.id)}','fine',this)">HO FINITO</button>`; }
     else btn=`<button class="btn prim grande" onclick="impPresenza('${esc(x.id)}','inizio',this)">SONO QUI</button>`;
     /* v2.63 accanto a SONO QUI la coppia TITOLARE / D'APPOGGIO, con lo stato attuale */
-    const rt=istrTit&&(x.stato==='previsto'||x.stato==='presente')
+    const rt=false&&istrTit&&(x.stato==='previsto'||x.stato==='presente') // v2.68 via TITOLARE / D'APPOGGIO: titolare di default
       ?`<div class="imp-ruolo"><span class="imp-s">Oggi sei: <b>${impTitolare(x)?'titolare':'d’appoggio'}</b></span><div class="sch-btns">`
         +`<button class="btn${impTitolare(x)?' attivo':''}"${impTitolare(x)?' disabled':''} onclick="impCambiaRuolo('${esc(x.id)}','conduce',this)">TITOLARE</button>`
         +`<button class="btn${impTitolare(x)?'':' attivo'}"${impTitolare(x)?'':' disabled'} onclick="impCambiaRuolo('${esc(x.id)}','supporto',this)">D’APPOGGIO</button></div></div>`:'';

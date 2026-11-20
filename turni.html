@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.20 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v1.19). Tolti i bottoni SONO IL TITOLARE / SONO D'APPOGGIO, tolto l'avviso arancio sui titolari, CI SONO IO segna da titolare senza chiedere "Come ci sei?", spenta la sezione "Le tue lezioni degli ultimi 7 giorni" (serviva solo a cambiare ruolo). Chi non può venire: NON CI SONO o MI SOSTITUISCE. Il codice resta nel file, spento. Nessuna modifica a DB. CUMULA v1.19. -->
+<!-- KC-BUILD: turni v1.19 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). (1) L'avviso arancio sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (istruttori_min della copertura dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso), in LEZIONI DEI CORSI e in "Le tue lezioni degli ultimi 7 giorni" (che ora legge slot_copertura). (2) CI SONO IO propone D'APPOGGIO per primo solo se i titolari previsti ci sono già. (3) Testo delle conferme: non dice più "il titolare è uno solo: mettetevi d'accordo". (4) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore. Nessuna modifica a DB. CUMULA v1.18. -->
 <!-- KC-BUILD: turni v1.18 · 2026-11-17 · TITOLARE O D'APPOGGIO FINO A 7 GIORNI INDIETRO (Marco 17 nov, DB sql/titolare_appoggio/01: impegno_cambia_ruolo). Sotto LEZIONI DEI CORSI, solo per gli istruttori e solo se ce ne sono, la sezione "Le tue lezioni degli ultimi 7 giorni" (ancora #giorni-scorsi): le proprie lezioni da 7 giorni fa a ieri dei corsi con titolare (Corso Bambini, Corso Ragazzi, Corso Evo Ragazzi, dal 1/11), con il ruolo segnato, presente/assente, i colleghi con il loro ruolo e la riga "Due titolari". SONO IL TITOLARE / SONO D'APPOGGIO (sulle lezioni presente o previsto, non per chi era a ore) -> conferma con il testo dei ruoli -> impegno_cambia_ruolo, che cambia solo il ruolo. Da oggi in avanti resta impegno_mi_segno come in v1.16. RICHIEDE la migrazione 01 applicata prima del merge. CUMULA v1.17. -->
 <!-- KC-BUILD: turni v1.17 · 2026-11-17 · DA COPRIRE ALLINEATA: carica kc-da-coprire.js?v=1.6, che nei corsi Bambini, Ragazzi ed Evo Ragazzi (dal 1/11) dice "un istruttore d'appoggio" come il contatore di LEZIONI DEI CORSI. Nient'altro cambia. Nessuna modifica a DB. CUMULA v1.16. -->
 <!-- KC-BUILD: turni v1.16 · 2026-11-13 · TITOLARE O D'APPOGGIO (regola di Marco 13 nov, DB istruttore_da_assistente_10_euro_ora_2026_11_13 e un_titolare_piu_appoggio_2026_11_13, Master v4.35). Nei corsi Bambini, Ragazzi ed Evo Ragazzi (tipo bambini, anche con fascia ragazzi, ed evo_ragazzi, dal 1/11: gli stessi di _istruttore_da_assistente) un solo istruttore titolare (ruolo conduce, 15 €/h), ogni altro istruttore d'appoggio (supporto, 10 €/h), assistente 5 €/h. LEZIONI DEI CORSI: (1) nelle tessere di questi corsi ogni istruttore si legge "titolare" o "d'appoggio" (gli assistenti "assistente"; un istruttore entrato a ore = d'appoggio, come lo paga il DB). (2) Sulla propria lezione, da oggi in avanti, SONO IL TITOLARE / SONO D'APPOGGIO (quello attivo evidenziato e spento) -> conferma "Titolare: conduci tu la lezione, 15 € l'ora. D'appoggio: …" (CONFERMA / ANNULLA) -> impegno_mi_segno con p_ruolo conduce/supporto, che aggiorna l'impegno. NON fino a 7 giorni indietro come chiedeva la consegna: impegno_mi_segno rifiuta le date passate a chi non è segreteria ("data nel passato"); le lezioni passate le corregge la segreteria. (3) CI SONO IO in questi corsi chiede "Come ci sei?" TITOLARE / D'APPOGGIO (D'APPOGGIO per primo se c'è già un titolare presente o previsto) e passa il ruolo scelto. (4) Due titolari nella stessa lezione: riga arancio "Due titolari: dite chi è d'appoggio, altrimenti lo decide il portale." (5) Contatore: "Istruttori 2/1 · un istruttore d'appoggio" in questi corsi. guidaConferma diventa un caso di guidaScelta (più scelte). Nessuna modifica a DB. CUMULA v1.15. -->
@@ -654,13 +656,19 @@ const CORSI_TITOLARE=['bambini','evo_ragazzi'];
 const conTitolare=c=>!!c&&CORSI_TITOLARE.includes(c.tipo_corso)&&String(c.data||'')>='2026-11-01';
 const eIstruttore=u=>/^staff_istruttore_/.test((u===uid?staffRole:(nomi[u]&&nomi[u].staff_role))||'');
 /* istruttore nella tessera: chi non e' pagato a ore, o un istruttore entrato a ore (il DB lo paga d'appoggio) */
-const istrInLez=(x,c)=>x.compenso_tipo!=='ora'||(conTitolare(c)&&eIstruttore(x.user_id));
+/* v1.19 nelle Prime Lezioni (anche Lezione Privata Bambini) chi è segnato è l'istruttore anche se pagato a ore: come v_copertura_lezioni */
+const primaLez=c=>!!c&&/^prima_lezione/.test(c.tipo_corso||'');
+const istrInLez=(x,c)=>x.compenso_tipo!=='ora'||primaLez(c)||(conTitolare(c)&&eIstruttore(x.user_id));
+/* v1.19 quanti titolari prevede la lezione: dal 19/11/2026 quanti istruttori chiede la copertura (lunedì e giovedì due), prima uno */
+const titPrevisti=c=>String(c.data||'')>='2026-11-19'?Math.max(1,Number(c.istruttori_min||1)):1;
+const nTitolari=(seg,c)=>seg.filter(x=>(x.stato==='previsto'||x.stato==='presente')&&ruoloLez(x,c)==='titolare').length;
+const avvisoTit=(seg,c)=>`Titolari ${nTitolari(seg,c)}, previsti ${titPrevisti(c)}: dite chi è d’appoggio, altrimenti lo decide il portale.`;
 function ruoloLez(x,c){
   if(!istrInLez(x,c))return 'assistente';
   if(!conTitolare(c))return 'istruttore';
   return x.ruolo==='conduce'&&x.compenso_tipo!=='ora'?'titolare':"d'appoggio";
 }
-const TESTO_RUOLI="Titolare: conduci tu la lezione, 15 € l'ora. D'appoggio: affianchi il titolare, 10 € l'ora. In ogni lezione il titolare è uno solo: mettetevi d'accordo.";
+const TESTO_RUOLI="Titolare: conduci la lezione, 15 € l'ora. D'appoggio: affianchi i titolari, 10 € l'ora. Lunedì e giovedì, nel Corso Bambini (6–11) e nel Corso Ragazzi (12–17), i titolari sono due. Nelle altre lezioni il titolare è uno solo.";
 /* v1.14 un istruttore al posto dell'assistente: colore e "scoperta" restano da c.coperta, cambia solo la scritta
    v1.16 nei corsi con titolare: "un istruttore d'appoggio" */
 function contaCorso(ni,na,mi,ma,c){
@@ -703,13 +711,13 @@ function htmlCorso(c,i){
   }
   if(!mio && puoCiSonoIo() && c.data===isoLocal(new Date())) az+=`<button class="btn prim" onclick="ciSonoIo(${i})">CI SONO IO</button>`; // v1.15
   /* v1.16 sulla propria lezione dei corsi con titolare, da oggi in avanti (impegno_mi_segno rifiuta le date passate a chi non e' segreteria) */
-  if(mio && conTitolare(c) && eIstruttore(uid) && c.data>=isoLocal(new Date()) && mio.stato!=='non_svolta'){
+  if(false && mio && conTitolare(c) && eIstruttore(uid) && c.data>=isoLocal(new Date()) && mio.stato!=='non_svolta'){ // v1.20 via SONO IL TITOLARE / SONO D'APPOGGIO: titolare di default
     const tit=ruoloLez(mio,c)==='titolare';
     az+=`<button class="btn${tit?' attivo':''}"${tit?' disabled':''} onclick="cambiaRuolo(${i},'conduce')">SONO IL TITOLARE</button>`
       +`<button class="btn${tit?'':' attivo'}"${tit?'':' disabled'} onclick="cambiaRuolo(${i},'supporto')">SONO D'APPOGGIO</button>`;
   }
   /* v1.16 due titolari nella stessa lezione: il portale ne sceglie uno da solo, meglio dirlo */
-  const dueTit=conTitolare(c)&&seg.filter(x=>(x.stato==='previsto'||x.stato==='presente')&&ruoloLez(x,c)==='titolare').length>1;
+  const dueTit=false; // v1.20 via l'avviso sui titolari
   let rigaD='';
   if(!mio && (!c.coperta||req)){ // v1.7 sono disponibile sulle lezioni scoperte o con supporto richiesto
     const D=htmlDisp({tipo:'lezione',data:c.data,ini:ora(c.ora_inizio),fin:ora(c.ora_fine),slot_id:c.slot_id,titolo:nomeCorsoLez(c.tipo_corso,c.fascia)},{miSegno:false});
@@ -719,7 +727,7 @@ function htmlCorso(c,i){
     <div class="r1"><span class="tit">${esc(giornoLungo(c.data))} · ${esc(ora(c.ora_inizio))}–${esc(ora(c.ora_fine))}</span>
       <span class="conta ${c.coperta?'ok':'zero'}">${conta}</span></div>
     <div class="det">${esc(nomeCorsoLez(c.tipo_corso,c.fascia))}${c.n_bambini?' · '+esc(c.n_bambini)+' bambini':''}${c.coperta?'':' · <span class="stato-ko">scoperta</span>'}</div>
-    <div class="chips">${chips}</div>${dueTit?'<div class="due-tit">Due titolari: dite chi è d’appoggio, altrimenti lo decide il portale.</div>':''}${rigaNonDisp(c.data,c.ora_inizio,c.ora_fine)}${supp}${rigaD}
+    <div class="chips">${chips}</div>${dueTit?'<div class="due-tit">'+avvisoTit(seg,c)+'</div>':''}${rigaNonDisp(c.data,c.ora_inizio,c.ora_fine)}${supp}${rigaD}
     ${az?`<div class="az">${az}</div>`:''}
   </div>`;
 }
@@ -815,8 +823,8 @@ function ciSonoIo(i){
     carica();
   };
   /* v1.16 nei corsi con titolare l'istruttore dice come ci sei; se c'e' gia' un titolare presente o previsto, D'APPOGGIO per primo */
-  if(conTitolare(c)&&eIstruttore(uid)){
-    const giaTit=impLez.some(x=>x.slot_id===c.slot_id&&x.data===c.data&&x.user_id!==uid&&(x.stato==='previsto'||x.stato==='presente')&&ruoloLez(x,c)==='titolare');
+  if(false&&conTitolare(c)&&eIstruttore(uid)){ // v1.20 CI SONO IO segna da titolare, senza chiedere "Come ci sei?"
+    const giaTit=nTitolari(impLez.filter(x=>x.slot_id===c.slot_id&&x.data===c.data&&x.user_id!==uid),c)>=titPrevisti(c); // v1.19 d'appoggio per primo solo se i titolari previsti ci sono già
     const T=['TITOLARE',segna('conduce')], A=["D'APPOGGIO",segna('supporto')];
     guidaScelta('Come ci sei? · '+tit,testo+' '+TESTO_RUOLI,giaTit?[A,T]:[T,A]);
     return;
@@ -839,6 +847,7 @@ function cambiaRuolo(i,ruolo){
 let scorsi=[];
 async function caricaScorsi(){
   scorsi=[];
+  return; // v1.20 sezione "Le tue lezioni degli ultimi 7 giorni" spenta: serviva solo a cambiare titolare / d'appoggio
   if(!eIstruttore(uid))return;
   try{
     const oggi=new Date(), da=isoLocal(piuGiorni(oggi,-7)), ieri=isoLocal(piuGiorni(oggi,-1));
@@ -848,14 +857,17 @@ async function caricaScorsi(){
     if(rm.error)throw rm.error;
     const mie=(rm.data||[]).filter(x=>x.slot_id); if(!mie.length)return;
     const ids=[...new Set(mie.map(x=>x.slot_id))];
-    const[rs,ra]=await Promise.all([
+    const[rs,ra,rk]=await Promise.all([
       sb.from('corsi_attivi_settimanali').select('id, tipo_corso, fascia, ora_inizio, ora_fine').in('id',ids),
-      sb.from('impegni_staff').select(COL).eq('tipo','lezione').in('slot_id',ids).neq('stato','ritirato').gte('data',da).lte('data',ieri)
+      sb.from('impegni_staff').select(COL).eq('tipo','lezione').in('slot_id',ids).neq('stato','ritirato').gte('data',da).lte('data',ieri),
+      sb.from('slot_copertura').select('slot_id, istruttori_min').in('slot_id',ids) // v1.19
     ]);
+    if(rk.error)console.warn('[turni] slot_copertura:',errTesto(rk.error));
     if(rs.error)throw rs.error; if(ra.error)throw ra.error;
     mie.forEach(x=>{
       const s=(rs.data||[]).find(z=>z.id===x.slot_id); if(!s)return;
-      const c={slot_id:x.slot_id,data:x.data,tipo_corso:s.tipo_corso,fascia:s.fascia,ora_inizio:s.ora_inizio,ora_fine:s.ora_fine};
+      const c={slot_id:x.slot_id,data:x.data,tipo_corso:s.tipo_corso,fascia:s.fascia,ora_inizio:s.ora_inizio,ora_fine:s.ora_fine,
+        istruttori_min:((rk.data||[]).find(z=>z.slot_id===x.slot_id)||{}).istruttori_min};
       if(!conTitolare(c))return;
       scorsi.push({x,c,seg:(ra.data||[]).filter(y=>y.slot_id===x.slot_id&&y.data===x.data)});
     });
@@ -869,7 +881,7 @@ function disegnaScorsi(){
   $('scorsi').innerHTML=scorsi.map(({x,c,seg},k)=>{
     const mio=ruoloLez(x,c), tit=mio==='titolare';
     const altri=seg.filter(y=>y.user_id!==uid).map(y=>esc(nome(y.user_id))+' ('+esc(ruoloLez(y,c))+(y.stato==='assente'?', assente':'')+')');
-    const dueTit=seg.filter(y=>(y.stato==='previsto'||y.stato==='presente')&&ruoloLez(y,c)==='titolare').length>1;
+    const dueTit=nTitolari(seg,c)>titPrevisti(c); // v1.19
     const st=x.stato==='presente'?' · <span class="stato-ok">presente ✓</span>':x.stato==='assente'?' · <span class="stato-ko">assente</span>':x.stato==='non_svolta'?' · <span class="stato-nonsv">lezione non svolta</span>':'';
     const puo=(x.stato==='presente'||x.stato==='previsto')&&x.compenso_tipo!=='ora';
     const az=puo?`<div class="az"><button class="btn${tit?' attivo':''}"${tit?' disabled':''} onclick="cambiaRuoloScorso(${k},'conduce')">SONO IL TITOLARE</button>`
@@ -878,7 +890,7 @@ function disegnaScorsi(){
       <div class="r1"><span class="tit">${esc(giornoLungo(c.data))} · ${esc(ora(c.ora_inizio))}–${esc(ora(c.ora_fine))}</span></div>
       <div class="det">${esc(nomeCorsoLez(c.tipo_corso,c.fascia))}</div>
       <div class="det">Eri segnato come ${esc(mio)}${st}${altri.length?' · con '+altri.join(', '):''}</div>
-      ${dueTit?'<div class="due-tit">Due titolari: dite chi è d’appoggio, altrimenti lo decide il portale.</div>':''}${az}
+      ${dueTit?'<div class="due-tit">'+avvisoTit(seg,c)+'</div>':''}${az}
     </div>`;
   }).join('');
 }

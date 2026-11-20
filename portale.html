@@ -20,6 +20,9 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.177 · 2026-11-20 · DOPPIA SCADENZA: LEZIONI E SALA CON MONITOR (Marco 19-20 nov, DB sala_corso_doppia_scadenza_2026_11_20, Master v4.50). Fascicolo → 🎓 Percorso corsi: per Corso Advance, Intro Corda ed Evo Corda KataClimb le righe sono due, "Lezioni: scadono il …" e "Sala con Monitor inclusa: fino al …" (rossa se scaduta; "parte dalla prima presenza" se l'allievo non è ancora venuto). loadLeadIscrizioni legge sala_coperture per iscrizione_id (sola lettura). Il Corso Open KataClimb resta com'era. CUMULA v3.176 -->
+<!-- KC-BUILD: portale v3.176 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.175). Segreteria → 🗓 Turni: tolto "Cambia in d'appoggio" e tolto l'avviso sui titolari. Resta "Cambia in titolare" solo su un istruttore che risulta d'appoggio. Chi non può venire: Segna assente o Sostituisci. Nessuna modifica a DB. CUMULA v3.175. -->
+<!-- KC-BUILD: portale v3.175 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). Segreteria → 🗓 Turni. (1) L'avviso sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, e conta tra gli istruttori (prima "assistente" e "Istruttori 0/1"), anche in "Presenze da confermare"; come v_copertura_lezioni. Nessuna modifica a DB. CUMULA v3.174. -->
 <!-- KC-BUILD: portale v3.174 · 2026-11-19 · CORSO GIOVANI KATACLIMB (18–24): PAGA, ENTRA, PRENOTA (Marco 19 nov, sql/giovani/01-02, stripe-worker v3.101). Fascicolo → 🎫 Abbonamenti, sull'abbonamento Giovani: interruttore "Può prenotare il Corso Advance KataClimb" (RPC imposta_advance_giovani, conferma prima, riga "acceso da NOME il GG/MM"); "Copia link di pagamento" (proposta-giovani.html?u=<persona>); senza email: "Manca l'email: scrivila qui per farlo entrare in agenda" con campo, controllo doppioni sull'email, poi Worker POST /giovani-account (account + mail di accesso). Registra abbonamento Giovani: niente giorno fisso, e dopo la registrazione l'account nasce da solo se manca. CUMULA v3.173 -->
 <!-- KC-BUILD: portale v3.173 · 2026-11-18 · PROPOSTA OPEN: TERZA SCELTA (decisione Marco 17 nov, Master v4.38; stripe-worker v3.100). Nella schermata che si apre da sola dopo la Prima Lezione Adulti le scelte sono tre: 2 volte a settimana 215 € tutto insieme · 1 volta a settimana 215 € tutto insieme · 1 volta a settimana 115 € adesso e 100 € dopo le prime 4 lezioni. Solo testo. CUMULA v3.172. -->
 <!-- KC-BUILD: portale v3.172 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Per l'ALLIEVO adulto appena segnato presente alla Prima Lezione Adulti: (1) entrando nel portale si apre da sola, a tutto schermo, la proposta del Corso Open KataClimb con le due scelte (2 volte a settimana 215 € tutto insieme · 1 volta a settimana 115 € adesso e 100 € dopo le prime 4 lezioni), bottone "Vedi il calendario e scegli" verso proposta-open.html?u=<persona_id> e "Ci penso" che chiude (ricordato sul telefono, non riappare da sola). (2) Il riquadro in cima alla home non dice piu' "Prenota la prima lezione" a chi l'ha gia' fatta: dice "Il tuo Corso Open KataClimb ti aspetta" e porta alla stessa pagina; sparisce quando l'Open e' pagato. Condizioni = le stesse di cron_accoda_offerta_open (mail del giorno dopo): prima_paid, nessun corso attivo, nessun pagamento Open/Advance/Intro/Evo, Prima Lezione Adulti (tipo_corso prima_lezione) fatta negli ultimi 14 giorni; mai staff, mai minori, Genitori o private. Solo lettura di dati gia' in memoria (profile, myPrenotCorso): nessuna query nuova, nessuna modifica a DB o pagamenti. CUMULA v3.171. -->
@@ -6299,6 +6302,14 @@ async function loadLeadIscrizioni(lead){
     .select('id,tipo_corso,status,lezioni_completate,lezioni_totali,stato_pagamento,data_iscrizione,data_inizio_validita,data_fine_validita,inizio_da_prima_presenza') // v3.149 id: + PAGA DOPO collega l'iscrizione attiva
     .eq('user_id',uid);
   if(error){console.warn('[loadLeadIscrizioni]',error.message);return}
+  // v3.177 doppia scadenza: la sala inclusa nel corso ha la sua data (sala_coperture, fonte corso)
+  const idsSala=(data||[]).filter(r=>['advance','intro_corda','evo_corda'].includes(r.tipo_corso)).map(r=>r.id);
+  if(idsSala.length){
+    try{
+      const{data:sc}=await sb.from('sala_coperture').select('iscrizione_id,dal,al').in('iscrizione_id',idsSala);
+      (sc||[]).forEach(s=>{const r=data.find(x=>x.id===s.iscrizione_id);if(r)r._sala=s;});
+    }catch(e){console.warn('[sala corso]',e&&e.message);}
+  }
   if(!currentLeadDetail||currentLeadDetail.id!==lead.id)return;
   currentLeadIscrizioni=data||[];
   renderLeadDetail();
@@ -6570,12 +6581,23 @@ function renderLeadDetail(){
     const scadenzaCorso=r=>{
       if(r.status!=='attiva'&&r.status!=='sospesa')return'';
       const riga=(t,c,b)=>`<div style="flex-basis:100%;text-align:right;font-size:13px;color:${c};font-weight:${b?700:400}">${t}</div>`;
+      // v3.177 doppia scadenza: nei corsi con sala inclusa le righe sono due, lezioni e Sala con Monitor
+      const conSala=['advance','intro_corda','evo_corda'].includes(r.tipo_corso);
+      const salaRiga=()=>{
+        if(!conSala)return'';
+        const s=r._sala;
+        if(!s||!s.al)return riga('Sala con Monitor inclusa: parte dalla prima presenza','#4B5563');
+        const f=String(s.al).slice(0,10), gs=Math.round((Date.parse(f)-Date.parse(abbIsoOggi()))/864e5), ts='Sala con Monitor inclusa: fino al '+abbGMA(f)+' · ';
+        if(gs<0)return riga(ts+'scaduta da '+(-gs)+(gs===-1?' giorno':' giorni'),'#B91C1C',true);
+        if(gs===0)return riga(ts+'scade oggi','#B45309');
+        return riga(ts+'tra '+gs+(gs===1?' giorno':' giorni'),gs<=7?'#B45309':'#4B5563');
+      };
       const fine=r.data_fine_validita?String(r.data_fine_validita).slice(0,10):null;
-      if(!fine)return riga(r.inizio_da_prima_presenza?'la scadenza parte dalla prima presenza':'senza scadenza','#4B5563');
-      const g=Math.round((Date.parse(fine)-Date.parse(abbIsoOggi()))/864e5), t='scade il '+abbGMA(fine)+' · ';
-      if(g<0)return riga(t+'scaduto da '+(-g)+(g===-1?' giorno':' giorni'),'#B91C1C',true);
-      if(g===0)return riga(t+'scade oggi','#B45309');
-      return riga(t+'tra '+g+(g===1?' giorno':' giorni'),g<=7?'#B45309':'#4B5563');
+      if(!fine)return riga((conSala?'Lezioni: ':'')+(r.inizio_da_prima_presenza?'la scadenza parte dalla prima presenza':'senza scadenza'),'#4B5563')+salaRiga();
+      const g=Math.round((Date.parse(fine)-Date.parse(abbIsoOggi()))/864e5), t=(conSala?'Lezioni: scadono il ':'scade il ')+abbGMA(fine)+' · ';
+      if(g<0)return riga(t+(conSala?'scadute da ':'scaduto da ')+(-g)+(g===-1?' giorno':' giorni'),'#B91C1C',true)+salaRiga();
+      if(g===0)return riga(t+(conSala?'scadono oggi':'scade oggi'),'#B45309')+salaRiga();
+      return riga(t+'tra '+g+(g===1?' giorno':' giorni'),g<=7?'#B45309':'#4B5563')+salaRiga();
     };
     const items=rows.map(r=>{
       const lbl=LBL[r.tipo_corso]||r.tipo_corso;
@@ -11884,7 +11906,12 @@ function tuCoperta(ni,na,imin,amin){return ni>=imin&&(ni+na)>=(imin+amin)}
 const TU_CORSI_TITOLARE=['bambini','evo_ragazzi'];
 const tuConTitolare=v=>!!v&&v.tipo==='corso'&&!!v.slot&&TU_CORSI_TITOLARE.includes(v.slot.tipo_corso)&&String(v.data||'')>='2026-11-01';
 const tuEIstruttore=u=>/^staff_istruttore_/.test(((tuStaff||[]).find(x=>x.user_id===u)||{}).staff_role||'');
-const tuIstrInLez=(i,v)=>i.compenso_tipo!=='ora'||(tuConTitolare(v)&&tuEIstruttore(i.user_id));
+/* v3.175 nelle Prime Lezioni (anche Lezione Privata Bambini) chi è segnato è l'istruttore anche se pagato a ore: come v_copertura_lezioni */
+const tuPrimaLez=v=>!!v&&v.tipo==='corso'&&!!v.slot&&/^prima_lezione/.test(v.slot.tipo_corso||'');
+const tuIstrInLez=(i,v)=>i.compenso_tipo!=='ora'||tuPrimaLez(v)||(tuConTitolare(v)&&tuEIstruttore(i.user_id));
+/* v3.175 quanti titolari prevede la lezione: dal 19/11/2026 quanti istruttori chiede la copertura (lunedì e giovedì due), prima uno */
+const tuTitPrevisti=v=>String(v.data||'')>='2026-11-19'?Math.max(1,Number(v.imin||1)):1;
+const tuNTitolari=v=>v.seg.filter(i=>(i.stato==='previsto'||i.stato==='presente')&&tuRuoloLez(i,v)==='titolare').length;
 function tuRuoloLez(i,v){
   if(!tuIstrInLez(i,v))return 'assistente';
   if(!tuConTitolare(v))return 'istruttore';
@@ -11895,7 +11922,7 @@ function tuContaTesto(ni,na,imin,amin,min,v){
   if(na<amin&&tuCoperta(ni,na,imin,amin))return `${I} ${ni}/${imin} · `+(tuConTitolare(v)?(k===1?"un istruttore d'appoggio":k+" istruttori d'appoggio"):(k===1?"un istruttore al posto dell'assistente":k+' istruttori al posto degli assistenti')); // v3.171
   return `${I} ${ni}/${imin}${amin||na?` · ${A} ${na}/${amin}`:''}`;
 }
-function tuConta(seg){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente');return{ni:v.filter(i=>i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>i.compenso_tipo==='ora').length}}
+function tuConta(seg,lez){const v=seg.filter(i=>i.stato==='previsto'||i.stato==='presente'),pl=tuPrimaLez(lez);return{ni:v.filter(i=>pl||i.compenso_tipo==='lezione'||i.compenso_tipo==='percentuale').length,na:v.filter(i=>!pl&&i.compenso_tipo==='ora').length}} // v3.175 Prime Lezioni: tutti istruttori
 let tuCompLez=[];
 /* v3.148 — stessa regola di _prima_dentro_corso (DB): una Prima Lezione con lo stesso istruttore gia' su un corso
    (previsto o presente) nella stessa ora non si paga a parte */
@@ -12077,8 +12104,8 @@ function tuDisegnaSettimana(){
       +(voci.length?voci.map(v=>{
         const k=tuVoci.push(v)-1;
         if(v.tipo==='corso'){
-          const{ni,na}=tuConta(v.seg),ok=tuCoperta(ni,na,v.imin,v.amin);
-          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(tuConTitolare(v)&&tuIstrInLez(i,v)?' ('+tuRuoloLez(i,v)+')':i.compenso_tipo==='ora'?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(tuDentroCorso(i)?' <span style="font-size:13px;color:var(--text2)">'+TU_DENTRO+'</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':i.stato==='non_svolta'?' <span style="color:var(--text2)">(lezione non svolta)</span>':'')).join(', ');
+          const{ni,na}=tuConta(v.seg,v),ok=tuCoperta(ni,na,v.imin,v.amin);
+          const nomiC=v.seg.map(i=>escHtml(tuNome(i.user_id))+(tuSostituisceChi(i)?' (sostituisce '+escHtml(tuSostituisceChi(i))+')':'')+(tuConTitolare(v)&&tuIstrInLez(i,v)?' ('+tuRuoloLez(i,v)+')':!tuIstrInLez(i,v)?' (assistente)':'')+(i.compenso_tipo==='percentuale'?' <span style="font-size:13px;color:var(--text2)">a percentuale</span>':'')+(tuDentroCorso(i)?' <span style="font-size:13px;color:var(--text2)">'+TU_DENTRO+'</span>':'')+(i.stato==='assente'?' (assente)':i.stato==='presente'?' ✓':i.stato==='non_svolta'?' <span style="color:var(--text2)">(lezione non svolta)</span>':'')).join(', ');
           const nonSv=v.seg.length&&v.seg.every(i=>i.stato==='non_svolta'||i.stato==='assente')&&v.seg.some(i=>i.stato==='non_svolta'); // v3.152
           return `<button class="tu-voce ${nonSv?'grigio':ok?'verde':'rosso'}" onclick="tuApriVoce(${k})">
             <span class="tu-h">${escHtml(v.ini)}–${escHtml(v.fin)} <b>${nonSv?'lezione non svolta':ok?'coperta':'scoperta'}</b></span>
@@ -12115,7 +12142,7 @@ function tuApriVoce(k){
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     if(puo&&tuConTitolare(v)&&tuIstrInLez(i,v)&&(i.stato==='previsto'||i.stato==='presente')){ // v3.171
       const tit=tuRuoloLez(i,v)==='titolare';
-      az.push(`<button class="btn btn-g sc-piccolo" onclick="tuCambiaRuolo('${i.id}',${k},'${tit?'supporto':'conduce'}')">${tit?'Cambia in d’appoggio':'Cambia in titolare'}</button>`);
+      if(!tit)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuCambiaRuolo('${i.id}',${k},'conduce')">Cambia in titolare</button>`); // v3.176 via "Cambia in d'appoggio"
     }
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
     const ruolo=v.tipo==='corso'?(()=>{const r=tuRuoloLez(i,v);return r.charAt(0).toUpperCase()+r.slice(1)})()+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':'')
@@ -12137,15 +12164,15 @@ function tuApriVoce(k){
   /* v3.139 richiesta di supporto aperta sulla lezione del corso */
   const supp=v.tipo==='corso'&&v.req?`<div class="tu-supp-box">Supporto richiesto${v.req.chiesto_da?' da <b>'+escHtml(tuNome(v.req.chiesto_da))+'</b>':''}${v.req.note?': '+escHtml(v.req.note):''}
     ${puo?` <button class="btn btn-g sc-piccolo" onclick="tuAnnullaSupporto('${v.req.id}',${k})">Annulla richiesta</button>`:''}</div>`:'';
-  const dueTit=tuConTitolare(v)&&v.seg.filter(i=>(i.stato==='previsto'||i.stato==='presente')&&tuRuoloLez(i,v)==='titolare').length>1; // v3.171
-  const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg);return ' · '+tuContaTesto(ni,na,v.imin,v.amin,true,v)})():` · richiesti ${v.richiesti}`;
+  const dueTit=false; // v3.176 via l'avviso sui titolari
+  const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg,v);return ' · '+tuContaTesto(ni,na,v.imin,v.amin,true,v)})():` · richiesti ${v.richiesti}`;
   /* v3.163 doppio turno: solo creator e segreteria, solo se nella fascia c'e' gia' un monitor */
   const attivi=v.tipo==='monitor'?v.seg.filter(i=>i.stato==='previsto'||i.stato==='presente'):[];
   const doppio=(puo&&v.tipo==='monitor'&&attivi.length&&!passato)?tuFormDoppio(v,k,attivi):'';
   const d=new Date(v.data+'T00:00:00');
   scModal(`${v.tipo==='monitor'?'🟢':'📅'} ${v.titolo}`,
     `<p class="sc-sub" style="margin-bottom:8px">${SC_GIORNI[d.getDay()]} ${scD(v.data)} · ${escHtml(v.ini)}–${escHtml(v.fin)}${conta}${v.dacoprire?' · <span class="sc-warn">fascia da coprire</span>':''}</p>
-     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${dueTit?'<p class="sc-warn" style="font-size:14px;margin:0 0 8px">Due titolari: dite chi è d’appoggio, altrimenti lo decide il portale.</p>':''}${puo&&v.tipo==='corso'?'<p class="tu-guida">Chi non c\'era: <b>SEGNA ASSENTE</b>. Chi è venuto al suo posto: <b>SOSTITUISCI</b> oppure <b>AGGIUNGI PERSONA</b>. Le presenze le segnano gli istruttori con <b>SONO QUI</b>: tu correggi solo quello che manca.</p>':''}${righe}${aggiungi}${doppio}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
+     ${v.festa?tuFestaDettagli(v.festa):''}${supp}${dueTit?'<p class="sc-warn" style="font-size:14px;margin:0 0 8px">Titolari '+tuNTitolari(v)+', previsti '+tuTitPrevisti(v)+': dite chi è d’appoggio, altrimenti lo decide il portale.</p>':''}${puo&&v.tipo==='corso'?'<p class="tu-guida">Chi non c\'era: <b>SEGNA ASSENTE</b>. Chi è venuto al suo posto: <b>SOSTITUISCI</b> oppure <b>AGGIUNGI PERSONA</b>. Le presenze le segnano gli istruttori con <b>SONO QUI</b>: tu correggi solo quello che manca.</p>':''}${righe}${aggiungi}${doppio}${!puo?'<p class="sc-nota">Aggiungere, togliere e segnare assenze tocca alla segreteria.</p>':''}`,
     aggiungi?async()=>{
       if(v.tipo!=='monitor'&&tuEMonitor(scVal('tu-add-user'))&&!confirm(TU_MON_CONF))return false; // v3.142
       const args=v.tipo==='corso'
@@ -12403,7 +12430,7 @@ async function tuCaricaCompLez(){
   const L=tuCompLez.filter(r=>r.da_confermare);
   document.getElementById('tu-daconf-n').textContent=L.length?String(L.length):'';
   dc.innerHTML=!L.length?'<p class="sc-vuoto">Nessuna presenza da confermare.</p>':L.map(r=>`<div class="sc-riga">
-    <div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))} · ${r.compenso_tipo==='ora'?'assistente':r.compenso_tipo==='percentuale'?'istruttore · a percentuale':'istruttore'}</div></div>
+    <div class="sc-riga-main"><b>${escHtml(r.persona)}</b><div class="sc-sub">${escHtml(scDataLunga(r.data))} · ${escHtml(scOra(r.ora_inizio))}–${escHtml(scOra(r.ora_fine))} · ${escHtml(tuNomeCorso(r.tipo_corso,r.fascia))} · ${r.compenso_tipo==='ora'&&!/^prima_lezione/.test(r.tipo_corso||'')?'assistente':r.compenso_tipo==='percentuale'?'istruttore · a percentuale':'istruttore'}</div></div>
     <button class="btn sc-scuro sc-piccolo" onclick="tuConferma('${r.impegno_id}','inizio',this)">Era presente</button>
     <button class="btn btn-g sc-piccolo" onclick="tuConferma('${r.impegno_id}','assente',this)">Assente</button></div>`).join('');
 }

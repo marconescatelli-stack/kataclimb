@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: scadenzario v1.3 · 2026-11-20 · DOPPIA SCADENZA: LEZIONI E SALA CON MONITOR (Marco 19-20 nov, DB sala_corso_doppia_scadenza_2026_11_20). Scheda Corsi: per Corso Advance, Intro Corda ed Evo Corda KataClimb sotto la data delle lezioni c'è la data della Sala con Monitor inclusa (rossa se scaduta, "parte dalla prima presenza" se non è ancora venuto). Letta da sala_coperture per iscrizione_id. Solo letture. CUMULA v1.2 -->
 <!-- KC-BUILD: scadenzario v1.2 · 2026-11-06 · SCADENZE: ABBONAMENTI E CORSI (Marco 6 nov, DB Ingressi_pacchetti_scadenze_corsi_2026-11-06): due schede, la scelta si ricorda; Corsi da get_scadenzario_corsi (fatte/restano, scadenza, pagamento, filtri, menu per corso); Abbonamenti con stato esaurito, righe pacchetto "ingressi: usati U su 10 · restano R" e filtro Pacchetti. Solo letture. CUMULA v1.1. -->
 <!-- KC-BUILD: scadenzario v1.1 · 2026-10-09 · ABBONAMENTI SALA (tipi senza giorni, DB 9 ott): le righe senza giorni hanno la riga giorni vuota (prima "nessun giorno"), mai "null"; il menu per tipo elenca TUTTI i tipi di abbonamenti_tipi per ordine, anche a zero abbonati (prima solo quelli presenti), cosi' i tre tipi Sala ci sono sempre. Nient'altro. CUMULA v1.0 · 2026-10-08 · SCADENZARIO ABBONAMENTI (migration abbonamenti v1, 8 ott). Pagina staff autonoma, guscio/stile/auth come listini.html: senza sessione o non staff = messaggio e link al portale. Fonte unica get_scadenzario_abbonamenti() (null = tutti gli abbonati attivi); in piu' sola lettura di abbonamenti_tipi (nomi e ordine del menu tipi) e lead_data (persona -> lead, per aprire il fascicolo nel portale con ?lead_id=, lo stesso ingresso gia' usato dall'agenda). Filtri Tutti · Scaduti · Entro 7 giorni · In pausa · Da pagare con contatori, menu per tipo. Una riga per abbonato: nome e cognome, abbonamento, giorni, scadenza GG/MM/AAAA + tra N giorni / scaduto da N giorni, stato colorato, pagato, ultimo pagamento, telefono (tel:) + WhatsApp (wa.me/39...), "(genitore: Nome)" se il contatto e' del genitore, "manca il contatto" in evidenza se non c'e' telefono. Ordine: scaduti in testa, poi scadenza crescente. Nessuna scrittura. -->
 <meta charset="UTF-8">
@@ -188,6 +189,16 @@ function menuTipi(){
   sel.value=scheda==='corsi'?corsoSel:tipoSel;
 }
 function relCorso(g){return g!=null&&g>0?'scade '+relativo(g):relativo(g)}
+// v1.3 doppia scadenza: la Sala con Monitor inclusa nel corso ha la sua data
+function oggiIsoLocale(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function salaCorsoHtml(r){
+  if(!r.sala_inclusa)return'';
+  const st='margin-top:8px;font-size:13px';
+  if(!r.sala_al)return`<div class="rel" style="${st}">Sala con Monitor: parte dalla prima presenza</div>`;
+  const f=String(r.sala_al).slice(0,10), gs=Math.round((Date.parse(f)-Date.parse(oggiIsoLocale()))/864e5);
+  const quando=gs<0?'scaduta da '+(-gs)+(gs===-1?' giorno':' giorni'):gs===0?'scade oggi':'tra '+gs+(gs===1?' giorno':' giorni');
+  return`<div class="rel ${gs<0?'rosso':''}" style="${st}">Sala con Monitor: fino al ${gma(f)} · ${quando}</div>`;
+}
 function renderCorsi(){
   const lista=document.getElementById('lista');
   const perCorso=corsi.filter(r=>!corsoSel||r.tipo_corso===corsoSel);
@@ -210,8 +221,9 @@ function renderCorsi(){
         <div class="giorni">${lez}</div>
       </div>
       <div class="scad">
-        ${prima?'':`<div class="data">${r.data_fine?gma(r.data_fine):'senza scadenza'}</div>
+        ${prima?'':`${r.sala_inclusa?'<div class="rel" style="font-size:13px">Lezioni</div>':''}<div class="data">${r.data_fine?gma(r.data_fine):'senza scadenza'}</div>
         <div class="rel ${g!=null&&g<0?'rosso':''}">${relCorso(g)}</div>`}
+        ${salaCorsoHtml(r)}
       </div>
       <div class="meta">
         <span class="pill ${esc(r.stato)}">${STATO_LBL[r.stato]||esc(r.stato)}</span>
@@ -282,6 +294,15 @@ async function init(){
   righe=sc.data||[];
   tipi=tp.data||[];
   corsi=cs.data||[];
+  // v1.3 doppia scadenza: data della Sala con Monitor inclusa nei corsi Advance, Intro Corda, Evo Corda
+  try{
+    const conSala=corsi.filter(r=>['advance','intro_corda','evo_corda'].includes(r.tipo_corso));
+    if(conSala.length){
+      const{data:sl}=await sb.from('sala_coperture').select('iscrizione_id,al').in('iscrizione_id',conSala.map(r=>r.iscrizione_id));
+      const m={};(sl||[]).forEach(s=>{m[s.iscrizione_id]=s.al});
+      conSala.forEach(r=>{r.sala_inclusa=true;r.sala_al=m[r.iscrizione_id]||null});
+    }
+  }catch(e){console.warn('[sala corso]',e&&e.message)}
   corsiErr=cs.error?cs.error.message:null; // la scheda Corsi lo dice, gli abbonamenti restano
   oraCarico=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
   // menu tipi: nomi e ordine da abbonamenti_tipi, TUTTI (v1.1: anche i tipi Sala, anche a zero abbonati)
