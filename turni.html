@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: turni v1.20 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v1.19). Tolti i bottoni SONO IL TITOLARE / SONO D'APPOGGIO, tolto l'avviso arancio sui titolari, CI SONO IO segna da titolare senza chiedere "Come ci sei?", spenta la sezione "Le tue lezioni degli ultimi 7 giorni" (serviva solo a cambiare ruolo). Chi non può venire: NON CI SONO o MI SOSTITUISCE. Il codice resta nel file, spento. Nessuna modifica a DB. CUMULA v1.19. -->
 <!-- KC-BUILD: turni v1.19 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). (1) L'avviso arancio sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (istruttori_min della copertura dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso), in LEZIONI DEI CORSI e in "Le tue lezioni degli ultimi 7 giorni" (che ora legge slot_copertura). (2) CI SONO IO propone D'APPOGGIO per primo solo se i titolari previsti ci sono già. (3) Testo delle conferme: non dice più "il titolare è uno solo: mettetevi d'accordo". (4) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore. Nessuna modifica a DB. CUMULA v1.18. -->
 <!-- KC-BUILD: turni v1.18 · 2026-11-17 · TITOLARE O D'APPOGGIO FINO A 7 GIORNI INDIETRO (Marco 17 nov, DB sql/titolare_appoggio/01: impegno_cambia_ruolo). Sotto LEZIONI DEI CORSI, solo per gli istruttori e solo se ce ne sono, la sezione "Le tue lezioni degli ultimi 7 giorni" (ancora #giorni-scorsi): le proprie lezioni da 7 giorni fa a ieri dei corsi con titolare (Corso Bambini, Corso Ragazzi, Corso Evo Ragazzi, dal 1/11), con il ruolo segnato, presente/assente, i colleghi con il loro ruolo e la riga "Due titolari". SONO IL TITOLARE / SONO D'APPOGGIO (sulle lezioni presente o previsto, non per chi era a ore) -> conferma con il testo dei ruoli -> impegno_cambia_ruolo, che cambia solo il ruolo. Da oggi in avanti resta impegno_mi_segno come in v1.16. RICHIEDE la migrazione 01 applicata prima del merge. CUMULA v1.17. -->
 <!-- KC-BUILD: turni v1.17 · 2026-11-17 · DA COPRIRE ALLINEATA: carica kc-da-coprire.js?v=1.6, che nei corsi Bambini, Ragazzi ed Evo Ragazzi (dal 1/11) dice "un istruttore d'appoggio" come il contatore di LEZIONI DEI CORSI. Nient'altro cambia. Nessuna modifica a DB. CUMULA v1.16. -->
@@ -710,13 +711,13 @@ function htmlCorso(c,i){
   }
   if(!mio && puoCiSonoIo() && c.data===isoLocal(new Date())) az+=`<button class="btn prim" onclick="ciSonoIo(${i})">CI SONO IO</button>`; // v1.15
   /* v1.16 sulla propria lezione dei corsi con titolare, da oggi in avanti (impegno_mi_segno rifiuta le date passate a chi non e' segreteria) */
-  if(mio && conTitolare(c) && eIstruttore(uid) && c.data>=isoLocal(new Date()) && mio.stato!=='non_svolta'){
+  if(false && mio && conTitolare(c) && eIstruttore(uid) && c.data>=isoLocal(new Date()) && mio.stato!=='non_svolta'){ // v1.20 via SONO IL TITOLARE / SONO D'APPOGGIO: titolare di default
     const tit=ruoloLez(mio,c)==='titolare';
     az+=`<button class="btn${tit?' attivo':''}"${tit?' disabled':''} onclick="cambiaRuolo(${i},'conduce')">SONO IL TITOLARE</button>`
       +`<button class="btn${tit?'':' attivo'}"${tit?'':' disabled'} onclick="cambiaRuolo(${i},'supporto')">SONO D'APPOGGIO</button>`;
   }
   /* v1.16 due titolari nella stessa lezione: il portale ne sceglie uno da solo, meglio dirlo */
-  const dueTit=conTitolare(c)&&nTitolari(seg,c)>titPrevisti(c); // v1.19
+  const dueTit=false; // v1.20 via l'avviso sui titolari
   let rigaD='';
   if(!mio && (!c.coperta||req)){ // v1.7 sono disponibile sulle lezioni scoperte o con supporto richiesto
     const D=htmlDisp({tipo:'lezione',data:c.data,ini:ora(c.ora_inizio),fin:ora(c.ora_fine),slot_id:c.slot_id,titolo:nomeCorsoLez(c.tipo_corso,c.fascia)},{miSegno:false});
@@ -822,7 +823,7 @@ function ciSonoIo(i){
     carica();
   };
   /* v1.16 nei corsi con titolare l'istruttore dice come ci sei; se c'e' gia' un titolare presente o previsto, D'APPOGGIO per primo */
-  if(conTitolare(c)&&eIstruttore(uid)){
+  if(false&&conTitolare(c)&&eIstruttore(uid)){ // v1.20 CI SONO IO segna da titolare, senza chiedere "Come ci sei?"
     const giaTit=nTitolari(impLez.filter(x=>x.slot_id===c.slot_id&&x.data===c.data&&x.user_id!==uid),c)>=titPrevisti(c); // v1.19 d'appoggio per primo solo se i titolari previsti ci sono già
     const T=['TITOLARE',segna('conduce')], A=["D'APPOGGIO",segna('supporto')];
     guidaScelta('Come ci sei? · '+tit,testo+' '+TESTO_RUOLI,giaTit?[A,T]:[T,A]);
@@ -846,6 +847,7 @@ function cambiaRuolo(i,ruolo){
 let scorsi=[];
 async function caricaScorsi(){
   scorsi=[];
+  return; // v1.20 sezione "Le tue lezioni degli ultimi 7 giorni" spenta: serviva solo a cambiare titolare / d'appoggio
   if(!eIstruttore(uid))return;
   try{
     const oggi=new Date(), da=isoLocal(piuGiorni(oggi,-7)), ieri=isoLocal(piuGiorni(oggi,-1));

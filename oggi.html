@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.68 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v2.67). In "I tuoi impegni · oggi" tolta la coppia di bottoni TITOLARE / D'APPOGGIO: il ruolo resta scritto nella riga della lezione. Nessuna modifica a DB. CUMULA v2.67. -->
 <!-- KC-BUILD: oggi v2.67 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). In "I tuoi impegni · oggi": (1) il testo delle conferme TITOLARE / D'APPOGGIO non dice più "il titolare è uno solo: mettetevi d'accordo" (lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), i titolari sono due); (2) nelle Prime Lezioni e nella Lezione Privata Bambini l'istruttore pagato a ore non è più scritto "assistente". Nessuna modifica a DB. CUMULA v2.66. -->
 <!-- KC-BUILD: oggi v2.66 · 2026-11-18 · Proposta Open: carica /kc-proposta-open.js?v=1.2 (la riga per l'istruttore elenca le tre scelte; terza scelta 1 volta a settimana 215 € tutto insieme, stripe-worker v3.100). Nient'altro. CUMULA v2.65. -->
 <!-- KC-BUILD: oggi v2.65 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Scheda allievo: per chi ha fatto la Prima Lezione Adulti negli ultimi 14 giorni e non ha un corso, sotto lo stato del percorso compare il bottone "PROPOSTA OPEN" con la riga che guida l'istruttore. Toccandolo si apre a tutto schermo il codice QR della sua proposta (proposta-open.html?u=<persona_id>) da fargli inquadrare. Sotto il codice, "MANDA SU WHATSAPP" con lo stesso link gia' scritto per il numero dell'allievo. Carica /kc-proposta-open.js?v=1.1 (nuovo, lo stesso dell'Agenda, dove il bottone compare accanto a P/A appena si segna presente). Solo letture; nessuna modifica a DB. CUMULA v2.64. -->
@@ -4455,7 +4456,7 @@ function disegnaImpegniOggi(){
     else if(x.stato==='presente'){ stato=`<span class="ok-t">Sei qui dalle ${hhmm(x.presenza_inizio)}</span>`; btn=`<button class="btn fine" onclick="impPresenza('${esc(x.id)}','fine',this)">HO FINITO</button>`; }
     else btn=`<button class="btn prim grande" onclick="impPresenza('${esc(x.id)}','inizio',this)">SONO QUI</button>`;
     /* v2.63 accanto a SONO QUI la coppia TITOLARE / D'APPOGGIO, con lo stato attuale */
-    const rt=istrTit&&(x.stato==='previsto'||x.stato==='presente')
+    const rt=false&&istrTit&&(x.stato==='previsto'||x.stato==='presente') // v2.68 via TITOLARE / D'APPOGGIO: titolare di default
       ?`<div class="imp-ruolo"><span class="imp-s">Oggi sei: <b>${impTitolare(x)?'titolare':'d’appoggio'}</b></span><div class="sch-btns">`
         +`<button class="btn${impTitolare(x)?' attivo':''}"${impTitolare(x)?' disabled':''} onclick="impCambiaRuolo('${esc(x.id)}','conduce',this)">TITOLARE</button>`
         +`<button class="btn${impTitolare(x)?'':' attivo'}"${impTitolare(x)?'':' disabled'} onclick="impCambiaRuolo('${esc(x.id)}','supporto',this)">D’APPOGGIO</button></div></div>`:'';

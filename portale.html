@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.176 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.175). Segreteria → 🗓 Turni: tolto "Cambia in d'appoggio" e tolto l'avviso sui titolari. Resta "Cambia in titolare" solo su un istruttore che risulta d'appoggio. Chi non può venire: Segna assente o Sostituisci. Nessuna modifica a DB. CUMULA v3.175. -->
 <!-- KC-BUILD: portale v3.175 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). Segreteria → 🗓 Turni. (1) L'avviso sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, e conta tra gli istruttori (prima "assistente" e "Istruttori 0/1"), anche in "Presenze da confermare"; come v_copertura_lezioni. Nessuna modifica a DB. CUMULA v3.174. -->
 <!-- KC-BUILD: portale v3.174 · 2026-11-19 · CORSO GIOVANI KATACLIMB (18–24): PAGA, ENTRA, PRENOTA (Marco 19 nov, sql/giovani/01-02, stripe-worker v3.101). Fascicolo → 🎫 Abbonamenti, sull'abbonamento Giovani: interruttore "Può prenotare il Corso Advance KataClimb" (RPC imposta_advance_giovani, conferma prima, riga "acceso da NOME il GG/MM"); "Copia link di pagamento" (proposta-giovani.html?u=<persona>); senza email: "Manca l'email: scrivila qui per farlo entrare in agenda" con campo, controllo doppioni sull'email, poi Worker POST /giovani-account (account + mail di accesso). Registra abbonamento Giovani: niente giorno fisso, e dopo la registrazione l'account nasce da solo se manca. CUMULA v3.173 -->
 <!-- KC-BUILD: portale v3.173 · 2026-11-18 · PROPOSTA OPEN: TERZA SCELTA (decisione Marco 17 nov, Master v4.38; stripe-worker v3.100). Nella schermata che si apre da sola dopo la Prima Lezione Adulti le scelte sono tre: 2 volte a settimana 215 € tutto insieme · 1 volta a settimana 215 € tutto insieme · 1 volta a settimana 115 € adesso e 100 € dopo le prime 4 lezioni. Solo testo. CUMULA v3.172. -->
@@ -12121,7 +12122,7 @@ function tuApriVoce(k){
     if(puo&&i.stato!=='previsto')az.push(`<button class="btn btn-g sc-piccolo" onclick="tuAzione('annulla','${i.id}',${k})">Riporta a previsto</button>`);
     if(puo&&tuConTitolare(v)&&tuIstrInLez(i,v)&&(i.stato==='previsto'||i.stato==='presente')){ // v3.171
       const tit=tuRuoloLez(i,v)==='titolare';
-      az.push(`<button class="btn btn-g sc-piccolo" onclick="tuCambiaRuolo('${i.id}',${k},'${tit?'supporto':'conduce'}')">${tit?'Cambia in d’appoggio':'Cambia in titolare'}</button>`);
+      if(!tit)az.push(`<button class="btn btn-g sc-piccolo" onclick="tuCambiaRuolo('${i.id}',${k},'conduce')">Cambia in titolare</button>`); // v3.176 via "Cambia in d'appoggio"
     }
     const pres=i.presenza_inizio?` · ${scDH(i.presenza_inizio).slice(-5)}${i.presenza_fine?'–'+scDH(i.presenza_fine).slice(-5):''}`:'';
     const ruolo=v.tipo==='corso'?(()=>{const r=tuRuoloLez(i,v);return r.charAt(0).toUpperCase()+r.slice(1)})()+(i.compenso_tipo==='percentuale'?' · a percentuale':'')+(tuDentroCorso(i)?' · '+TU_DENTRO:'')+(i.da_piano?' · dal piano':'')
@@ -12143,7 +12144,7 @@ function tuApriVoce(k){
   /* v3.139 richiesta di supporto aperta sulla lezione del corso */
   const supp=v.tipo==='corso'&&v.req?`<div class="tu-supp-box">Supporto richiesto${v.req.chiesto_da?' da <b>'+escHtml(tuNome(v.req.chiesto_da))+'</b>':''}${v.req.note?': '+escHtml(v.req.note):''}
     ${puo?` <button class="btn btn-g sc-piccolo" onclick="tuAnnullaSupporto('${v.req.id}',${k})">Annulla richiesta</button>`:''}</div>`:'';
-  const dueTit=tuConTitolare(v)&&tuNTitolari(v)>tuTitPrevisti(v); // v3.171 · v3.175 solo se i titolari sono più dei previsti
+  const dueTit=false; // v3.176 via l'avviso sui titolari
   const conta=v.tipo==='corso'?(()=>{const{ni,na}=tuConta(v.seg,v);return ' · '+tuContaTesto(ni,na,v.imin,v.amin,true,v)})():` · richiesti ${v.richiesti}`;
   /* v3.163 doppio turno: solo creator e segreteria, solo se nella fascia c'e' gia' un monitor */
   const attivi=v.tipo==='monitor'?v.seg.filter(i=>i.stato==='previsto'||i.stato==='presente'):[];
