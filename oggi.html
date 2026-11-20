@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.67 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). In "I tuoi impegni · oggi": (1) il testo delle conferme TITOLARE / D'APPOGGIO non dice più "il titolare è uno solo: mettetevi d'accordo" (lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), i titolari sono due); (2) nelle Prime Lezioni e nella Lezione Privata Bambini l'istruttore pagato a ore non è più scritto "assistente". Nessuna modifica a DB. CUMULA v2.66. -->
 <!-- KC-BUILD: oggi v2.66 · 2026-11-18 · Proposta Open: carica /kc-proposta-open.js?v=1.2 (la riga per l'istruttore elenca le tre scelte; terza scelta 1 volta a settimana 215 € tutto insieme, stripe-worker v3.100). Nient'altro. CUMULA v2.65. -->
 <!-- KC-BUILD: oggi v2.65 · 2026-11-17 · PROPOSTA OPEN A FINE PRIMA LEZIONE (decisione Marco 17 nov, Project: ISTRUZIONI_ClaudeCode_proposta_open_tre_scelte_v2.md, Parte A). Scheda allievo: per chi ha fatto la Prima Lezione Adulti negli ultimi 14 giorni e non ha un corso, sotto lo stato del percorso compare il bottone "PROPOSTA OPEN" con la riga che guida l'istruttore. Toccandolo si apre a tutto schermo il codice QR della sua proposta (proposta-open.html?u=<persona_id>) da fargli inquadrare. Sotto il codice, "MANDA SU WHATSAPP" con lo stesso link gia' scritto per il numero dell'allievo. Carica /kc-proposta-open.js?v=1.1 (nuovo, lo stesso dell'Agenda, dove il bottone compare accanto a P/A appena si segna presente). Solo letture; nessuna modifica a DB. CUMULA v2.64. -->
 <!-- KC-BUILD: oggi v2.64 · 2026-11-17 · DA COPRIRE ALLINEATA: carica kc-da-coprire.js?v=1.6 (nei corsi Bambini, Ragazzi ed Evo Ragazzi, dal 1/11, "un istruttore d'appoggio" al posto di "un istruttore al posto dell'assistente"). Nient'altro cambia. Nessuna modifica a DB. CUMULA v2.63. -->
@@ -4285,7 +4286,7 @@ const IMP_RUOLO={conduce:'conduci',supporto:'supporto',monitor:'Sala con Monitor
 const IMP_CORSI_TITOLARE=['bambini','evo_ragazzi'];
 const impConTitolare=x=>x.tipo==='lezione'&&!!x.slot&&IMP_CORSI_TITOLARE.includes(x.slot.tipo_corso)&&String(x.data||'')>='2026-11-01';
 const impTitolare=x=>x.ruolo==='conduce'&&x.compenso_tipo!=='ora';
-const IMP_TESTO_RUOLI="Titolare: conduci tu la lezione, 15 € l'ora. D'appoggio: affianchi il titolare, 10 € l'ora. In ogni lezione il titolare è uno solo: mettetevi d'accordo.";
+const IMP_TESTO_RUOLI="Titolare: conduci la lezione, 15 € l'ora. D'appoggio: affianchi i titolari, 10 € l'ora. Lunedì e giovedì, nel Corso Bambini (6–11) e nel Corso Ragazzi (12–17), i titolari sono due. Nelle altre lezioni il titolare è uno solo."; // v2.67
 let impegniOggi=[];
 let _iniziaDaLink=false; // v2.57
 /* v2.57 (sql/monitor/13) apre il turno che vale adesso, per la stessa strada di INIZIO TURNO:
@@ -4437,7 +4438,7 @@ function disegnaImpegniOggi(){
     const cosa=x.tipo==='monitor'?'Sala con Monitor'
       :((x.slot&&(IMP_LEZ[x.slot.tipo_corso]||nomeLezioneSlot(x.slot)))||'Lezione')+(x.slot&&x.slot.ente?' · '+x.slot.ente:'');
     const istrTit=impConTitolare(x)&&/^staff_istruttore_/.test(pdata.staff_role||''); // v2.63
-    const ruolo=x.tipo==='lezione'?' · '+(istrTit?(impTitolare(x)?'titolare':'d’appoggio'):x.compenso_tipo==='ora'?'assistente':(IMP_RUOLO[x.ruolo]||x.ruolo)):'';
+    const ruolo=x.tipo==='lezione'?' · '+(istrTit?(impTitolare(x)?'titolare':'d’appoggio'):x.compenso_tipo==='ora'&&!(x.slot&&/^prima_lezione/.test(x.slot.tipo_corso||''))?'assistente':(IMP_RUOLO[x.ruolo]||x.ruolo)):''; // v2.67 Prime Lezioni: istruttore anche se a ore
     let stato='', btn='', ricorda='';
     /* v2.28: le lezioni si pagano solo con la presenza; finita senza presenza, SEGNA ADESSO prende il posto di SONO QUI */
     const dimenticata=x.tipo==='lezione' && x.stato==='previsto' && lezioneDimenticata(x);
