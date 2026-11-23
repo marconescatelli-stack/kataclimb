@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.178 · 2026-11-23 · EVO RAGAZZI CON TRE GIORNI (Marco 23 nov, richiesta di Claudia; DB evo_ragazzi_tre_giorni_310_2026_11_23). Scheda Abbonamento: se si spuntano tre giorni il portale lo dice al database (prima si fermava a due). Per il Corso Evo Ragazzi (12–17) l'importo consigliato con mercoledì + lunedì + giovedì diventa 310 a trimestre (265 + supplemento 15 al mese, Listini v1.5); con due giorni resta 265. Per tutti gli altri abbonamenti non cambia nulla. CUMULA v3.177. -->
 <!-- KC-BUILD: portale v3.177 · 2026-11-20 · DOPPIA SCADENZA: LEZIONI E SALA CON MONITOR (Marco 19-20 nov, DB sala_corso_doppia_scadenza_2026_11_20, Master v4.50). Fascicolo → 🎓 Percorso corsi: per Corso Advance, Intro Corda ed Evo Corda KataClimb le righe sono due, "Lezioni: scadono il …" e "Sala con Monitor inclusa: fino al …" (rossa se scaduta; "parte dalla prima presenza" se l'allievo non è ancora venuto). loadLeadIscrizioni legge sala_coperture per iscrizione_id (sola lettura). Il Corso Open KataClimb resta com'era. CUMULA v3.176 -->
 <!-- KC-BUILD: portale v3.176 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.175). Segreteria → 🗓 Turni: tolto "Cambia in d'appoggio" e tolto l'avviso sui titolari. Resta "Cambia in titolare" solo su un istruttore che risulta d'appoggio. Chi non può venire: Segna assente o Sostituisci. Nessuna modifica a DB. CUMULA v3.175. -->
 <!-- KC-BUILD: portale v3.175 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). Segreteria → 🗓 Turni. (1) L'avviso sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, e conta tra gli istruttori (prima "assistente" e "Istruttori 0/1"), anche in "Presenze da confermare"; come v_copertura_lezioni. Nessuna modifica a DB. CUMULA v3.174. -->
@@ -7149,7 +7150,7 @@ async function abbRicalcola(){
   const args={
     p_persona_id:abbPersonaId,
     p_tipo:tipo,
-    p_giorni_sett:n>=2?2:1,
+    p_giorni_sett:n>=3?3:(n>=2?2:1), // v3.178 — tre giorni: serve all'Evo Ragazzi (mercoledì + lunedì + giovedì)
     p_dal:abbDalEffettivo(es),
     p_al:abbAlManuale?alEl.value:null,
     p_familiare:abbFamiliareToccato?famEl.checked:null
