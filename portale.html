@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.179 · 2026-11-24 · SEGRETERIA: OPEN 1 VOLTA A SETTIMANA, INTERO (Marco 24 nov, segnalazione di Roberta; DB segreteria_voce_open_mono_2026_11_24). Registra pagamento → Corso → "Cosa ha pagato": nuova voce "Open · 1 volta/sett — intero + iscr." (215 €, 7 lezioni, 65 giorni). Il 18 nov la terza scelta era arrivata solo online; in segreteria mancava e l'intero finiva registrato come 2 volte a settimana (45 giorni). Nient'altro toccato. CUMULA v3.178. -->
 <!-- KC-BUILD: portale v3.178 · 2026-11-23 · EVO RAGAZZI CON TRE GIORNI (Marco 23 nov, richiesta di Claudia; DB evo_ragazzi_tre_giorni_310_2026_11_23). Scheda Abbonamento: se si spuntano tre giorni il portale lo dice al database (prima si fermava a due). Per il Corso Evo Ragazzi (12–17) l'importo consigliato con mercoledì + lunedì + giovedì diventa 310 a trimestre (265 + supplemento 15 al mese, Listini v1.5); con due giorni resta 265. Per tutti gli altri abbonamenti non cambia nulla. CUMULA v3.177. -->
 <!-- KC-BUILD: portale v3.177 · 2026-11-20 · DOPPIA SCADENZA: LEZIONI E SALA CON MONITOR (Marco 19-20 nov, DB sala_corso_doppia_scadenza_2026_11_20, Master v4.50). Fascicolo → 🎓 Percorso corsi: per Corso Advance, Intro Corda ed Evo Corda KataClimb le righe sono due, "Lezioni: scadono il …" e "Sala con Monitor inclusa: fino al …" (rossa se scaduta; "parte dalla prima presenza" se l'allievo non è ancora venuto). loadLeadIscrizioni legge sala_coperture per iscrizione_id (sola lettura). Il Corso Open KataClimb resta com'era. CUMULA v3.176 -->
 <!-- KC-BUILD: portale v3.176 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.175). Segreteria → 🗓 Turni: tolto "Cambia in d'appoggio" e tolto l'avviso sui titolari. Resta "Cambia in titolare" solo su un istruttore che risulta d'appoggio. Chi non può venire: Segna assente o Sostituisci. Nessuna modifica a DB. CUMULA v3.175. -->
@@ -2498,6 +2499,7 @@ fill="#1d4ed8" stroke="none">
       <optgroup label="Open · 7 lezioni">
         <option value="mezza1_open">Open · 1 volta/sett — 1ª rata + iscr.</option>
         <option value="mezza2_open">Open · 1 volta/sett — 2ª rata</option>
+        <option value="open_mono">Open · 1 volta/sett — intero + iscr.</option>
         <option value="open">Open · 2 volte/sett — intero + iscr.</option>
       </optgroup>
       <optgroup label="Advance · 8 lezioni">
