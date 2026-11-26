@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.181 · 2026-11-26 · SCHEDA PERSONA A TUTTA PAGINA SU TELEFONO (Marco 26 nov, Master v4.65). Solo aspetto, solo sotto i 768 px: in Comunità il profilo di un'altra persona si apre con foto grande quadrata (o iniziali grandi), nome e cognome a 24 px, badge sotto, livello a 17 px con la struttura sotto, barra del percorso a piena larghezza e scritta dello stadio a 14 px; "← Torna alla comunità" alto 44 px. Proprio profilo: foto 96 px, nome 20 px, stadio 14 px, barra senza il limite di 28 px. Card della lista: nome e stadio a 14 px. Blocco v3.56b: tolto un !important (stadio a 8 px), altri due ristretti per non toccare foto e nome delle due schede; nessun !important nuovo. Sopra i 768 px nulla cambia. CUMULA v3.180. -->
 <!-- KC-BUILD: portale v3.180 · 2026-11-26 · COMUNITA': BARRA DEL PERCORSO SENZA PAGAMENTI (Marco 26 nov, Master v4.60 §3 e v4.61). profiles_community si legge con l'elenco delle colonne che servono, senza i flag *_paid: lo stadio degli altri lo da' la nuova colonna step_percorso (quinta sorgente di calcolaStepDerivato). Il profilo proprio non cambia. CUMULA v3.179. -->
 <!-- KC-BUILD: portale v3.179 · 2026-11-24 · SEGRETERIA: OPEN 1 VOLTA A SETTIMANA, INTERO (Marco 24 nov, segnalazione di Roberta; DB segreteria_voce_open_mono_2026_11_24). Registra pagamento → Corso → "Cosa ha pagato": nuova voce "Open · 1 volta/sett — intero + iscr." (215 €, 7 lezioni, 65 giorni). Il 18 nov la terza scelta era arrivata solo online; in segreteria mancava e l'intero finiva registrato come 2 volte a settimana (45 giorni). Nient'altro toccato. CUMULA v3.178. -->
 <!-- KC-BUILD: portale v3.178 · 2026-11-23 · EVO RAGAZZI CON TRE GIORNI (Marco 23 nov, richiesta di Claudia; DB evo_ragazzi_tre_giorni_310_2026_11_23). Scheda Abbonamento: se si spuntano tre giorni il portale lo dice al database (prima si fermava a due). Per il Corso Evo Ragazzi (12–17) l'importo consigliato con mercoledì + lunedì + giovedì diventa 310 a trimestre (265 + supplemento 15 al mese, Listini v1.5); con due giorni resta 265. Per tutti gli altri abbonamenti non cambia nulla. CUMULA v3.177. -->
@@ -317,17 +318,17 @@ textarea.input{min-height:60px;resize:vertical}
 /* v3.56b — Profilo mobile: avatar/nome/badge ok in linea, resto dimezzato */
 @media(max-width:767px){
   /* avatar/nome/badge: dimensioni OK, badge IN LINEA accanto al nome */
-  .avatar{width:48px!important;height:48px!important;font-size:16px!important;border-width:2px!important}
+  /* v3.181 — tranne la foto del proprio profilo e quella della scheda pubblica: regole in "v3.181 — Scheda persona" */
+  .avatar:not(#my-avatar):not(.pub-foto){width:48px!important;height:48px!important;font-size:16px!important;border-width:2px!important}
   .profile-card{gap:10px!important;padding:0!important;align-items:center!important}
   .profile-name-row{flex-wrap:nowrap!important;gap:6px!important;margin-bottom:2px!important;align-items:center!important}
-  .profile-info h1{font-size:16px!important;margin-bottom:0!important}
+  .profile-info:not(#my-profile-info):not(.pub-info) h1{font-size:16px!important;margin-bottom:0!important}
   .rank-badge{width:30px!important;height:30px!important}
   .rank-badge.lg{width:32px!important;height:32px!important}
   /* card contenitore profilo: padding dimezzato */
   #my-profile-prog{padding:5px!important;margin-bottom:5px!important}
   #my-profile-card{margin-bottom:3px!important}
   #my-prog-card{padding-top:3px!important}
-  #my-prog-current{font-size:8px!important}
   /* timeline percorso dimezzata */
   .prog-svg{max-height:28px}
   /* stat row pill dimezzate */
@@ -434,6 +435,32 @@ textarea.input{min-height:60px;resize:vertical}
 .profile-level{display:flex;align-items:center;gap:5px;margin-bottom:5px}
 .profile-level .dot{width:6px;height:6px;border-radius:50%}
 .profile-level span{font-size:12.5px;color:var(--text2)}
+/* v3.181 — Scheda persona leggibile su telefono (Marco 26 nov, Master v4.65).
+   Sopra i 768 px resta tutto com'era: qui sotto solo le regole che prima erano inline. */
+.pub-info{margin-left:18px}
+#my-prog-current,#pub-prog-current{font-size:12px}
+@media(max-width:767px){
+  /* A. profilo di un'altra persona: foto, nome, livello e barra a tutta larghezza */
+  #pub-profile-detail .back-btn{min-height:44px;font-size:16px}
+  #pub-profile-card.pub-scheda{flex-direction:column;text-align:center}
+  #pub-profile-card .pub-foto{width:100%;height:auto;aspect-ratio:1/1;border-radius:var(--r);font-size:96px;border-width:0}
+  #pub-profile-card .pub-info{margin-left:0;width:100%}
+  #pub-profile-card .profile-name-row{flex-direction:column;justify-content:center}
+  #pub-profile-card .pub-info h1{font-size:24px;margin-bottom:0}
+  #pub-profile-card .profile-level{justify-content:center;align-items:flex-start;margin-top:8px}
+  #pub-profile-card .profile-level .dot{width:11px;height:11px;margin-top:6px;flex-shrink:0}
+  #pub-profile-card .profile-level>span{font-size:17px;font-weight:600;color:var(--text)}
+  #pub-profile-card .pub-sep{display:none}
+  #pub-profile-card .profile-level .pub-struttura{display:block;font-size:14px;font-weight:400;color:var(--text2);margin-top:2px}
+  #pub-prog-bar,#my-prog-bar{max-height:none}
+  #pub-prog-current,#my-prog-current{font-size:14px}
+  /* B. proprio profilo: non a tutta pagina, ma leggibile */
+  #my-avatar{width:96px;height:96px;font-size:30px;border-width:2px}
+  #my-profile-info h1{font-size:20px;margin-bottom:0}
+  #my-profile-info .profile-level span{font-size:14px}
+  /* C. card della lista Comunità: nome e stadio almeno 14 px (la minifoto e' gia' 48 px) */
+  .member-card .member-info .mn,.member-card .member-info .ml{font-size:14px}
+}
 
 /* ═══ TABS ═══ */
 .tabs{display:flex;gap:0;border:none;border-bottom:1px solid var(--border);background:transparent;margin-bottom:20px}
@@ -1577,7 +1604,7 @@ fill="#1d4ed8" stroke="none">
         <div id="my-foto-switch" class="rf-switch-wrap" style="display:none"></div>
         <div style="border-top:1px solid var(--border);padding-top:12px" id="my-prog-card">
           <svg class="prog-svg" id="my-prog-bar" viewBox="0 0 680 155"></svg>
-          <div id="my-prog-current" style="margin-top:4px;font-size:12px;font-weight:600;text-align:center"></div>
+          <div id="my-prog-current" style="margin-top:4px;font-weight:600;text-align:center"></div>
         </div>
         <!-- v3.56 Home Duolingo: hero card dinamica -->
         <div id="my-hero-card" class="my-hero-card" style="display:none"></div>
@@ -1653,10 +1680,10 @@ fill="#1d4ed8" stroke="none">
       <div id="pub-profile-detail" class="hidden">
         <button class="back-btn" onclick="closePubProfile()">← Torna alla comunità</button>
         <div class="card" style="margin-bottom:22px;padding-bottom:14px">
-          <div class="profile-card" style="margin-bottom:14px;padding:0" id="pub-profile-card"></div>
+          <div class="profile-card pub-scheda" style="margin-bottom:14px;padding:0" id="pub-profile-card"></div>
           <div style="border-top:1px solid var(--border);padding-top:12px" id="pub-prog-card">
             <svg class="prog-svg" id="pub-prog-bar" viewBox="0 0 680 155"></svg>
-            <div id="pub-prog-current" style="margin-top:4px;font-size:12px;font-weight:600;text-align:center"></div>
+            <div id="pub-prog-current" style="margin-top:4px;font-weight:600;text-align:center"></div>
           </div>
         </div>
         <div class="sec-tog" style="margin-bottom:16px">
@@ -10067,10 +10094,10 @@ async function showPubProfile(idx){
   // §v3.125 — sulla propria card niente "Gestisci badge": nessuno si assegna i badge da solo, neanche il creator.
   const editBtn = (canAssignBadges() && !m._isMe) ? `<button onclick="openBadgesEditor(communityMembers&&communityMembers[${idx}]||DEMO_COMMUNITY[${idx}])" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--text2);font-family:var(--font);margin-top:6px">🎖 Gestisci badge</button>` : '';
   document.getElementById('pub-profile-card').innerHTML=`
-    <div class="avatar">${m.foto_url?`<img src="${m.foto_url}" alt="foto">`:ini}</div>
-    <div class="profile-info" style="margin-left:18px">
+    <div class="avatar pub-foto">${m.foto_url?`<img src="${m.foto_url}" alt="foto">`:ini}</div>
+    <div class="profile-info pub-info">
       <div class="profile-name-row"><h1>${m.nome} <em>${m.cognome}</em></h1>${rankBadgesHtml(m,'lg')}</div>
-      <div class="profile-level"><div class="dot" style="background:${si.color}"></div><span>${si.label}${m.struttura?' · '+m.struttura:''}</span></div>
+      <div class="profile-level"><div class="dot" style="background:${si.color}"></div><span>${si.label}${m.struttura?`<span class="pub-sep"> · </span><span class="pub-struttura">${m.struttura}</span>`:''}</span></div>
       ${editBtn}
     </div>`;
 
