@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.182 · 2026-11-26 · LA SCHEDA NON BALLA PIU' SU TELEFONO (Marco 26 nov da iPhone: "balla nello schermo"). Sotto i 768 px le linguette Kata / Logbook / Certificazioni (.sec-tog, non la barra di navigazione) passano da 18 a 14 px con meno margine: prima chiedevano 365 px e su iPhone ne restano 343-358, quindi la pagina scorreva di lato. Difetto gia' presente nella v3.180, non nato con la v3.181. Solo CSS, sopra i 768 px nulla cambia. CUMULA v3.181. -->
 <!-- KC-BUILD: portale v3.181 · 2026-11-26 · SCHEDA PERSONA A TUTTA PAGINA SU TELEFONO (Marco 26 nov, Master v4.65). Solo aspetto, solo sotto i 768 px: in Comunità il profilo di un'altra persona si apre con foto grande quadrata (o iniziali grandi), nome e cognome a 24 px, badge sotto, livello a 17 px con la struttura sotto, barra del percorso a piena larghezza e scritta dello stadio a 14 px; "← Torna alla comunità" alto 44 px. Proprio profilo: foto 96 px, nome 20 px, stadio 14 px, barra senza il limite di 28 px. Card della lista: nome e stadio a 14 px. Blocco v3.56b: tolto un !important (stadio a 8 px), altri due ristretti per non toccare foto e nome delle due schede; nessun !important nuovo. Sopra i 768 px nulla cambia. CUMULA v3.180. -->
 <!-- KC-BUILD: portale v3.180 · 2026-11-26 · COMUNITA': BARRA DEL PERCORSO SENZA PAGAMENTI (Marco 26 nov, Master v4.60 §3 e v4.61). profiles_community si legge con l'elenco delle colonne che servono, senza i flag *_paid: lo stadio degli altri lo da' la nuova colonna step_percorso (quinta sorgente di calcolaStepDerivato). Il profilo proprio non cambia. CUMULA v3.179. -->
 <!-- KC-BUILD: portale v3.179 · 2026-11-24 · SEGRETERIA: OPEN 1 VOLTA A SETTIMANA, INTERO (Marco 24 nov, segnalazione di Roberta; DB segreteria_voce_open_mono_2026_11_24). Registra pagamento → Corso → "Cosa ha pagato": nuova voce "Open · 1 volta/sett — intero + iscr." (215 €, 7 lezioni, 65 giorni). Il 18 nov la terza scelta era arrivata solo online; in segreteria mancava e l'intero finiva registrato come 2 volte a settimana (45 giorni). Nient'altro toccato. CUMULA v3.178. -->
@@ -460,6 +461,9 @@ textarea.input{min-height:60px;resize:vertical}
   #my-profile-info .profile-level span{font-size:14px}
   /* C. card della lista Comunità: nome e stadio almeno 14 px (la minifoto e' gia' 48 px) */
   .member-card .member-info .mn,.member-card .member-info .ml{font-size:14px}
+  /* v3.182 — D. le tre linguette Kata / Logbook / Certificazioni devono stare nello schermo:
+     a 18 px servivano 365 px e su iPhone ne restano 343-358, la pagina scorreva di lato ("balla"). */
+  .sec-tog:not(.nav-main) button{font-size:14px;padding:14px 2px;gap:4px;min-width:0;white-space:nowrap}
 }
 
 /* ═══ TABS ═══ */
