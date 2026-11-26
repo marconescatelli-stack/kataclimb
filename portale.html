@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.180 · 2026-11-26 · COMUNITA': BARRA DEL PERCORSO SENZA PAGAMENTI (Marco 26 nov, Master v4.60 §3 e v4.61). profiles_community si legge con l'elenco delle colonne che servono, senza i flag *_paid: lo stadio degli altri lo da' la nuova colonna step_percorso (quinta sorgente di calcolaStepDerivato). Il profilo proprio non cambia. CUMULA v3.179. -->
 <!-- KC-BUILD: portale v3.179 · 2026-11-24 · SEGRETERIA: OPEN 1 VOLTA A SETTIMANA, INTERO (Marco 24 nov, segnalazione di Roberta; DB segreteria_voce_open_mono_2026_11_24). Registra pagamento → Corso → "Cosa ha pagato": nuova voce "Open · 1 volta/sett — intero + iscr." (215 €, 7 lezioni, 65 giorni). Il 18 nov la terza scelta era arrivata solo online; in segreteria mancava e l'intero finiva registrato come 2 volte a settimana (45 giorni). Nient'altro toccato. CUMULA v3.178. -->
 <!-- KC-BUILD: portale v3.178 · 2026-11-23 · EVO RAGAZZI CON TRE GIORNI (Marco 23 nov, richiesta di Claudia; DB evo_ragazzi_tre_giorni_310_2026_11_23). Scheda Abbonamento: se si spuntano tre giorni il portale lo dice al database (prima si fermava a due). Per il Corso Evo Ragazzi (12–17) l'importo consigliato con mercoledì + lunedì + giovedì diventa 310 a trimestre (265 + supplemento 15 al mese, Listini v1.5); con due giorni resta 265. Per tutti gli altri abbonamenti non cambia nulla. CUMULA v3.177. -->
 <!-- KC-BUILD: portale v3.177 · 2026-11-20 · DOPPIA SCADENZA: LEZIONI E SALA CON MONITOR (Marco 19-20 nov, DB sala_corso_doppia_scadenza_2026_11_20, Master v4.50). Fascicolo → 🎓 Percorso corsi: per Corso Advance, Intro Corda ed Evo Corda KataClimb le righe sono due, "Lezioni: scadono il …" e "Sala con Monitor inclusa: fino al …" (rossa se scaduta; "parte dalla prima presenza" se l'allievo non è ancora venuto). loadLeadIscrizioni legge sala_coperture per iscrizione_id (sola lettura). Il Corso Open KataClimb resta com'era. CUMULA v3.176 -->
@@ -4363,7 +4364,10 @@ async function loadAll(){
   // Chiusa la falla recapiti: i dati sensibili non arrivano più al browser degli utenti.
   // §v3.125 — niente piu' .neq('user_id',user.id): ognuno si vede in Comunita', segnato "Tu" (_isMe).
   // v3.134 — Scuole F1: i referenti delle scuole non sono allievi, in Comunita' non compaiono.
-  const{data:members}=await sb.from('profiles_community').select('*').neq('role','referente_scuola');
+  // v3.180 — solo le colonne che servono: niente flag *_paid (dati di pagamento degli altri).
+  const{data:members}=await sb.from('profiles_community')
+    .select('user_id,nome,cognome,foto_url,step,struttura,kata_certs,badges,role,corso_attivo,prima_done,step_percorso')
+    .neq('role','referente_scuola');
   const memberIds=(members||[]).map(m=>m.user_id);
   let prenotMapByUser={};
   if(memberIds.length){
@@ -4384,10 +4388,9 @@ async function loadAll(){
       nome:m.nome,cognome:m.cognome,step:m.step,struttura:m.struttura,user_id:m.user_id,
       kata_certs:m.kata_certs||{},badges:m.badges||[],role:m.role,foto_url:m.foto_url,
       // §v3.52 — campi corso direttamente da view profiles (Trappola #110 chiusa)
-      prima_paid:m.prima_paid,prima_done:m.prima_done,corso_attivo:m.corso_attivo,
-      iscrizione_paid:m.iscrizione_paid,
-      acconto_open_paid:m.acconto_open_paid,meta_open_paid:m.meta_open_paid,
-      advance_paid:m.advance_paid,intro_paid:m.intro_paid,evo_paid:m.evo_paid,
+      prima_done:m.prima_done,corso_attivo:m.corso_attivo,
+      // v3.180 — i flag *_paid non arrivano piu': lo stadio lo da' step_percorso, calcolato dal database
+      step_percorso:m.step_percorso,
       // DEBITO-190: i quattro *_lezioni_residue stavano qui ma non li leggeva
       // nessuno — calcolaStepDerivato usa flag e presenze, non i contatori.
       // storico presenze (v3.42e) — usato da calcolaStepDerivato e sub-pallini
@@ -4457,8 +4460,10 @@ function calcolaStepDerivato(p,prenotPC){
   // 4) p.step DB — fallback SOLO per ruoli alti (step >=6: Lavorato in su)
   //    Per allievi (1-5) il campo è ignorato: fonte di verità sono i 3 sopra.
   const dbStepAltiRuoli=(typeof p.step==='number'&&p.step>=6&&p.step<STEPS.length)?p.step:0;
+  // 5) step_percorso — calcolato dal database (membri della Comunità: i flag *_paid non arrivano più)
+  const stepDaDb=(typeof p.step_percorso==='number'&&p.step_percorso>=0&&p.step_percorso<STEPS.length)?p.step_percorso:0;
   // Vince la sorgente più alta tra tutte
-  return Math.max(stepDaCorsoAttivo,stepDaPresenze,stepDaPaid,dbStepAltiRuoli);
+  return Math.max(stepDaCorsoAttivo,stepDaPresenze,stepDaPaid,dbStepAltiRuoli,stepDaDb);
 }
 
 /* v3.42c — Calcola i sub-pallini lezione-per-lezione per il corso ATTIVO.
