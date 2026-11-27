@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.120 · 2026-11-27 · CORSO GIOVANI KATACLIMB (18–24): ABBONATI IN ELENCO PER LA PRESENZA (Marco 27 nov, richiesta di Roberta; chiude il sospeso di Master v4.77 §4). Nella lezione del giovedì del Corso Giovani KataClimb (18–24) lo staff rivede gli abbonati Giovani collegati alla lezione (iscrizioni_minori_slot, stessa RPC get_iscritti_minori) con tag "Abbonato" e i tasti "✓ Presente" / "✗ Assente" di v3.119 (marca_presenza_abbonato). Chi quella sera ha già una prenotazione fatta con l'abbonamento (abbonamento_id) compare una volta sola, nella riga della prenotazione. Fuori dal conteggio dei posti, come gli altri abbonati adulti. Vista allievo, prenotazione della settimana, Open e Advance invariati. Nessuna modifica al DB. CUMULA v3.119. -->
 <!-- KC-BUILD: agenda v3.119 · 2026-11-26 · PRESENTE / ASSENTE PER ISCRITTI E ABBONATI (Marco 26 nov, richiesta di Roberta; DB marca_presenza_abbonato e get_presenze_abbonati, Master v4.75). Corso Bambini (6–11), Corso Ragazzi (12–17), Corso Evo Ragazzi, Corso Expert, Corso Genitori KataClimb, Corso Senior KataClimb, Fly: accanto a ogni Iscritto e Abbonato, per tutto lo staff, sulle lezioni di oggi o passate, tasti "✓ Presente" e "✗ Assente"; gia' segnata: etichetta verde o rossa con "Cambia" (Presente, Assente, Togli il segno). Lezione futura: nessun tasto. Sotto l'elenco "Presenti · Assenti · Da segnare". Presenze lette con get_presenze_abbonati sulla settimana a schermo (date locali), scritte solo con marca_presenza_abbonato; errori del DB mostrati cosi' come sono. Solo registro: scadenze, pagamenti e contatori non si toccano. Il vecchio ✗ "Termina iscrizione" diventa la scritta "Termina iscrizione" in fondo alla riga, stessa conferma e stessa RPC. Corso Giovani KataClimb, vista allievo, posti occupati, "+ Iscrivi minore", "+ Prenota allievo", riga Staff e appello sulle prenotazioni invariati. -->
 <!-- KC-BUILD: agenda v3.118 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.117). Riga Staff: tolto il bottone CAMBIA IN D'APPOGGIO e tolto l'avviso arancio sui titolari. Resta CAMBIA IN TITOLARE, solo per la segreteria e solo su un istruttore che risulta d'appoggio. Chi non può venire: ASSENTE o SOSTITUISCI. Nessuna modifica a DB. CUMULA v3.117. -->
 <!-- KC-BUILD: agenda v3.117 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). (1) Riga Staff: l'avviso arancio sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (slot_copertura.istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, non "assistente" (come v_copertura_lezioni). Nessuna modifica a DB. CUMULA v3.116. -->
@@ -1979,7 +1980,7 @@
       // v3.83 — iscritti fissi minori (iscrizioni_minori): un solo RPC, mappa per slot_id
       iscrittiMinori = {};
       presenzeAbb = {}; presAbbAperti.clear(); // v3.119 — si ricaricano a ogni settimana
-      if (isStaff() && slots.some(x => MINORI_ISCRITTI_TIPI.includes(x.tipo_corso) || ADULTI_ABBONATI_TIPI.includes(x.tipo_corso))) { // v3.96 — anche abbonati adulti
+      if (isStaff() && slots.some(x => MINORI_ISCRITTI_TIPI.includes(x.tipo_corso) || ADULTI_ABBONATI_TIPI.includes(x.tipo_corso) || x.tipo_corso === 'giovani')) { // v3.120 — anche Giovani // v3.96 — anche abbonati adulti
         const [{ data: im, error: imErr }, rPres] = await Promise.all([
           sb.rpc('get_iscritti_minori'),
           sb.rpc('get_presenze_abbonati', { p_dal: isoD(lun), p_al: isoD(dom) }) // v3.119 — date locali, mai toISOString (trappola 134)
@@ -2192,7 +2193,10 @@
     // v3.83 — slot minori: gli iscritti fissi occupano posti insieme alle prenotazioni del giorno
     const iscrittiSlot = MINORI_ISCRITTI_TIPI.includes(tipoEff) ? (iscrittiMinori[s.id] || []) : [];
     // v3.96 — abbonati adulti: solo elenco, fuori dal conteggio occupati (comportamento slot invariato)
-    const abbonatiSlot = ADULTI_ABBONATI_TIPI.includes(tipoEff) ? (iscrittiMinori[s.id] || []) : [];
+    const abbonatiSlot = ADULTI_ABBONATI_TIPI.includes(tipoEff) ? (iscrittiMinori[s.id] || [])
+      // v3.120 — Corso Giovani KataClimb (18–24): abbonati collegati alla lezione, meno chi ha già la prenotazione di quella sera con l'abbonamento
+      : tipoEff === 'giovani' ? (iscrittiMinori[s.id] || []).filter(r => !prenotAttive.some(p => p.abbonamento_id === r.iscrizione_id))
+      : [];
     const occupati = prenotAttive.length + iscrittiSlot.length;
     // §v3.52 — Allievo vede /max reale (10), staff anche /max. Target resta solo per logica interna staff.
     // v3.83 — chiusa NOTA APERTA v3.75: famiglia Prima e corsi minori usano la capienza DELLO SLOT
