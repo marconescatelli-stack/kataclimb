@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- KC-BUILD: agenda v3.119 · 2026-11-26 · PRESENTE / ASSENTE PER ISCRITTI E ABBONATI (Marco 26 nov, richiesta di Roberta; DB marca_presenza_abbonato e get_presenze_abbonati, Master v4.75). Corso Bambini (6–11), Corso Ragazzi (12–17), Corso Evo Ragazzi, Corso Expert, Corso Genitori KataClimb, Corso Senior KataClimb, Fly: accanto a ogni Iscritto e Abbonato, per tutto lo staff, sulle lezioni di oggi o passate, tasti "✓ Presente" e "✗ Assente"; gia' segnata: etichetta verde o rossa con "Cambia" (Presente, Assente, Togli il segno). Lezione futura: nessun tasto. Sotto l'elenco "Presenti · Assenti · Da segnare". Presenze lette con get_presenze_abbonati sulla settimana a schermo (date locali), scritte solo con marca_presenza_abbonato; errori del DB mostrati cosi' come sono. Solo registro: scadenze, pagamenti e contatori non si toccano. Il vecchio ✗ "Termina iscrizione" diventa la scritta "Termina iscrizione" in fondo alla riga, stessa conferma e stessa RPC. Corso Giovani KataClimb, vista allievo, posti occupati, "+ Iscrivi minore", "+ Prenota allievo", riga Staff e appello sulle prenotazioni invariati. -->
 <!-- KC-BUILD: agenda v3.118 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v3.117). Riga Staff: tolto il bottone CAMBIA IN D'APPOGGIO e tolto l'avviso arancio sui titolari. Resta CAMBIA IN TITOLARE, solo per la segreteria e solo su un istruttore che risulta d'appoggio. Chi non può venire: ASSENTE o SOSTITUISCI. Nessuna modifica a DB. CUMULA v3.117. -->
 <!-- KC-BUILD: agenda v3.117 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). (1) Riga Staff: l'avviso arancio sui titolari esce solo se i titolari sono più di quanti ne prevede la lezione (slot_copertura.istruttori_min dal 19/11: lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), due titolari a 15 € l'ora senza avviso); testo "Titolari N, previsti M". (2) Prime Lezioni e Lezione Privata Bambini: chi è segnato è "istruttore" anche se pagato a ore, non "assistente" (come v_copertura_lezioni). Nessuna modifica a DB. CUMULA v3.116. -->
 <!-- KC-BUILD: agenda v3.116 · 2026-11-19 · ORARI CHIUSI NON IN AGENDA (segnalazione Roberta 19 nov: "Evo e Open negli stessi orari di mercoledì e venerdì"). Con lo scambio temporaneo Open / Evo (Master v4.42) gli orari di prima sono chiusi per data in slot_chiusure e i nuovi sono accanto: la griglia della settimana non leggeva slot_chiusure e li mostrava tutti e due. Ora render() legge le chiusure della settimana e salta gli orari di Open, Advance, Intro Corda ed Evo Corda chiusi in quella data e SENZA prenotati (chi è prenotato resta sempre visibile). Vale per tutte le viste che passano da render(): corso singolo, Tutti i corsi, allievo. Prime Lezioni, minori, monitor, scuole e feste invariati. Nessuna scrittura, nessuna modifica al DB. Nient'altro toccato. -->
@@ -264,6 +265,16 @@
   .pa-btn.po-btn { background:#0A0A0A; color:#fff; border-color:#0A0A0A; white-space:nowrap; padding:.3rem .55rem; }
   .pa-btn.attivo-p { background:var(--ok); color:#fff; border-color:var(--ok); }
   .pa-btn.attivo-a { background:var(--warn); color:#fff; border-color:var(--warn); }
+  /* v3.119 — presente/assente per iscritti e abbonati: stessi tasti dell'appello, piu' comodi da toccare */
+  .pr-abb { display:inline-flex; align-items:center; gap:.35rem; flex-wrap:wrap; }
+  .pr-abb .pa-btn { min-height:36px; padding:.3rem .7rem; font-size:14px; white-space:nowrap; }
+  .pr-abb .pa-btn:disabled { opacity:.5; cursor:wait; }
+  .pr-abb .stato-label { padding:.3rem .6rem; }
+  .pr-abb .pr-cambia { min-height:32px; padding:.2rem .6rem; font-size:13px; font-weight:600; }
+  .btn-termina { background:none; border:none; padding:.3rem .2rem; min-height:32px; font-family:inherit; font-size:13px;
+                 font-weight:600; color:var(--muted); text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .btn-termina:hover { color:var(--warn); }
+  .pr-riep { margin-top:.4rem; font-size:13px; font-weight:700; color:var(--ink); }
 
   .empty,.err { background:var(--card); padding:2.3rem; text-align:center; border-radius:12px;
                 color:var(--muted); font-size:15.5px; font-weight:600; }
@@ -811,6 +822,9 @@
     return `Corso Giovani KataClimb (18–24) · abbonamento fino al ${ggmmIso(giovaniAbb.al)} · ${sett}`;
   }
   let iscrittiMinori = {}; // slot_id -> [{iscrizione_id, persona_id, nome, cognome, paid, data_fine}]
+  // v3.119 — presenze di iscritti e abbonati (get_presenze_abbonati, solo staff), chiave iscrizione_id|slot_id|data
+  let presenzeAbb = {};
+  const presAbbAperti = new Set(); // righe gia' segnate su cui si e' toccato "Cambia"
 
   const TIPO_LABELS = {
     prima_lezione: { label: 'Prima Lezione Adulti', color: 'var(--prima)' },
@@ -1964,10 +1978,16 @@
 
       // v3.83 — iscritti fissi minori (iscrizioni_minori): un solo RPC, mappa per slot_id
       iscrittiMinori = {};
+      presenzeAbb = {}; presAbbAperti.clear(); // v3.119 — si ricaricano a ogni settimana
       if (isStaff() && slots.some(x => MINORI_ISCRITTI_TIPI.includes(x.tipo_corso) || ADULTI_ABBONATI_TIPI.includes(x.tipo_corso))) { // v3.96 — anche abbonati adulti
-        const { data: im, error: imErr } = await sb.rpc('get_iscritti_minori');
+        const [{ data: im, error: imErr }, rPres] = await Promise.all([
+          sb.rpc('get_iscritti_minori'),
+          sb.rpc('get_presenze_abbonati', { p_dal: isoD(lun), p_al: isoD(dom) }) // v3.119 — date locali, mai toISOString (trappola 134)
+        ]);
         if (imErr) console.warn('[iscrittiMinori]', imErr.message);
         else for (const r of (im || [])) (iscrittiMinori[r.slot_id] = iscrittiMinori[r.slot_id] || []).push(r);
+        if (rPres.error) console.warn('[presenzeAbb]', rPres.error.message);
+        else for (const r of (rPres.data || [])) presenzeAbb[presAbbChiave(r.iscrizione_id, r.slot_id, String(r.data_lezione).slice(0, 10))] = r;
       }
 
       const now = new Date();
@@ -2015,6 +2035,7 @@
       avvisoSettimanaSenzaPrenotabili(grid, lezioni, now); // v3.98 — vista allievo
 
       bindSlotEvents(lezioni, cfg);
+      bindPresAbb(); // v3.119 — una volta sola, per delega sulla griglia
       bindTurni(); // v3.99 — 7b
       bindStaff(); // v3.103
       idrataNomi(); // v3.95 foto + v3.109 tocco sui nomi — async, non blocca: se fallisce restano iniziali e nomi senza tocco
@@ -2225,20 +2246,25 @@
     } else {
       // Istruttore/Segreteria: lista nomi
       // v3.83 — iscritti fissi dei corsi minori: elenco in cima, tag "Iscritto"
+      // v3.119 — presente/assente: lezione di oggi o passata, tutto lo staff. "Termina iscrizione" in fondo, per esteso.
+      const segnaAbb = isStaff() && dataIso <= isoD(new Date());
+      const chiaviAbb = segnaAbb ? [...iscrittiSlot, ...abbonatiSlot].map(r => presAbbChiave(r.iscrizione_id, s.id, dataIso)) : [];
+      const presAbb = r => segnaAbb ? presAbbBoxHtml(r.iscrizione_id, s.id, dataIso) : '';
       const itemsIscritti = iscrittiSlot.map(r => {
         const nomeCompleto = ((r.nome || '') + ' ' + (r.cognome || '')).trim() || '—';
         const rm = isStaffCompleto()
-          ? `<div class="pa-buttons"><button class="pa-btn" data-iscr="${r.iscrizione_id}" data-iscr-nome="${escAttr(nomeCompleto)}" title="Termina iscrizione">\u2717</button></div>`
+          ? `<button type="button" class="btn-termina" data-iscr="${r.iscrizione_id}" data-iscr-nome="${escAttr(nomeCompleto)}">Termina iscrizione</button>`
           : '';
-        return `<li><span class="nome" ${kpAttr({ pid: r.persona_id })}>${nomeCompleto} <span class="stage-tag">Iscritto</span></span>${rm}</li>`;
+        return `<li><span class="nome" ${kpAttr({ pid: r.persona_id })}>${nomeCompleto} <span class="stage-tag">Iscritto</span></span>${presAbb(r)}${rm}</li>`;
       }).join('') + abbonatiSlot.map(r => {
         const nomeCompleto = ((r.nome || '') + ' ' + (r.cognome || '')).trim() || '—';
-        return `<li><span class="nome" ${kpAttr({ pid: r.persona_id })}>${escAttr(nomeCompleto)} <span class="stage-tag">Abbonato</span></span></li>`;
+        return `<li><span class="nome" ${kpAttr({ pid: r.persona_id })}>${escAttr(nomeCompleto)} <span class="stage-tag">Abbonato</span></span>${presAbb(r)}</li>`;
       }).join('');
+      const riepAbb = chiaviAbb.length ? `<div class="pr-riep">${presAbbRiepilogo(chiaviAbb)}</div>` : '';
       if (prenotAttive.length === 0 && !itemsIscritti) {
         colPrenot = `<div class="prenot"><em>Nessun iscritto</em></div>`;
       } else if (prenotAttive.length === 0) {
-        colPrenot = `<div class="prenot"><ul>${itemsIscritti}</ul></div>`;
+        colPrenot = `<div class="prenot"><ul>${itemsIscritti}</ul>${riepAbb}</div>`;
       } else {
         const items = prenotAttive.map(p => {
           // v3.102 — Corso Manovra in Sosta KataClimb: solo nome ed esito, nessun bottone (si gestisce in Segreteria)
@@ -2314,7 +2340,7 @@
             : '';
           return `<li>${fotoHtml}<span class="nome" ${nomeAttr}>${escAttr(nome)} ${stageTag}</span>${paHtml}${sposterHtml}</li>`; // v3.99 — escape: i nomi dei ragazzi delle scuole li scrive la scuola
         }).join('');
-        colPrenot = `<div class="prenot"><ul>${itemsIscritti}${items}</ul></div>`;
+        colPrenot = `<div class="prenot"><ul>${itemsIscritti}${items}</ul>${riepAbb}</div>`;
       }
     }
 
@@ -2889,6 +2915,71 @@
     return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   }
 
+  /* ===== v3.119 — PRESENTE / ASSENTE PER ISCRITTI E ABBONATI (Marco 26 nov, richiesta di Roberta) =====
+     Corsi con iscritti fissi o abbonamento (Bambini 6–11, Ragazzi 12–17, Evo Ragazzi, Expert, Genitori, Senior, Fly).
+     Solo registro: scrive solo marca_presenza_abbonato, scadenze/pagamenti/contatori non si toccano.
+     Lezione futura: niente tasti (il DB comunque le rifiuta). Errori del DB mostrati cosi' come sono.
+     Al clic si ridisegna solo quella riga e il riepilogo di quella lezione. */
+  function presAbbChiave(iscr, slot, data) { return iscr + '|' + slot + '|' + data; }
+  function presAbbInner(k) {
+    const r = presenzeAbb[k], stato = r && r.stato;
+    if (stato && !presAbbAperti.has(k)) {
+      const chi = r.segnata_da_nome ? ' title="Segnato da ' + escAttr(r.segnata_da_nome) + '"' : '';
+      const lab = stato === 'presente' ? '<span class="stato-label presente"' + chi + '>✓ Presente</span>'
+                                       : '<span class="stato-label assente"' + chi + '>✗ Assente</span>';
+      return lab + '<button type="button" class="pa-btn pr-cambia" data-pr="cambia">Cambia</button>';
+    }
+    let h = `<button type="button" class="pa-btn${stato === 'presente' ? ' attivo-p' : ''}" data-pr="presente">✓ Presente</button>`
+          + `<button type="button" class="pa-btn${stato === 'assente' ? ' attivo-a' : ''}" data-pr="assente">✗ Assente</button>`;
+    if (stato) h += '<button type="button" class="pa-btn" data-pr="togli">Togli il segno</button>';
+    return h;
+  }
+  function presAbbBoxHtml(iscr, slot, data) {
+    const k = presAbbChiave(iscr, slot, data);
+    return `<span class="pr-abb" data-pa-iscr="${escAttr(iscr)}" data-pa-slot="${escAttr(slot)}" data-pa-data="${escAttr(data)}">${presAbbInner(k)}</span>`;
+  }
+  function presAbbRiepilogo(chiavi) {
+    let p = 0, a = 0;
+    chiavi.forEach(k => { const st = presenzeAbb[k] && presenzeAbb[k].stato; if (st === 'presente') p++; else if (st === 'assente') a++; });
+    return `Presenti ${p} · Assenti ${a} · Da segnare ${chiavi.length - p - a}`;
+  }
+  async function onPresAbb(btn) {
+    const box = btn.closest('.pr-abb'); if (!box) return;
+    const { paIscr, paSlot, paData } = box.dataset, k = presAbbChiave(paIscr, paSlot, paData), az = btn.dataset.pr;
+    const ridisegna = () => {
+      box.innerHTML = presAbbInner(k);
+      const prenot = box.closest('.prenot'), riep = prenot && prenot.querySelector('.pr-riep');
+      if (riep) riep.textContent = presAbbRiepilogo([...prenot.querySelectorAll('.pr-abb')]
+        .map(b => presAbbChiave(b.dataset.paIscr, b.dataset.paSlot, b.dataset.paData)));
+    };
+    if (az === 'cambia') { presAbbAperti.add(k); ridisegna(); return; }
+    box.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    try {
+      const { data, error } = await sb.rpc('marca_presenza_abbonato', { p_iscrizione_id: paIscr, p_slot_id: paSlot, p_data: paData, p_stato: az });
+      if (error) throw error;
+      if (az === 'togli' || !(data && data.stato)) delete presenzeAbb[k];
+      else presenzeAbb[k] = { ...(presenzeAbb[k] || {}), iscrizione_id: paIscr, slot_id: paSlot, data_lezione: paData,
+                              stato: data.stato, segnata_da_nome: '' }; // chi ha segnato torna dal DB al prossimo caricamento
+      presAbbAperti.delete(k);
+      ridisegna();
+    } catch (e) {
+      toast((e && e.message) || String(e), true);
+      box.querySelectorAll('button').forEach(b => { b.disabled = false; });
+    }
+  }
+  let presAbbLegato = false;
+  function bindPresAbb() {
+    if (presAbbLegato) return;
+    const grid = document.getElementById('grid'); if (!grid) return;
+    grid.addEventListener('click', ev => {
+      const b = ev.target.closest('.pr-abb button[data-pr]');
+      if (!b || b.disabled) return;
+      ev.stopPropagation();
+      onPresAbb(b);
+    });
+    presAbbLegato = true;
+  }
+
   function bindSlotEvents(lezioni, cfg) {
     // Prenota allievo (Open/Advance/Intro/Evo) — vista allievo
     document.querySelectorAll('.btn-prenota:not(.btn-lead):not(.btn-allievo):not(.btn-iscrivi)').forEach(b => {
@@ -2903,7 +2994,7 @@
       b.onclick = () => apriIscriviPicker(b.dataset.slot, b.dataset.tipoSlot, b.dataset.label);
     });
     // v3.84 — Termina iscrizione minore (solo segreteria, con conferma)
-    document.querySelectorAll('.pa-btn[data-iscr]').forEach(b => {
+    document.querySelectorAll('.btn-termina[data-iscr]').forEach(b => { // v3.119 — scritta in fondo alla riga, stessa conferma
       b.onclick = async () => {
         if (!confirm(`Terminare l'iscrizione di ${b.dataset.iscrNome}? Il posto si libera subito.`)) return;
         const { error } = await sb.rpc('imposta_status_iscrizione_minore', { p_iscrizione_id: b.dataset.iscr, p_status: 'terminata' });
