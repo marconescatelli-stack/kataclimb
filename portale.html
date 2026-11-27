@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.183 · 2026-11-27 · LE MIE SETTIMANE (Marco 27 nov, caso Emanuele Drizzi, "lo farei per tutti"; DB le_mie_settimane_2026_11_27, kc-settimane.js v1.0, Master v4.80). Nel profilo, sopra "Il mio percorso", il riquadro "Le mie settimane": una riga per settimana (lunedì–domenica, dalla settimana in corso indietro, al massimo 8) con le lezioni (giorno, corso per esteso, ora, presente / assente / prenotata) e i giorni di Sala con Monitor. Solo nel proprio profilo. Tutto calcolato da prenotazioni, presenze segnate e turni del monitor: nessun numero salvato. Lo staff senza lezioni non vede il riquadro. CUMULA v3.182. -->
 <!-- KC-BUILD: portale v3.182 · 2026-11-26 · LA SCHEDA NON BALLA PIU' SU TELEFONO (Marco 26 nov da iPhone: "balla nello schermo"). Sotto i 768 px le linguette Kata / Logbook / Certificazioni (.sec-tog, non la barra di navigazione) passano da 18 a 14 px con meno margine: prima chiedevano 365 px e su iPhone ne restano 343-358, quindi la pagina scorreva di lato. Difetto gia' presente nella v3.180, non nato con la v3.181. Solo CSS, sopra i 768 px nulla cambia. CUMULA v3.181. -->
 <!-- KC-BUILD: portale v3.181 · 2026-11-26 · SCHEDA PERSONA A TUTTA PAGINA SU TELEFONO (Marco 26 nov, Master v4.65). Solo aspetto, solo sotto i 768 px: in Comunità il profilo di un'altra persona si apre con foto grande quadrata (o iniziali grandi), nome e cognome a 24 px, badge sotto, livello a 17 px con la struttura sotto, barra del percorso a piena larghezza e scritta dello stadio a 14 px; "← Torna alla comunità" alto 44 px. Proprio profilo: foto 96 px, nome 20 px, stadio 14 px, barra senza il limite di 28 px. Card della lista: nome e stadio a 14 px. Blocco v3.56b: tolto un !important (stadio a 8 px), altri due ristretti per non toccare foto e nome delle due schede; nessun !important nuovo. Sopra i 768 px nulla cambia. CUMULA v3.180. -->
 <!-- KC-BUILD: portale v3.180 · 2026-11-26 · COMUNITA': BARRA DEL PERCORSO SENZA PAGAMENTI (Marco 26 nov, Master v4.60 §3 e v4.61). profiles_community si legge con l'elenco delle colonne che servono, senza i flag *_paid: lo stadio degli altri lo da' la nuova colonna step_percorso (quinta sorgente di calcolaStepDerivato). Il profilo proprio non cambia. CUMULA v3.179. -->
@@ -135,6 +136,7 @@ try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.docu
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/kc-settimane.js?v=1.0"></script>
 
 <style>
 :root {
@@ -1624,6 +1626,8 @@ fill="#1d4ed8" stroke="none">
       <div id="my-questionari-diario"></div>
 
       <!-- v3.137 — Il mio diario didattico: le note che l'istruttore ha scelto di mostrare (v_mio_diario_didattico) -->
+      <!-- v3.183 — Le mie settimane: lezioni e Sala con Monitor, settimana per settimana (kc-settimane.js) -->
+      <div id="my-settimane"></div>
       <div id="my-diario-didattico"></div>
       <!-- v3.141 — Il mio mese (staff che non e' segreteria, v_costi_staff_mese) -->
       <div id="my-mese-staff"></div>
@@ -6139,6 +6143,22 @@ async function renderMioDiarioDidattico(){
     +corpo+'</div>';
 }
 
+/* v3.183 — LE MIE SETTIMANE (Marco 27 nov): lezioni e Sala con Monitor settimana per settimana. Stessa funzione della
+   Scheda Allievo di Oggi (kc-settimane.js), RPC le_mie_settimane senza persona = le proprie. Solo lettura. */
+async function renderMieSettimane(){
+  const el=document.getElementById('my-settimane');if(!el||!sb||!user||typeof kcSettimaneCarica!=='function')return;
+  const r=await kcSettimaneCarica(sb,null);
+  if(r.errore){el.innerHTML='';el.dataset.sig='';return}
+  if(!r.righe.length&&profile&&profile.staff_role){el.innerHTML='';el.dataset.sig='';return} // lo staff senza lezioni non vede il riquadro vuoto
+  const sig=JSON.stringify(r.righe)+'|'+new Date().toDateString();if(el.dataset.sig===sig)return;el.dataset.sig=sig;
+  const nome=t=>DIARIO_DID_CONTESTO[t]||(t==='genitori'?'Corso Genitori KataClimb':(t?String(t).replace(/_/g,' '):'Lezione'));
+  const corpo=kcSettimaneHtml(r.righe,{nomeCorso:nome,
+    vuoto:'Qui trovi, settimana per settimana, le lezioni che fai e i giorni in cui vieni in Sala con Monitor. La prima riga compare con la tua prossima lezione.'});
+  el.innerHTML='<div class="card fu" style="margin-bottom:22px;padding:16px">'
+    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 12px">Le mie <em>settimane</em></h2>'
+    +corpo+'</div>';
+}
+
 /* v3.165 apre e chiude lo storico delle versioni di una nota del Mio percorso */
 function diarioStorico(el){ const s=el&&el.nextElementSibling; if(!s)return; s.hidden=!s.hidden; el.setAttribute('aria-expanded',String(!s.hidden)); }
 
@@ -9270,6 +9290,7 @@ function renderApp(){
   renderProg('my-prog-bar','my-prog-current',stepDerivato,profile.enrolled_next||false,calcolaSubPallini(profile,myPrenotCorso,stepDerivato));
   // v3.114 — Il tuo diario del percorso: solo le sue parole, sotto la Linea del Percorso
   renderQuestionariPersona(profile.persona_id,document.getElementById('my-questionari-diario'),{modo:'diario'});
+  renderMieSettimane(); // v3.183
   renderMioDiarioDidattico(); // v3.137
   renderMioMeseStaff(); // v3.141
   renderPromemoriaDomanda(); // v3.160

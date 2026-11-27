@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- KC-BUILD: oggi v2.70 · 2026-11-27 · LE SUE SETTIMANE NELLA SCHEDA ALLIEVO (Marco 27 nov, caso Emanuele Drizzi, "lo farei per tutti"; DB le_mie_settimane_2026_11_27, kc-settimane.js v1.0, Master v4.80). Nella Scheda Allievo, sotto il Percorso, la sezione "Le sue settimane": una riga per settimana (lunedì–domenica, dalla settimana in corso indietro, al massimo 8) con le lezioni (giorno, corso per esteso, ora, presente / assente / prenotata / presenza non segnata) e i giorni di Sala con Monitor. È la stessa cosa che l'allievo legge nel suo profilo. Solo lettura, per tutto lo staff; nessun numero salvato. Non compare nella scheda ridotta della sala. CUMULA v2.69. -->
 <!-- KC-BUILD: oggi v2.69 · 2026-11-20 · SALA DEL CORSO SCADUTA: IL MONITOR LO VEDE E NON LA METTE NEL TURNO (Marco 19-20 nov, DB sala_corso_blocco_e_date_2026_11_20). Chi ha la Sala con Monitor inclusa nel corso scaduta, e nessun'altra copertura, compare con "sala scaduta" nella griglia e in "Chi segui stasera?" non si può spuntare: sotto il nome c'è scritto da quando e cosa serve. Il blocco vero lo fa il database (monitor_scegli_seguiti, monitor_aggiungi_seguiti), che risponde con la spiegazione. Elenco da sala_corso_scadute(); se la RPC non risponde non si mostra nulla. CUMULA v2.68 -->
 <!-- KC-BUILD: oggi v2.68 · 2026-11-20 · TITOLARE DI DEFAULT, NESSUNO SI DEGRADA (Marco 20 nov: "perché si dovrebbe degradare? Non ha senso"; segue v2.67). In "I tuoi impegni · oggi" tolta la coppia di bottoni TITOLARE / D'APPOGGIO: il ruolo resta scritto nella riga della lezione. Nessuna modifica a DB. CUMULA v2.67. -->
 <!-- KC-BUILD: oggi v2.67 · 2026-11-20 · TUTTI TITOLARI (Marco 20 nov, segnalazione Roberta; segue due_istruttori_fissi_15_euro_2026_11_19, Master v4.44). In "I tuoi impegni · oggi": (1) il testo delle conferme TITOLARE / D'APPOGGIO non dice più "il titolare è uno solo: mettetevi d'accordo" (lunedì e giovedì, Corso Bambini (6–11) e Corso Ragazzi (12–17), i titolari sono due); (2) nelle Prime Lezioni e nella Lezione Privata Bambini l'istruttore pagato a ore non è più scritto "assistente". Nessuna modifica a DB. CUMULA v2.66. -->
@@ -76,6 +77,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/kc-da-coprire.js?v=1.6"></script>
 <script src="/kc-proposta-open.js?v=1.2"></script>
+<script src="/kc-settimane.js?v=1.0"></script>
 <style>
 :root{
   --nero:#000; --tile:#161618; --bianco:#FFF; --grigio:#9A9AA0; --velo:rgba(255,255,255,.08);
@@ -2089,6 +2091,7 @@ function tornaAgenda(qs){
 function apriScheda(pid,sala,origine){
   schedaPid=pid; schedaDati=null; ossAperta=false; ossSporca=false;
   quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
+  schedaSettimane=null; // v2.70
   ric={az:null,int:null,giorni:1}; _etaAperta=false; // v2.41
   schedaBrief=null; // v2.42
   schedaAcc=null; schedaNoteAcc=null; // v2.52 · v2.53
@@ -2110,6 +2113,7 @@ function nascondiScheda(){
   document.body.style.overflow=''; document.body.classList.remove('sch-on');
   schedaPid=null; schedaDati=null; ossAperta=false; schedaSala=false;
   quadro=null; quadroAperto=false; quadroSporco=false; quadroFine=null; qb=null; // v2.36
+  schedaSettimane=null; // v2.70
   ric={az:null,int:null,giorni:1}; cercaSvuota(); // v2.44
   schedaAcc=null; schedaNoteAcc=null; // v2.52 · v2.53
   if(guida)fotoLibera();
@@ -2165,6 +2169,7 @@ async function caricaScheda(){
     caricaBriefScheda(pid); // v2.42 card In breve in cima
     caricaAccompagnatori(pid); // v2.52 Chi lo accompagna / Accompagna
     caricaNoteAcc(pid); // v2.53 Note di accompagnamento
+    if(!schedaDati.soloSala)caricaSettimane(pid); // v2.70 Le sue settimane
   }catch(e){
     if(pid!==schedaPid)return;
     console.error('[scheda]',e);
@@ -2505,6 +2510,7 @@ function disegnaScheda(){
     ${schedaSala?htmlSalaScheda(d):''}
     ${htmlNote(d)}
     ${d.soloSala?'':`<section class="sch-sez"><h3>Percorso ${visPill('allievo')}</h3>${htmlPercorso(d)}</section>
+    ${htmlSettimane()}
     ${htmlQuadro(d)}
     <section class="sch-sez"><h3>Osservazioni ${visPill('staff')}</h3><p class="aiuto vis-nota">Scale e note interne le legge solo lo staff; quello che porta ${visPill('allievo')} lo legge anche l’allievo.</p>${ossHtml}</section>
     ${htmlCommerciale(d)}`}`;
@@ -2528,6 +2534,23 @@ const QV_TIPI=[ // [tipo, etichetta per lo staff, la legge l'allievo]
 const QV_LBL=Object.fromEntries(QV_TIPI.map(([t,l])=>[t,l]));
 const QV_RUOLO={istruttore:'Istruttore',monitor:'Monitor',maestro:'Maestro'}; // il DB non ha il genere: ruolo come etichetta
 const CORSO_FINE={open:'Corso Open KataClimb',advance:'Corso Advance KataClimb',intro_corda:'Corso Intro Corda KataClimb',evo_corda:'Corso Evo Corda KataClimb'};
+/* v2.70 LE SUE SETTIMANE: lezioni e Sala con Monitor settimana per settimana (kc-settimane.js, RPC le_mie_settimane).
+   Stesso conto e stesse parole del riquadro "Le mie settimane" che l'allievo legge nel suo profilo. Solo lettura. */
+let schedaSettimane=null; // {righe, errore}
+async function caricaSettimane(pid){
+  if(typeof kcSettimaneCarica!=='function')return;
+  const r=await kcSettimaneCarica(sb,pid);
+  if(pid!==schedaPid)return;
+  schedaSettimane=r;
+  if(!document.getElementById('scheda').hidden && !ossAperta && !quadroAperto)disegnaScheda(); // mentre si scrive non si ridisegna: comparirà al prossimo disegno
+}
+function htmlSettimane(){
+  const r=schedaSettimane; if(!r||typeof kcSettimaneHtml!=='function')return '';
+  const corpo=r.errore
+    ? `<p class="sch-vuoto">Non riesco a leggere le settimane ora: ${esc(r.errore)}. Richiudi e riapri la scheda.</p>`
+    : kcSettimaneHtml(r.righe,{nomeCorso, vuoto:'Nessuna lezione e nessun giorno di Sala con Monitor nelle ultime 8 settimane.'});
+  return `<section class="sch-sez" id="sch-settimane"><h3>Le sue settimane ${visPill('allievo')}</h3>${corpo}</section>`;
+}
 let quadro=null;          // {pid, kata:[...]|null, userId, voci:[...], nomi:{user_id:nome}, errore}
 let quadroAperto=false, quadroSporco=false, quadroFine=null, qb=null; // qb = bozza del modulo, sopravvive ai ridisegni
 const qbNuova=ctx=>({contesto:ctx,punti_forza:'',abitudini_da_trasformare:'',per_te:'',punti_deboli:'',problematiche_caratteriali:'',kata:[{num:'',testo:''}]});
