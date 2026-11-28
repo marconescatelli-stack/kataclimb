@@ -6048,7 +6048,7 @@ function mmsRiga(r,oggiIso){
   const orario=ora(r.ora_inizio)+(r.ora_fine?'–'+ora(r.ora_fine):'');
   const nomi=a=>(a||[]).map(escapeHtml).join(', ');
   const pres=r.presenti||[],ass=r.assenti||[],pren=r.prenotati||[];
-  let titolo,stato,col='var(--text3)',soldi='',sotto=[];
+  let titolo,stato,col='var(--text2)',soldi='',sotto=[];
   if(r.cosa==='monitor'){
     titolo='Sala con Monitor';
     if(r.stato==='non_dichiarato'){stato='turno non dichiarato';col='#B45309';sotto.push('Il turno non era dichiarato: vale 0 € finché non lo segni a posteriori e la segreteria lo conferma.')}
@@ -6086,11 +6086,11 @@ function mmsRiga(r,oggiIso){
   }
   return '<div style="padding:9px 0;border-top:1px solid rgba(0,0,0,.07)">'
     +'<div style="display:flex;gap:10px;align-items:baseline;justify-content:space-between">'
-      +'<div style="font-size:14px;min-width:0">'+(orario?'<span style="color:var(--text3)">'+orario+'</span> · ':'')+'<b style="font-weight:600">'+titolo+'</b>'
+      +'<div style="font-size:14px;min-width:0">'+(orario?'<span style="color:var(--text2)">'+orario+'</span> · ':'')+'<b style="font-weight:600">'+titolo+'</b>'
       +' · <span style="color:'+col+'">'+stato+'</span></div>'
       +'<div style="font-size:14px;white-space:nowrap;font-weight:600">'+soldi+'</div>'
     +'</div>'
-    +sotto.map(t=>'<div style="font-size:13px;color:var(--text3);margin-top:3px;line-height:1.4">'+t+'</div>').join('')
+    +sotto.map(t=>'<div style="font-size:13px;color:var(--text2);margin-top:3px;line-height:1.4">'+t+'</div>').join('')
     +'</div>';
 }
 async function renderMioMeseStaff(){
@@ -6123,9 +6123,9 @@ async function renderMioMeseStaff(){
   const btn='border:1px solid rgba(0,0,0,.15);background:#fff;border-radius:8px;min-width:40px;height:36px;font-size:18px;cursor:pointer';
   let elenco='';
   if(righe===null){
-    elenco='<p style="margin:12px 0 0;font-size:14px;color:var(--text3)">L’elenco delle lezioni non si è caricato. Riprova tra poco.</p>';
+    elenco='<p style="margin:12px 0 0;font-size:14px;color:var(--text2)">L’elenco delle lezioni non si è caricato. Riprova tra poco.</p>';
   }else if(!righe.length){
-    elenco='<p style="margin:12px 0 0;font-size:14px;color:var(--text3)">Nessuna lezione e nessun turno a '+nomeMese+'.</p>';
+    elenco='<p style="margin:12px 0 0;font-size:14px;color:var(--text2)">Nessuna lezione e nessun turno a '+nomeMese+'.</p>';
   }else{
     const oggiIso=mmsIso(o),perGiorno=new Map();
     righe.forEach(x=>{const k=String(x.data).slice(0,10);if(!perGiorno.has(k))perGiorno.set(k,[]);perGiorno.get(k).push(x)});
@@ -6136,7 +6136,7 @@ async function renderMioMeseStaff(){
         +MMS_GIORNI[d.getDay()]+' '+d.getDate()+' '+MMS_MESI[d.getMonth()]+(k===oggiIso?' · oggi':'')+'</div>'
         +perGiorno.get(k).map(x=>mmsRiga(x,oggiIso)).join('')+'</div>';
     }).join('')+'</div>'
-    +'<p style="margin:14px 0 0;font-size:13px;color:var(--text3);line-height:1.4">Vedi solo le tue lezioni. Se una riga non torna, dillo alla segreteria prima della fine del mese.</p>';
+    +'<p style="margin:14px 0 0;font-size:13px;color:var(--text2);line-height:1.4">Vedi solo le tue lezioni. Se una riga non torna, dillo alla segreteria prima della fine del mese.</p>';
   }
   el.innerHTML='<div class="card fu" style="margin-bottom:22px;padding:16px">'
     +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 10px">Il mio <em>mese</em> · le mie lezioni</h2>'
@@ -6147,7 +6147,7 @@ async function renderMioMeseStaff(){
     +'</div>'
     +'<p style="margin:0;font-size:15px">'+(corrente?'Questo mese':'In tutto')+': '+n(r.lezioni_corsi,'lezione','lezioni')+', '+n(r.prime_lezioni,'prima','prime')+', '+ore+' ore monitor'
       +(Number(r.lezioni_private)>0?', '+n(r.lezioni_private,'privata','private'):'')+' = <b>'+eur+'</b></p>'
-    +(Number(r.euro_rettifiche)?'<p style="margin:6px 0 0;font-size:13px;color:var(--text3)">Comprende una rettifica di '+Number(r.euro_rettifiche).toLocaleString('it-IT',{style:'currency',currency:'EUR'})+' decisa dalla segreteria.</p>':'')
+    +(Number(r.euro_rettifiche)?'<p style="margin:6px 0 0;font-size:13px;color:var(--text2)">Comprende una rettifica di '+Number(r.euro_rettifiche).toLocaleString('it-IT',{style:'currency',currency:'EUR'})+' decisa dalla segreteria.</p>':'')
     +(Number(r.da_confermare)>0?'<p style="margin:8px 0 0;font-size:14px;color:#B45309">'+n(r.da_confermare,'lezione','lezioni')+' ancora senza presenza: valgono 0 finché la segreteria non conferma.</p>':'')
     +(Number(r.non_svolte)>0?'<p style="margin:8px 0 0;font-size:14px;color:var(--text2)">'+n(r.non_svolte,'lezione non svolta','lezioni non svolte')+': la lezione non c’era, non conta come assenza.</p>':'')
     +elenco
