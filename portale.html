@@ -20,6 +20,7 @@ html.kc-boot body::before{
 try{window.KC_HASH0=window.location.hash||''}catch(e){window.KC_HASH0=''}
 try{if(localStorage.getItem('sb-wbtougychlhnlcnonqge-auth-token')){document.documentElement.classList.add('kc-boot');setTimeout(function(){document.documentElement.classList.remove('kc-boot')},8000)}}catch(e){}</script>
 
+<!-- KC-BUILD: portale v3.184 · 2026-11-28 · LE MIE LEZIONI (Marco 28 nov, richiesta degli istruttori; DB le_mie_lezioni_2026_11_28). Nel profilo dello staff che non è segreteria il riquadro "Il mio mese" diventa "Il mio mese · le mie lezioni": frecce per scorrere i mesi passati e, sotto la riga del conto, l'elenco giorno per giorno delle PROPRIE lezioni, turni di Sala con Monitor e lezioni private: fatta / non c'eri / non svolta / presenza da segnare / in programma, allievi presenti, assenti e prenotati, e quanto vale ogni riga (con il perché quando vale 0 o 5 € l'ora). RPC le_mie_lezioni(p_mese): ognuno vede solo le sue. Solo lettura, nessuna scrittura nuova. CUMULA v3.183. -->
 <!-- KC-BUILD: portale v3.183 · 2026-11-27 · LE MIE SETTIMANE (Marco 27 nov, caso Emanuele Drizzi, "lo farei per tutti"; DB le_mie_settimane_2026_11_27, kc-settimane.js v1.0, Master v4.80). Nel profilo, sopra "Il mio percorso", il riquadro "Le mie settimane": una riga per settimana (lunedì–domenica, dalla settimana in corso indietro, al massimo 8) con le lezioni (giorno, corso per esteso, ora, presente / assente / prenotata) e i giorni di Sala con Monitor. Solo nel proprio profilo. Tutto calcolato da prenotazioni, presenze segnate e turni del monitor: nessun numero salvato. Lo staff senza lezioni non vede il riquadro. CUMULA v3.182. -->
 <!-- KC-BUILD: portale v3.182 · 2026-11-26 · LA SCHEDA NON BALLA PIU' SU TELEFONO (Marco 26 nov da iPhone: "balla nello schermo"). Sotto i 768 px le linguette Kata / Logbook / Certificazioni (.sec-tog, non la barra di navigazione) passano da 18 a 14 px con meno margine: prima chiedevano 365 px e su iPhone ne restano 343-358, quindi la pagina scorreva di lato. Difetto gia' presente nella v3.180, non nato con la v3.181. Solo CSS, sopra i 768 px nulla cambia. CUMULA v3.181. -->
 <!-- KC-BUILD: portale v3.181 · 2026-11-26 · SCHEDA PERSONA A TUTTA PAGINA SU TELEFONO (Marco 26 nov, Master v4.65). Solo aspetto, solo sotto i 768 px: in Comunità il profilo di un'altra persona si apre con foto grande quadrata (o iniziali grandi), nome e cognome a 24 px, badge sotto, livello a 17 px con la struttura sotto, barra del percorso a piena larghezza e scritta dello stadio a 14 px; "← Torna alla comunità" alto 44 px. Proprio profilo: foto 96 px, nome 20 px, stadio 14 px, barra senza il limite di 28 px. Card della lista: nome e stadio a 14 px. Blocco v3.56b: tolto un !important (stadio a 8 px), altri due ristretti per non toccare foto e nome delle due schede; nessun !important nuovo. Sopra i 768 px nulla cambia. CUMULA v3.180. -->
@@ -6026,29 +6027,130 @@ async function renderQuestionariPersona(personaId,containerEl,opts){
   containerEl.innerHTML=html;
 }
 
-/* v3.141 — Il mio mese (staff che non e' segreteria): la propria riga di v_costi_staff_mese per il mese in corso. */
+/* v3.141 — Il mio mese (staff che non e' segreteria): la propria riga di v_costi_staff_mese.
+   v3.184 — LE MIE LEZIONI (Marco 28 nov, richiesta degli istruttori): sotto la riga del mese, l'elenco delle PROPRIE lezioni,
+   turni di Sala con Monitor e lezioni private, giorno per giorno, anche dei mesi passati (frecce ‹ ›): fatta / assente /
+   non svolta / presenza da segnare, chi degli allievi c'era e chi no, e quanto vale ogni riga. RPC le_mie_lezioni(p_mese):
+   ognuno vede solo le sue. Solo lettura. Date a componenti locali, mai toISOString (trappola 134). */
+let mmsMese=null; // primo giorno del mese mostrato
+const MMS_MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const MMS_GIORNI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+function mmsIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function mmsVai(passo){
+  const o=new Date(),oggi=new Date(o.getFullYear(),o.getMonth(),1);
+  const b=mmsMese||oggi,n=new Date(b.getFullYear(),b.getMonth()+passo,1);
+  if(n>oggi)return;
+  mmsMese=n;renderMioMeseStaff();
+}
+function mmsRiga(r,oggiIso){
+  const eur=x=>Number(x||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  const ora=t=>t?String(t).slice(0,5):'';
+  const orario=ora(r.ora_inizio)+(r.ora_fine?'–'+ora(r.ora_fine):'');
+  const nomi=a=>(a||[]).map(escapeHtml).join(', ');
+  const pres=r.presenti||[],ass=r.assenti||[],pren=r.prenotati||[];
+  let titolo,stato,col='var(--text3)',soldi='',sotto=[];
+  if(r.cosa==='monitor'){
+    titolo='Sala con Monitor';
+    if(r.stato==='non_dichiarato'){stato='turno non dichiarato';col='#B45309';sotto.push('Il turno non era dichiarato: vale 0 € finché non lo segni a posteriori e la segreteria lo conferma.')}
+    else if(r.stato==='da_rivedere'||r.nota){stato='in attesa della segreteria';col='#B45309';sotto.push('Segnato a posteriori: si paga quando la segreteria conferma.')}
+    else{stato='fatto';col='#15803D'}
+    soldi=eur(r.euro);
+    sotto.push(pres.length?'Persone seguite: '+nomi(pres):'Nessuna persona seguita e annotata: vale come sala, 5 € l’ora.');
+  }else if(r.cosa==='privata'){
+    titolo='Lezione privata'+(pres.length?' · '+nomi(pres):'');
+    if(r.stato==='annullata'){stato='annullata'}else{stato='fatta';col='#15803D'}
+    soldi=eur(r.euro);
+    if(r.nota)sotto.push(escapeHtml(r.nota));
+  }else{
+    titolo=escapeHtml(tuNomeCorso(r.tipo_corso,r.fascia));
+    const passata=String(r.data)<=oggiIso;
+    if(r.stato==='presente'){stato='fatta';col='#15803D'}
+    else if(r.stato==='assente'){stato='non c’eri'}
+    else if(r.stato==='non_svolta'){stato='non svolta'}
+    else if(r.stato==='previsto'&&String(r.data)<oggiIso&&!r.dentro_corso){stato='presenza da segnare';col='#B45309'}
+    else if(r.stato==='previsto'&&!passata){stato='in programma'}
+    else if(r.stato==='previsto'){stato=r.dentro_corso?'dentro il corso':'oggi'}
+    else{stato=escapeHtml(String(r.stato||'').replace(/_/g,' '))}
+    if(r.dentro_corso){soldi='—';sotto.push('È dentro il tuo corso della stessa ora: non si paga a parte.')}
+    else if(r.compenso_tipo==='percentuale'){soldi='a percentuale'}
+    else if(r.stato==='presente'){soldi=eur(r.euro)}
+    else if(r.stato==='previsto'&&String(r.data)<oggiIso){soldi=eur(0);sotto.push('Senza la tua presenza segnata vale 0 €: segnala dall’agenda o dillo alla segreteria.')}
+    else if(r.stato==='previsto'){soldi=''}
+    else{soldi=eur(0)}
+    if(r.stato==='non_svolta')sotto.push('La lezione non c’era: non conta come assenza.');
+    if(pres.length)sotto.push('Presenti ('+pres.length+'): '+nomi(pres));
+    if(ass.length)sotto.push('Assenti ('+ass.length+'): '+nomi(ass));
+    if(pren.length)sotto.push((passata?'Prenotati senza presenza segnata (':'Prenotati (')+pren.length+'): '+nomi(pren));
+    if(r.stato==='presente'&&!pres.length&&!r.dentro_corso&&(r.compenso_tipo==='lezione'||String(r.tipo_corso).indexOf('prima_lezione')===0)&&Number(r.ore)>0&&Number(r.euro)/Number(r.ore)<=5.01)
+      sotto.push('<span style="color:#B45309">Nessun allievo segnato presente: così vale 5 € l’ora. Se c’erano, segna le presenze in agenda.</span>');
+  }
+  return '<div style="padding:9px 0;border-top:1px solid rgba(0,0,0,.07)">'
+    +'<div style="display:flex;gap:10px;align-items:baseline;justify-content:space-between">'
+      +'<div style="font-size:14px;min-width:0">'+(orario?'<span style="color:var(--text3)">'+orario+'</span> · ':'')+'<b style="font-weight:600">'+titolo+'</b>'
+      +' · <span style="color:'+col+'">'+stato+'</span></div>'
+      +'<div style="font-size:14px;white-space:nowrap;font-weight:600">'+soldi+'</div>'
+    +'</div>'
+    +sotto.map(t=>'<div style="font-size:13px;color:var(--text3);margin-top:3px;line-height:1.4">'+t+'</div>').join('')
+    +'</div>';
+}
 async function renderMioMeseStaff(){
   const el=document.getElementById('my-mese-staff');if(!el||!sb||!user)return;
   if(!profile||!profile.staff_role||['staff_creator','staff_segreteria'].includes(profile.staff_role)){el.innerHTML='';return}
-  const o=new Date(),mese=o.getFullYear()+'-'+String(o.getMonth()+1).padStart(2,'0')+'-01';
-  let r=null;
+  const o=new Date(),meseOggi=new Date(o.getFullYear(),o.getMonth(),1);
+  if(!mmsMese||mmsMese>meseOggi)mmsMese=meseOggi;
+  const m=mmsMese,mese=mmsIso(m),corrente=m.getTime()===meseOggi.getTime();
+  let r=null,righe=null;
   try{
-    const{data,error}=await sb.from('v_costi_staff_mese').select('lezioni_corsi,prime_lezioni,ore_monitor,totale,da_confermare').eq('user_id',user.id).eq('mese',mese).maybeSingle();
+    const{data,error}=await sb.from('v_costi_staff_mese').select('lezioni_corsi,prime_lezioni,ore_monitor,totale,da_confermare,lezioni_private,euro_rettifiche').eq('user_id',user.id).eq('mese',mese).maybeSingle();
     if(error)throw error;
-    r=data||{lezioni_corsi:0,prime_lezioni:0,ore_monitor:0,totale:0,da_confermare:0};
+    r=data||{lezioni_corsi:0,prime_lezioni:0,ore_monitor:0,totale:0,da_confermare:0,lezioni_private:0,euro_rettifiche:0};
     // v3.153 lezioni non svolte del mese: si leggono, non sono assenze
-    const fineM=new Date(o.getFullYear(),o.getMonth()+1,0),fineIso=fineM.getFullYear()+'-'+String(fineM.getMonth()+1).padStart(2,'0')+'-'+String(fineM.getDate()).padStart(2,'0');
+    const fineM=new Date(m.getFullYear(),m.getMonth()+1,0),fineIso=mmsIso(fineM);
     const ns=await sb.from('impegni_staff').select('id',{count:'exact',head:true}).eq('user_id',user.id).eq('stato','non_svolta').gte('data',mese).lte('data',fineIso);
     r.non_svolte=ns.error?0:(ns.count||0);
   }catch(e){console.warn('[mio mese]',e.message||e);el.innerHTML='';return}
+  if(mmsMese!==m)return; // nel frattempo e' stato scelto un altro mese
+  try{
+    const L=await sb.rpc('le_mie_lezioni',{p_mese:mese});
+    if(L.error)throw L.error;
+    righe=L.data||[];
+  }catch(e){console.warn('[le mie lezioni]',e.message||e);righe=null}
+  if(mmsMese!==m)return;
   const eur=Number(r.totale||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
   const ore=Number(r.ore_monitor||0).toLocaleString('it-IT',{maximumFractionDigits:2});
   const n=(x,uno,piu)=>Number(x||0)+' '+(Number(x)===1?uno:piu);
+  const nomeMese=MMS_MESI[m.getMonth()]+' '+m.getFullYear();
+  const btn='border:1px solid rgba(0,0,0,.15);background:#fff;border-radius:8px;min-width:40px;height:36px;font-size:18px;cursor:pointer';
+  let elenco='';
+  if(righe===null){
+    elenco='<p style="margin:12px 0 0;font-size:14px;color:var(--text3)">L’elenco delle lezioni non si è caricato. Riprova tra poco.</p>';
+  }else if(!righe.length){
+    elenco='<p style="margin:12px 0 0;font-size:14px;color:var(--text3)">Nessuna lezione e nessun turno a '+nomeMese+'.</p>';
+  }else{
+    const oggiIso=mmsIso(o),perGiorno=new Map();
+    righe.forEach(x=>{const k=String(x.data).slice(0,10);if(!perGiorno.has(k))perGiorno.set(k,[]);perGiorno.get(k).push(x)});
+    const giorni=[...perGiorno.keys()].sort().reverse(); // dal piu' recente
+    elenco='<div style="margin-top:14px">'+giorni.map(k=>{
+      const p=k.split('-').map(Number),d=new Date(p[0],p[1]-1,p[2]);
+      return '<div style="margin-top:12px"><div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text2)">'
+        +MMS_GIORNI[d.getDay()]+' '+d.getDate()+' '+MMS_MESI[d.getMonth()]+(k===oggiIso?' · oggi':'')+'</div>'
+        +perGiorno.get(k).map(x=>mmsRiga(x,oggiIso)).join('')+'</div>';
+    }).join('')+'</div>'
+    +'<p style="margin:14px 0 0;font-size:13px;color:var(--text3);line-height:1.4">Vedi solo le tue lezioni. Se una riga non torna, dillo alla segreteria prima della fine del mese.</p>';
+  }
   el.innerHTML='<div class="card fu" style="margin-bottom:22px;padding:16px">'
-    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 8px">Il mio <em>mese</em></h2>'
-    +'<p style="margin:0;font-size:15px">Questo mese: '+n(r.lezioni_corsi,'lezione','lezioni')+', '+n(r.prime_lezioni,'prima','prime')+', '+ore+' ore monitor = <b>'+eur+'</b></p>'
+    +'<h2 style="font-family:var(--serif);font-size:16px;font-weight:300;margin:0 0 10px">Il mio <em>mese</em> · le mie lezioni</h2>'
+    +'<div style="display:flex;align-items:center;gap:10px;margin:0 0 10px">'
+      +'<button type="button" aria-label="Mese precedente" style="'+btn+'" onclick="mmsVai(-1)">‹</button>'
+      +'<div style="flex:1;text-align:center;font-size:15px;font-weight:600">'+nomeMese+'</div>'
+      +'<button type="button" aria-label="Mese successivo" style="'+btn+(corrente?';opacity:.3;cursor:default':'')+'"'+(corrente?' disabled':'')+' onclick="mmsVai(1)">›</button>'
+    +'</div>'
+    +'<p style="margin:0;font-size:15px">'+(corrente?'Questo mese':'In tutto')+': '+n(r.lezioni_corsi,'lezione','lezioni')+', '+n(r.prime_lezioni,'prima','prime')+', '+ore+' ore monitor'
+      +(Number(r.lezioni_private)>0?', '+n(r.lezioni_private,'privata','private'):'')+' = <b>'+eur+'</b></p>'
+    +(Number(r.euro_rettifiche)?'<p style="margin:6px 0 0;font-size:13px;color:var(--text3)">Comprende una rettifica di '+Number(r.euro_rettifiche).toLocaleString('it-IT',{style:'currency',currency:'EUR'})+' decisa dalla segreteria.</p>':'')
     +(Number(r.da_confermare)>0?'<p style="margin:8px 0 0;font-size:14px;color:#B45309">'+n(r.da_confermare,'lezione','lezioni')+' ancora senza presenza: valgono 0 finché la segreteria non conferma.</p>':'')
     +(Number(r.non_svolte)>0?'<p style="margin:8px 0 0;font-size:14px;color:var(--text2)">'+n(r.non_svolte,'lezione non svolta','lezioni non svolte')+': la lezione non c’era, non conta come assenza.</p>':'')
+    +elenco
     +'</div>';
 }
 /* v3.151 — IL MIO PERCORSO (consegna 31 ott 2026, decisioni di Marco): la traccia del progresso promessa sul sito.
